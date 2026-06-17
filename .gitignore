@@ -6,8 +6,9 @@ data/_disasters_raw.json
 __pycache__/
 *.pyc
 
-# PoC panel intermediate (regenerable, large)
+# PoC panel intermediates (regenerable, large)
 data/county_panel.json
+data/state_panel.json
 
 # Atlas-14 DDF cache (regenerable; pulled by scripts/augment_ari.py)
 data/_atlas14_cache.json

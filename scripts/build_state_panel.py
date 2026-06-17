@@ -16,6 +16,7 @@ Emitted fields per state-episode:
   sumPopExposed, sumHousingExposed, sumDamageProxy,
   maxRainDayMaxIn, sumRainFootprintIn, rainEventARIyr,
   maxFtAboveFlood, maxSnowDepthPreIn, maxSnowMeltIn,
+  maxSnowfallEventIn, maxSnowfallDayMaxIn, maxSweAntecedentIn, maxSweMeltIn,
   totTornadoes, maxEF, maxGustMph, maxHailIn,
   declared, dn, paTotal, ihpTotal, disasterAgeYears, mature
 
@@ -82,6 +83,8 @@ def main():
             rainEventARIyr=round(mx(g,"rainEventARIyr"),1),
             maxFtAboveFlood=round(mx(g,"ftAboveFlood"),1),
             maxSnowDepthPreIn=round(mx(g,"snowDepthPreIn"),1),maxSnowMeltIn=round(mx(g,"snowMeltIn"),1),
+            maxSnowfallEventIn=round(mx(g,"snowfallEventIn"),1),maxSnowfallDayMaxIn=round(mx(g,"snowfallDayMaxIn"),1),
+            maxSweAntecedentIn=round(mx(g,"sweAntecedentIn"),2),maxSweMeltIn=round(mx(g,"sweMeltIn"),2),
             totTornadoes=sm(g,"tor"),maxEF=mx(g,"ef"),maxGustMph=round(mx(g,"gust")),maxHailIn=round(mx(g,"hail"),2),
             declared=1 if dn else 0,dn=dn,paTotal=pa,ihpTotal=ihp,
             disasterAgeYears=age,mature=mature))

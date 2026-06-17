@@ -5,8 +5,12 @@ stamps the county's people and housing stock, so hazard intensity can be read
 against how much is actually in harm's way (extent/exposure drives obligations
 more than peak intensity -- see the blueprint):
 
-  population   - county total population        (ACS 5-year B01003_001E)
-  housingUnits - county total housing units     (ACS 5-year B25001_001E)
+  population   - county total population        (Census Population Estimates,
+                 latest vintage, no API key required; or ACS 5-year B01003_001E
+                 when CENSUS_API_KEY is set)
+  housingUnits - county total housing units     (ACS 5-year B25001_001E; only
+                 populated when CENSUS_API_KEY is set -- housing has no key-free
+                 county feed, so it is omitted in the default keyless path)
 
   developedFrac - DOCUMENTED STRETCH (NOT IMPLEMENTED). The intended value is the
                   fraction of the county that is "developed" land cover from
@@ -26,11 +30,12 @@ SOURCE / METHOD
     row by `fips`.
 
 API KEY
-  - The Census API requires a key for sustained use. We read it from the
-    environment variable CENSUS_API_KEY. If it is unset, the script prints a
-    clear instruction (where to request a free key:
-    https://api.census.gov/data/key_signup.html) and EXITS 0 WITHOUT modifying
-    the panel -- so it never half-writes.
+  - The ACS API now requires a key. We read it from the environment variable
+    CENSUS_API_KEY; when set, we pull ACS population + housing. When it is UNSET
+    we fall back to the key-free Census Population Estimates county CSV for
+    population (housingUnits left unset) so exposure is still real and traceable
+    without registration. Get a free key at
+    https://api.census.gov/data/key_signup.html for the housing field.
 
 ADDITIVE / IDEMPOTENT
   - Loads data/county_panel.json, stamps population/housingUnits onto matching
@@ -39,13 +44,17 @@ ADDITIVE / IDEMPOTENT
 
 Run from repo root (after build_panel.py):  python3 scripts/augment_exposure.py
 """
-import os, sys, json, time, urllib.request, urllib.parse
+import os, sys, json, time, csv, io, urllib.request, urllib.parse
 HERE=os.path.dirname(os.path.abspath(__file__)); ROOT=os.path.dirname(HERE); DATA=os.path.join(ROOT,"data")
 
 # Region 5 state FIPS -> abbreviation (for reporting).
 R5_STATE_FIPS={"17":"IL","18":"IN","26":"MI","27":"MN","39":"OH","55":"WI"}
 ACS_YEAR=2022   # latest stable ACS 5-year vintage
 VARS=["B01003_001E","B25001_001E"]   # total population, total housing units
+# Key-free fallback: Census Population Estimates county totals (latest vintage).
+POPEST_URL=("https://www2.census.gov/programs-surveys/popest/datasets/"
+            "2020-2024/counties/totals/co-est2024-alldata.csv")
+POPEST_COL="POPESTIMATE2024"
 
 def fetch_state(state_fips, key, retries=4):
     """Return list of [NAME, pop, housing, state, county] rows for a state, or None."""
@@ -62,23 +71,32 @@ def to_int(v):
     try: return int(float(v))
     except: return None
 
-def main():
-    key=os.environ.get("CENSUS_API_KEY")
-    if not key:
-        print("CENSUS_API_KEY is not set; skipping exposure enrichment (panel unchanged).")
-        print("Request a free key at https://api.census.gov/data/key_signup.html then:")
-        print("  export CENSUS_API_KEY=<your_key>  &&  python3 scripts/augment_exposure.py")
-        sys.exit(0)
+def fetch_popest(retries=4):
+    """Key-free fallback: {fips5 -> population} from the Census Population Estimates CSV."""
+    for _ in range(retries):
+        try:
+            req=urllib.request.Request(POPEST_URL,
+                headers={"User-Agent":"DisasterParameters/exposure (public open data)"})
+            with urllib.request.urlopen(req,timeout=120) as r:
+                txt=r.read().decode("latin-1")
+            break
+        except Exception: time.sleep(2)
+    else:
+        return {}
+    out={}
+    for rec in csv.DictReader(io.StringIO(txt)):
+        sf=str(rec.get("STATE","")).zfill(2); cc=str(rec.get("COUNTY","")).zfill(3)
+        if sf in R5_STATE_FIPS and cc!="000":
+            out[sf+cc]={"population":to_int(rec.get(POPEST_COL)),"housingUnits":None}
+    return out
 
-    panel=os.path.join(DATA,"county_panel.json")
-    rows=json.load(open(panel))
-
-    fmap={}  # 5-digit fips -> {population, housingUnits}
+def acs_exposure(key):
+    """{fips5 -> {population, housingUnits}} from ACS 5-year (needs a key)."""
+    fmap={}
     for sf,abbr in sorted(R5_STATE_FIPS.items()):
         data=fetch_state(sf, key); time.sleep(0.3)
         if not data or len(data)<2:
-            print(f"  WARNING: no ACS data returned for {abbr} (state {sf}); its rows keep prior values")
-            continue
+            print(f"  WARNING: no ACS data returned for {abbr} (state {sf})"); continue
         header=data[0]
         ip=header.index("B01003_001E"); ih=header.index("B25001_001E")
         ist=header.index("state"); ico=header.index("county")
@@ -88,22 +106,35 @@ def main():
             fmap[fips]={"population":to_int(rec[ip]),"housingUnits":to_int(rec[ih])}
             n+=1
         print(f"  {abbr}: {n} counties")
+    return fmap
+
+def main():
+    key=os.environ.get("CENSUS_API_KEY")
+    if key:
+        print(f"CENSUS_API_KEY set; pulling ACS {ACS_YEAR} population + housing.")
+        fmap=acs_exposure(key); src=f"ACS {ACS_YEAR}"
+    else:
+        print("CENSUS_API_KEY unset; using key-free Census Population Estimates "
+              f"({POPEST_COL}) for population (housingUnits omitted).")
+        fmap=fetch_popest(); src=POPEST_COL
 
     if not fmap:
-        print("No ACS data fetched; panel left unchanged.")
-        sys.exit(0)
+        print("No exposure data fetched; panel left unchanged."); sys.exit(0)
 
+    panel=os.path.join(DATA,"county_panel.json")
+    rows=json.load(open(panel))
     stamped=0
     for r in rows:
         ex=fmap.get(r["fips"])
         if ex:
-            r["population"]=ex["population"]; r["housingUnits"]=ex["housingUnits"]
+            r["population"]=ex["population"]
+            if ex.get("housingUnits") is not None: r["housingUnits"]=ex["housingUnits"]
             stamped+=1
         # developedFrac: intentionally not written -- see module docstring (NLCD stretch).
 
     json.dump(rows,open(panel,"w"),separators=(",",":"))
-    print(f"stamped exposure (population, housingUnits) onto {stamped}/{len(rows)} rows "
-          f"from {len(fmap)} counties (ACS {ACS_YEAR}) -> data/county_panel.json")
+    print(f"stamped exposure (population{'+housingUnits' if key else ''}) onto "
+          f"{stamped}/{len(rows)} rows from {len(fmap)} counties ({src}) -> data/county_panel.json")
 
 if __name__=="__main__":
     main()
