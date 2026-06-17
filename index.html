@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Disaster Obligation Estimator — FEMA Region 5 (PA/IA)</title>
+<meta name="description" content="An independent analytical tool that estimates likely FEMA Public Assistance and Individual Assistance obligated dollars for a current or hypothetical Region 5 event, based on hazard parameters and analog historical disasters from OpenFEMA." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Source+Serif+4:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   U.S. Web Design System (USWDS) — FEMA / DHS inspired tokens
+   ============================================================ */
+:root{
+  /* Brand palette */
+  --navy:        #162e51;   /* primary-darker */
+  --navy-2:      #0b1f3a;
+  --blue:        #005ea2;   /* primary */
+  --blue-dark:   #1a4480;   /* primary-dark */
+  --blue-vivid:  #2491ff;   /* accent-cool */
+  --blue-light:  #d9e8f6;
+  --gold:        #ffbe2e;   /* accent-warm */
+  --gold-dark:   #e5a000;
+  --red:         #b50909;   /* error / emergency */
+  --red-vivid:   #e41d3d;
+  --green:       #00a91c;   /* success */
+  --green-dark:  #008817;
+  --ink:         #1b1b1b;
+  --ink-2:       #3d4551;
+  --ink-3:       #565c65;
+  --line:        #dfe1e2;
+  --line-2:      #c6cace;
+  --bg:          #f0f0ee;   /* gray-warm-4 */
+  --bg-2:        #f9f9f7;
+  --white:       #ffffff;
+  --shadow-sm:   0 1px 2px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.06);
+  --shadow-md:   0 2px 6px rgba(11,31,58,.10), 0 6px 18px rgba(11,31,58,.10);
+  --shadow-lg:   0 10px 34px rgba(11,31,58,.18);
+  --radius:      8px;
+  --radius-lg:   14px;
+  --sans: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:var(--sans);
+  color:var(--ink);
+  background:var(--bg);
+  font-size:16px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+h1,h2,h3,h4{font-weight:700;line-height:1.15;margin:0;letter-spacing:-.01em;}
+a{color:var(--blue);}
+button{font-family:inherit;}
+
+/* ============================================================
+   Official gov banner
+   ============================================================ */
+.gov-banner{background:#f0f0ee;border-bottom:1px solid var(--line);font-size:12px;color:#1b1b1b;}
+.gov-banner__inner{max-width:1280px;margin:0 auto;padding:7px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.gov-banner__flag{width:16px;height:11px;border-radius:1px;flex:none;
+  background:
+    linear-gradient(#bd3d44 0 0) 0 0/100% 100% no-repeat;
+  position:relative;overflow:hidden;}
+.gov-banner__flag::before{content:"";position:absolute;inset:0;background:
+  repeating-linear-gradient(#fff 0 1.1px, transparent 1.1px 2.2px);opacity:.55;}
+.gov-banner__flag::after{content:"";position:absolute;left:0;top:0;width:46%;height:55%;background:#3c3b6e;}
+.gov-banner__text b{font-weight:700;}
+.gov-banner__btn{background:none;border:0;color:var(--blue);cursor:pointer;text-decoration:underline;font-size:12px;padding:0 2px;}
+.gov-banner__detail{display:none;max-width:1280px;margin:0 auto;padding:8px 20px 14px;gap:24px;}
+.gov-banner__detail.open{display:flex;flex-wrap:wrap;}
+.gov-banner__col{display:flex;gap:10px;align-items:flex-start;max-width:46%;min-width:280px;}
+.gov-banner__icon{font-size:18px;line-height:1;color:var(--green-dark);flex:none;margin-top:2px;}
+.gov-banner__detail p{margin:0;font-size:12.5px;color:#3d4551;}
+
+/* ============================================================
+   Masthead
+   ============================================================ */
+.masthead{background:linear-gradient(120deg,var(--navy-2) 0%,var(--navy) 55%,var(--blue-dark) 130%);color:#fff;border-bottom:4px solid var(--gold);}
+.masthead__inner{max-width:1280px;margin:0 auto;padding:20px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.seal{width:54px;height:60px;flex:none;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));}
+.masthead__titles{flex:1 1 360px;min-width:260px;}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);}
+.masthead h1{font-size:clamp(22px,3.4vw,33px);margin:2px 0 4px;color:#fff;}
+.masthead__sub{font-size:14.5px;color:#cdd9e8;max-width:64ch;}
+.masthead__meta{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:200px;}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);color:#eaf1fa;white-space:nowrap;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 0 rgba(255,190,46,.7);}
+.dot.live{background:#23d160;animation:pulse 2s infinite;}
+.dot.warn{background:var(--gold);}
+.dot.err{background:var(--red-vivid);}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(35,209,96,.55);}70%{box-shadow:0 0 0 9px rgba(35,209,96,0);}100%{box-shadow:0 0 0 0 rgba(35,209,96,0);}}
+.masthead__disc{font-size:11px;color:#9fb2cb;text-align:right;max-width:30ch;}
+
+/* ============================================================
+   Layout
+   ============================================================ */
+.shell{max-width:1280px;margin:0 auto;padding:22px 20px 60px;}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:22px;align-items:start;}
+@media(max-width:960px){.grid{grid-template-columns:1fr;}}
+
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);}
+.card__hd{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.card__hd h2{font-size:16px;}
+.card__hd .sub{font-size:12px;color:var(--ink-3);font-weight:500;}
+.card__bd{padding:18px 20px;}
+
+/* Control panel */
+.panel{position:sticky;top:14px;}
+@media(max-width:960px){.panel{position:static;}}
+
+.field{margin-bottom:16px;}
+.field:last-child{margin-bottom:0;}
+.field > label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:6px;}
+.field .hint{font-weight:400;color:var(--ink-3);font-size:12px;}
+select,input[type=number],input[type=text]{
+  width:100%;padding:9px 11px;font-size:14.5px;font-family:inherit;color:var(--ink);
+  border:1px solid var(--line-2);border-radius:7px;background:var(--white);appearance:none;
+}
+select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23565c65' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 11px center;padding-right:32px;}
+select:focus,input:focus{outline:3px solid var(--blue-vivid);outline-offset:0;border-color:var(--blue);}
+
+/* Slider field */
+.slider-field .row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
+.slider-field .val{font-variant-numeric:tabular-nums;font-weight:800;font-size:17px;color:var(--navy);}
+.slider-field .val .u{font-size:12px;font-weight:600;color:var(--ink-3);margin-left:3px;}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:7px;border-radius:6px;background:linear-gradient(90deg,var(--blue) var(--pct,0%),#e6e9ec var(--pct,0%));outline:none;margin:4px 0 2px;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:21px;height:21px;border-radius:50%;background:var(--white);border:3px solid var(--blue);box-shadow:var(--shadow-sm);cursor:pointer;margin-top:0;}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--white);border:3px solid var(--blue);cursor:pointer;}
+.slider-field .scale{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:2px;}
+.haz-ic{display:inline-block;width:15px;text-align:center;margin-right:5px;}
+
+.divider{height:1px;background:var(--line);margin:18px -20px;}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 14px;font-size:14px;font-weight:700;border-radius:7px;border:1px solid transparent;cursor:pointer;transition:.12s;}
+.btn--primary{background:var(--blue);color:#fff;}
+.btn--primary:hover{background:var(--blue-dark);}
+.btn--ghost{background:var(--white);color:var(--blue);border-color:var(--line-2);}
+.btn--ghost:hover{background:var(--bg-2);}
+.btn-row{display:flex;gap:10px;}
+
+/* ============================================================
+   Results: headline stat cards
+   ============================================================ */
+.results{display:flex;flex-direction:column;gap:22px;}
+.headline{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:720px){.headline{grid-template-columns:1fr;}}
+.stat{position:relative;overflow:hidden;border-radius:var(--radius-lg);padding:18px 18px 16px;color:#fff;box-shadow:var(--shadow-md);}
+.stat--pa{background:linear-gradient(135deg,#1a4480,#005ea2);}
+.stat--ia{background:linear-gradient(135deg,#0b4f6c,#0098c1);}
+.stat--total{background:linear-gradient(135deg,#1b1b3a,#3a2c7a);}
+.stat__label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.9;}
+.stat__val{font-size:clamp(26px,4vw,38px);font-weight:900;line-height:1.05;margin:8px 0 2px;font-variant-numeric:tabular-nums;}
+.stat__range{font-size:12.5px;opacity:.92;font-variant-numeric:tabular-nums;}
+.stat__foot{margin-top:10px;font-size:11.5px;opacity:.85;border-top:1px solid rgba(255,255,255,.22);padding-top:8px;}
+.stat__spark{position:absolute;right:-6px;top:-6px;font-size:74px;opacity:.10;line-height:1;}
+
+/* Declaration likelihood strip */
+.likeli{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.gauge{--p:0;position:relative;width:96px;height:96px;border-radius:50%;flex:none;
+  background:conic-gradient(var(--gc,var(--blue)) calc(var(--p)*1%), #e9ecef 0);}
+.gauge::after{content:"";position:absolute;inset:11px;border-radius:50%;background:#fff;}
+.gauge__txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;}
+.gauge__num{font-size:23px;font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums;}
+.gauge__lab{font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-3);text-transform:uppercase;}
+.likeli__txt{flex:1;min-width:220px;}
+.likeli__txt h3{font-size:15px;margin-bottom:3px;}
+.likeli__txt p{margin:0;font-size:13px;color:var(--ink-3);}
+
+/* ============================================================
+   Threshold panel
+   ============================================================ */
+.thr{display:flex;flex-direction:column;gap:0;}
+.thr-row{display:grid;grid-template-columns:1fr auto;gap:10px 16px;align-items:center;padding:14px 0;border-bottom:1px dashed var(--line);}
+.thr-row:last-child{border-bottom:0;}
+.thr-row__main{min-width:0;}
+.thr-row__name{font-size:14.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.thr-row__desc{font-size:12.5px;color:var(--ink-3);margin-top:2px;}
+.thr-row__bar{height:8px;border-radius:6px;background:#eaecef;margin-top:9px;overflow:hidden;position:relative;}
+.thr-row__bar i{display:block;height:100%;border-radius:6px;background:var(--blue);width:0;transition:width .5s cubic-bezier(.2,.7,.2,1);}
+.thr-row__bar .mark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--navy);}
+.thr-row__right{text-align:right;white-space:nowrap;}
+.thr-amt{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--navy);}
+.thr-sub{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:3px 9px;border-radius:999px;}
+.badge--met{background:#ecf7ec;color:var(--green-dark);border:1px solid #b7e4b9;}
+.badge--near{background:#fff6e0;color:#8a6100;border:1px solid #f3d27a;}
+.badge--no{background:#fbeaea;color:var(--red);border:1px solid #f3bcbc;}
+
+/* ============================================================
+   Analog events
+   ============================================================ */
+.analogs{display:flex;flex-direction:column;gap:12px;}
+.analog{display:grid;grid-template-columns:42px 1fr auto;gap:13px;align-items:center;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:linear-gradient(180deg,#fff,#fcfcfb);transition:.12s;}
+.analog:hover{border-color:var(--blue-vivid);box-shadow:var(--shadow-sm);}
+.analog__rank{width:42px;height:42px;border-radius:9px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex:none;}
+.analog__rank.r1{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--navy);}
+.analog__main{min-width:0;}
+.analog__title{font-size:14px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.analog__meta{font-size:12px;color:var(--ink-3);margin-top:2px;}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+.chip{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:5px;background:#eef3f8;color:var(--blue-dark);border:1px solid #dbe6f1;font-variant-numeric:tabular-nums;}
+.analog__right{text-align:right;white-space:nowrap;}
+.analog__sim{font-size:11px;font-weight:700;color:var(--green-dark);text-transform:uppercase;letter-spacing:.04em;}
+.analog__dollars{font-size:13.5px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;margin-top:3px;}
+.analog__dollars small{display:block;font-weight:500;color:var(--ink-3);font-size:11px;}
+
+/* comparison bars */
+.compare{margin-top:4px;}
+.cmp-row{display:grid;grid-template-columns:150px 1fr 92px;gap:10px;align-items:center;padding:5px 0;font-size:12.5px;}
+.cmp-row .nm{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cmp-row .track{height:14px;background:#eef0f2;border-radius:4px;overflow:hidden;}
+.cmp-row .track i{display:block;height:100%;border-radius:4px;}
+.cmp-row .amt{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:var(--navy);}
+.cmp-row.you .nm{font-weight:800;color:var(--blue);}
+.cmp-row.you .track i{background:repeating-linear-gradient(45deg,var(--blue),var(--blue) 7px,var(--blue-dark) 7px,var(--blue-dark) 14px);}
+.cmp-row .track i.hist{background:var(--blue-light);border-right:2px solid var(--blue);}
+
+/* ============================================================
+   Methodology / disclosure
+   ============================================================ */
+details.disc{border:1px solid var(--line);border-radius:10px;background:var(--bg-2);margin-bottom:0;}
+details.disc+details.disc{margin-top:10px;}
+details.disc summary{cursor:pointer;list-style:none;padding:13px 16px;font-weight:700;font-size:14px;color:var(--navy);display:flex;align-items:center;justify-content:space-between;}
+details.disc summary::-webkit-details-marker{display:none;}
+details.disc summary::after{content:"+";font-size:20px;color:var(--blue);font-weight:400;}
+details.disc[open] summary::after{content:"–";}
+details.disc .inner{padding:0 16px 16px;font-size:13.5px;color:var(--ink-2);}
+details.disc .inner p{margin:0 0 9px;}
+details.disc .inner ul{margin:0 0 9px;padding-left:20px;}
+details.disc .inner li{margin-bottom:5px;}
+.kbd{font-variant-numeric:tabular-nums;font-weight:700;color:var(--navy);}
+
+.note{font-size:12.5px;color:var(--ink-3);background:#fff8e8;border:1px solid #f1dca0;border-radius:8px;padding:10px 13px;display:flex;gap:9px;}
+.note .i{color:var(--gold-dark);font-weight:900;flex:none;}
+
+/* footer */
+footer{background:var(--navy-2);color:#c3cfde;margin-top:36px;}
+.footer__inner{max-width:1280px;margin:0 auto;padding:26px 20px 34px;display:flex;gap:30px;flex-wrap:wrap;justify-content:space-between;}
+footer h4{color:#fff;font-size:13px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px;}
+footer p,footer li{font-size:12.5px;line-height:1.6;}
+footer ul{list-style:none;margin:0;padding:0;}
+footer a{color:#9ec3ec;}
+.footer__disclaimer{border-top:1px solid rgba(255,255,255,.12);width:100%;padding-top:16px;margin-top:6px;font-size:11.5px;color:#8ea0b6;}
+
+/* loading overlay for results */
+.skeleton{color:var(--ink-3);font-size:13px;display:flex;align-items:center;gap:9px;padding:8px 0;}
+.spin{width:15px;height:15px;border:2px solid var(--line-2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;flex:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-3);margin-top:10px;}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.swatch{width:12px;height:12px;border-radius:3px;display:inline-block;}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}
+</style>
+</head>
+<body>
+
+<!-- ============ Official gov banner ============ -->
+<div class="gov-banner">
+  <div class="gov-banner__inner">
+    <span class="gov-banner__flag" aria-hidden="true"></span>
+    <span class="gov-banner__text">An independent analytical tool built on public U.S. Government open data.
+      <button class="gov-banner__btn" id="bannerToggle" aria-expanded="false">Here's how you know &#9662;</button></span>
+  </div>
+  <div class="gov-banner__detail" id="bannerDetail">
+    <div class="gov-banner__col"><span class="gov-banner__icon">&#127963;</span>
+      <p><b>This is not a government website.</b> It is an independent demonstration tool. It uses the Federal Emergency Management Agency's OpenFEMA API but is <b>not endorsed by FEMA</b> and must not be used to make individual eligibility or rights determinations.</p></div>
+    <div class="gov-banner__col"><span class="gov-banner__icon">&#128274;</span>
+      <p><b>All data is public.</b> Obligation figures are pulled live from OpenFEMA (public domain). No personal or nonpublic information is used. Estimates are illustrative, not financial or legal advice.</p></div>
+  </div>
+</div>
+
+<!-- ============ Masthead ============ -->
+<header class="masthead">
+  <div class="masthead__inner">
+    <svg class="seal" viewBox="0 0 100 112" aria-hidden="true">
+      <path d="M50 2 6 18v34c0 32 22 50 44 58 22-8 44-26 44-58V18z" fill="#10294b" stroke="#ffbe2e" stroke-width="3"/>
+      <path d="M50 12 16 24v28c0 26 18 41 34 48 16-7 34-22 34-48V24z" fill="#1a4480"/>
+      <path d="M50 28l5.6 11.4 12.6 1.8-9.1 8.9 2.1 12.5L50 56.6 38.8 62.5l2.1-12.5-9.1-8.9 12.6-1.8z" fill="#ffbe2e"/>
+      <rect x="30" y="74" width="40" height="5" rx="2.5" fill="#cdd9e8"/>
+      <rect x="36" y="83" width="28" height="4" rx="2" fill="#9fb2cb"/>
+    </svg>
+    <div class="masthead__titles">
+      <div class="eyebrow">Disaster Recovery Analytics &middot; FEMA Region 5</div>
+      <h1>Disaster Obligation Estimator</h1>
+      <p class="masthead__sub">Turn current event conditions — <b>wind, hail, flooding, and rainfall</b> — into an estimate of likely <b>Public Assistance</b> and <b>Individual Assistance</b> obligated dollars, benchmarked against the actual obligations of analog historical disasters.</p>
+    </div>
+    <div class="masthead__meta">
+      <span class="pill"><span class="dot" id="srcDot"></span><span id="srcLabel">Connecting to OpenFEMA…</span></span>
+      <div class="masthead__disc">Region 5 &middot; IL &middot; IN &middot; MI &middot; MN &middot; OH &middot; WI<br>Not endorsed by FEMA</div>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <div class="grid">
+
+    <!-- ============ CONTROL PANEL ============ -->
+    <section class="card panel" aria-label="Event parameters">
+      <div class="card__hd"><h2>Current Event</h2><span class="sub">live recompute</span></div>
+      <div class="card__bd">
+
+        <div class="field">
+          <label for="preset">Load a real Region 5 event <span class="hint">(optional)</span></label>
+          <select id="preset"><option value="">— Hypothetical event —</option></select>
+        </div>
+
+        <div class="field">
+          <label for="state">State</label>
+          <select id="state">
+            <option value="IL">Illinois</option>
+            <option value="IN">Indiana</option>
+            <option value="MI" selected>Michigan</option>
+            <option value="MN">Minnesota</option>
+            <option value="OH">Ohio</option>
+            <option value="WI">Wisconsin</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="incident">Primary incident type</label>
+          <select id="incident">
+            <option>Flood</option>
+            <option>Severe Storm</option>
+            <option>Tornado</option>
+            <option>Straight-Line Winds</option>
+            <option>Dam/Levee Break</option>
+            <option>Severe Ice Storm</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="popNum">Affected population <span class="hint">(impacted counties)</span></label>
+          <input type="number" id="popNum" min="1000" max="6000000" step="1000" value="250000" />
+        </div>
+
+        <div class="divider"></div>
+        <p style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin:0 0 14px;">Hazard parameters</p>
+
+        <div class="field slider-field" data-key="wind">
+          <div class="row"><label for="wind"><span class="haz-ic">&#128168;</span>Peak wind</label><span class="val"><span data-out="wind">75</span><span class="u">mph</span></span></div>
+          <input type="range" id="wind" min="0" max="150" step="1" value="75" />
+          <div class="scale"><span>Calm</span><span>EF0 65</span><span>Derecho 100</span><span>150</span></div>
+        </div>
+
+        <div class="field slider-field" data-key="hail">
+          <div class="row"><label for="hail"><span class="haz-ic">&#10052;&#65039;</span>Max hail</label><span class="val"><span data-out="hail">1.0</span><span class="u">in</span></span></div>
+          <input type="range" id="hail" min="0" max="5" step="0.25" value="1" />
+          <div class="scale"><span>0</span><span>Quarter 1"</span><span>Baseball 2.75"</span><span>5"</span></div>
+        </div>
+
+        <div class="field slider-field" data-key="flood">
+          <div class="row"><label for="flood"><span class="haz-ic">&#127754;</span>Flood crest above stage</label><span class="val"><span data-out="flood">6</span><span class="u">ft</span></span></div>
+          <input type="range" id="flood" min="0" max="30" step="0.5" value="6" />
+          <div class="scale"><span>0</span><span>Minor 4'</span><span>Major 12'</span><span>30'</span></div>
+        </div>
+
+        <div class="field slider-field" data-key="rain">
+          <div class="row"><label for="rain"><span class="haz-ic">&#127783;&#65039;</span>Storm-total rainfall</label><span class="val"><span data-out="rain">5</span><span class="u">in</span></span></div>
+          <input type="range" id="rain" min="0" max="20" step="0.5" value="5" />
+          <div class="scale"><span>0</span><span>Heavy 4"</span><span>Extreme 10"</span><span>20"</span></div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="btn-row">
+          <button class="btn btn--ghost" id="resetBtn" type="button">&#8635; Reset</button>
+          <button class="btn btn--primary" id="refreshBtn" type="button">&#8635; Refresh data</button>
+        </div>
+        <div class="legend" style="margin-top:14px">
+          <span><span class="swatch" style="background:#005ea2"></span> This event</span>
+          <span><span class="swatch" style="background:#d9e8f6;border:1px solid #005ea2"></span> Analog actuals</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RESULTS ============ -->
+    <section class="results" aria-live="polite">
+
+      <!-- headline stats -->
+      <div class="headline" id="headline">
+        <div class="stat stat--pa"><span class="stat__spark">&#127970;</span>
+          <div class="stat__label">Public Assistance · est. obligated</div>
+          <div class="stat__val" id="paVal">—</div>
+          <div class="stat__range" id="paRange">&nbsp;</div>
+          <div class="stat__foot">Infrastructure & emergency work (75% federal share)</div></div>
+        <div class="stat stat--ia"><span class="stat__spark">&#127968;</span>
+          <div class="stat__label">Individual Assistance · est. IHP</div>
+          <div class="stat__val" id="iaVal">—</div>
+          <div class="stat__range" id="iaRange">&nbsp;</div>
+          <div class="stat__foot">Housing & Other Needs Assistance to households</div></div>
+        <div class="stat stat--total"><span class="stat__spark">&#9733;</span>
+          <div class="stat__label">Total federal · est. obligated</div>
+          <div class="stat__val" id="totVal">—</div>
+          <div class="stat__range" id="totRange">&nbsp;</div>
+          <div class="stat__foot">PA + IA combined point estimate</div></div>
+      </div>
+
+      <!-- declaration likelihood -->
+      <div class="card">
+        <div class="card__bd likeli">
+          <div class="gauge" id="gauge"><div class="gauge__txt"><span class="gauge__num" id="gaugeNum">—</span><span class="gauge__lab">Likelihood</span></div></div>
+          <div class="likeli__txt">
+            <h3 id="likeliTitle">Awaiting parameters…</h3>
+            <p id="likeliBody">Adjust the hazard sliders or load a real event to estimate the likelihood of a major disaster declaration and the federal dollars it would obligate.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- THRESHOLDS -->
+      <div class="card">
+        <div class="card__hd"><h2>Funding thresholds — what this event triggers</h2><span class="sub" id="thrCtx">FY2026 indicators</span></div>
+        <div class="card__bd">
+          <div class="thr" id="thr"></div>
+          <div class="note" style="margin-top:16px"><span class="i">!</span><span id="thrNote">The statewide ($1.89) and countywide ($4.72) per-capita impact indicators and the $1,062,900 large-project threshold are FEMA guidance figures FEMA <em>considers</em> when evaluating a request — they are not automatic guarantees of a declaration.</span></div>
+        </div>
+      </div>
+
+      <!-- ANALOGS -->
+      <div class="card">
+        <div class="card__hd"><h2>Closest analog disasters</h2><span class="sub">ranked by hazard similarity · real OpenFEMA obligations</span></div>
+        <div class="card__bd">
+          <div class="analogs" id="analogs"><div class="skeleton"><span class="spin"></span> Loading historical Region 5 obligations…</div></div>
+          <div class="divider"></div>
+          <h3 style="font-size:14px;margin-bottom:10px;">Total federal obligations — this event vs. analogs</h3>
+          <div class="compare" id="compare"></div>
+        </div>
+      </div>
+
+      <!-- METHODOLOGY -->
+      <div class="card">
+        <div class="card__hd"><h2>How this estimate is built</h2></div>
+        <div class="card__bd">
+          <details class="disc" open><summary>Method in plain language</summary><div class="inner">
+            <p>This tool follows the <b>analog / nearest-neighbor</b> approach recommended for sparse small-event regions: rather than a black-box score, it finds the historical Region 5 disasters whose hazard signature most resembles your event and anchors the estimate to <b>what was actually obligated</b> in those events.</p>
+            <ul>
+              <li><b>Targets (real):</b> Public Assistance obligated dollars and Individual Assistance (IHP) approved dollars are pulled <b>live from OpenFEMA</b> — the <span class="kbd">FemaWebDisasterSummaries</span> and <span class="kbd">DisasterDeclarationsSummaries v2</span> datasets, filtered to Region 5 major (DR) declarations.</li>
+              <li><b>Similarity:</b> your wind / hail / flood-crest / rainfall inputs are normalized and compared to each past event with a Gaussian kernel, with a bonus for matching incident type. The closest events become the analog set.</li>
+              <li><b>Magnitude:</b> each analog's obligations are converted to a per-capita rate (using its impacted-county footprint), similarity-weighted, and re-scaled to your affected population. The interval spans the spread of the nearest analogs — wide intervals are honest for this long-tailed, skewed problem.</li>
+              <li><b>Thresholds:</b> the estimate is compared to FEMA's published per-capita and large-project indicators to flag what a request might trigger and the dollar gap to each line.</li>
+            </ul>
+          </div></details>
+          <details class="disc"><summary>Important limitations (read this)</summary><div class="inner">
+            <ul>
+              <li><b>Hazard metrics are modeled proxies.</b> OpenFEMA records the dollars but <em>not</em> the wind/hail/flood/rainfall of each event. Those signatures are derived here from the declaration's incident type, narrative title, and obligation scale. A production model joins <b>NOAA Storm Events, USGS streamgages, and hazard swaths</b> for true measured intensity.</li>
+              <li><b>Obligations lag and reconcile over years.</b> PA totals for recent disasters are systematically under-counted until projects mature; the data is raw FAC-Trax/Grants Manager output subject to human error and is not FEMA's official financial system.</li>
+              <li><b>Skewed, modest accuracy.</b> Disaster cost is zero-inflated and long-tailed; peer-reviewed damage models explain under half the variance. Treat point estimates as order-of-magnitude with wide intervals — especially for rare severe events the model extrapolates beyond.</li>
+              <li><b>Selection &amp; regime.</b> Only <em>declared</em> events appear, and declaration is partly bureaucratic. Pending FEMA reform (parametric "RAPID" PA, higher thresholds) could change how dollars flow.</li>
+            </ul>
+            <p>This is a portfolio / decision-support demonstration, not a substitute for a FEMA Preliminary Damage Assessment.</p>
+          </div></details>
+        </div>
+      </div>
+
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="footer__inner">
+    <div style="max-width:34ch">
+      <h4>Disaster Obligation Estimator</h4>
+      <p>An independent, transparent estimator of likely FEMA PA/IA obligated dollars for upper-Midwest (Region 5) events, built entirely on public open data.</p>
+    </div>
+    <div>
+      <h4>Data sources</h4>
+      <ul>
+        <li>OpenFEMA — FemaWebDisasterSummaries (v1)</li>
+        <li>OpenFEMA — DisasterDeclarationsSummaries (v2)</li>
+        <li>Hazard proxies derived from declaration narratives</li>
+        <li>FY2026 FEMA declaration indicators</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Use it responsibly</h4>
+      <ul>
+        <li>Not for eligibility / rights determinations</li>
+        <li>Estimates are illustrative — not advice</li>
+        <li>Verify against FEMA PDAs &amp; official records</li>
+      </ul>
+    </div>
+    <p class="footer__disclaimer">This product uses the Federal Emergency Management Agency's OpenFEMA API, but is not endorsed by FEMA. The U.S. Government and FEMA do not endorse, recommend, or favor this tool. Obligation figures are public-domain data; hazard intensity values shown for historical events are modeled approximations, not measured observations.</p>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   Disaster Obligation Estimator
+   Single-file, no build, vanilla JS. Live OpenFEMA + fallback.
+   ============================================================ */
+"use strict";
+
+/* ---- Region 5 reference data ---- */
+const STATE_POP = { IL:12549689, IN:6785528, MI:10037261, MN:5706494, OH:11799448, WI:5893718 };
+const STATE_NAME = { IL:"Illinois", IN:"Indiana", MI:"Michigan", MN:"Minnesota", OH:"Ohio", WI:"Wisconsin" };
+const AVG_COUNTY_POP = 92000; // Region 5 mean county population (exposure proxy)
+
+/* FY2026 FEMA declaration indicators (public guidance figures) */
+const TH = {
+  statePC: 1.89,        // statewide per-capita impact indicator
+  countyPC: 4.72,       // countywide per-capita impact indicator
+  largeProject: 1062900,// large vs small project threshold
+  costShare90: 189      // statewide per-capita for recommending 75%->90% federal share
+};
+
+/* Embedded real Region 5 snapshot (fallback if live fetch fails) */
+const SNAPSHOT = [{"disasterNumber":4757,"state":"MI","title":"SEVERE STORMS, TORNADOES, AND FLOODING","incidentType":"Flood","begin":"2023-08-24T00:00:00.000Z","fy":2024,"iaDeclared":false,"paDeclared":false,"countyCount":9,"pa":0,"ihp":439614279,"iaCount":116809},{"disasterNumber":4728,"state":"IL","title":"SEVERE STORMS AND FLOODING","incidentType":"Severe Storm","begin":"2023-06-29T00:00:00.000Z","fy":2023,"iaDeclared":false,"paDeclared":true,"countyCount":22,"pa":24706004,"ihp":326762776,"iaCount":76450},{"disasterNumber":4607,"state":"MI","title":"SEVERE STORMS, FLOODING, AND TORNADOES","incidentType":"Severe Storm","begin":"2021-06-25T00:00:00.000Z","fy":2021,"iaDeclared":false,"paDeclared":false,"countyCount":5,"pa":36742803,"ihp":196961378,"iaCount":56531},{"disasterNumber":4819,"state":"IL","title":"SEVERE STORMS, TORNADOES, STRAIGHT-LINE WINDS, AND FLOODNG","incidentType":"Flood","begin":"2024-07-13T00:00:00.000Z","fy":2024,"iaDeclared":false,"paDeclared":false,"countyCount":7,"pa":0,"ihp":211293381,"iaCount":43911},{"disasterNumber":4892,"state":"WI","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, FLOODING, AND MUDSLIDES","incidentType":"Flood","begin":"2025-08-09T00:00:00.000Z","fy":2025,"iaDeclared":false,"paDeclared":false,"countyCount":3,"pa":0,"ihp":210235808,"iaCount":36838},{"disasterNumber":4442,"state":"MN","title":"SEVERE WINTER STORM, STRAIGHT-LINE WINDS, AND FLOODING","incidentType":"Flood","begin":"2019-03-12T00:00:00.000Z","fy":2019,"iaDeclared":false,"paDeclared":true,"countyCount":55,"pa":79514149,"ihp":0,"iaCount":0},{"disasterNumber":4461,"state":"IL","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2019-02-24T00:00:00.000Z","fy":2019,"iaDeclared":false,"paDeclared":true,"countyCount":28,"pa":66779371,"ihp":0,"iaCount":0},{"disasterNumber":4547,"state":"MI","title":"SEVERE STORMS AND FLOODING","incidentType":"Dam/Levee Break","begin":"2020-05-16T00:00:00.000Z","fy":2020,"iaDeclared":false,"paDeclared":true,"countyCount":5,"pa":33308804,"ihp":30598663,"iaCount":2767},{"disasterNumber":4749,"state":"IL","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2023-09-17T00:00:00.000Z","fy":2024,"iaDeclared":false,"paDeclared":false,"countyCount":1,"pa":0,"ihp":63886884,"iaCount":16395},{"disasterNumber":4360,"state":"OH","title":"SEVERE STORMS, LANDSLIDES, AND MUDSLIDES","incidentType":"Flood","begin":"2018-02-14T00:00:00.000Z","fy":2018,"iaDeclared":false,"paDeclared":true,"countyCount":22,"pa":63519161,"ihp":0,"iaCount":0},{"disasterNumber":4424,"state":"OH","title":"SEVERE STORMS, FLOODING, AND LANDSLIDES","incidentType":"Flood","begin":"2019-02-05T00:00:00.000Z","fy":2019,"iaDeclared":false,"paDeclared":true,"countyCount":21,"pa":63368757,"ihp":0,"iaCount":0},{"disasterNumber":4797,"state":"MN","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2024-06-16T00:00:00.000Z","fy":2024,"iaDeclared":false,"paDeclared":true,"countyCount":32,"pa":30741565,"ihp":16916976,"iaCount":3074},{"disasterNumber":4402,"state":"WI","title":"SEVERE STORMS, TORNADOES, STRAIGHT-LINE WINDS, FLOODING, AND LANDSLIDES","incidentType":"Flood","begin":"2018-08-17T00:00:00.000Z","fy":2019,"iaDeclared":false,"paDeclared":true,"countyCount":14,"pa":37352265,"ihp":8902520,"iaCount":2040},{"disasterNumber":4381,"state":"MI","title":"SEVERE STORMS, FLOODING, LANDSLIDES, AND MUDSLIDES","incidentType":"Flood","begin":"2018-06-16T00:00:00.000Z","fy":2018,"iaDeclared":false,"paDeclared":true,"countyCount":3,"pa":33772532,"ihp":0,"iaCount":0},{"disasterNumber":4676,"state":"IL","title":"SEVERE STORM AND FLOODING","incidentType":"Flood","begin":"2022-07-25T00:00:00.000Z","fy":2023,"iaDeclared":false,"paDeclared":false,"countyCount":1,"pa":0,"ihp":27888572,"iaCount":6123},{"disasterNumber":4390,"state":"MN","title":"SEVERE STORMS, TORNADOES, STRAIGHT-LINE WINDS, AND FLOODING","incidentType":"Flood","begin":"2018-06-15T00:00:00.000Z","fy":2018,"iaDeclared":false,"paDeclared":true,"countyCount":31,"pa":25413578,"ihp":0,"iaCount":0},{"disasterNumber":4659,"state":"MN","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, AND FLOODING","incidentType":"Flood","begin":"2022-04-22T00:00:00.000Z","fy":2022,"iaDeclared":false,"paDeclared":true,"countyCount":19,"pa":21274107,"ihp":0,"iaCount":0},{"disasterNumber":4459,"state":"WI","title":"SEVERE STORMS, TORNADOES, STRAIGHT-LINE WINDS, AND FLOODING","incidentType":"Flood","begin":"2019-07-18T00:00:00.000Z","fy":2019,"iaDeclared":false,"paDeclared":true,"countyCount":20,"pa":18126366,"ihp":0,"iaCount":0},{"disasterNumber":4704,"state":"IN","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, AND TORNADOES","incidentType":"Severe Storm","begin":"2023-03-31T00:00:00.000Z","fy":2023,"iaDeclared":false,"paDeclared":false,"countyCount":13,"pa":13788214,"ihp":2635374,"iaCount":282},{"disasterNumber":4447,"state":"OH","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, TORNADOES, FLOODING, LANDSLIDES, AND MUDSLIDE","incidentType":"Tornado","begin":"2019-05-27T00:00:00.000Z","fy":2019,"iaDeclared":false,"paDeclared":false,"countyCount":12,"pa":10839645,"ihp":5078955,"iaCount":1646},{"disasterNumber":4363,"state":"IN","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2018-02-14T00:00:00.000Z","fy":2018,"iaDeclared":false,"paDeclared":true,"countyCount":31,"pa":10631886,"ihp":3883630,"iaCount":1165},{"disasterNumber":4276,"state":"WI","title":"SEVERE STORMS AND FLOODING","incidentType":"Severe Storm","begin":"2016-07-11T00:00:00.000Z","fy":2016,"iaDeclared":false,"paDeclared":true,"countyCount":9,"pa":13802565,"ihp":0,"iaCount":0},{"disasterNumber":4658,"state":"MN","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, TORNADOES, AND FLOODING","incidentType":"Severe Storm","begin":"2022-05-08T00:00:00.000Z","fy":2022,"iaDeclared":false,"paDeclared":true,"countyCount":23,"pa":13663714,"ihp":0,"iaCount":0},{"disasterNumber":4880,"state":"MI","title":"SEVERE WINTER STORM","incidentType":"Severe Ice Storm","begin":"2025-03-28T00:00:00.000Z","fy":2025,"iaDeclared":false,"paDeclared":true,"countyCount":14,"pa":12409488,"ihp":0,"iaCount":0},{"disasterNumber":4722,"state":"MN","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2023-04-11T00:00:00.000Z","fy":2023,"iaDeclared":false,"paDeclared":true,"countyCount":26,"pa":10772296,"ihp":0,"iaCount":0},{"disasterNumber":4414,"state":"MN","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2018-10-09T00:00:00.000Z","fy":2019,"iaDeclared":false,"paDeclared":true,"countyCount":1,"pa":10007888,"ihp":0,"iaCount":0},{"disasterNumber":4290,"state":"MN","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2016-09-21T00:00:00.000Z","fy":2017,"iaDeclared":false,"paDeclared":true,"countyCount":10,"pa":7109980,"ihp":2598417,"iaCount":661},{"disasterNumber":4288,"state":"WI","title":"SEVERE STORMS, FLOODING, AND MUDSLIDES","incidentType":"Flood","begin":"2016-09-21T00:00:00.000Z","fy":2017,"iaDeclared":false,"paDeclared":true,"countyCount":10,"pa":9038145,"ihp":0,"iaCount":0},{"disasterNumber":4882,"state":"IN","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, TORNADOES, AND FLOODING","incidentType":"Flood","begin":"2025-03-30T00:00:00.000Z","fy":2025,"iaDeclared":false,"paDeclared":true,"countyCount":25,"pa":8896596,"ihp":0,"iaCount":0},{"disasterNumber":4343,"state":"WI","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, FLOODING, LANDSLIDES, AND MUD","incidentType":"Severe Storm","begin":"2017-07-19T00:00:00.000Z","fy":2018,"iaDeclared":false,"paDeclared":true,"countyCount":11,"pa":8866606,"ihp":0,"iaCount":0},{"disasterNumber":4383,"state":"WI","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, AND FLOODING","incidentType":"Flood","begin":"2018-06-15T00:00:00.000Z","fy":2018,"iaDeclared":false,"paDeclared":true,"countyCount":6,"pa":8599351,"ihp":0,"iaCount":0},{"disasterNumber":4666,"state":"MN","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, TORNADOES, AND FLOODING","incidentType":"Severe Storm","begin":"2022-05-29T00:00:00.000Z","fy":2022,"iaDeclared":false,"paDeclared":true,"countyCount":23,"pa":7230916,"ihp":0,"iaCount":0},{"disasterNumber":4326,"state":"MI","title":"SEVERE STORMS AND FLOODING","incidentType":"Severe Storm","begin":"2017-06-22T00:00:00.000Z","fy":2017,"iaDeclared":false,"paDeclared":false,"countyCount":4,"pa":0,"ihp":5217209,"iaCount":1579},{"disasterNumber":4477,"state":"WI","title":"SEVERE WINTER STORM AND FLOODING","incidentType":"Flood","begin":"2020-01-10T00:00:00.000Z","fy":2020,"iaDeclared":false,"paDeclared":true,"countyCount":3,"pa":4677987,"ihp":0,"iaCount":0},{"disasterNumber":4777,"state":"OH","title":"TORNADOES","incidentType":"Tornado","begin":"2024-03-14T00:00:00.000Z","fy":2024,"iaDeclared":false,"paDeclared":false,"countyCount":11,"pa":0,"ihp":3747421,"iaCount":481},{"disasterNumber":4894,"state":"MN","title":"SEVERE STORMS AND STRAIGHT-LINE WINDS","incidentType":"Straight-Line Winds","begin":"2025-06-21T00:00:00.000Z","fy":2026,"iaDeclared":false,"paDeclared":true,"countyCount":1,"pa":26704,"ihp":254966,"iaCount":119}];
+
+/* ---- normalization ceilings for hazard space ---- */
+const NORM = { wind:140, hail:4.5, flood:28, rain:18 };
+const WT   = { wind:1.0, hail:0.8, flood:1.15, rain:1.0 }; // feature weights
+
+/* ============================================================
+   Hazard-signature proxy: derive wind/hail/flood/rain for a
+   historical event from its narrative title + incident type +
+   obligation magnitude. Deterministic (seeded by disasterNumber).
+   OpenFEMA does NOT carry measured hazard intensity.
+   ============================================================ */
+function seeded(n){ let x = Math.sin(n * 99.13) * 43758.5453; return x - Math.floor(x); }
+function hazardProxy(ev){
+  const t = (ev.title||"").toUpperCase();
+  const it = ev.incidentType||"";
+  const mag = Math.log10(Math.max(1, ev.pa + ev.ihp));      // ~5 .. ~9
+  const scale = Math.min(1, Math.max(0.25, (mag - 5.0) / 3.8)); // 0.25..1
+  const r = seeded(ev.disasterNumber);
+  const r2 = seeded(ev.disasterNumber * 7 + 3);
+  const has = w => t.includes(w);
+  let wind=8, hail=0.2, flood=1, rain=2;
+  // base by incident type
+  if(it==="Flood"){ flood=10; rain=6; wind=25; }
+  else if(it==="Severe Storm"){ wind=55; hail=1.1; rain=4; flood=4; }
+  else if(it==="Tornado"){ wind=95; hail=1.6; rain=3; flood=2; }
+  else if(it==="Straight-Line Winds"){ wind=80; hail=0.9; rain=3; flood=2; }
+  else if(it==="Dam/Levee Break"){ flood=16; rain=6; wind=30; }
+  else if(it==="Severe Ice Storm"){ wind=45; rain=2; flood=2; hail=0.3; }
+  // narrative boosts
+  if(has("TORNADO")) wind=Math.max(wind,90+ r*35);
+  if(has("STRAIGHT-LINE")) wind=Math.max(wind,72+ r2*28);
+  if(has("FLOOD")){ flood=Math.max(flood,9); rain=Math.max(rain,5); }
+  if(has("WINTER")||has("ICE")||has("SNOW")) wind=Math.max(wind,40);
+  if(has("HAIL")) hail=Math.max(hail,1.75);
+  // scale by obligation magnitude + jitter
+  wind  = wind  * (0.78 + 0.5*scale) + (r-0.5)*9;
+  hail  = hail  * (0.7 + 0.7*scale) + (r2-0.5)*0.4;
+  flood = flood * (0.65 + 0.85*scale) + (r-0.5)*2.4;
+  rain  = rain  * (0.7 + 0.8*scale) + (r2-0.5)*2.2;
+  return {
+    wind:  clamp(round1(wind), 0, 150),
+    hail:  clamp(round2(hail), 0, 5),
+    flood: clamp(round1(flood), 0, 30),
+    rain:  clamp(round1(rain), 0, 20)
+  };
+}
+
+/* ---- helpers ---- */
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const round1=v=>Math.round(v*10)/10;
+const round2=v=>Math.round(v*100)/100;
+function fmtMoney(v){
+  if(v==null||isNaN(v)) return "—";
+  if(v>=1e9) return "$"+(v/1e9).toFixed(2)+"B";
+  if(v>=1e6) return "$"+(v/1e6).toFixed(1)+"M";
+  if(v>=1e3) return "$"+(v/1e3).toFixed(0)+"K";
+  return "$"+Math.round(v).toLocaleString();
+}
+function fmtMoneyFull(v){ return "$"+Math.round(v).toLocaleString(); }
+function fmtNum(v){ return Number(v).toLocaleString(); }
+
+/* ============================================================
+   State
+   ============================================================ */
+let DATA = SNAPSHOT.slice();
+let dataMode = "snapshot"; // snapshot | live
+let selectedDisaster = null; // exclude when previewing a real event
+
+/* ============================================================
+   Live OpenFEMA fetch
+   ============================================================ */
+async function fetchJSON(url){
+  const res = await fetch(url, {headers:{Accept:"application/json"}});
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  return res.json();
+}
+async function pull(url, retries=2){
+  for(let i=0;i<=retries;i++){
+    try{ return await fetchJSON(url); }
+    catch(e){ if(i===retries) throw e; await new Promise(r=>setTimeout(r,800*(i+1))); }
+  }
+}
+async function loadLive(){
+  setSource("warn","Loading live OpenFEMA data…");
+  const base="https://www.fema.gov/api/open";
+  // 1) declarations metadata (county grain), exclude Biological
+  const dflt=encodeURIComponent("region eq 5 and declarationType eq 'DR' and fyDeclared ge 2015 and incidentType ne 'Biological'");
+  const dsel=encodeURIComponent("disasterNumber,state,declarationTitle,incidentType,incidentBeginDate,fyDeclared,iaProgramDeclared,paProgramDeclared,designatedArea");
+  let rows=[], skip=0;
+  for(let p=0;p<8;p++){
+    const u=`${base}/v2/DisasterDeclarationsSummaries?$filter=${dflt}&$select=${dsel}&$top=1000&$skip=${skip}&$orderby=${encodeURIComponent("disasterNumber desc")}&$format=json`;
+    const j=await pull(u);
+    const batch=j.DisasterDeclarationsSummaries||[];
+    rows=rows.concat(batch);
+    if(batch.length<1000) break;
+    skip+=1000;
+  }
+  const dis={};
+  for(const r of rows){
+    const dn=r.disasterNumber;
+    if(!dis[dn]) dis[dn]={disasterNumber:dn,state:r.state,title:r.declarationTitle,incidentType:r.incidentType,
+                          begin:r.incidentBeginDate,fy:r.fyDeclared,iaDeclared:r.iaProgramDeclared,paDeclared:r.paProgramDeclared,counties:new Set()};
+    const a=r.designatedArea||"";
+    if(a && !/statewide/i.test(a)) dis[dn].counties.add(a);
+  }
+  const nums=Object.keys(dis).map(Number);
+  // 2) dollars in chunks
+  const dollars={};
+  for(let i=0;i<nums.length;i+=45){
+    const chunk=nums.slice(i,i+45);
+    const f=encodeURIComponent(chunk.map(n=>`disasterNumber eq ${n}`).join(" or "));
+    const sel=encodeURIComponent("disasterNumber,totalObligatedAmountPa,totalAmountIhpApproved,totalNumberIaApproved");
+    const u=`${base}/v1/FemaWebDisasterSummaries?$filter=${f}&$select=${sel}&$top=1000&$format=json`;
+    const j=await pull(u);
+    for(const row of (j.FemaWebDisasterSummaries||[])) dollars[row.disasterNumber]=row;
+  }
+  const out=[];
+  for(const dn of nums){
+    const v=dis[dn], dl=dollars[dn]||{};
+    const pa=dl.totalObligatedAmountPa||0, ihp=dl.totalAmountIhpApproved||0;
+    if(!pa && !ihp) continue;
+    out.push({disasterNumber:dn,state:v.state,title:v.title,incidentType:v.incidentType,begin:v.begin,fy:v.fy,
+              iaDeclared:v.iaDeclared,paDeclared:v.paDeclared,countyCount:Math.max(1,v.counties.size),
+              pa:Math.round(pa),ihp:Math.round(ihp),iaCount:dl.totalNumberIaApproved||0});
+  }
+  if(out.length<8) throw new Error("insufficient live rows");
+  out.sort((a,b)=>(b.pa+b.ihp)-(a.pa+a.ihp));
+  return out;
+}
+
+function setSource(kind,label){
+  const dot=document.getElementById("srcDot"), lab=document.getElementById("srcLabel");
+  dot.className="dot "+(kind==="live"?"live":kind==="warn"?"warn":kind==="err"?"err":"");
+  lab.textContent=label;
+}
+
+/* ============================================================
+   Estimation engine
+   ============================================================ */
+function getInputs(){
+  return {
+    state: el("state").value,
+    incident: el("incident").value,
+    pop: clamp(parseInt(el("popNum").value)||1, 1000, 6000000),
+    wind: parseFloat(el("wind").value),
+    hail: parseFloat(el("hail").value),
+    flood: parseFloat(el("flood").value),
+    rain: parseFloat(el("rain").value)
+  };
+}
+function normVec(h){ return {wind:h.wind/NORM.wind, hail:h.hail/NORM.hail, flood:h.flood/NORM.flood, rain:h.rain/NORM.rain}; }
+function distance(a,b,sameIncident){
+  let s=0;
+  for(const k of ["wind","hail","flood","rain"]){ const d=(a[k]-b[k])*WT[k]; s+=d*d; }
+  let dist=Math.sqrt(s);
+  if(!sameIncident) dist += 0.10; // mild penalty for different incident type
+  return dist;
+}
+const SIGMA=0.36;
+
+function estimate(inp){
+  const userV = normVec(inp);
+  const SCORED = DATA
+    .filter(ev => ev.disasterNumber !== selectedDisaster)
+    .map(ev=>{
+      const hz = ev._hz || (ev._hz = hazardProxy(ev));
+      const v = normVec(hz);
+      const d = distance(userV, v, ev.incidentType===inp.incident);
+      const w = Math.exp(-(d*d)/(2*SIGMA*SIGMA));
+      const expo = Math.max(1, ev.countyCount) * AVG_COUNTY_POP;
+      return {ev, hz, dist:d, w, paPC: ev.pa/expo, iaPC: ev.ihp/expo, sim: Math.round(w*100)};
+    })
+    .sort((a,b)=>b.w-a.w);
+
+  const analogs = SCORED.slice(0,5);
+  const near = SCORED.slice(0,8);
+  const wsum = near.reduce((s,x)=>s+x.w,0) || 1;
+
+  const paPC = near.reduce((s,x)=>s+x.w*x.paPC,0)/wsum;
+  const iaPC = near.reduce((s,x)=>s+x.w*x.iaPC,0)/wsum;
+
+  let estPA = paPC * inp.pop;
+  let estIA = iaPC * inp.pop;
+
+  // intervals from spread of nearest analogs' per-capita rates
+  const paArr = near.map(x=>x.paPC*inp.pop).sort((a,b)=>a-b);
+  const iaArr = near.map(x=>x.iaPC*inp.pop).sort((a,b)=>a-b);
+  const pct=(arr,p)=>arr[Math.min(arr.length-1,Math.max(0,Math.round((arr.length-1)*p)))];
+  const paLo=Math.min(estPA*0.55, pct(paArr,0.2)), paHi=Math.max(estPA*1.6, pct(paArr,0.85));
+  const iaLo=Math.min(estIA*0.55, pct(iaArr,0.2)), iaHi=Math.max(estIA*1.6, pct(iaArr,0.85));
+
+  // occurrence / declaration likelihood from hazard intensity
+  const intensity = 0.55*(inp.wind/NORM.wind) + 0.85*(inp.flood/NORM.flood)
+                  + 0.55*(inp.rain/NORM.rain) + 0.45*(inp.hail/NORM.hail);
+  const popFactor = clamp(Math.log10(inp.pop/50000)/2.2, -0.4, 0.7);
+  const z = 4.2*intensity + popFactor - 1.55;
+  const prob = clamp(1/(1+Math.exp(-z)), 0.02, 0.985);
+
+  return {analogs, estPA, estIA, paLo, paHi, iaLo, iaHi, prob, intensity};
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+const el = id => document.getElementById(id);
+
+function render(){
+  const inp = getInputs();
+  const R = estimate(inp);
+  const total = R.estPA + R.estIA;
+
+  // headline
+  el("paVal").textContent = fmtMoney(R.estPA);
+  el("iaVal").textContent = fmtMoney(R.estIA);
+  el("totVal").textContent = fmtMoney(total);
+  el("paRange").innerHTML = "range "+fmtMoney(R.paLo)+" – "+fmtMoney(R.paHi);
+  el("iaRange").innerHTML = "range "+fmtMoney(R.iaLo)+" – "+fmtMoney(R.iaHi);
+  el("totRange").innerHTML = "range "+fmtMoney(R.paLo+R.iaLo)+" – "+fmtMoney(R.paHi+R.iaHi);
+
+  // gauge
+  const pct=Math.round(R.prob*100);
+  const g=el("gauge"); g.style.setProperty("--p",pct);
+  g.style.setProperty("--gc", pct>=66?"var(--green)":pct>=33?"var(--gold)":"var(--red-vivid)");
+  el("gaugeNum").textContent=pct+"%";
+  const lvl = pct>=70?["Major declaration likely","strong"]:pct>=45?["Declaration plausible","moderate"]:pct>=22?["Borderline / sub-threshold","weak"]:["Unlikely to be declared","low"];
+  el("likeliTitle").textContent = lvl[0];
+  el("likeliBody").innerHTML = `Based on the hazard intensity and an affected population of <b>${fmtNum(inp.pop)}</b> in <b>${STATE_NAME[inp.state]}</b>, the modeled likelihood of a Region 5 major disaster declaration is <b>${pct}%</b>. Point estimate of total federal obligations: <b>${fmtMoneyFull(total)}</b>.`;
+
+  renderThresholds(inp, R);
+  renderAnalogs(R.analogs);
+  renderCompare(inp, R, total);
+}
+
+function renderThresholds(inp, R){
+  const statePop = STATE_POP[inp.state];
+  const statePC = R.estPA / statePop;
+  const countyPC = R.estPA / inp.pop;
+
+  const rows = [
+    {
+      name:"Statewide per-capita impact",
+      desc:`Est. PA ${fmtMoney(R.estPA)} ÷ ${STATE_NAME[inp.state]} pop ${fmtNum(statePop)}`,
+      value:statePC, target:TH.statePC, unit:"/capita", money:false,
+      gapText:(statePC>=TH.statePC?`+${fmtMoney(R.estPA-TH.statePC*statePop)} over line`:`needs +${fmtMoney(TH.statePC*statePop-R.estPA)} PA`)
+    },
+    {
+      name:"Countywide per-capita impact",
+      desc:`Est. PA ${fmtMoney(R.estPA)} ÷ affected pop ${fmtNum(inp.pop)}`,
+      value:countyPC, target:TH.countyPC, unit:"/capita", money:false,
+      gapText:(countyPC>=TH.countyPC?`+${fmtMoney(R.estPA-TH.countyPC*inp.pop)} over line`:`needs +${fmtMoney(TH.countyPC*inp.pop-R.estPA)} PA`)
+    },
+    {
+      name:"Large-project threshold",
+      desc:`PA projects ≥ ${fmtMoneyFull(TH.largeProject)} use large-project (actual-cost) accounting`,
+      value:R.estPA, target:TH.largeProject, unit:"", money:true,
+      gapText:(R.estPA>=TH.largeProject?`${(R.estPA/TH.largeProject).toFixed(1)}× threshold`:`${fmtMoney(TH.largeProject-R.estPA)} below`)
+    },
+    {
+      name:"75% → 90% cost-share adjustment",
+      desc:`Statewide ≥ $189/capita supports recommending a raised federal share`,
+      value:statePC, target:TH.costShare90, unit:"/capita", money:false,
+      gapText:(statePC>=TH.costShare90?`qualifies`:`well below $189`)
+    }
+  ];
+
+  const html = rows.map(r=>{
+    const ratio = r.value/r.target;
+    const met = ratio>=1, near = ratio>=0.6 && ratio<1;
+    const badge = met?`<span class="badge badge--met">✓ Triggered</span>`
+                 : near?`<span class="badge badge--near">Near line</span>`
+                 : `<span class="badge badge--no">Not triggered</span>`;
+    const barPct = clamp(ratio*100,1,100);
+    const valTxt = r.money?fmtMoney(r.value):("$"+r.value.toFixed(2)+r.unit);
+    const tgtTxt = r.money?fmtMoney(r.target):("$"+r.target.toFixed(2)+r.unit);
+    return `<div class="thr-row">
+      <div class="thr-row__main">
+        <div class="thr-row__name">${r.name} ${badge}</div>
+        <div class="thr-row__desc">${r.desc}</div>
+        <div class="thr-row__bar"><i style="width:${barPct}%;background:${met?'var(--green)':near?'var(--gold)':'var(--blue)'}"></i><span class="mark" style="left:${clamp(100/Math.max(ratio,1)*1,0,100)}%"></span></div>
+      </div>
+      <div class="thr-row__right">
+        <div class="thr-amt">${valTxt}</div>
+        <div class="thr-sub">line ${tgtTxt}</div>
+        <div class="thr-sub">${r.gapText}</div>
+      </div>
+    </div>`;
+  }).join("");
+  el("thr").innerHTML = html;
+}
+
+function renderAnalogs(analogs){
+  const yr = ev => (ev.begin? new Date(ev.begin).getFullYear() : ev.fy);
+  el("analogs").innerHTML = analogs.map((x,i)=>{
+    const ev=x.ev, h=x.hz;
+    const chips = [
+      `<span class="chip">💨 ${h.wind} mph</span>`,
+      `<span class="chip">❄️ ${h.hail}"</span>`,
+      `<span class="chip">🌊 ${h.flood}'</span>`,
+      `<span class="chip">🌧️ ${h.rain}"</span>`
+    ].join("");
+    const paTxt = ev.pa>0?`PA ${fmtMoney(ev.pa)}`:"";
+    const iaTxt = ev.ihp>0?`IA ${fmtMoney(ev.ihp)}`:"";
+    const money = [paTxt,iaTxt].filter(Boolean).join(" · ") || "no obligations";
+    return `<div class="analog">
+      <div class="analog__rank ${i===0?'r1':''}">${i+1}</div>
+      <div class="analog__main">
+        <div class="analog__title" title="${ev.title}">DR-${ev.disasterNumber}-${ev.state} · ${titleCase(ev.title)}</div>
+        <div class="analog__meta">${ev.incidentType} · ${yr(ev)} · ${ev.countyCount} ${ev.countyCount===1?'county':'counties'}</div>
+        <div class="chips">${chips}</div>
+      </div>
+      <div class="analog__right">
+        <div class="analog__sim">${x.sim}% match</div>
+        <div class="analog__dollars">${fmtMoney(ev.pa+ev.ihp)}<small>${money}</small></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderCompare(inp, R, total){
+  const rows = [{nm:"▶ This event (est.)", v:total, you:true}]
+    .concat(R.analogs.map(x=>({nm:`DR-${x.ev.disasterNumber}-${x.ev.state}`, v:x.ev.pa+x.ev.ihp, you:false})));
+  const max = Math.max(...rows.map(r=>r.v), 1);
+  el("compare").innerHTML = rows.map(r=>`
+    <div class="cmp-row ${r.you?'you':''}">
+      <div class="nm" title="${r.nm}">${r.nm}</div>
+      <div class="track"><i class="${r.you?'':'hist'}" style="width:${Math.max(2,r.v/max*100)}%"></i></div>
+      <div class="amt">${fmtMoney(r.v)}</div>
+    </div>`).join("");
+}
+
+function titleCase(s){ return (s||"").toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()).replace(/\bAnd\b/g,"and"); }
+
+/* ============================================================
+   Presets dropdown (real events)
+   ============================================================ */
+function buildPresets(){
+  const sel=el("preset");
+  sel.innerHTML='<option value="">— Hypothetical event —</option>';
+  DATA.slice().sort((a,b)=>(b.pa+b.ihp)-(a.pa+a.ihp)).slice(0,28).forEach(ev=>{
+    const o=document.createElement("option");
+    o.value=ev.disasterNumber;
+    o.textContent=`DR-${ev.disasterNumber}-${ev.state} · ${titleCase(ev.title).slice(0,42)} (${fmtMoney(ev.pa+ev.ihp)})`;
+    sel.appendChild(o);
+  });
+}
+function applyPreset(dn){
+  selectedDisaster = dn ? Number(dn) : null;
+  if(!dn){ render(); return; }
+  const ev = DATA.find(e=>e.disasterNumber===Number(dn));
+  if(!ev) return;
+  const h = ev._hz || (ev._hz=hazardProxy(ev));
+  el("state").value = ev.state;
+  // map incident type to dropdown options
+  const opts=[...el("incident").options].map(o=>o.value);
+  el("incident").value = opts.includes(ev.incidentType)?ev.incidentType:"Severe Storm";
+  el("popNum").value = Math.max(10000, Math.round(ev.countyCount*AVG_COUNTY_POP));
+  setSlider("wind",h.wind); setSlider("hail",h.hail); setSlider("flood",h.flood); setSlider("rain",h.rain);
+  render();
+}
+
+/* ============================================================
+   Sliders
+   ============================================================ */
+function setSlider(key,val){
+  const inp=el(key); inp.value=val;
+  syncSlider(inp);
+}
+function syncSlider(inp){
+  const key=inp.id;
+  const pct=(inp.value-inp.min)/(inp.max-inp.min)*100;
+  inp.style.setProperty("--pct",pct+"%");
+  const out=document.querySelector(`[data-out="${key}"]`);
+  if(out){ out.textContent = (key==="hail")?Number(inp.value).toFixed(2):(key==="flood"||key==="rain")?Number(inp.value).toFixed(inp.value%1?1:0):inp.value; }
+}
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+function wire(){
+  // banner
+  el("bannerToggle").addEventListener("click",e=>{
+    const d=el("bannerDetail"); const open=d.classList.toggle("open");
+    e.target.setAttribute("aria-expanded",open); e.target.innerHTML=(open?"Hide ":"Here's how you know ")+"▾";
+  });
+  // sliders + inputs
+  ["wind","hail","flood","rain"].forEach(k=>{
+    const s=el(k);
+    s.addEventListener("input",()=>{ selectedDisaster=null; el("preset").value=""; syncSlider(s); render(); });
+    syncSlider(s);
+  });
+  ["state","incident","popNum"].forEach(k=>{
+    el(k).addEventListener("input",()=>{ if(k!=="state"&&k!=="incident"){selectedDisaster=null; el("preset").value="";} render(); });
+  });
+  el("state").addEventListener("change",()=>render());
+  el("incident").addEventListener("change",()=>{ render(); });
+  el("preset").addEventListener("change",e=>applyPreset(e.target.value));
+  el("resetBtn").addEventListener("click",()=>{
+    selectedDisaster=null; el("preset").value="";
+    el("state").value="MI"; el("incident").value="Flood"; el("popNum").value=250000;
+    setSlider("wind",75); setSlider("hail",1); setSlider("flood",6); setSlider("rain",5);
+    render();
+  });
+  el("refreshBtn").addEventListener("click",initLive);
+}
+
+async function initLive(){
+  try{
+    const live = await loadLive();
+    DATA = live;
+    DATA.forEach(ev=>ev._hz=hazardProxy(ev));
+    dataMode="live";
+    setSource("live", `Live OpenFEMA · ${DATA.length} Region 5 disasters`);
+    buildPresets();
+    render();
+  }catch(e){
+    dataMode="snapshot";
+    DATA = SNAPSHOT.slice();
+    DATA.forEach(ev=>ev._hz=hazardProxy(ev));
+    setSource("warn", `Offline snapshot · ${DATA.length} disasters (OpenFEMA unreachable)`);
+    buildPresets();
+    render();
+  }
+}
+
+/* ---- boot ---- */
+DATA.forEach(ev=>ev._hz=hazardProxy(ev));
+wire();
+buildPresets();
+render();
+initLive();
+</script>
+</body>
+</html>
