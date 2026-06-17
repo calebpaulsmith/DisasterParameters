@@ -1,0 +1,128 @@
+# CLAUDE.md
+
+Guidance for working in this repo. Read this before changing code or data.
+
+## What this is
+
+An independent, **single-file web tool** that helps an executive get a fast,
+**traceable** read on FEMA **Public Assistance (PA)** and **Individual
+Assistance (IA/IHP)** for upper-Midwest (**FEMA Region 5**: IL, IN, MI, MN, OH,
+WI) disasters. Built entirely on public open data. **Not endorsed by FEMA** —
+the non-endorsement disclaimer must stay in the UI.
+
+Live site (GitHub Pages): https://calebpaulsmith.github.io/DisasterParameters/
+
+Three views (in priority order — **facts first**):
+1. **Disaster Ledger** (default) — every Region 5 disaster, sortable, with
+   measured hazards + real PA/IA dollars. **Tap a row → detail modal** with that
+   disaster's full sourced cost breakdown and parameter provenance + verify links.
+2. **Disaster Watch** — live NWS alerts + live USGS gages; trips when a river
+   approaches a past disaster's peak stage or warnings match an analog's hazards.
+3. **Estimate (beta)** — a deliberately-downplayed comparables heuristic that
+   scales similar past disasters' obligations by population. It is **not a
+   forecast**; keep the prominent caveat.
+
+## Project layout
+
+```
+index.html                  # the entire app (HTML+CSS+vanilla JS, no build step)
+data/disasters.json         # 36 Region 5 disasters — the source of truth (committed)
+data/gages.json             # 13 USGS river gages + NWS AHPS flood categories (committed)
+scripts/enrich.py           # OFFLINE pipeline that builds data/disasters.json
+.github/workflows/pages.yml # deploys to GitHub Pages on push to main
+data/StormEvents_*.csv.gz   # raw NOAA inputs — GIT-IGNORED (large, regenerable)
+data/_disasters_raw.json    # intermediate from the FEMA pull — GIT-IGNORED
+FEMA Obligation-... .md      # the original research blueprint (background/context)
+```
+
+`index.html` **fetches `data/*.json` at runtime** (same-origin). It therefore
+must be served over http(s) — opening the file directly with `file://` will
+fail to load data. Local dev: `python3 -m http.server 8000`.
+
+## Data model (`data/disasters.json`, one object per disaster)
+
+- Identity/meta: `disasterNumber, state, title, incidentType, begin, end, fy,
+  paDeclared, iaDeclared, countyCount, tags[]` (Flooding/Tornado/Wind/Hail/
+  Snow-Ice/Storms/Dam-Levee), `eventTypes[]`, `reportedDamage`.
+- `hz` (measured hazards): `windMph, hailIn, torEF, peakStageFt, rainIn,
+  rainMeanIn, floodReports, snowReports, hailReports, windReports, tornadoes,
+  stormEvents, countyMatched`.
+- `costs` (the authoritative figures): `paTotal, paEmergencyAB, paPermanentCG,
+  paProjects, hmgp, ihpTotal, ihpHousing, ihpOna, iaRegistrations`.
+- `pa`/`ihp` mirror `costs.paTotal`/`costs.ihpTotal` (used by list views).
+
+## Data sources & how the pipeline works
+
+`scripts/enrich.py` runs **offline** (needs network + the Storm Events CSVs in
+`data/`) and writes `data/disasters.json`. The browser does NOT build this — it
+only reads the committed JSON and makes a few live calls (NWS, USGS).
+
+| Layer | Source | Where |
+|---|---|---|
+| Declarations, counties, dates | OpenFEMA `DisasterDeclarationsSummaries v2` | offline → `_disasters_raw.json` |
+| **PA obligated / IHP approved + breakdown** | OpenFEMA `FemaWebDisasterSummaries` (+ `PublicAssistanceFundedProjectsDetails` for project counts) | offline → `costs` |
+| Wind / hail / tornado, type tags, reported damage | **NOAA Storm Events** bulk CSV (county FIPS + incident-window join) | offline → `hz` |
+| Peak river stage | **USGS Water Services** daily values | offline → `hz.peakStageFt` |
+| Storm-total rainfall | **RCC-ACIS** (NOAA) daily precip, summed | offline → `hz.rainIn` |
+| AHPS flood categories | **NWPS** `api.water.noaa.gov` (per-gauge by LID) | offline → `data/gages.json` |
+| Live alerts | **NWS** `api.weather.gov` | runtime (browser) |
+| Live gage heights | **USGS** instantaneous values | runtime (browser) |
+
+To rebuild the dataset: download the `StormEvents_details-*.csv.gz` files (URL in
+the script header) into `data/`, then `python3 scripts/enrich.py`. Cross-check a
+few PA totals against the granular PA Funded Projects worksheets before shipping.
+
+## Domain facts that MUST stay correct (an expert user checks these)
+
+- **PA is "obligated"; IHP is "approved."** Different accounting stages — never
+  conflate or relabel them.
+- **PA breakdown must reconcile:** `paEmergencyAB + paPermanentCG + Category Z
+  (management) = paTotal`. Category Z is computed as the remainder
+  (`paTotal - AB - CG`); without it the breakdown looks wrong. IHP reconciles as
+  `ihpHousing + ihpOna = ihpTotal`.
+- **Obligations lag and reconcile over years** — recent disasters under-count;
+  `paProjects` can be >0 while `paTotal` is still 0.
+- **Hazards are a "peak envelope"**: each `hz` value is the max across all
+  reports/gages in the affected counties during the incident window. This loses
+  extent; the blueprint notes extent/exposure drive obligations more than peak
+  intensity. `countyMatched=false` means hazards were aggregated at state level
+  (designated areas didn't map to counties) and may overstate the local peak.
+- FY2026 declaration indicators used in the UI: statewide **$1.89**/capita,
+  countywide **$4.72**/capita, large-project **$1,062,900**, 75→90% cost-share
+  **$189**/capita.
+
+## Gotchas / conventions
+
+- **No framework, no build.** Plain HTML/CSS/JS. Typeface is **Public Sans**
+  (US Web Design System look); keep the DHS/FEMA navy+gold palette and the
+  `.gov` banner.
+- All external APIs used at runtime are **CORS-open** (OpenFEMA, USGS
+  waterservices, NWS api.weather.gov). NWPS (`api.water.noaa.gov`) is flaky and
+  rate-limits — only used offline; its `?usgsId=` filter is unreliable, so
+  resolve gauges by LID or by name match in the full gauge list.
+- **Storm Events wind magnitude is in knots** — multiply by 1.151 for mph.
+- **USGS gage height** for stage: `parameterCd=00065`, `statCd=00003` (daily
+  mean is what USGS stores; `00001` returns nothing for most sites). `countyCd`
+  must be the **5-digit** state+county FIPS. Filter out values >75 ft — those are
+  reservoir/lake-elevation gauges, not river stage.
+- `gages.json` flood stages are **official NWS AHPS** for 10/13 gauges
+  (`official:true`, with `cats` = action/minor/moderate/major); the other 3 are
+  approximate (`official:false`).
+- Tap-through is wired by event delegation on `[data-dn]` → `openDetail(dn)`.
+  Any element representing a disaster should carry `data-dn="<disasterNumber>"`.
+
+## Deployment
+
+Push to `main` → `.github/workflows/pages.yml` deploys to Pages automatically
+(Pages was enabled once via Settings → Pages → Source: GitHub Actions; the repo
+is public, which Pages requires on a free plan). After merging, the new build is
+live in ~1 minute; hard-refresh to bypass cache.
+
+## Workflow norms for this repo
+
+- Develop on a topic branch, push, open a **draft PR**; the maintainer reviews
+  and merges. Don't push to `main` directly.
+- Keep the OpenFEMA/NOAA/NWS/USGS **non-endorsement disclaimers** in the UI and
+  README. Don't add eligibility/rights-determination features.
+- When changing numbers or labels, preserve traceability: every figure should be
+  reconcilable and linkable back to its OpenFEMA/NOAA/USGS source.
