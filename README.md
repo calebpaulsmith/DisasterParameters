@@ -14,53 +14,84 @@ obligated — and which funding thresholds does it trip?**
 > used to make individual eligibility or rights determinations. Estimates are
 > illustrative, not financial or legal advice.
 
-## What it does
+## Three views
 
-- **Executive-friendly headline:** estimated PA, IA, and total federal
-  obligations with honest low–high intervals, plus a major-disaster
-  **declaration likelihood** gauge.
-- **Threshold panel:** flags exactly what a request would trigger against
-  FY2026 FEMA indicators — statewide ($1.89/capita) and countywide
-  ($4.72/capita) impact indicators, the $1,062,900 large-project threshold,
-  and the $189/capita 75%→90% cost-share line — with the dollar gap to each.
-- **Closest analog disasters:** the 5 most similar past Region 5 events ranked
-  by hazard similarity, showing their **real OpenFEMA obligations** and a
-  side-by-side comparison bar.
-- **Load a real event:** pick an actual Region 5 disaster to see how the tool
-  would have estimated it.
+**1. Estimator** — set a current event's **measured** hazard parameters (peak
+wind, max hail, peak river stage, rainfall, tornado EF) plus state and affected
+population, and get:
+- estimated PA, IA, and total federal obligations with honest low–high intervals
+- a major-disaster **declaration likelihood** gauge
+- a **threshold panel** flagging exactly what a request trips against FY2026 FEMA
+  indicators — statewide ($1.89/capita), countywide ($4.72/capita), the
+  $1,062,900 large-project threshold, and the $189/capita 75%→90% cost-share line
+  — with the dollar gap to each
+- the **5 closest analog disasters** ranked by *measured-hazard* similarity, each
+  showing real obligations, incident dates, multi-type tags, and PA/IA badges
 
-## Data
+**2. Disaster Watch** — live regional monitoring that **trips when current
+conditions approach a past disaster's threshold**:
+- active **NWS alerts** across Region 5 (live from `api.weather.gov`)
+- **live USGS river gages** with stage vs. flood stage
+- **trigger cards**: e.g. "River X is at 88% of the 27 ft peak during DR-4461,
+  which obligated $67M" — and warning-mix matches to analog disasters
+- an overall threat level, auto-refreshing every 5 minutes
 
-- **Live from OpenFEMA** (public domain, CORS-enabled, no key required):
-  - `FemaWebDisasterSummaries` (v1) — PA obligated and IHP approved totals.
-  - `DisasterDeclarationsSummaries` (v2) — state, incident type, dates, county
-    footprint; filtered to Region 5 major (DR) declarations, excluding
-    Biological/COVID.
-- A 36-event **embedded snapshot** is used automatically if the live API is
-  unreachable, so the tool always works offline.
-- **Hazard metrics are modeled proxies.** OpenFEMA records the dollars but not
-  the measured wind/hail/flood/rainfall of each event; those signatures are
-  derived here from incident type, narrative title, and obligation scale. A
-  production model joins NOAA Storm Events, USGS streamgages, and hazard swaths.
+**3. Region 5 History** — a **seasonality timeline** (declarations by month) with
+type filters (Flooding / Tornado / Wind / Hail / Snow-Ice / Storms), and a
+sortable **ledger** of every disaster: number (desc), incident period, state,
+type tags, PA/IA, and measured wind / hail / stage / tornado.
+
+## Data — real, measured, mostly live
+
+| Layer | Source | How |
+|---|---|---|
+| **Obligations** (PA / IA $) | OpenFEMA `FemaWebDisasterSummaries`, `DisasterDeclarationsSummaries v2` | Baked + refreshed **live** in-browser |
+| **Hazards** (wind, hail, tornado EF) | **NOAA Storm Events Database** | Joined **offline** by county FIPS + incident window |
+| **River stage** (peak ft) | **USGS Water Services** (daily values) | Joined **offline** per disaster's counties |
+| **Live alerts** | **NWS** `api.weather.gov` | Fetched **live** in-browser |
+| **Live gages** | **USGS** instantaneous values | Fetched **live** in-browser |
+
+The hazard metrics are **measured observations, not proxies.** Because NOAA
+Storm Events has no live browser API, the historical hazard join is done offline
+by `scripts/enrich.py`, which writes `data/disasters.json` (baked into the page
+so it works offline too). The live OpenFEMA / NWS / USGS calls run in the browser.
+
+### Rebuilding the dataset
+
+```bash
+# download NOAA Storm Events CSVs into data/ (see script header for URL), then:
+python3 scripts/enrich.py        # -> data/disasters.json
+python3 -c "import json,re; h=open('index.html').read(); ..."   # re-inject if templating
+```
+
+`data/disasters.json` and `data/gages.json` are committed; the raw Storm Events
+CSVs are git-ignored (large, regenerable).
 
 ## Run it
 
-No build step, no dependencies. Open `index.html` in a browser, or serve it:
+No build step, no dependencies. Open `index.html`, or serve it:
 
 ```bash
 python3 -m http.server 8000   # then visit http://localhost:8000
 ```
 
-Deploys as-is to GitHub Pages or any static host.
+Deploys as-is to GitHub Pages (already wired via `.github/workflows/pages.yml`).
 
 ## Method (analog / nearest-neighbor)
 
-Your hazard inputs are normalized and compared to each historical event with a
-Gaussian similarity kernel (plus an incident-type bonus). The closest events
-form the analog set; their real obligations are converted to per-capita rates
-using their impacted-county footprint, similarity-weighted, and re-scaled to
-your affected population. Intervals span the spread of the nearest analogs —
+Your measured hazard inputs are normalized and compared to each historical event
+with a Gaussian similarity kernel (plus an incident-type bonus). The closest
+events form the analog set; their real obligations are converted to per-capita
+rates using their impacted-county footprint, similarity-weighted, and re-scaled
+to your affected population. Intervals span the spread of the nearest analogs —
 deliberately wide, because disaster cost is zero-inflated and long-tailed.
 
-See the in-app **"How this estimate is built"** and **"Important limitations"**
-panels for the full methodology and caveats.
+## Limitations
+
+- Storm Events hazard reports are NWS "best estimates"; USGS gage height is
+  daily-mean (understates instantaneous crest); some events join at state level
+  where county detail is missing. River flood-stage thresholds are approximate.
+- Obligations lag and reconcile over years — recent disasters under-count.
+- Only *declared* events are modeled; declaration is partly bureaucratic.
+- The live watch is informational only — for official warnings consult
+  weather.gov and water.noaa.gov.

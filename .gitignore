@@ -1,0 +1,3 @@
+# Raw NOAA Storm Events bulk CSVs (downloaded by scripts/enrich.py; large, regenerable)
+data/StormEvents_*.csv.gz
+data/_disasters_raw.json
