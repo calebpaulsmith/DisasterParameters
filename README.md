@@ -95,3 +95,22 @@ deliberately wide, because disaster cost is zero-inflated and long-tailed.
 - Only *declared* events are modeled; declaration is partly bureaucratic.
 - The live watch is informational only — for official warnings consult
   weather.gov and water.noaa.gov.
+
+## Key gages (the predictors)
+
+`scripts/build_gages.py` builds `data/gages.json`: ~19 major Region 5 river
+gages, each with USGS site metadata, **NWS AHPS** flood categories, its full
+**USGS annual peak-crest history** (90–150 years), and the Region 5 disasters
+**tied to it** — a past crest counts as a *declaration crest* when it falls in a
+disaster's incident window and that disaster's designated counties include the
+gage. That yields a **stage → cost** relationship per gage (the lowest crest
+that has triggered a declaration = the gage's `minDeclStage`).
+
+In the app: tap a disaster to see the specific gages that rose; tap a gage for
+its crest timeline with declaration markers, AHPS flood-stage lines, and the
+**live** USGS level plotted against the declaration threshold. The Disaster
+Watch surfaces every key gage's live level as a share of its threshold — the
+live→prediction nexus.
+
+Rebuild: `python3 scripts/build_gages.py` (run after `enrich.py`; uses the live
+USGS site/peak/IV services, NWPS for AHPS, and `data/_disasters_raw.json`).

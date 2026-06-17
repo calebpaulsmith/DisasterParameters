@@ -299,7 +299,7 @@ tr.clickable:hover td{background:#eef3f8;}
     <div class="masthead__titles">
       <div class="eyebrow">Disaster Recovery Analytics &middot; FEMA Region 5</div>
       <h1>Disaster Obligation Estimator &amp; Watch</h1>
-      <p class="masthead__sub">A <b>traceable ledger</b> of every Region 5 disaster — tap any one for its <b>actual</b> PA/IA cost breakdown and measured NOAA/USGS parameters, each linked to source. Plus a <b>live</b> disaster watch and a rough comparables-based estimate.</p>
+      <p class="masthead__sub">A <b>traceable ledger</b> of every Region 5 disaster — tap one for its <b>actual</b> PA/IA cost breakdown and the specific gages/parameters that drove it. Tap a <b>gage</b> for its century of crests with declarations marked, and watch <b>live</b> levels against the stage that has historically triggered a declaration.</p>
     </div>
     <div class="masthead__meta">
       <span class="pill"><span class="dot" id="srcDot"></span><span id="srcLabel">Loading…</span></span>
@@ -394,6 +394,10 @@ tr.clickable:hover td{background:#eef3f8;}
     <div class="card" style="margin-top:22px"><div class="card__hd"><h2>&#9888;&#65039; Triggers — conditions approaching a past disaster</h2><span class="sub" id="trigSub">live</span></div>
       <div class="card__bd"><div id="triggers"><div class="skeleton"><span class="spin"></span> Evaluating…</div></div></div></div>
 
+    <div class="card" style="margin-top:22px"><div class="card__hd"><h2>&#128202; Key gages — live level vs. declaration threshold</h2><span class="sub">the predictors · tap for history</span></div>
+      <div class="card__bd"><div id="keygages"><div class="skeleton"><span class="spin"></span> Loading…</div></div>
+        <p class="thr-sub" style="margin-top:12px">Each gage's <b>declaration threshold</b> is the lowest crest that has historically led to a FEMA declaration in its counties. The bar shows the live level as a share of that threshold; past declarations' cost range is shown for context. Tap a gage for its full crest history.</p></div></div>
+
     <div class="watchgrid">
       <div class="card"><div class="card__hd"><h2>Active NWS alerts</h2><span class="sub" id="alertSub">api.weather.gov</span></div>
         <div class="card__bd"><div id="alerts"><div class="skeleton"><span class="spin"></span> Loading alerts…</div></div></div></div>
@@ -432,6 +436,7 @@ tr.clickable:hover td{background:#eef3f8;}
         <div class="ti" id="mTitle"></div>
         <div class="meta" id="mMeta"></div>
       </div>
+      <button class="sheet__x" id="mBack" aria-label="Back" style="display:none;font-size:16px">&#8592;</button>
       <button class="sheet__x" id="mClose" aria-label="Close">&times;</button>
     </div>
     <div class="sheet__bd" id="mBody"></div>
@@ -680,9 +685,26 @@ async function loadGages(){
     const u=`https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${ids}&parameterCd=00065&siteStatus=all`;
     const r=await fetch(u);if(!r.ok)throw 0;const j=await r.json();
     const now={};(j.value.timeSeries||[]).forEach(ts=>{const sid=ts.sourceInfo.siteCode[0].value;const v=ts.values[0]&&ts.values[0].value;if(v&&v.length){const last=v[v.length-1];now[sid]={ft:parseFloat(last.value),t:last.dateTime};}});
-    watchState.gages=GAGES.map(g=>{const n=now[g.id];return{...g,ft:n?n.ft:null,t:n?n.t:null,ratio:n?n.ft/g.floodStage:null};}).filter(g=>g.ft!=null&&!isNaN(g.ft)).sort((a,b)=>b.ratio-a.ratio);
-    renderGages();
+    GAGES.forEach(g=>{const n=now[g.id];LIVE[g.id]=n&&!isNaN(n.ft)?{ft:n.ft,t:n.t}:null;});
+    watchState.gages=GAGES.map(g=>{const n=now[g.id];const ref=g.floodStage||g.minDeclStage;return{...g,ft:n?n.ft:null,t:n?n.t:null,ratio:n&&ref?n.ft/ref:0};}).filter(g=>g.ft!=null&&!isNaN(g.ft)&&g.floodStage).sort((a,b)=>b.ratio-a.ratio);
+    renderGages();renderKeyGages();
   }catch(e){ el("gages").innerHTML=`<div class="thr-sub">Could not load live USGS gages.</div>`; watchState.gages=[]; }
+}
+function renderKeyGages(){
+  const box=el("keygages"); if(!box) return;
+  const ref=GAGES.filter(g=>g.minDeclStage&&LIVE[g.id]).map(g=>{const ft=LIVE[g.id].ft;return{g,ft,pct:ft/g.minDeclStage};}).sort((a,b)=>b.pct-a.pct);
+  if(!ref.length){box.innerHTML=`<div class="thr-sub">Live levels unavailable.</div>`;return;}
+  box.innerHTML=ref.map(({g,ft,pct})=>{
+    const costs=g.disasters.map(t=>t.total);
+    const st=g.cats?gageCategory({ft,ratio:ft/(g.cats.minor||9999),cats:g.cats}):gageStatus(pct);
+    const col=pct>=1?"var(--red)":pct>=0.85?"var(--orange)":pct>=0.6?"var(--gold-dark)":"var(--green-dark)";
+    return `<div class="gage clickable" data-gage="${g.id}">
+      <div><div class="gn">${g.name}, ${g.state} <span class="openhint">↗</span></div>
+        <div class="gmeta tnum">declares ≥ ${g.minDeclStage} ft · past cost ${fmtMoney(Math.min(...costs))}–${fmtMoney(Math.max(...costs))}</div>
+        <div class="gbar"><i style="width:${clamp(pct*100,2,100)}%;background:${col}"></i></div></div>
+      <div class="gnow tnum">${ft.toFixed(1)} ft</div>
+      <div class="gstat ${st[1]}">${Math.round(pct*100)}%<br><span style="font-weight:600;text-transform:none">of trigger</span></div></div>`;
+  }).join("");
 }
 function gageStatus(r){return r>=1?["Above flood","st-flood","var(--red)"]:r>=0.85?["Near flood","st-near","var(--orange)"]:r>=0.6?["Elevated","st-elev","var(--gold-dark)"]:["Normal","st-normal","var(--green)"];}
 function gageCategory(x){
@@ -749,7 +771,19 @@ function renderTriggers(){
 }
 
 /* ===== DISASTER DETAIL (sourced, traceable) ===== */
-function openDetail(dn){
+/* modal stack so disaster <-> gage navigation has a back button */
+let mStack=[];
+function openDetail(dn){ mStack.push({t:"d",v:+dn}); renderModal(); }
+function openGage(id){ mStack.push({t:"g",v:id}); if(LIVE[id]===undefined) fetchGageLive(id); renderModal(); }
+function modalBack(){ mStack.pop(); if(!mStack.length) closeDetail(); else renderModal(); }
+function renderModal(){
+  const top=mStack[mStack.length-1];
+  el("modal").classList.add("open"); document.body.style.overflow="hidden";
+  el("mBack").style.display=mStack.length>1?"":"none";
+  if(top.t==="d") renderDisasterDetail(top.v); else renderGageDetail(top.v);
+  el("sheet").scrollTop=0; el("modal").scrollTop=0;
+}
+function renderDisasterDetail(dn){
   const d=DATA.find(x=>x.disasterNumber===+dn); if(!d) return;
   const c=d.costs||{}; const hz=d.hz||{};
   el("mDr").textContent=`DR-${d.disasterNumber}-${d.state}`;
@@ -795,7 +829,6 @@ function openDetail(dn){
   if(hz.windMph)P.push([`${hz.windMph} mph`,"Peak wind gust",`NWS Storm Events · max of ${hz.windReports||0} wind report${hz.windReports===1?"":"s"} (knots→mph)`]);
   if(hz.hailIn)P.push([`${hz.hailIn}″`,"Max hail diameter",`NWS Storm Events · ${hz.hailReports||0} hail report${hz.hailReports===1?"":"s"}`]);
   if(hz.torEF!=null)P.push([`EF${hz.torEF}`,"Max tornado intensity",`NWS Storm Events · ${hz.tornadoes||0} tornado${hz.tornadoes===1?"":"es"}`]);
-  if(hz.peakStageFt)P.push([`${hz.peakStageFt} ft`,"Peak river stage",`USGS daily-mean gage height (max across affected-county gages)`]);
   if(hz.rainIn)P.push([`${hz.rainIn}″`,"Storm-total rainfall (peak)",`RCC-ACIS / NOAA · area mean ${hz.rainMeanIn!=null?hz.rainMeanIn+"″":"n/a"}`]);
   if(d.reportedDamage>0)P.push([`${fmtMoney(d.reportedDamage)}`,"Reported property damage",`NWS Storm Events sum (NWS best-estimate)`]);
   const parmHtml=`
@@ -816,11 +849,115 @@ function openDetail(dn){
     <div class="srclinks">${links.map(l=>`<a class="srclink" target="_blank" rel="noopener" href="${l[1]}">${l[0]}</a>`).join("")}</div>
     <p class="thr-sub" style="margin-top:10px">PA figures are <b>obligated</b> federal share; IHP figures are <b>approved</b> (a different accounting stage). Raw data is provisional and reconciles over the life of each project — verify against the FEMA disaster page for official totals.</p>`;
 
-  el("mBody").innerHTML=costHtml+parmHtml+linkHtml;
-  el("modal").classList.add("open");
-  document.body.style.overflow="hidden";
+  // river gages that actually rose during this disaster (tap for history)
+  let gageHtml="";
+  const dg=d.gages||[];
+  if(dg.length){
+    gageHtml=`<div class="sec-h" style="margin-top:22px">River gages that rose — tap for full history &amp; declaration markers<span class="src">USGS · NWS AHPS</span></div>
+      <div class="parm">${dg.map(g=>{const col=g.cat==="major"||g.cat==="moderate"?"var(--red)":g.cat==="minor"?"var(--orange)":"var(--gold-dark)";
+        return `<div class="parmcard clickable" data-gage="${g.id}" style="border-left:4px solid ${col}"><div class="pv">${g.stage} ft</div><div class="pl">${g.name}</div><div class="psrc">${g.cat?g.cat[0].toUpperCase()+g.cat.slice(1)+" flood stage":"USGS gage"} · ↗ history</div></div>`;}).join("")}</div>`;
+  } else if(hz.peakStageFt){
+    gageHtml=`<div class="sec-h" style="margin-top:22px">River stage<span class="src">USGS</span></div>
+      <div class="parm"><div class="parmcard"><div class="pv">${hz.peakStageFt} ft</div><div class="pl">Peak gage height</div><div class="psrc">USGS daily mean (no key gage in designated counties)</div></div></div>`;
+  }
+
+  el("mBody").innerHTML=costHtml+gageHtml+parmHtml+linkHtml;
 }
-function closeDetail(){el("modal").classList.remove("open");document.body.style.overflow="";}
+function closeDetail(){mStack=[];el("modal").classList.remove("open");document.body.style.overflow="";}
+
+/* ===== GAGE DETAIL — crest history, declaration markers, live predictive read ===== */
+let LIVE={}; // siteId -> {ft,t}
+async function fetchGageLive(id){
+  try{
+    const r=await fetch(`https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${id}&parameterCd=00065&siteStatus=all`);
+    if(!r.ok)throw 0;const j=await r.json();
+    const ts=j.value.timeSeries||[];let ft=null,t=null;
+    if(ts.length&&ts[0].values[0]&&ts[0].values[0].value.length){const v=ts[0].values[0].value;ft=parseFloat(v[v.length-1].value);t=v[v.length-1].dateTime;}
+    LIVE[id]=ft!=null&&!isNaN(ft)?{ft,t}:null;
+  }catch(e){LIVE[id]=null;}
+  if(mStack.length&&mStack[mStack.length-1].t==="g"&&mStack[mStack.length-1].v===id) renderGageDetail(id);
+}
+function renderGageDetail(id){
+  const g=GAGES.find(x=>x.id===id); if(!g) return;
+  const peaks=(g.peaks||[]).filter(p=>p.s!=null);
+  const record=peaks.reduce((m,p)=>p.s>m.s?p:m,{s:-1});
+  const live=LIVE[id];
+  el("mDr").textContent=g.name;
+  el("mTitle").textContent=`${g.river} · ${g.town}, ${g.state}`;
+  el("mMeta").innerHTML=`USGS ${g.id}${g.countyFips?` · county FIPS ${g.countyFips}`:""}${g.drainage?` · drains ${fmtNum(g.drainage)} mi²`:""} · ${peaks.length} yrs of record${g.official?` · NWS AHPS official`:""}`;
+
+  // predictive read
+  const ties=g.disasters||[];
+  const costs=ties.map(t=>t.total);
+  let pred;
+  if(ties.length){
+    pred=`This gage has driven <b>${ties.length}</b> Region&nbsp;5 FEMA declaration${ties.length>1?"s":""} (2016–present). The lowest crest that led to one was <b>${g.minDeclStage} ft</b>; those events drew <b>${fmtMoney(Math.min(...costs))}–${fmtMoney(Math.max(...costs))}</b> in federal assistance. Record crest <b>${record.s} ft</b> (${record.d.slice(0,4)}).`;
+  } else {
+    pred=`No Region&nbsp;5 FEMA declaration has been tied to this gage in the 2016–present window — shown as a monitoring baseline. Record crest <b>${record.s} ft</b> (${record.d.slice(0,4)})${g.cats&&g.cats.minor?`, flood stage ${g.cats.minor} ft`:""}.`;
+  }
+  let liveLine;
+  if(live){
+    const thr=g.minDeclStage||(g.cats&&g.cats.minor);
+    const pctTxt=thr?` — <b>${Math.round(live.ft/thr*100)}%</b> of the ${g.minDeclStage?`${g.minDeclStage} ft declaration threshold`:`${g.cats.minor} ft flood stage`}`:"";
+    const stat=g.cats?gageCategory({ft:live.ft,ratio:live.ft/(g.cats.minor||g.floodStage||9999),cats:g.cats})[0]:"";
+    liveLine=`<div style="margin-top:10px;font-size:14px"><b style="color:var(--blue)">Live now: ${live.ft.toFixed(1)} ft</b>${pctTxt}${stat?` · <b>${stat}</b>`:""} <span class="thr-sub">(USGS, ${new Date(live.t).toLocaleString()})</span></div>`;
+  } else if(live===null){ liveLine=`<div class="thr-sub" style="margin-top:10px">Live level unavailable right now.</div>`; }
+  else { liveLine=`<div class="skeleton" style="margin-top:10px"><span class="spin"></span> fetching live level…</div>`; }
+
+  const declSet={}; ties.forEach(t=>declSet[t.date]=t);
+  const svg=buildTimeline(g,peaks,record,live,declSet);
+
+  const declList=ties.length?`<div class="sec-h" style="margin-top:22px">FEMA declaration crests at this gage</div>
+    ${ties.map(t=>`<div class="brk-row clickable" data-dn="${t.dn}" style="cursor:pointer"><span class="k"><b style="color:var(--navy)">DR-${t.dn}</b> · ${fmtDate(t.date)} · crest <b>${t.stage} ft</b> ↗</span><span class="v">${fmtMoney(t.total)}</span></div>`).join("")}`:"";
+
+  el("mBody").innerHTML=`
+    <div class="note" style="background:#eef3f8;border-color:#cfe1f2"><span class="i" style="color:var(--blue)">◆</span><span>${pred}${liveLine}</span></div>
+    <div class="sec-h" style="margin-top:20px">Annual peak crests &amp; FEMA declarations<span class="src">USGS peak-flow · ${peaks.length} years</span></div>
+    ${svg}
+    <div class="legend" style="margin-top:6px">
+      <span><span class="swatch" style="background:var(--blue-light)"></span> annual crest</span>
+      <span><span class="swatch" style="background:var(--gold)"></span> FEMA declaration crest</span>
+      ${g.cats?`<span><span class="swatch" style="background:transparent;border-bottom:2px dashed #c05600;border-radius:0"></span> AHPS flood stages</span>`:""}
+      ${live?`<span><span class="swatch" style="background:var(--blue)"></span> live level</span>`:""}
+    </div>
+    ${declList}
+    <div class="sec-h" style="margin-top:22px">Verify at the source</div>
+    <div class="srclinks">
+      <a class="srclink" target="_blank" rel="noopener" href="https://waterdata.usgs.gov/monitoring-location/${g.id}/">💧 USGS station ${g.id}</a>
+      <a class="srclink" target="_blank" rel="noopener" href="https://nwis.waterdata.usgs.gov/nwis/peak?site_no=${g.id}&agency_cd=USGS&format=html">📈 USGS annual peaks</a>
+      ${g.official?`<a class="srclink" target="_blank" rel="noopener" href="https://water.noaa.gov/gauges/${g.id}">🌊 NWS AHPS forecast</a>`:""}
+    </div>
+    <p class="thr-sub" style="margin-top:10px">Crests are USGS annual peak gage height. A crest is flagged as a declaration when it falls inside a Region&nbsp;5 disaster's incident window and that disaster's designated counties include this gage. Live level is provisional USGS data.</p>`;
+}
+function buildTimeline(g,peaks,record,live,declSet){
+  if(!peaks.length) return `<div class="thr-sub">No stage record available.</div>`;
+  const W=760,H=240,padL=34,padR=12,padB=22,padT=10;
+  const years=peaks.map(p=>p.y); const y0=Math.min(...years),y1=Math.max(...years);
+  const cats=g.cats||{};
+  const ymax=Math.max(record.s, cats.major||0, live?live.ft:0)*1.06||10;
+  const x=yr=>padL+(W-padL-padR)*((yr-y0)/Math.max(1,y1-y0));
+  const yy=v=>padT+(H-padT-padB)*(1-v/ymax);
+  const bw=Math.max(1.5,(W-padL-padR)/(peaks.length*1.6));
+  let bars="";
+  peaks.forEach(p=>{
+    const decl=declSet[p.d];
+    const col=decl?"var(--gold)":"var(--blue-light)";
+    bars+=`<rect x="${(x(p.y)-bw/2).toFixed(1)}" y="${yy(p.s).toFixed(1)}" width="${bw.toFixed(1)}" height="${(yy(0)-yy(p.s)).toFixed(1)}" fill="${col}"><title>${p.d}: ${p.s} ft${decl?` — DR-${decl.dn} (${fmtMoney(decl.total)})`:""}</title></rect>`;
+    if(decl) bars+=`<circle cx="${x(p.y).toFixed(1)}" cy="${(yy(p.s)-4).toFixed(1)}" r="3.2" fill="var(--gold-dark)"><title>DR-${decl.dn}: ${p.s} ft, ${fmtMoney(decl.total)}</title></circle>`;
+  });
+  let lines="";
+  const catCol={action:"#e5a000",minor:"#c05600",moderate:"#b50909",major:"#7a0b0b"};
+  ["action","minor","moderate","major"].forEach(k=>{ if(cats[k]!=null&&cats[k]<=ymax){const yv=yy(cats[k]);
+    lines+=`<line x1="${padL}" y1="${yv.toFixed(1)}" x2="${W-padR}" y2="${yv.toFixed(1)}" stroke="${catCol[k]}" stroke-width="1" stroke-dasharray="4 3" opacity="0.7"/>
+      <text x="${W-padR}" y="${(yv-2).toFixed(1)}" text-anchor="end" font-size="9" fill="${catCol[k]}">${k} ${cats[k]}ft</text>`;}});
+  if(live){const yv=yy(live.ft); lines+=`<line x1="${padL}" y1="${yv.toFixed(1)}" x2="${W-padR}" y2="${yv.toFixed(1)}" stroke="var(--blue)" stroke-width="2"/><text x="${padL+2}" y="${(yv-3).toFixed(1)}" font-size="9.5" font-weight="700" fill="var(--blue)">live ${live.ft.toFixed(1)}ft</text>`;}
+  // axes
+  let axis=`<line x1="${padL}" y1="${yy(0)}" x2="${W-padR}" y2="${yy(0)}" stroke="#c6cace"/>`;
+  for(let yr=Math.ceil(y0/20)*20;yr<=y1;yr+=20){axis+=`<text x="${x(yr).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="9" fill="#565c65">${yr}</text>`;}
+  const st=Math.max(5,Math.round(ymax/4/5)*5);
+  for(let s=0;s<=ymax;s+=st){axis+=`<text x="${padL-4}" y="${(yy(s)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#565c65">${s}</text><line x1="${padL}" y1="${yy(s).toFixed(1)}" x2="${W-padR}" y2="${yy(s).toFixed(1)}" stroke="#eef0f2"/>`;}
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${axis}${lines}${bars}</svg>`;
+}
 
 /* ===== nav ===== */
 function showView(v){
@@ -841,11 +978,15 @@ function wire(){
   el("refreshBtn").addEventListener("click",()=>location.reload());
   el("watchRefresh").addEventListener("click",loadWatch);
   document.querySelectorAll("table.dis th[data-sort]").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=(k==="state"||k==="tagstr")?1:-1;}renderLedger();}));
-  // detail modal: open via delegation, close via X / overlay / Esc
-  document.body.addEventListener("click",e=>{const t=e.target.closest("[data-dn]");if(t)openDetail(t.getAttribute("data-dn"));});
+  // detail modal: open via delegation (gage takes priority over disaster), close via X / overlay / Esc
+  document.body.addEventListener("click",e=>{
+    const gt=e.target.closest("[data-gage]"); if(gt){openGage(gt.getAttribute("data-gage"));return;}
+    const t=e.target.closest("[data-dn]"); if(t)openDetail(t.getAttribute("data-dn"));
+  });
   el("mClose").addEventListener("click",closeDetail);
+  el("mBack").addEventListener("click",modalBack);
   el("modal").addEventListener("click",e=>{if(e.target===el("modal"))closeDetail();});
-  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDetail();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")modalBack();});
 }
 
 /* ===== boot ===== */
