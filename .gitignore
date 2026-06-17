@@ -5,3 +5,6 @@ data/_disasters_raw.json
 # Python bytecode
 __pycache__/
 *.pyc
+
+# PoC panel intermediate (regenerable, large)
+data/county_panel.json
