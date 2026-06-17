@@ -93,14 +93,35 @@ Takeaway for surfacing: rainfall thresholds are meaningful drivers to show for
 **IL/WI/IN/OH/MI flash-flood and rain-driven flooding**, but **MN (and Red River
 WI/ND border) needs the snowpack layer** before its flood metrics are trustworthy.
 
+## Snowpack layer results (added via `build_snow.py`)
+
+We added antecedent snow depth + melt per county-episode (GHCN station snow depth
+via ACIS, county-aggregated — the accessible proxy for SNODAS SWE). On **MN spring
+flood episodes (Mar–May)** snowpack is the decisive separator that rainfall wasn't:
+
+| MN spring flood, metric | declared p50 / p90 | non-declared p50 / p90 |
+|---|---|---|
+| **antecedent snow depth** | **9.2″ / 24.0″** | **0.0″ / 14.0″** |
+| 1-day melt | 1.0 / 4.0 | 0.0 / 2.0 |
+| peak 1-day rain | 0.1 / 1.4 | 0.2 / 3.2 (rain *lower* for declared) |
+
+Declared rate by antecedent snow depth (MN spring floods): **0″ → 34%, 3–6″ → 59%,
+≥12″ → 76%.** Deep snowpack more than doubles declaration odds, and declared spring
+floods have *less* rain than non-declared — confirming MN spring declarations are
+**snowmelt-driven**. This closes the gap the precip layer exposed.
+
+Cost note: this used ~108 light ACIS calls (station snow depth), **not** the ~90 GB
+SNODAS grid route. Signal is strong enough that the cheap proxy suffices; ERA5-Land
+SWE (Open-Meteo, also light) is an optional quality upgrade, not a necessity.
+
 ## Recommended next steps
 
 1. ~~Add the precipitation layer~~ ✅ **done** (`build_precip.py`) — rain + antecedent
    now separate declared flood episodes in WI/IL; revealed MN floods are *not*
    rain-driven.
-2. **Add snowpack (SWE)** from SNODAS/NOHRSC for MN/WI/MI Dec–Apr episodes — now the
-   clear top priority: it's the missing driver for the MN spring-snowmelt floods
-   that rainfall can't explain (42% of MN <1″-rain flood episodes are declared).
+2. ~~Add snowpack (SWE)~~ ✅ **done** (`build_snow.py`, station snow depth as proxy) —
+   antecedent snow depth strongly separates declared MN spring floods (0″ → 34%,
+   ≥12″ → 76% declared); confirmed they're snowmelt-driven.
 3. **Join river crest-over-flood** (we already have `gages.json`) onto flood
    episodes by county.
 4. **Fit a model** — logistic regression / gradient boosting for P(declaration |
