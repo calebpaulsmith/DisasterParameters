@@ -54,9 +54,12 @@ fail to load data. Local dev: `python3 -m http.server 8000`.
 - Identity/meta: `disasterNumber, state, title, incidentType, begin, end, fy,
   paDeclared, iaDeclared, countyCount, tags[]` (Flooding/Tornado/Wind/Hail/
   Snow-Ice/Storms/Dam-Levee), `eventTypes[]`, `reportedDamage`.
-- `hz` (measured hazards): `windMph, hailIn, torEF, peakStageFt, rainIn,
-  rainMeanIn, floodReports, snowReports, hailReports, windReports, tornadoes,
-  stormEvents, countyMatched`.
+- `hz` (measured hazards): `windMph, hailIn, torEF, peakStageFt, rainIn`
+  (total incident rainfall, peak county), `rainMeanIn`, `rainDailyMaxIn`
+  (highest single-day rainfall), `rainStations` (ACIS stations used),
+  `floodReports, snowReports, hailReports, windReports, tornadoes,
+  stormEvents, countyMatched`. Rainfall is refreshed/extended by
+  `scripts/augment_rain.py` (RCC-ACIS, additive — does not touch costs).
 - `costs` (the authoritative figures): `paTotal, paEmergencyAB, paPermanentCG,
   paProjects, hmgp, ihpTotal, ihpHousing, ihpOna, iaRegistrations`.
 - `pa`/`ihp` mirror `costs.paTotal`/`costs.ihpTotal` (used by list views).

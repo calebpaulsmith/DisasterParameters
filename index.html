@@ -225,7 +225,14 @@ table.dis th:hover{color:var(--blue);}
 table.dis td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top;}
 table.dis tr:hover td{background:var(--bg-2);}
 table.dis .dr{font-weight:800;color:var(--navy);white-space:nowrap;}
-table.dis .tags2{display:flex;gap:4px;flex-wrap:wrap;}
+table.dis .tags2{display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
+.primtrig{font-weight:800;font-size:11px;padding:2px 8px;border-radius:11px;border:1.5px solid currentColor;white-space:nowrap;}
+.tagmut{opacity:.5;font-weight:600;}
+.trigbanner{display:flex;align-items:center;gap:13px;background:linear-gradient(100deg,#eaf1f8,#f4f7fa);border:1px solid #cfe1f2;border-left:5px solid var(--blue);border-radius:10px;padding:12px 16px;margin-bottom:18px;}
+.trigbanner .tb-ic{font-size:26px;line-height:1;flex:none;}
+.trigbanner .tb-lab{font-size:16px;font-weight:800;color:var(--navy);}
+.trigbanner .tb-why{font-size:12.5px;color:var(--ink-2);margin-top:2px;}
+.psrclink{color:var(--blue);white-space:nowrap;}
 table.dis .money{font-weight:700;text-align:right;white-space:nowrap;}
 .hzmini{font-size:11.5px;color:var(--ink-2);white-space:nowrap;}
 table.dis tr.grouphd td{background:var(--navy);color:#fff;font-size:12.5px;padding:7px 10px;border-bottom:2px solid var(--gold);position:sticky;top:30px;}
@@ -435,7 +442,7 @@ tr.clickable:hover td{background:#eef3f8;}
         <thead><tr>
           <th data-sort="disasterNumber">DR #</th><th data-sort="begin">Incident period</th><th data-sort="state">St</th>
           <th data-sort="tagstr">Type</th><th data-sort="prog">PA / IA</th>
-          <th data-sort="wind">Wind</th><th data-sort="hail">Hail</th><th data-sort="stage">Stage</th><th data-sort="rain">Rain</th><th data-sort="ef">Tor</th>
+          <th data-sort="wind">Wind</th><th data-sort="hail">Hail</th><th data-sort="stage">Stage</th><th data-sort="rain" title="Total incident rainfall (hover a cell for peak 1-day)">Rain</th><th data-sort="tornadoes" title="Tornado count · peak EF">Tor</th>
           <th data-sort="pa">PA oblig.</th><th data-sort="ihp">IHP appr.</th>
         </tr></thead><tbody id="ledgerBody"></tbody></table></div>
         <p class="thr-sub" style="margin-top:10px">PA = Public Assistance <b>obligated</b> (federal share). IHP = Individual Assistance <b>approved</b>. Hazards measured from NOAA Storm Events + USGS. Tap any row to see the full breakdown and source links.</p></div></div>
@@ -587,6 +594,25 @@ function hzChips(hz){
   if(hz.torEF!=null)c.push(`<span class="chip">🌪️ EF${hz.torEF}</span>`);
   return c.join("")||`<span class="chip">limited storm reports</span>`;
 }
+/* the single main driver of each disaster, with the evidence behind it */
+const TRIG_ICON={"Flooding":"🌊","Tornado":"🌪️","Wind":"💨","Hail":"🧊","Snow/Ice":"❄️","Hurricane":"🌀","Dam/Levee":"🏗️","Storms":"⛈️"};
+function primaryTrigger(d){
+  const it=d.incidentType||"",hz=d.hz||{},tags=d.tags||[];
+  const map={"Flood":["Flooding","Flooding"],"Tornado":["Tornado","Tornado"],"Snowstorm":["Snow / ice","Snow/Ice"],"Severe Ice Storm":["Ice storm","Snow/Ice"],"Straight-Line Winds":["Straight-line winds","Wind"],"Dam/Levee Break":["Dam / levee failure","Dam/Levee"],"Hurricane":["Hurricane / tropical","Hurricane"]};
+  if(map[it])return{label:map[it][0],tag:map[it][1],why:`FEMA-declared incident type: <b>${it}</b>`};
+  // generic "Severe Storm" -> infer the dominant driver from measured hazards.
+  // Unmistakable headline events (major tornado outbreak / derecho wind) win first;
+  // otherwise flooding leads, since it usually drives the obligations.
+  if((hz.tornadoes||0)>=8)return{label:"Tornado outbreak",tag:"Tornado",why:`FEMA "Severe Storm" — major outbreak, ${hz.tornadoes} tornadoes measured`};
+  if((hz.windMph||0)>=80)return{label:"Damaging wind",tag:"Wind",why:`FEMA "Severe Storm" — derecho-level ${hz.windMph} mph gust`};
+  if(tags.includes("Flooding")&&((hz.rainIn||0)>=4||hz.peakStageFt))
+    return{label:"Flooding",tag:"Flooding",why:`FEMA "Severe Storm" — driven by flooding (${[hz.rainIn?hz.rainIn+"″ rain":"",hz.peakStageFt?"river to "+hz.peakStageFt+" ft":""].filter(Boolean).join(", ")||"flood reports"})`};
+  if((hz.tornadoes||0)>=3)return{label:"Tornado outbreak",tag:"Tornado",why:`FEMA "Severe Storm" — ${hz.tornadoes} tornadoes measured`};
+  if((hz.windMph||0)>=70)return{label:"Damaging wind",tag:"Wind",why:`FEMA "Severe Storm" — ${hz.windMph} mph peak gust`};
+  if((hz.hailIn||0)>=1.75)return{label:"Large hail",tag:"Hail",why:`FEMA "Severe Storm" — ${hz.hailIn}″ hail`};
+  if(tags.includes("Flooding"))return{label:"Flooding",tag:"Flooding",why:`FEMA "Severe Storm" with flooding`};
+  return{label:tags[0]||it||"Severe storm",tag:tags[0]||"Storms",why:`FEMA incident type: ${it||"n/a"}`};
+}
 function progBadges(d){
   let s="";
   if(d.pa>0||d.paDeclared)s+=`<span class="badge badge--pa">PA</span> `;
@@ -649,19 +675,21 @@ let sortKey="disasterNumber",sortDir=-1,monthFilter=null;
 function ledgerRows(){
   return DATA.filter(d=>(typeFilter==="All"||d.tags.includes(typeFilter))&&(monthFilter==null||new Date(d.begin+"T00:00:00").getMonth()===monthFilter)).map(d=>({...d,
     tagstr:d.tags.join(","),prog:(d.pa>0||d.paDeclared?2:0)+(d.ihp>0||d.iaDeclared?1:0),
-    wind:d.hz.windMph||0,hail:d.hz.hailIn||0,stage:d.hz.peakStageFt||0,rain:d.hz.rainIn||0,ef:d.hz.torEF==null?-1:d.hz.torEF}));
+    wind:d.hz.windMph||0,hail:d.hz.hailIn||0,stage:d.hz.peakStageFt||0,rain:d.hz.rainIn||0,tornadoes:d.hz.tornadoes||0,ef:d.hz.torEF==null?-1:d.hz.torEF}));
 }
 function disasterRow(d){
+  const pt=primaryTrigger(d), others=d.tags.filter(t=>t!==pt.tag);
+  const tor=d.hz.tornadoes?`${d.hz.tornadoes}${d.hz.torEF!=null?"·EF"+d.hz.torEF:""}`:(d.hz.torEF!=null?"EF"+d.hz.torEF:"—");
   return `<tr class="clickable" data-dn="${d.disasterNumber}">
     <td class="dr">DR-${d.disasterNumber} <span class="openhint">↗</span></td>
     <td>${fmtRange(d.begin,d.end)}</td><td>${d.state}</td>
-    <td><div class="tags2">${d.tags.map(t=>`<span class="${tagClass(t)}">${t}</span>`).join("")}</div></td>
+    <td><div class="tags2"><span class="primtrig ${tagClass(pt.tag)}" title="Main disaster trigger">${TRIG_ICON[pt.tag]||"⚠️"} ${pt.label}</span>${others.map(t=>`<span class="${tagClass(t)} tagmut">${t}</span>`).join("")}</div></td>
     <td>${progBadges(d)}</td>
     <td class="hzmini">${d.hz.windMph?d.hz.windMph+" mph":"—"}</td>
     <td class="hzmini">${d.hz.hailIn?d.hz.hailIn+"″":"—"}</td>
     <td class="hzmini">${d.hz.peakStageFt?d.hz.peakStageFt+" ft":"—"}</td>
-    <td class="hzmini">${d.hz.rainIn?d.hz.rainIn+"″":"—"}</td>
-    <td class="hzmini">${d.hz.torEF!=null?"EF"+d.hz.torEF:"—"}</td>
+    <td class="hzmini" title="${d.hz.rainDailyMaxIn?"peak 1-day "+d.hz.rainDailyMaxIn+'″':""}">${d.hz.rainIn?d.hz.rainIn+"″":"—"}</td>
+    <td class="hzmini">${tor}</td>
     <td class="money">${d.pa>0?fmtMoney(d.pa):"—"}</td><td class="money">${d.ihp>0?fmtMoney(d.ihp):"—"}</td></tr>`;
 }
 function renderLedger(){
@@ -895,17 +923,21 @@ function renderDisasterDetail(dn){
       </div>
     </div>`;
 
-  // measured parameters with provenance
+  // measured parameters with provenance + per-parameter traceability links
+  const seHref="https://www.ncdc.noaa.gov/stormevents/choosedates.jsp?statefips=-999%2CALL";
+  const acisHref="https://www.rcc-acis.org/docs_webservices.html";
+  const cw=`${d.countyCount} ${d.countyCount===1?"county":"counties"}`;
   const P=[];
-  if(hz.windMph)P.push([`${hz.windMph} mph`,"Peak wind gust",`NWS Storm Events · max of ${hz.windReports||0} wind report${hz.windReports===1?"":"s"} (knots→mph)`]);
-  if(hz.hailIn)P.push([`${hz.hailIn}″`,"Max hail diameter",`NWS Storm Events · ${hz.hailReports||0} hail report${hz.hailReports===1?"":"s"}`]);
-  if(hz.torEF!=null)P.push([`EF${hz.torEF}`,"Max tornado intensity",`NWS Storm Events · ${hz.tornadoes||0} tornado${hz.tornadoes===1?"":"es"}`]);
-  if(hz.rainIn)P.push([`${hz.rainIn}″`,"Storm-total rainfall (peak)",`RCC-ACIS / NOAA · area mean ${hz.rainMeanIn!=null?hz.rainMeanIn+"″":"n/a"}`]);
-  if(d.reportedDamage>0)P.push([`${fmtMoney(d.reportedDamage)}`,"Reported property damage",`NWS Storm Events sum (NWS best-estimate)`]);
+  if(hz.windMph)P.push({v:`${hz.windMph} mph`,l:"Peak wind gust",src:`NOAA Storm Events · max of ${hz.windReports||0} wind report${hz.windReports===1?"":"s"} (knots→mph)`,href:seHref,hl:"Storm Events"});
+  if(hz.hailIn)P.push({v:`${hz.hailIn}″`,l:"Max hail diameter",src:`NOAA Storm Events · ${hz.hailReports||0} hail report${hz.hailReports===1?"":"s"}`,href:seHref,hl:"Storm Events"});
+  if((hz.tornadoes||0)>0||hz.torEF!=null)P.push({v:`${hz.tornadoes||0}${hz.torEF!=null?` · EF${hz.torEF}`:""}`,l:`Tornadoes in incident period${hz.torEF!=null?" · peak EF":""}`,src:`NOAA Storm Events · count of tornado reports in the designated ${cw} during the incident window`,href:seHref,hl:"Storm Events"});
+  if(hz.rainDailyMaxIn)P.push({v:`${hz.rainDailyMaxIn}″`,l:"Peak 1-day rainfall",src:`RCC-ACIS (NOAA) · highest single-day station total${hz.rainStations?` of ${hz.rainStations} stations`:""} across ${cw}`,href:acisHref,hl:"RCC-ACIS"});
+  if(hz.rainIn)P.push({v:`${hz.rainIn}″`,l:"Total incident rainfall",src:`RCC-ACIS (NOAA) · peak county storm-total over the incident window · area mean ${hz.rainMeanIn!=null?hz.rainMeanIn+"″":"n/a"}`,href:acisHref,hl:"RCC-ACIS"});
+  if(d.reportedDamage>0)P.push({v:`${fmtMoney(d.reportedDamage)}`,l:"Reported property damage",src:`NOAA Storm Events damage sum (NWS best-estimate)`,href:seHref,hl:"Storm Events"});
   const parmHtml=`
     <div class="sec-h" style="margin-top:22px">Measured event parameters — and where each came from
       <span class="src">${hz.stormEvents||0} storm reports${hz.countyMatched===false?" · state-level":""}</span></div>
-    <div class="parm">${P.map(p=>`<div class="parmcard"><div class="pv">${p[0]}</div><div class="pl">${p[1]}</div><div class="psrc">${p[2]}</div></div>`).join("")||`<div class="thr-sub">No measured storm parameters joined for this event.</div>`}</div>
+    <div class="parm">${P.map(p=>`<div class="parmcard"><div class="pv">${p.v}</div><div class="pl">${p.l}</div><div class="psrc">${p.src}${p.href?` · <a href="${p.href}" target="_blank" rel="noopener" class="psrclink">↗ ${p.hl}</a>`:""}</div></div>`).join("")||`<div class="thr-sub">No measured storm parameters joined for this event.</div>`}</div>
     ${hz.countyMatched===false?`<div class="note" style="margin-top:12px"><span class="i">!</span><span>Designated areas for this declaration did not map to specific counties in OpenFEMA, so hazards are aggregated across the state during the incident window and may overstate the local peak.</span></div>`:""}`;
 
   // verification source links
@@ -933,7 +965,9 @@ function renderDisasterDetail(dn){
       <div class="parm"><div class="parmcard"><div class="pv">${hz.peakStageFt} ft</div><div class="pl">Peak gage height</div><div class="psrc">USGS daily mean (no key gage in designated counties)</div></div></div>`;
   }
 
-  el("mBody").innerHTML=costHtml+gageHtml+parmHtml+linkHtml;
+  const pt=primaryTrigger(d);
+  const triggerHtml=`<div class="trigbanner"><div class="tb-ic">${TRIG_ICON[pt.tag]||"⚠️"}</div><div><div class="tb-lab">Main trigger · ${pt.label}</div><div class="tb-why">${pt.why}</div></div></div>`;
+  el("mBody").innerHTML=triggerHtml+costHtml+gageHtml+parmHtml+linkHtml;
 }
 function closeDetail(){mStack=[];el("modal").classList.remove("open");document.body.style.overflow="";}
 
