@@ -35,6 +35,14 @@ jobs:
         with:
           enablement: true
 
+      # Stamp the deployed commit + date into the page footer
+      - name: Stamp build info
+        run: |
+          SHORT=$(git rev-parse --short HEAD)
+          DATE=$(date -u +"%Y-%m-%d %H:%MZ")
+          sed -i "s/__BUILD_SHA__/${SHORT}/g; s/__BUILD_DATE__/${DATE}/g" index.html
+          echo "stamped build ${SHORT} (${DATE})"
+
       # Publish the repository root (index.html is the whole app)
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -214,6 +214,9 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
 .tlbar .tln{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:800;color:var(--navy);}
 .tlmonth .tll{font-size:10.5px;color:var(--ink-3);font-weight:600;}
 .tlmonth.peak .tlbar{background:linear-gradient(180deg,var(--gold),var(--gold-dark));}
+.tlmonth.clickable{cursor:pointer;}
+.tlmonth.sel .tlbar{background:var(--navy);outline:2px solid var(--gold);outline-offset:1px;}
+.mchip{display:inline-block;background:var(--navy);color:#fff;padding:1px 8px;border-radius:10px;font-weight:700;cursor:pointer;}
 .season{font-size:12.5px;color:var(--ink-3);margin-top:14px;text-align:center;}
 .tablewrap{overflow-x:auto;}
 table.dis{width:100%;border-collapse:collapse;font-size:13px;min-width:860px;}
@@ -225,6 +228,9 @@ table.dis .dr{font-weight:800;color:var(--navy);white-space:nowrap;}
 table.dis .tags2{display:flex;gap:4px;flex-wrap:wrap;}
 table.dis .money{font-weight:700;text-align:right;white-space:nowrap;}
 .hzmini{font-size:11.5px;color:var(--ink-2);white-space:nowrap;}
+table.dis tr.grouphd td{background:var(--navy);color:#fff;font-size:12.5px;padding:7px 10px;border-bottom:2px solid var(--gold);position:sticky;top:30px;}
+table.dis tr.grouphd td.money{color:var(--gold-light,#ffd97a);}
+#buildSha{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:4px;color:#9ec3ec;}
 
 footer{background:var(--navy-2);color:#c3cfde;margin-top:36px;}
 .footer__inner{max-width:1320px;margin:0 auto;padding:26px 20px 34px;display:flex;gap:30px;flex-wrap:wrap;justify-content:space-between;}
@@ -422,7 +428,9 @@ tr.clickable:hover td{background:#eef3f8;}
         <div class="timeline" id="timeline" style="margin-top:20px"></div>
         <div class="season" id="seasonNote"></div>
       </div></div>
-    <div class="card"><div class="card__hd"><h2>Region 5 disaster ledger</h2><span class="sub" id="ledgerSub">tap a row for sourced detail · click a header to sort</span></div>
+    <div class="card"><div class="card__hd"><h2>Region 5 disaster ledger</h2>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-light);cursor:pointer;margin-left:auto"><input type="checkbox" id="groupState"> Group by state</label>
+        <span class="sub" id="ledgerSub" style="margin-left:14px">tap a row for sourced detail · click a header to sort</span></div>
       <div class="card__bd"><div class="tablewrap"><table class="dis" id="ledger">
         <thead><tr>
           <th data-sort="disasterNumber">DR #</th><th data-sort="begin">Incident period</th><th data-sort="state">St</th>
@@ -457,7 +465,8 @@ tr.clickable:hover td{background:#eef3f8;}
       <li>OpenFEMA — obligations &amp; declarations</li><li>NOAA Storm Events — wind / hail / tornado</li>
       <li>USGS Water Services — river stage</li><li>NWS api.weather.gov — live alerts</li></ul></div>
     <div><h4>Use responsibly</h4><ul><li>Not for eligibility / rights determinations</li><li>Estimates &amp; live thresholds are illustrative</li><li>Verify against FEMA PDAs &amp; NWS/USGS official data</li></ul></div>
-    <p class="footer__disclaimer">This product uses FEMA's OpenFEMA API, NOAA, NWS, and USGS public data, but is not endorsed by any of them. River flood-stage thresholds are approximate; gage data is provisional and subject to revision.</p>
+    <p class="footer__disclaimer">This product uses FEMA's OpenFEMA API, NOAA, NWS, and USGS public data, but is not endorsed by any of them. River flood-stage thresholds are approximate; gage data is provisional and subject to revision.
+      <br>Build <a id="buildLink" href="https://github.com/calebpaulsmith/DisasterParameters" target="_blank" rel="noopener"><code id="buildSha">__BUILD_SHA__</code></a> · deployed <span id="buildDate">__BUILD_DATE__</span></p>
   </div>
 </footer>
 
@@ -631,20 +640,19 @@ function renderTimeline(){
   const counts=new Array(12).fill(0);
   set.forEach(d=>{counts[new Date(d.begin+"T00:00:00").getMonth()]++;});
   const max=Math.max(...counts,1),peak=counts.indexOf(max);
-  el("timeline").innerHTML=counts.map((c,m)=>`<div class="tlmonth ${c===max&&c>0?'peak':''}"><div class="tlbar" style="height:${c/max*100}%" title="${MONTHS[m]}: ${c}">${c?`<span class="tln">${c}</span>`:""}</div><div class="tll">${MONTHS[m][0]}</div></div>`).join("");
-  const total=set.length;
-  el("seasonNote").innerHTML=total?`<b>${total}</b> ${typeFilter==="All"?"":typeFilter+" "}disasters since 2016 · most frequent in <b>${MONTHS[peak]}</b> · ${Math.round(counts.slice(4,8).reduce((a,b)=>a+b,0)/total*100)}% fall May–Aug (severe-storm &amp; flood season).`:"No disasters match this filter.";
+  el("timeline").innerHTML=counts.map((c,m)=>`<div class="tlmonth ${c===max&&c>0?'peak':''} ${m===monthFilter?'sel':''} ${c?'clickable':''}" ${c?`data-month="${m}"`:""} title="${MONTHS[m]}: ${c} — click to filter the ledger"><div class="tlbar" style="height:${c/max*100}%">${c?`<span class="tln">${c}</span>`:""}</div><div class="tll">${MONTHS[m][0]}</div></div>`).join("");
+  const total=set.length,minYr=DATA.length?Math.min(...DATA.map(d=>+d.begin.slice(0,4))):2016;
+  el("seasonNote").innerHTML=total?`<b>${total}</b> ${typeFilter==="All"?"":typeFilter+" "}disasters since ${minYr} · most frequent in <b>${MONTHS[peak]}</b> · ${Math.round(counts.slice(4,8).reduce((a,b)=>a+b,0)/total*100)}% fall May–Aug (severe-storm &amp; flood season). <span class="thr-sub">Click a bar to see that month's disasters below.</span>`:"No disasters match this filter.";
   el("seasonSub").textContent=`${total} declarations · by month`;
 }
-let sortKey="disasterNumber",sortDir=-1;
+let sortKey="disasterNumber",sortDir=-1,monthFilter=null;
 function ledgerRows(){
-  return DATA.filter(d=>typeFilter==="All"||d.tags.includes(typeFilter)).map(d=>({...d,
+  return DATA.filter(d=>(typeFilter==="All"||d.tags.includes(typeFilter))&&(monthFilter==null||new Date(d.begin+"T00:00:00").getMonth()===monthFilter)).map(d=>({...d,
     tagstr:d.tags.join(","),prog:(d.pa>0||d.paDeclared?2:0)+(d.ihp>0||d.iaDeclared?1:0),
     wind:d.hz.windMph||0,hail:d.hz.hailIn||0,stage:d.hz.peakStageFt||0,rain:d.hz.rainIn||0,ef:d.hz.torEF==null?-1:d.hz.torEF}));
 }
-function renderLedger(){
-  const rows=ledgerRows().sort((a,b)=>{const x=a[sortKey],y=b[sortKey];if(typeof x==="string")return sortDir*x.localeCompare(y);return sortDir*((x||0)-(y||0));});
-  el("ledgerBody").innerHTML=rows.map(d=>`<tr class="clickable" data-dn="${d.disasterNumber}">
+function disasterRow(d){
+  return `<tr class="clickable" data-dn="${d.disasterNumber}">
     <td class="dr">DR-${d.disasterNumber} <span class="openhint">↗</span></td>
     <td>${fmtRange(d.begin,d.end)}</td><td>${d.state}</td>
     <td><div class="tags2">${d.tags.map(t=>`<span class="${tagClass(t)}">${t}</span>`).join("")}</div></td>
@@ -654,9 +662,25 @@ function renderLedger(){
     <td class="hzmini">${d.hz.peakStageFt?d.hz.peakStageFt+" ft":"—"}</td>
     <td class="hzmini">${d.hz.rainIn?d.hz.rainIn+"″":"—"}</td>
     <td class="hzmini">${d.hz.torEF!=null?"EF"+d.hz.torEF:"—"}</td>
-    <td class="money">${d.pa>0?fmtMoney(d.pa):"—"}</td><td class="money">${d.ihp>0?fmtMoney(d.ihp):"—"}</td></tr>`).join("");
-  el("ledgerSub").textContent=`${rows.length} disasters · sorted by ${sortKey} ${sortDir<0?"↓":"↑"}`;
+    <td class="money">${d.pa>0?fmtMoney(d.pa):"—"}</td><td class="money">${d.ihp>0?fmtMoney(d.ihp):"—"}</td></tr>`;
 }
+function renderLedger(){
+  const rows=ledgerRows().sort((a,b)=>{const x=a[sortKey],y=b[sortKey];if(typeof x==="string")return sortDir*x.localeCompare(y);return sortDir*((x||0)-(y||0));});
+  if(el("groupState")&&el("groupState").checked){
+    const by={}; rows.forEach(d=>{(by[d.state]=by[d.state]||[]).push(d);});
+    el("ledgerBody").innerHTML=Object.keys(by).sort().map(st=>{
+      const g=by[st],pa=g.reduce((s,d)=>s+(d.pa||0),0),ihp=g.reduce((s,d)=>s+(d.ihp||0),0);
+      return `<tr class="grouphd"><td colspan="10"><b>${STATE_NAME[st]||st}</b> · ${g.length} disaster${g.length===1?"":"s"}</td>
+        <td class="money"><b>${pa>0?fmtMoney(pa):"—"}</b></td><td class="money"><b>${ihp>0?fmtMoney(ihp):"—"}</b></td></tr>`
+        +g.map(disasterRow).join("");
+    }).join("");
+    el("ledgerSub").innerHTML=`${rows.length} disasters · grouped by state${monthChip()}`;
+  } else {
+    el("ledgerBody").innerHTML=rows.map(disasterRow).join("");
+    el("ledgerSub").innerHTML=`${rows.length} disasters · sorted by ${sortKey} ${sortDir<0?"↓":"↑"}${monthChip()}`;
+  }
+}
+function monthChip(){return monthFilter==null?"":` · <span class="mchip clickable" data-clearmonth="1">${MONTHS[monthFilter]} only ✕</span>`;}
 
 /* ===== DISASTER WATCH (live NWS + USGS) ===== */
 let watchState={alerts:[],gages:[],level:0,ready:false};
@@ -1035,8 +1059,11 @@ function wire(){
   el("refreshBtn").addEventListener("click",()=>location.reload());
   el("watchRefresh").addEventListener("click",loadWatch);
   document.querySelectorAll("table.dis th[data-sort]").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=(k==="state"||k==="tagstr")?1:-1;}renderLedger();}));
+  if(el("groupState"))el("groupState").addEventListener("change",renderLedger);
   // detail modal: open via delegation (gage takes priority over disaster), close via X / overlay / Esc
   document.body.addEventListener("click",e=>{
+    const cm=e.target.closest("[data-clearmonth]"); if(cm){monthFilter=null;renderTimeline();renderLedger();return;}
+    const mb=e.target.closest("[data-month]"); if(mb){const m=+mb.getAttribute("data-month");monthFilter=monthFilter===m?null:m;renderTimeline();renderLedger();document.getElementById("ledger").scrollIntoView({behavior:"smooth",block:"start"});return;}
     const gt=e.target.closest("[data-gage]"); if(gt){openGage(gt.getAttribute("data-gage"));return;}
     const t=e.target.closest("[data-dn]"); if(t)openDetail(t.getAttribute("data-dn"));
   });
@@ -1044,6 +1071,20 @@ function wire(){
   el("mBack").addEventListener("click",modalBack);
   el("modal").addEventListener("click",e=>{if(e.target===el("modal"))closeDetail();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape")modalBack();});
+  resolveBuild();
+}
+async function resolveBuild(){
+  const shaEl=el("buildSha"),dateEl=el("buildDate"),link=el("buildLink");if(!shaEl)return;
+  const repo="https://github.com/calebpaulsmith/DisasterParameters";
+  if(!shaEl.textContent.includes("__BUILD_SHA__")){ // injected at deploy time
+    link.href=`${repo}/commit/${shaEl.textContent.trim()}`; return;
+  }
+  try{ // local/dev: show the latest pushed main commit
+    const r=await fetch("https://api.github.com/repos/calebpaulsmith/DisasterParameters/commits/main");
+    if(!r.ok)throw 0;const j=await r.json();
+    shaEl.textContent=j.sha.slice(0,7)+" (latest main)";link.href=j.html_url;
+    if(dateEl)dateEl.textContent=new Date(j.commit.committer.date).toLocaleString();
+  }catch(e){ shaEl.textContent="dev (unbuilt)"; if(dateEl)dateEl.textContent="local"; }
 }
 
 /* ===== boot ===== */

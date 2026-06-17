@@ -26,14 +26,24 @@ Three views (in priority order — **facts first**):
 
 ```
 index.html                  # the entire app (HTML+CSS+vanilla JS, no build step)
-data/disasters.json         # 36 Region 5 disasters — the source of truth (committed)
-data/gages.json             # 13 USGS river gages + NWS AHPS flood categories (committed)
-scripts/enrich.py           # OFFLINE pipeline that builds data/disasters.json
-.github/workflows/pages.yml # deploys to GitHub Pages on push to main
-data/StormEvents_*.csv.gz   # raw NOAA inputs — GIT-IGNORED (large, regenerable)
+data/disasters.json         # 80 Region 5 disasters (FY2007–2026) — the source of truth (committed)
+data/gages.json             # 19 key USGS river gages: AHPS + crest history + declaration ties (committed)
+scripts/enrich.py           # OFFLINE: joins NOAA/USGS hazards onto _disasters_raw.json (NO costs)
+scripts/add_history.py      # OFFLINE: pulls older R5 disasters (FEMA costs + hazards) and merges them in
+scripts/build_gages.py      # OFFLINE: builds gages.json + per-disaster gage lists; ties crests↔declarations
+.github/workflows/pages.yml # deploys to Pages on push to main; stamps the build commit into the footer
+data/StormEvents_*.csv.gz   # raw NOAA inputs (2008–2025) — GIT-IGNORED (large, regenerable)
 data/_disasters_raw.json    # intermediate from the FEMA pull — GIT-IGNORED
 FEMA Obligation-... .md      # the original research blueprint (background/context)
 ```
+
+**Pipeline gotcha (costs landmine):** `enrich.py` writes hazards but **not** `costs`.
+The authoritative `costs`/`pa`/`ihp` fields come from the FEMA pull (FemaWebDisasterSummaries),
+carried in by `add_history.py`. Re-running **`enrich.py` alone would overwrite
+`disasters.json` and drop costs + the `gages` lists** — don't. To rebuild from
+scratch you must re-pull FEMA costs too. To just add more disasters, use
+`add_history.py START_FY END_FY` (additive; leaves existing rows untouched), then
+`build_gages.py`.
 
 `index.html` **fetches `data/*.json` at runtime** (same-origin). It therefore
 must be served over http(s) — opening the file directly with `file://` will
