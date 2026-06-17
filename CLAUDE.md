@@ -31,9 +31,20 @@ data/gages.json             # 19 key USGS river gages: AHPS + crest history + de
 scripts/enrich.py           # OFFLINE: joins NOAA/USGS hazards onto _disasters_raw.json (NO costs)
 scripts/add_history.py      # OFFLINE: pulls older R5 disasters (FEMA costs + hazards) and merges them in
 scripts/build_gages.py      # OFFLINE: builds gages.json + per-disaster gage lists; ties crests↔declarations
+# --- state-incident declaration & cost model (see analysis/state-declaration-model.md) ---
+scripts/build_panel.py      # OFFLINE: county×episode panel (now also ingests Z-type flood/winter via NWS zone→county xwalk)
+scripts/build_precip.py …   # OFFLINE additive enrichers: build_precip, build_snow, augment_ari, augment_stage, augment_exposure
+scripts/build_state_panel.py# OFFLINE: aggregates county panel → state_panel.json (the modeling table)
+scripts/fit_model.py        # OFFLINE: fits declaration+cost models (scikit-learn optional) → data/model.json
+scripts/build_predictor.py  # OFFLINE: distills panel+model → predictor.json + triggers.json
+scripts/build_seed_artifacts.py # OFFLINE: SEED predictor/triggers/model from disasters.json + gages.json + PoC findings (no panel needed)
+data/predictor.json         # committed, small: per-state base rates, triggers, analogs, cost summaries, county drill-down
+data/triggers.json          # committed, small: per-disaster characterizing hazard params + how-often/declared-rate
+data/model.json             # committed, small: feature importance, base-rate matrix, literature benchmarks
 .github/workflows/pages.yml # deploys to Pages on push to main; stamps the build commit into the footer
 data/StormEvents_*.csv.gz   # raw NOAA inputs (2008–2025) — GIT-IGNORED (large, regenerable)
 data/_disasters_raw.json    # intermediate from the FEMA pull — GIT-IGNORED
+data/county_panel.json · data/state_panel.json # GIT-IGNORED model intermediates (regenerable, large)
 FEMA Obligation-... .md      # the original research blueprint (background/context)
 ```
 

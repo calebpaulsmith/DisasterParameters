@@ -17,12 +17,50 @@ Run from repo root:  python3 scripts/build_panel.py
 Needs the StormEvents_details-*.csv.gz in data/ + data/disasters.json +
 data/_disasters_raw.json.
 """
-import os, json, gzip, csv, glob, datetime as dt, collections, statistics as st
+import os, json, gzip, csv, glob, datetime as dt, collections, statistics as st, urllib.request, time
 HERE=os.path.dirname(os.path.abspath(__file__)); ROOT=os.path.dirname(HERE); DATA=os.path.join(ROOT,"data")
 R5={"17":"IL","18":"IN","26":"MI","27":"MN","39":"OH","55":"WI"}
 KT2MPH=1.151
 WIND={"Thunderstorm Wind","High Wind","Strong Wind","Marine Thunderstorm Wind","Marine High Wind"}
 FLOOD={"Flood","Flash Flood","Coastal Flood","Lakeshore Flood"}
+# Z-type (forecast-zone-collected) events that build_panel previously DROPPED. Riverine
+# "Flood" and the winter family are reported by ZONE, not county, so they never matched
+# the CZ_TYPE=="C" filter — yet they are exactly the flood/snowmelt declarations the model
+# needs. We ingest them by expanding each zone to its member counties via the NWS
+# zone->county correlation file (baked offline; see load_zone_county).
+WINTER={"Winter Storm","Heavy Snow","Blizzard","Ice Storm","Winter Weather","Lake-Effect Snow","Sleet"}
+ZONE_EVENTS=FLOOD|WINTER
+
+# NWS public forecast-zone <-> county correlation file (pipe-delimited "bp" file).
+# Columns: STATE|ZONE|CWA|NAME|STATE_ZONE|COUNTY|FIPS|TIME_ZONE|FE_AREA|LAT|LON
+ZONE_URL="https://www.weather.gov/source/gis/Shapefiles/County/bp05de24.dbx"
+def load_zone_county():
+    """Return {STATE_ZONE -> [county FIPS5,...]} e.g. 'ILZ001'->['17001',...].
+    Cached to data/_zone_county.json (git-ignored). Drop the file in manually if the
+    NWS URL rotates (the correlation file is renamed by date)."""
+    cache=os.path.join(DATA,"_zone_county.json")
+    if os.path.exists(cache):
+        return json.load(open(cache))
+    txt=None
+    for _ in range(4):
+        try:
+            with urllib.request.urlopen(ZONE_URL,timeout=60) as r: txt=r.read().decode("latin-1"); break
+        except Exception: time.sleep(2)
+    z2f=collections.defaultdict(list)
+    if not txt:
+        print("  WARN: could not fetch NWS zone-county file; Z-type events will be skipped.\n"
+              f"        Download {ZONE_URL} (or the current bp*.dbx) to data/_zone_county.json as\n"
+              "        a {STATE_ZONE:[fips,...]} map, or re-run with network access.")
+        return z2f
+    for line in txt.splitlines():
+        f=line.split("|")
+        if len(f)<7: continue
+        sz=f[4].strip(); fips=f[6].strip()
+        if len(sz)==6 and len(fips)==5 and fips[:2] in R5:
+            z2f[sz].append(fips)
+    json.dump({k:v for k,v in z2f.items()},open(cache,"w"))
+    print(f"  zone->county crosswalk: {len(z2f)} R5 zones cached -> data/_zone_county.json")
+    return z2f
 
 def dmg(s):
     if not s: return 0.0
@@ -36,44 +74,60 @@ def ym_day(ym,day):
     except: return None
 
 def build_panel():
+    z2f=load_zone_county()
     agg={}  # (fips5,episode) -> dict
     for fp in sorted(glob.glob(os.path.join(DATA,"StormEvents_details-*.csv.gz"))):
         with gzip.open(fp,"rt",encoding="latin-1") as fh:
             for r in csv.DictReader(fh):
-                if r.get("CZ_TYPE")!="C": continue
+                ct=r.get("CZ_TYPE")
                 sf=str(r.get("STATE_FIPS","")).zfill(2)
                 if sf not in R5: continue
-                fips5=sf+str(r.get("CZ_FIPS","")).zfill(3)
-                ep=r.get("EPISODE_ID","")
-                key=(fips5,ep)
-                d=ym_day(r.get("BEGIN_YEARMONTH"),r.get("BEGIN_DAY"))
                 et=r.get("EVENT_TYPE","")
-                o=agg.get(key)
-                if o is None:
-                    o=agg[key]=dict(fips=fips5,state=R5[sf],name=r.get("CZ_NAME","").title(),ep=ep,
-                                    begin=d,end=d,ets=set(),gust=0.0,sustained=0.0,hail=0.0,tor=0,ef=-1,
-                                    flood=False,dmg=0.0)
-                if d:
-                    if o["begin"] is None or d<o["begin"]: o["begin"]=d
-                    if o["end"] is None or d>o["end"]: o["end"]=d
-                o["ets"].add(et)
-                o["dmg"]+=dmg(r.get("DAMAGE_PROPERTY"))
-                mag=r.get("MAGNITUDE");
+                # county-collected (C) rows map 1:1; zone-collected (Z) flood/winter rows
+                # expand to every member county via the NWS zone->county crosswalk.
+                if ct=="C":
+                    fips_list=[sf+str(r.get("CZ_FIPS","")).zfill(3)]; zone=False
+                elif ct=="Z" and et in ZONE_EVENTS:
+                    sz=R5[sf]+"Z"+str(r.get("CZ_FIPS","")).zfill(3)
+                    fips_list=z2f.get(sz,[]); zone=True
+                    if not fips_list: continue
+                else:
+                    continue
+                ep=r.get("EPISODE_ID","")
+                d=ym_day(r.get("BEGIN_YEARMONTH"),r.get("BEGIN_DAY"))
+                dmgv=dmg(r.get("DAMAGE_PROPERTY"))
+                mag=r.get("MAGNITUDE")
                 try: mag=float(mag) if mag not in (None,"") else None
                 except: mag=None
                 mt=r.get("MAGNITUDE_TYPE","")
-                if et in WIND and mag:
-                    mph=mag*KT2MPH
-                    if mt in ("ES","MS"): o["sustained"]=max(o["sustained"],mph)
-                    else: o["gust"]=max(o["gust"],mph)   # EG/MG/blank -> treat as gust
-                if et=="Hail" and mag: o["hail"]=max(o["hail"],mag)
-                if et=="Tornado":
-                    o["tor"]+=1
-                    fs=r.get("TOR_F_SCALE","") or ""
-                    if fs.startswith("EF"):
-                        try: o["ef"]=max(o["ef"],int(fs[2:]))
-                        except: pass
-                if et in FLOOD: o["flood"]=True
+                fscale=r.get("TOR_F_SCALE","") or ""
+                # a Z-type record's damage is split evenly across member counties so we
+                # don't multiply a single zone's reported loss by its county count.
+                dshare=dmgv/len(fips_list) if (zone and fips_list) else dmgv
+                for fips5 in fips_list:
+                    key=(fips5,ep); o=agg.get(key)
+                    if o is None:
+                        o=agg[key]=dict(fips=fips5,state=R5[sf],name=r.get("CZ_NAME","").title(),ep=ep,
+                                        begin=d,end=d,ets=set(),gust=0.0,sustained=0.0,hail=0.0,tor=0,ef=-1,
+                                        flood=False,winter=False,zoneSourced=False,dmg=0.0)
+                    if d:
+                        if o["begin"] is None or d<o["begin"]: o["begin"]=d
+                        if o["end"] is None or d>o["end"]: o["end"]=d
+                    o["ets"].add(et)
+                    if zone: o["zoneSourced"]=True
+                    if et in WINTER: o["winter"]=True
+                    o["dmg"]+=dshare
+                    if et in WIND and mag:
+                        mph=mag*KT2MPH
+                        if mt in ("ES","MS"): o["sustained"]=max(o["sustained"],mph)
+                        else: o["gust"]=max(o["gust"],mph)   # EG/MG/blank -> treat as gust
+                    if et=="Hail" and mag: o["hail"]=max(o["hail"],mag)
+                    if et=="Tornado":
+                        o["tor"]+=1
+                        if fscale.startswith("EF"):
+                            try: o["ef"]=max(o["ef"],int(fscale[2:]))
+                            except: pass
+                    if et in FLOOD: o["flood"]=True
     return agg
 
 def label(agg):
@@ -97,7 +151,8 @@ def label(agg):
         rows.append(dict(fips=fips,state=o["state"],name=o["name"],
             begin=o["begin"].isoformat(),end=o["end"].isoformat(),month=o["begin"].month,
             ets=sorted(o["ets"]),gust=round(o["gust"]),sustained=round(o["sustained"]),
-            hail=round(o["hail"],2),tor=o["tor"],ef=o["ef"],flood=o["flood"],dmg=round(o["dmg"]),
+            hail=round(o["hail"],2),tor=o["tor"],ef=o["ef"],flood=o["flood"],
+            winter=o.get("winter",False),zoneSourced=o.get("zoneSourced",False),dmg=round(o["dmg"]),
             declared=1 if decl else 0,dn=decl[0] if decl else None,cost=decl[1] if decl else None))
     return rows
 

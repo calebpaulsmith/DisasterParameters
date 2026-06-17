@@ -8,3 +8,9 @@ __pycache__/
 
 # PoC panel intermediate (regenerable, large)
 data/county_panel.json
+
+# Atlas-14 DDF cache (regenerable; pulled by scripts/augment_ari.py)
+data/_atlas14_cache.json
+
+# NWS zone->county crosswalk cache (regenerable; pulled by scripts/build_panel.py)
+data/_zone_county.json
