@@ -238,6 +238,43 @@ details.disc summary::after{content:"+";font-size:20px;color:var(--blue);}detail
 details.disc .inner{padding:0 16px 16px;font-size:13.5px;color:var(--ink-2);}
 details.disc .inner li{margin-bottom:5px;}
 .kbd{font-weight:700;color:var(--navy);}
+
+/* ===== Disaster detail modal ===== */
+.modal{position:fixed;inset:0;z-index:100;background:rgba(11,31,58,.55);display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto;}
+.modal.open{display:flex;animation:fade .2s;}
+.sheet{background:var(--white);border-radius:16px;max-width:860px;width:100%;box-shadow:var(--shadow-lg);overflow:hidden;}
+.sheet__hd{background:linear-gradient(120deg,var(--navy-2),var(--navy));color:#fff;padding:18px 22px;display:flex;gap:14px;align-items:flex-start;}
+.sheet__hd .dr{font-size:21px;font-weight:900;}
+.sheet__hd .ti{font-size:13.5px;color:#cdd9e8;margin-top:2px;}
+.sheet__hd .meta{font-size:12px;color:#9fb2cb;margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.sheet__x{margin-left:auto;background:rgba(255,255,255,.14);border:0;color:#fff;font-size:20px;width:34px;height:34px;border-radius:8px;cursor:pointer;flex:none;}
+.sheet__x:hover{background:rgba(255,255,255,.26);}
+.sheet__bd{padding:20px 22px 24px;}
+.sec-h{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+.sec-h .src{margin-left:auto;font-weight:600;letter-spacing:0;text-transform:none;font-size:11px;}
+.costgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:640px){.costgrid{grid-template-columns:1fr;}}
+.costcard{border:1px solid var(--line);border-radius:12px;padding:16px;}
+.costcard.pa{background:linear-gradient(180deg,#f3f8fd,#fff);border-color:#cfe1f2;}
+.costcard.ia{background:linear-gradient(180deg,#f1faf3,#fff);border-color:#c3e6cd;}
+.costcard .big{font-size:26px;font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums;}
+.costcard .lab{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);}
+.costcard .lab .stage{color:var(--blue);}
+.brk{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;}
+.brk-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;}
+.brk-row .k{color:var(--ink-2);}.brk-row .v{font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;}
+.brk-row.sub .k{padding-left:12px;color:var(--ink-3);font-size:12.5px;}
+.parm{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+.parmcard{border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:var(--bg-2);}
+.parmcard .pv{font-size:19px;font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums;}
+.parmcard .pl{font-size:11.5px;color:var(--ink-2);font-weight:600;margin-top:1px;}
+.parmcard .psrc{font-size:10.5px;color:var(--ink-3);margin-top:5px;}
+.srclinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.srclink{font-size:12px;font-weight:600;color:var(--blue);text-decoration:none;border:1px solid #cfe1f2;background:#f3f8fd;border-radius:7px;padding:6px 11px;display:inline-flex;align-items:center;gap:6px;}
+.srclink:hover{background:#e7f1fb;}
+.clickable{cursor:pointer;}
+tr.clickable:hover td{background:#eef3f8;}
+.openhint{font-size:10.5px;color:var(--blue);font-weight:600;}
 </style>
 </head>
 <body>
@@ -262,7 +299,7 @@ details.disc .inner li{margin-bottom:5px;}
     <div class="masthead__titles">
       <div class="eyebrow">Disaster Recovery Analytics &middot; FEMA Region 5</div>
       <h1>Disaster Obligation Estimator &amp; Watch</h1>
-      <p class="masthead__sub">Estimate likely FEMA <b>PA</b> &amp; <b>IA</b> obligated dollars from <b>measured</b> hazard parameters (NOAA Storm Events + USGS), watch <b>live</b> conditions, and trip an alert when they approach a past disaster's threshold.</p>
+      <p class="masthead__sub">A <b>traceable ledger</b> of every Region 5 disaster — tap any one for its <b>actual</b> PA/IA cost breakdown and measured NOAA/USGS parameters, each linked to source. Plus a <b>live</b> disaster watch and a rough comparables-based estimate.</p>
     </div>
     <div class="masthead__meta">
       <span class="pill"><span class="dot" id="srcDot"></span><span id="srcLabel">Loading…</span></span>
@@ -273,9 +310,9 @@ details.disc .inner li{margin-bottom:5px;}
 
 <nav class="nav">
   <div class="nav__inner">
-    <button data-view="estimator" class="active">&#128202; Estimator</button>
+    <button data-view="history" class="active">&#128467;&#65039; Disaster Ledger</button>
     <button data-view="watch">&#128680; Disaster Watch</button>
-    <button data-view="history">&#128467;&#65039; Region 5 History</button>
+    <button data-view="estimator">&#128202; Estimate (beta)</button>
     <div class="navwatch"><span class="threatdot" id="navThreat"></span><span id="navThreatTxt">watch: —</span></div>
   </div>
 </nav>
@@ -314,6 +351,7 @@ details.disc .inner li{margin-bottom:5px;}
       </section>
 
       <section class="results">
+        <div class="note" style="margin-bottom:4px"><span class="i">!</span><span><b>This is a rough projection, not a forecast.</b> It scales the obligations of the most hazard-similar past disasters by population — a small-sample heuristic. Use the <b>Disaster Ledger</b> for verified figures; treat these numbers as an order-of-magnitude comparison only. Tap any analog below to see its real, sourced costs.</span></div>
         <div class="headline">
           <div class="stat stat--pa"><span class="stat__spark">&#127970;</span><div class="stat__label">Public Assistance · est. obligated</div><div class="stat__val" id="paVal">—</div><div class="stat__range" id="paRange">&nbsp;</div><div class="stat__foot">Infrastructure &amp; emergency work (75% federal)</div></div>
           <div class="stat stat--ia"><span class="stat__spark">&#127968;</span><div class="stat__label">Individual Assistance · est. IHP</div><div class="stat__val" id="iaVal">—</div><div class="stat__range" id="iaRange">&nbsp;</div><div class="stat__foot">Housing &amp; Other Needs to households</div></div>
@@ -373,16 +411,32 @@ details.disc .inner li{margin-bottom:5px;}
         <div class="timeline" id="timeline" style="margin-top:20px"></div>
         <div class="season" id="seasonNote"></div>
       </div></div>
-    <div class="card"><div class="card__hd"><h2>Region 5 disaster ledger</h2><span class="sub" id="ledgerSub">click a column to sort</span></div>
+    <div class="card"><div class="card__hd"><h2>Region 5 disaster ledger</h2><span class="sub" id="ledgerSub">tap a row for sourced detail · click a header to sort</span></div>
       <div class="card__bd"><div class="tablewrap"><table class="dis" id="ledger">
         <thead><tr>
           <th data-sort="disasterNumber">DR #</th><th data-sort="begin">Incident period</th><th data-sort="state">St</th>
           <th data-sort="tagstr">Type</th><th data-sort="prog">PA / IA</th>
-          <th data-sort="wind">Wind</th><th data-sort="hail">Hail</th><th data-sort="stage">Stage</th><th data-sort="ef">Tor</th>
-          <th data-sort="pa">PA $</th><th data-sort="ihp">IA $</th>
-        </tr></thead><tbody id="ledgerBody"></tbody></table></div></div></div>
+          <th data-sort="wind">Wind</th><th data-sort="hail">Hail</th><th data-sort="stage">Stage</th><th data-sort="rain">Rain</th><th data-sort="ef">Tor</th>
+          <th data-sort="pa">PA oblig.</th><th data-sort="ihp">IHP appr.</th>
+        </tr></thead><tbody id="ledgerBody"></tbody></table></div>
+        <p class="thr-sub" style="margin-top:10px">PA = Public Assistance <b>obligated</b> (federal share). IHP = Individual Assistance <b>approved</b>. Hazards measured from NOAA Storm Events + USGS. Tap any row to see the full breakdown and source links.</p></div></div>
   </section>
 </main>
+
+<!-- ============ DISASTER DETAIL MODAL ============ -->
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="sheet" id="sheet">
+    <div class="sheet__hd">
+      <div>
+        <div class="dr" id="mDr">DR-—</div>
+        <div class="ti" id="mTitle"></div>
+        <div class="meta" id="mMeta"></div>
+      </div>
+      <button class="sheet__x" id="mClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="sheet__bd" id="mBody"></div>
+  </div>
+</div>
 
 <footer>
   <div class="footer__inner">
@@ -406,13 +460,13 @@ const R5=["IL","IN","MI","MN","OH","WI"];
 const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 /* baked real dataset (NOAA+USGS+OpenFEMA, built offline by scripts/enrich.py) */
-const DISASTERS=[{"disasterNumber":4894,"state":"MN","title":"SEVERE STORMS AND STRAIGHT-LINE WINDS","incidentType":"Straight-Line Winds","begin":"2025-06-21","end":"2025-06-21","fy":2026,"paDeclared":true,"iaDeclared":true,"countyCount":0,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":120,"hailIn":3.0,"torEF":1,"peakStageFt":null,"floodReports":1,"snowReports":0,"stormEvents":83,"countyMatched":false},"eventTypes":["Excessive Heat","Flash Flood","Hail","Thunderstorm Wind","Tornado"],"pa":26704,"ihp":254966,"iaCount":119},{"disasterNumber":4892,"state":"WI","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, FLOODING, AND MUDSLIDES","incidentType":"Flood","begin":"2025-08-09","end":"2025-08-12","fy":2025,"paDeclared":false,"iaDeclared":true,"countyCount":3,"tags":["Flooding","Wind"],"hz":{"windMph":64,"hailIn":0,"torEF":null,"peakStageFt":12.4,"floodReports":12,"snowReports":0,"stormEvents":13,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Thunderstorm Wind"],"pa":0,"ihp":210307214,"iaCount":36838},{"disasterNumber":4882,"state":"IN","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, TORNADOES, AND FLOODING","incidentType":"Flood","begin":"2025-03-30","end":"2025-04-09","fy":2025,"paDeclared":true,"iaDeclared":false,"countyCount":25,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":87,"hailIn":1.75,"torEF":2,"peakStageFt":51.0,"floodReports":15,"snowReports":0,"stormEvents":73,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail","Thunderstorm Wind","Tornado"],"pa":8896596,"ihp":0,"iaCount":0},{"disasterNumber":4880,"state":"MI","title":"SEVERE WINTER STORM","incidentType":"Severe Ice Storm","begin":"2025-03-28","end":"2025-03-30","fy":2025,"paDeclared":true,"iaDeclared":false,"countyCount":13,"tags":["Wind","Snow/Ice","Storms"],"hz":{"windMph":51,"hailIn":0,"torEF":null,"peakStageFt":null,"floodReports":0,"snowReports":0,"stormEvents":1,"countyMatched":true},"eventTypes":["Thunderstorm Wind"],"pa":12409488,"ihp":0,"iaCount":0},{"disasterNumber":4819,"state":"IL","title":"SEVERE STORMS, TORNADOES, STRAIGHT-LINE WINDS, AND FLOODNG","incidentType":"Flood","begin":"2024-07-13","end":"2024-07-16","fy":2024,"paDeclared":false,"iaDeclared":true,"countyCount":7,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":90,"hailIn":0.75,"torEF":2,"peakStageFt":42.6,"floodReports":19,"snowReports":0,"stormEvents":141,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail","Heavy Rain","Thunderstorm Wind","Tornado"],"pa":0,"ihp":211293381,"iaCount":43911},{"disasterNumber":4797,"state":"MN","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2024-06-16","end":"2024-07-04","fy":2024,"paDeclared":true,"iaDeclared":true,"countyCount":32,"tags":["Flooding","Hail","Wind"],"hz":{"windMph":75,"hailIn":1.25,"torEF":null,"peakStageFt":null,"floodReports":96,"snowReports":0,"stormEvents":138,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail","Heavy Rain","Thunderstorm Wind"],"pa":30741565,"ihp":16916976,"iaCount":3074},{"disasterNumber":4777,"state":"OH","title":"TORNADOES","incidentType":"Tornado","begin":"2024-03-14","end":"2024-03-14","fy":2024,"paDeclared":false,"iaDeclared":true,"countyCount":11,"tags":["Flooding","Tornado","Hail"],"hz":{"windMph":0,"hailIn":2.0,"torEF":3,"peakStageFt":7.9,"floodReports":1,"snowReports":0,"stormEvents":27,"countyMatched":true},"eventTypes":["Flood","Hail","Tornado"],"pa":0,"ihp":3747421,"iaCount":481},{"disasterNumber":4757,"state":"MI","title":"SEVERE STORMS, TORNADOES, AND FLOODING","incidentType":"Flood","begin":"2023-08-24","end":"2023-08-26","fy":2024,"paDeclared":false,"iaDeclared":true,"countyCount":9,"tags":["Flooding","Tornado","Wind"],"hz":{"windMph":90,"hailIn":0,"torEF":2,"peakStageFt":null,"floodReports":4,"snowReports":0,"stormEvents":42,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Thunderstorm Wind","Tornado"],"pa":0,"ihp":439614279,"iaCount":116809},{"disasterNumber":4749,"state":"IL","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2023-09-17","end":"2023-09-18","fy":2024,"paDeclared":false,"iaDeclared":true,"countyCount":1,"tags":["Flooding"],"hz":{"windMph":0,"hailIn":0,"torEF":null,"peakStageFt":26.7,"floodReports":3,"snowReports":0,"stormEvents":3,"countyMatched":true},"eventTypes":["Flash Flood","Flood"],"pa":0,"ihp":63886884,"iaCount":16395},{"disasterNumber":4728,"state":"IL","title":"SEVERE STORMS AND FLOODING","incidentType":"Severe Storm","begin":"2023-06-29","end":"2023-07-02","fy":2023,"paDeclared":true,"iaDeclared":false,"countyCount":22,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":120,"hailIn":3.25,"torEF":2,"peakStageFt":30.9,"floodReports":2,"snowReports":0,"stormEvents":193,"countyMatched":true},"eventTypes":["Flash Flood","Hail","Heavy Rain","Thunderstorm Wind","Tornado"],"pa":24706004,"ihp":326762776,"iaCount":76450},{"disasterNumber":4722,"state":"MN","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2023-04-11","end":"2023-04-30","fy":2023,"paDeclared":true,"iaDeclared":false,"countyCount":25,"tags":["Flooding"],"hz":{"windMph":0,"hailIn":0,"torEF":null,"peakStageFt":59.1,"floodReports":40,"snowReports":0,"stormEvents":40,"countyMatched":true},"eventTypes":["Flood"],"pa":10772296,"ihp":0,"iaCount":0},{"disasterNumber":4704,"state":"IN","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, AND TORNADOES","incidentType":"Severe Storm","begin":"2023-03-31","end":"2023-04-01","fy":2023,"paDeclared":false,"iaDeclared":true,"countyCount":13,"tags":["Tornado","Hail","Wind","Storms"],"hz":{"windMph":83,"hailIn":1.0,"torEF":3,"peakStageFt":null,"floodReports":0,"snowReports":0,"stormEvents":44,"countyMatched":true},"eventTypes":["Hail","Thunderstorm Wind","Tornado"],"pa":13788214,"ihp":2635374,"iaCount":282},{"disasterNumber":4676,"state":"IL","title":"SEVERE STORM AND FLOODING","incidentType":"Flood","begin":"2022-07-25","end":"2022-07-28","fy":2023,"paDeclared":false,"iaDeclared":true,"countyCount":1,"tags":["Flooding"],"hz":{"windMph":0,"hailIn":0,"torEF":null,"peakStageFt":70.9,"floodReports":2,"snowReports":0,"stormEvents":2,"countyMatched":true},"eventTypes":["Flash Flood"],"pa":0,"ihp":27888572,"iaCount":6123},{"disasterNumber":4666,"state":"MN","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, TORNADOES, AND FLOODING","incidentType":"Severe Storm","begin":"2022-05-29","end":"2022-05-30","fy":2022,"paDeclared":true,"iaDeclared":false,"countyCount":23,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":96,"hailIn":2.0,"torEF":2,"peakStageFt":11.7,"floodReports":0,"snowReports":0,"stormEvents":151,"countyMatched":true},"eventTypes":["Hail","Thunderstorm Wind","Tornado"],"pa":7230916,"ihp":0,"iaCount":0},{"disasterNumber":4659,"state":"MN","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, AND FLOODING","incidentType":"Flood","begin":"2022-04-22","end":"2022-06-15","fy":2022,"paDeclared":true,"iaDeclared":false,"countyCount":15,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":70,"hailIn":2.0,"torEF":1,"peakStageFt":75.0,"floodReports":14,"snowReports":0,"stormEvents":115,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Funnel Cloud","Hail","Lightning","Thunderstorm Wind","Tornado"],"pa":21274107,"ihp":0,"iaCount":0},{"disasterNumber":4658,"state":"MN","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, TORNADOES, AND FLOODING","incidentType":"Severe Storm","begin":"2022-05-08","end":"2022-05-13","fy":2022,"paDeclared":true,"iaDeclared":false,"countyCount":23,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":100,"hailIn":3.0,"torEF":2,"peakStageFt":null,"floodReports":2,"snowReports":0,"stormEvents":204,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Funnel Cloud","Hail","Thunderstorm Wind","Tornado"],"pa":13663714,"ihp":0,"iaCount":0},{"disasterNumber":4607,"state":"MI","title":"SEVERE STORMS, FLOODING, AND TORNADOES","incidentType":"Severe Storm","begin":"2021-06-25","end":"2021-06-26","fy":2021,"paDeclared":false,"iaDeclared":true,"countyCount":5,"tags":["Flooding","Tornado"],"hz":{"windMph":0,"hailIn":0,"torEF":1,"peakStageFt":null,"floodReports":6,"snowReports":0,"stormEvents":8,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Tornado"],"pa":36742803,"ihp":196961378,"iaCount":56531},{"disasterNumber":4547,"state":"MI","title":"SEVERE STORMS AND FLOODING","incidentType":"Dam/Levee Break","begin":"2020-05-16","end":"2020-05-22","fy":2020,"paDeclared":true,"iaDeclared":true,"countyCount":5,"tags":["Flooding"],"hz":{"windMph":0,"hailIn":0,"torEF":null,"peakStageFt":null,"floodReports":10,"snowReports":0,"stormEvents":10,"countyMatched":true},"eventTypes":["Flash Flood","Flood"],"pa":33308804,"ihp":30598663,"iaCount":2767},{"disasterNumber":4477,"state":"WI","title":"SEVERE WINTER STORM AND FLOODING","incidentType":"Flood","begin":"2020-01-10","end":"2020-01-12","fy":2020,"paDeclared":true,"iaDeclared":false,"countyCount":3,"tags":["Flooding","Snow/Ice"],"hz":{"windMph":0,"hailIn":0,"torEF":null,"peakStageFt":7.9,"floodReports":5,"snowReports":24,"stormEvents":29,"countyMatched":false},"eventTypes":["Heavy Snow","Lakeshore Flood","Winter Weather"],"pa":4677987,"ihp":0,"iaCount":0},{"disasterNumber":4461,"state":"IL","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2019-02-24","end":"2019-07-03","fy":2019,"paDeclared":true,"iaDeclared":false,"countyCount":28,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":100,"hailIn":2.0,"torEF":1,"peakStageFt":40.3,"floodReports":115,"snowReports":0,"stormEvents":286,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail","Lightning","Thunderstorm Wind","Tornado"],"pa":66779371,"ihp":0,"iaCount":0},{"disasterNumber":4459,"state":"WI","title":"SEVERE STORMS, TORNADOES, STRAIGHT-LINE WINDS, AND FLOODING","incidentType":"Flood","begin":"2019-07-18","end":"2019-07-20","fy":2019,"paDeclared":true,"iaDeclared":false,"countyCount":18,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":100,"hailIn":1.25,"torEF":1,"peakStageFt":null,"floodReports":6,"snowReports":0,"stormEvents":90,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail","Heavy Rain","Thunderstorm Wind","Tornado"],"pa":18126366,"ihp":0,"iaCount":0},{"disasterNumber":4447,"state":"OH","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, TORNADOES, FLOODING, LANDSLIDES, AND MUDSLIDE","incidentType":"Tornado","begin":"2019-05-27","end":"2019-05-29","fy":2019,"paDeclared":false,"iaDeclared":true,"countyCount":12,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":64,"hailIn":1.75,"torEF":4,"peakStageFt":11.7,"floodReports":3,"snowReports":0,"stormEvents":55,"countyMatched":true},"eventTypes":["Flash Flood","Hail","Thunderstorm Wind","Tornado"],"pa":10839645,"ihp":5078955,"iaCount":1646},{"disasterNumber":4442,"state":"MN","title":"SEVERE WINTER STORM, STRAIGHT-LINE WINDS, AND FLOODING","incidentType":"Flood","begin":"2019-03-12","end":"2019-04-28","fy":2019,"paDeclared":true,"iaDeclared":false,"countyCount":51,"tags":["Flooding","Hail","Wind","Snow/Ice"],"hz":{"windMph":0,"hailIn":1.0,"torEF":null,"peakStageFt":48.1,"floodReports":96,"snowReports":0,"stormEvents":101,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail"],"pa":79514149,"ihp":0,"iaCount":0},{"disasterNumber":4424,"state":"OH","title":"SEVERE STORMS, FLOODING, AND LANDSLIDES","incidentType":"Flood","begin":"2019-02-05","end":"2019-02-13","fy":2019,"paDeclared":true,"iaDeclared":false,"countyCount":21,"tags":["Flooding"],"hz":{"windMph":0,"hailIn":0,"torEF":null,"peakStageFt":50.5,"floodReports":49,"snowReports":0,"stormEvents":49,"countyMatched":true},"eventTypes":["Flood"],"pa":63368757,"ihp":0,"iaCount":0},{"disasterNumber":4414,"state":"MN","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2018-10-09","end":"2018-10-11","fy":2019,"paDeclared":true,"iaDeclared":false,"countyCount":1,"tags":["Flooding"],"hz":{"windMph":0,"hailIn":0,"torEF":null,"peakStageFt":null,"floodReports":5,"snowReports":0,"stormEvents":5,"countyMatched":false},"eventTypes":["Flood","Lakeshore Flood"],"pa":10007888,"ihp":0,"iaCount":0},{"disasterNumber":4402,"state":"WI","title":"SEVERE STORMS, TORNADOES, STRAIGHT-LINE WINDS, FLOODING, AND LANDSLIDES","incidentType":"Flood","begin":"2018-08-17","end":"2018-09-14","fy":2019,"paDeclared":true,"iaDeclared":false,"countyCount":14,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":110,"hailIn":1.0,"torEF":1,"peakStageFt":21.9,"floodReports":66,"snowReports":0,"stormEvents":120,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail","Heavy Rain","Lightning","Thunderstorm Wind","Tornado"],"pa":37352265,"ihp":8902520,"iaCount":2040},{"disasterNumber":4390,"state":"MN","title":"SEVERE STORMS, TORNADOES, STRAIGHT-LINE WINDS, AND FLOODING","incidentType":"Flood","begin":"2018-06-15","end":"2018-07-12","fy":2018,"paDeclared":true,"iaDeclared":false,"countyCount":28,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":96,"hailIn":1.75,"torEF":2,"peakStageFt":74.0,"floodReports":78,"snowReports":0,"stormEvents":247,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Funnel Cloud","Hail","Heavy Rain","Lightning","Thunderstorm Wind","Tornado"],"pa":25413578,"ihp":0,"iaCount":0},{"disasterNumber":4383,"state":"WI","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, AND FLOODING","incidentType":"Flood","begin":"2018-06-15","end":"2018-06-19","fy":2018,"paDeclared":true,"iaDeclared":false,"countyCount":6,"tags":["Flooding","Hail","Wind"],"hz":{"windMph":70,"hailIn":1.75,"torEF":null,"peakStageFt":9.2,"floodReports":32,"snowReports":0,"stormEvents":60,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Funnel Cloud","Hail","Heavy Rain","Thunderstorm Wind"],"pa":8599351,"ihp":0,"iaCount":0},{"disasterNumber":4381,"state":"MI","title":"SEVERE STORMS, FLOODING, LANDSLIDES, AND MUDSLIDES","incidentType":"Flood","begin":"2018-06-16","end":"2018-06-18","fy":2018,"paDeclared":true,"iaDeclared":false,"countyCount":3,"tags":["Flooding","Hail","Wind"],"hz":{"windMph":63,"hailIn":0.75,"torEF":null,"peakStageFt":4.4,"floodReports":5,"snowReports":0,"stormEvents":13,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail","Heavy Rain","Thunderstorm Wind"],"pa":33772532,"ihp":0,"iaCount":0},{"disasterNumber":4363,"state":"IN","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2018-02-14","end":"2018-03-04","fy":2018,"paDeclared":true,"iaDeclared":true,"countyCount":31,"tags":["Flooding","Wind"],"hz":{"windMph":60,"hailIn":0,"torEF":null,"peakStageFt":56.4,"floodReports":52,"snowReports":0,"stormEvents":53,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Thunderstorm Wind"],"pa":10631886,"ihp":3883630,"iaCount":1165},{"disasterNumber":4360,"state":"OH","title":"SEVERE STORMS, LANDSLIDES, AND MUDSLIDES","incidentType":"Flood","begin":"2018-02-14","end":"2018-02-25","fy":2018,"paDeclared":true,"iaDeclared":false,"countyCount":22,"tags":["Flooding","Tornado","Wind"],"hz":{"windMph":63,"hailIn":0,"torEF":1,"peakStageFt":60.0,"floodReports":29,"snowReports":0,"stormEvents":31,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Thunderstorm Wind","Tornado"],"pa":63519161,"ihp":0,"iaCount":0},{"disasterNumber":4343,"state":"WI","title":"SEVERE STORMS, STRAIGHT-LINE WINDS, FLOODING, LANDSLIDES, AND MUD","incidentType":"Severe Storm","begin":"2017-07-19","end":"2017-07-23","fy":2018,"paDeclared":true,"iaDeclared":false,"countyCount":11,"tags":["Flooding","Hail","Wind"],"hz":{"windMph":77,"hailIn":1.25,"torEF":null,"peakStageFt":null,"floodReports":32,"snowReports":0,"stormEvents":79,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail","Heavy Rain","Lightning","Thunderstorm Wind"],"pa":8866606,"ihp":0,"iaCount":0},{"disasterNumber":4326,"state":"MI","title":"SEVERE STORMS AND FLOODING","incidentType":"Severe Storm","begin":"2017-06-22","end":"2017-06-27","fy":2017,"paDeclared":false,"iaDeclared":true,"countyCount":4,"tags":["Flooding"],"hz":{"windMph":0,"hailIn":0,"torEF":null,"peakStageFt":null,"floodReports":7,"snowReports":0,"stormEvents":7,"countyMatched":true},"eventTypes":["Flash Flood","Flood"],"pa":0,"ihp":5217209,"iaCount":1579},{"disasterNumber":4290,"state":"MN","title":"SEVERE STORMS AND FLOODING","incidentType":"Flood","begin":"2016-09-21","end":"2016-09-24","fy":2017,"paDeclared":true,"iaDeclared":false,"countyCount":10,"tags":["Flooding","Hail","Wind"],"hz":{"windMph":67,"hailIn":1.75,"torEF":null,"peakStageFt":null,"floodReports":18,"snowReports":0,"stormEvents":43,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail","Heavy Rain","Thunderstorm Wind"],"pa":7109980,"ihp":2598417,"iaCount":661},{"disasterNumber":4288,"state":"WI","title":"SEVERE STORMS, FLOODING, AND MUDSLIDES","incidentType":"Flood","begin":"2016-09-21","end":"2016-09-22","fy":2017,"paDeclared":true,"iaDeclared":false,"countyCount":10,"tags":["Flooding","Hail"],"hz":{"windMph":0,"hailIn":1.25,"torEF":null,"peakStageFt":null,"floodReports":24,"snowReports":0,"stormEvents":33,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail","Heavy Rain"],"pa":9038145,"ihp":0,"iaCount":0},{"disasterNumber":4276,"state":"WI","title":"SEVERE STORMS AND FLOODING","incidentType":"Severe Storm","begin":"2016-07-11","end":"2016-07-12","fy":2016,"paDeclared":true,"iaDeclared":false,"countyCount":8,"tags":["Flooding","Tornado","Hail","Wind"],"hz":{"windMph":70,"hailIn":0.75,"torEF":1,"peakStageFt":5.8,"floodReports":13,"snowReports":0,"stormEvents":19,"countyMatched":true},"eventTypes":["Flash Flood","Flood","Hail","Thunderstorm Wind","Tornado"],"pa":13802565,"ihp":0,"iaCount":0}];
-const GAGES=[{"id":"05331000","name":"Mississippi R at St. Paul","state":"MN","floodStage":14},{"id":"05378500","name":"Mississippi R at Winona","state":"MN","floodStage":13},{"id":"05288500","name":"Mississippi R at Brooklyn Park","state":"MN","floodStage":10},{"id":"05355200","name":"Cannon R at Welch","state":"MN","floodStage":14},{"id":"05407000","name":"Wisconsin R at Muscoda","state":"WI","floodStage":12},{"id":"05543500","name":"Illinois R at Marseilles","state":"IL","floodStage":17},{"id":"05586100","name":"Illinois R at Valley City","state":"IL","floodStage":14},{"id":"05420500","name":"Mississippi R at Clinton (IA/IL)","state":"IL","floodStage":15},{"id":"04119000","name":"Grand R at Grand Rapids","state":"MI","floodStage":18},{"id":"04165500","name":"Clinton R at Mt Clemens","state":"MI","floodStage":17},{"id":"04193500","name":"Maumee R at Waterville","state":"OH","floodStage":12},{"id":"04208000","name":"Cuyahoga R at Independence","state":"OH","floodStage":12},{"id":"03335500","name":"Wabash R at Lafayette","state":"IN","floodStage":11}];
+let DISASTERS=[];
+let GAGES=[];
 
 /* normalization ceilings + weights for hazard matching */
-const NORM={wind:130,hail:4.5,stage:60,ef:5};
-const WT={wind:1.0,hail:0.8,stage:1.15,ef:0.9};
-const SIGMA=0.40;
+const NORM={wind:130,hail:4.5,stage:60,ef:5,rain:9};
+const WT={wind:1.0,hail:0.8,stage:1.15,ef:0.9,rain:1.0};
+const SIGMA=0.42;
 
 /* ===== helpers ===== */
 const el=id=>document.getElementById(id);
@@ -451,11 +505,11 @@ async function refreshDollars(){
 /* ===== ESTIMATOR ===== */
 function getInputs(){return{state:el("state").value,incident:el("incident").value,pop:clamp(parseInt(el("popNum").value)||1,1000,6000000),
   wind:+el("wind").value,hail:+el("hail").value,stage:+el("flood").value,rain:+el("rain").value,ef:el("tornado").value===""?0:+el("tornado").value};}
-function vec(h){return{wind:(h.windMph!=null?h.windMph:h.wind)/NORM.wind,hail:(h.hailIn!=null?h.hailIn:h.hail)/NORM.hail,stage:(h.peakStageFt||h.stage||0)/NORM.stage,ef:(h.torEF!=null?h.torEF:(h.ef||0))/NORM.ef};}
-function dist(a,b,same){let s=0;for(const k of["wind","hail","stage","ef"]){const d=(a[k]-b[k])*WT[k];s+=d*d;}let d=Math.sqrt(s);if(!same)d+=0.10;return d;}
+function vec(h){return{wind:(h.windMph!=null?h.windMph:h.wind)/NORM.wind,hail:(h.hailIn!=null?h.hailIn:h.hail)/NORM.hail,stage:(h.peakStageFt||h.stage||0)/NORM.stage,ef:(h.torEF!=null?h.torEF:(h.ef||0))/NORM.ef,rain:(h.rainIn!=null?h.rainIn:(h.rain||0))/NORM.rain};}
+function dist(a,b,same){let s=0;for(const k of["wind","hail","stage","ef","rain"]){const d=(a[k]-b[k])*WT[k];s+=d*d;}let d=Math.sqrt(s);if(!same)d+=0.10;return d;}
 
 function estimate(inp){
-  const uv=vec({wind:inp.wind,hail:inp.hail,stage:Math.max(inp.stage,inp.rain*1.4),ef:inp.ef});
+  const uv=vec({wind:inp.wind,hail:inp.hail,stage:inp.stage,ef:inp.ef,rain:inp.rain});
   const scored=DATA.filter(e=>e.disasterNumber!==selectedDisaster).map(e=>{
     const d=dist(uv,vec(e.hz),e.incidentType===inp.incident);
     const w=Math.exp(-(d*d)/(2*SIGMA*SIGMA));
@@ -470,7 +524,7 @@ function estimate(inp){
   const pct=(a,p)=>a[clamp(Math.round((a.length-1)*p),0,a.length-1)];
   const paLo=Math.min(estPA*0.55,pct(pa,0.2)),paHi=Math.max(estPA*1.6,pct(pa,0.85));
   const iaLo=Math.min(estIA*0.55,pct(ia,0.2)),iaHi=Math.max(estIA*1.6,pct(ia,0.85));
-  const intensity=0.5*(inp.wind/NORM.wind)+0.85*(Math.max(inp.stage,inp.rain*1.4)/NORM.stage)+0.5*(inp.rain/18)+0.4*(inp.hail/NORM.hail)+0.5*(inp.ef/NORM.ef);
+  const intensity=0.5*(inp.wind/NORM.wind)+0.85*(inp.stage/NORM.stage)+0.6*(inp.rain/NORM.rain)+0.4*(inp.hail/NORM.hail)+0.5*(inp.ef/NORM.ef);
   const pf=clamp(Math.log10(inp.pop/50000)/2.2,-0.4,0.7);
   const prob=clamp(1/(1+Math.exp(-(4.2*intensity+pf-1.55))),0.02,0.985);
   return{analogs,estPA,estIA,paLo,paHi,iaLo,iaHi,prob};
@@ -520,8 +574,8 @@ function progBadges(d){
 }
 function renderAnalogs(an){
   el("analogs").innerHTML=an.map((x,i)=>{const d=x.e;
-    return `<div class="analog"><div class="analog__rank ${i===0?'r1':''}">${i+1}</div>
-      <div class="analog__main"><div class="analog__title" title="${d.title}">DR-${d.disasterNumber}-${d.state} · ${titleCase(d.title)}</div>
+    return `<div class="analog clickable" data-dn="${d.disasterNumber}"><div class="analog__rank ${i===0?'r1':''}">${i+1}</div>
+      <div class="analog__main"><div class="analog__title" title="${d.title}">DR-${d.disasterNumber}-${d.state} · ${titleCase(d.title)} <span class="openhint">↗ details</span></div>
         <div class="analog__meta">${fmtRange(d.begin,d.end)} · ${d.countyCount} ${d.countyCount===1?'county':'counties'} · ${progBadges(d)}</div>
         <div class="chips">${d.tags.map(t=>`<span class="${tagClass(t)}">${t}</span>`).join("")}</div>
         <div class="chips">${hzChips(d.hz)}</div></div>
@@ -574,18 +628,19 @@ let sortKey="disasterNumber",sortDir=-1;
 function ledgerRows(){
   return DATA.filter(d=>typeFilter==="All"||d.tags.includes(typeFilter)).map(d=>({...d,
     tagstr:d.tags.join(","),prog:(d.pa>0||d.paDeclared?2:0)+(d.ihp>0||d.iaDeclared?1:0),
-    wind:d.hz.windMph||0,hail:d.hz.hailIn||0,stage:d.hz.peakStageFt||0,ef:d.hz.torEF==null?-1:d.hz.torEF}));
+    wind:d.hz.windMph||0,hail:d.hz.hailIn||0,stage:d.hz.peakStageFt||0,rain:d.hz.rainIn||0,ef:d.hz.torEF==null?-1:d.hz.torEF}));
 }
 function renderLedger(){
   const rows=ledgerRows().sort((a,b)=>{const x=a[sortKey],y=b[sortKey];if(typeof x==="string")return sortDir*x.localeCompare(y);return sortDir*((x||0)-(y||0));});
-  el("ledgerBody").innerHTML=rows.map(d=>`<tr>
-    <td class="dr">DR-${d.disasterNumber}</td>
+  el("ledgerBody").innerHTML=rows.map(d=>`<tr class="clickable" data-dn="${d.disasterNumber}">
+    <td class="dr">DR-${d.disasterNumber} <span class="openhint">↗</span></td>
     <td>${fmtRange(d.begin,d.end)}</td><td>${d.state}</td>
     <td><div class="tags2">${d.tags.map(t=>`<span class="${tagClass(t)}">${t}</span>`).join("")}</div></td>
     <td>${progBadges(d)}</td>
     <td class="hzmini">${d.hz.windMph?d.hz.windMph+" mph":"—"}</td>
     <td class="hzmini">${d.hz.hailIn?d.hz.hailIn+"″":"—"}</td>
     <td class="hzmini">${d.hz.peakStageFt?d.hz.peakStageFt+" ft":"—"}</td>
+    <td class="hzmini">${d.hz.rainIn?d.hz.rainIn+"″":"—"}</td>
     <td class="hzmini">${d.hz.torEF!=null?"EF"+d.hz.torEF:"—"}</td>
     <td class="money">${d.pa>0?fmtMoney(d.pa):"—"}</td><td class="money">${d.ihp>0?fmtMoney(d.ihp):"—"}</td></tr>`).join("");
   el("ledgerSub").textContent=`${rows.length} disasters · sorted by ${sortKey} ${sortDir<0?"↓":"↑"}`;
@@ -630,10 +685,21 @@ async function loadGages(){
   }catch(e){ el("gages").innerHTML=`<div class="thr-sub">Could not load live USGS gages.</div>`; watchState.gages=[]; }
 }
 function gageStatus(r){return r>=1?["Above flood","st-flood","var(--red)"]:r>=0.85?["Near flood","st-near","var(--orange)"]:r>=0.6?["Elevated","st-elev","var(--gold-dark)"]:["Normal","st-normal","var(--green)"];}
+function gageCategory(x){
+  const c=x.cats;
+  if(c){
+    if(c.major!=null&&x.ft>=c.major)return["Major flood","st-flood","var(--red)"];
+    if(c.moderate!=null&&x.ft>=c.moderate)return["Moderate flood","st-flood","var(--red)"];
+    if(c.minor!=null&&x.ft>=c.minor)return["Minor flood","st-near","var(--orange)"];
+    if(c.action!=null&&x.ft>=c.action)return["Action stage","st-elev","var(--gold-dark)"];
+    return["Normal","st-normal","var(--green)"];
+  }
+  return gageStatus(x.ratio);
+}
 function renderGages(){
   const g=watchState.gages;el("gageSub").textContent=`${g.length} gages · live`;
-  el("gages").innerHTML=g.map(x=>{const st=gageStatus(x.ratio);
-    return `<div class="gage"><div><div class="gn" title="${x.name}">${x.name}, ${x.state}</div><div class="gmeta tnum">flood stage ${x.floodStage} ft</div>
+  el("gages").innerHTML=g.map(x=>{const st=gageCategory(x);
+    return `<div class="gage"><div><div class="gn" title="${x.name}">${x.name}, ${x.state}</div><div class="gmeta tnum">flood stage ${x.floodStage} ft · ${x.official?"NWS AHPS":"approx"}</div>
       <div class="gbar"><i style="width:${clamp(x.ratio*100,2,100)}%;background:${st[2]}"></i></div></div>
       <div class="gnow tnum">${x.ft.toFixed(1)} ft</div><div class="gstat ${st[1]}">${st[0]}</div></div>`;}).join("");
 }
@@ -663,10 +729,10 @@ function renderTriggers(){
     const analogs=DATA.filter(d=>d.state===g.state&&d.hz.peakStageFt&&d.tags.includes("Flooding"))
       .map(d=>({d,diff:Math.abs(d.hz.peakStageFt-g.ft)})).sort((a,b)=>a.diff-b.diff);
     const near=analogs.find(a=>g.ft>=a.d.hz.peakStageFt*0.75);
-    const st=gageStatus(g.ratio);
-    if(near){const d=near.d;out.push({sev:g.ratio>=1?"":"warn",icon:g.ratio>=1?"🔴":"🟠",
+    const st=gageCategory(g);
+    if(near){const d=near.d;out.push({sev:g.ratio>=1?"":"warn",icon:g.ratio>=1?"🔴":"🟠",dn:d.disasterNumber,
       title:`${g.name}, ${g.state} — ${g.ft.toFixed(1)} ft (${st[0].toLowerCase()})`,
-      body:`Now at <b>${Math.round(g.ft/d.hz.peakStageFt*100)}%</b> of the <b>${d.hz.peakStageFt} ft</b> peak during <b>DR-${d.disasterNumber}</b> (${fmtRange(d.begin,d.end)}), which obligated <b>${fmtMoney(d.pa+d.ihp)}</b> in federal assistance.`});}
+      body:`Now at <b>${Math.round(g.ft/d.hz.peakStageFt*100)}%</b> of the <b>${d.hz.peakStageFt} ft</b> peak during <b>DR-${d.disasterNumber}</b> (${fmtRange(d.begin,d.end)}), which drew <b>${fmtMoney(d.pa+d.ihp)}</b> in federal assistance (PA obligated + IHP approved). Tap to verify.`});}
   });
   const warnTypes=watchState.alerts.filter(x=>alertWeight(x.event)>=3).map(x=>x.event);
   if(warnTypes.length){
@@ -674,13 +740,87 @@ function renderTriggers(){
     const tags=new Set();warnTypes.forEach(w=>{for(const k in tagMap)if(w.includes(k))tags.add(tagMap[k]);});
     const cand=DATA.filter(d=>[...tags].every(t=>d.tags.includes(t))).sort((a,b)=>(b.pa+b.ihp)-(a.pa+a.ihp))[0]
       ||DATA.filter(d=>[...tags].some(t=>d.tags.includes(t))).sort((a,b)=>(b.pa+b.ihp)-(a.pa+a.ihp))[0];
-    if(cand)out.push({sev:"warn",icon:"⛈️",title:`Active ${[...tags].join(" + ")} warnings in Region 5`,
-      body:`This hazard mix resembles <b>DR-${cand.disasterNumber}-${cand.state}</b> (${titleCase(cand.title)}), which obligated <b>${fmtMoney(cand.pa+cand.ihp)}</b>. Watch for damage assessments if it intensifies.`});
+    if(cand)out.push({sev:"warn",icon:"⛈️",dn:cand.disasterNumber,title:`Active ${[...tags].join(" + ")} warnings in Region 5`,
+      body:`This hazard mix resembles <b>DR-${cand.disasterNumber}-${cand.state}</b> (${titleCase(cand.title)}), which drew <b>${fmtMoney(cand.pa+cand.ihp)}</b> in federal assistance. Tap to verify.`});
   }
   el("trigSub").textContent=out.length?`${out.length} active`:"none";
-  el("triggers").innerHTML=out.length?out.map(t=>`<div class="trigcard ${t.sev}"><div class="tk">${t.icon}</div><div><h4>${t.title}</h4><p>${t.body}</p></div></div>`).join("")
+  el("triggers").innerHTML=out.length?out.map(t=>`<div class="trigcard ${t.sev} ${t.dn?'clickable':''}" ${t.dn?`data-dn="${t.dn}"`:''}><div class="tk">${t.icon}</div><div><h4>${t.title}</h4><p>${t.body}</p></div></div>`).join("")
     :`<div class="thr-sub">✓ No conditions currently approaching a previously declared disaster's threshold. River gages are below 70% of flood stage and no major warnings are active in Region 5.</div>`;
 }
+
+/* ===== DISASTER DETAIL (sourced, traceable) ===== */
+function openDetail(dn){
+  const d=DATA.find(x=>x.disasterNumber===+dn); if(!d) return;
+  const c=d.costs||{}; const hz=d.hz||{};
+  el("mDr").textContent=`DR-${d.disasterNumber}-${d.state}`;
+  el("mTitle").textContent=titleCase(d.title);
+  el("mMeta").innerHTML=`${fmtRange(d.begin,d.end)} &nbsp;·&nbsp; ${d.countyCount} ${d.countyCount===1?"designated county":"designated counties"} &nbsp;·&nbsp; ${progBadges(d)} &nbsp;·&nbsp; ${d.tags.map(t=>`<span class="${tagClass(t)}">${t}</span>`).join(" ")}`;
+
+  const exact=v=>`<span class="thr-sub">${fmtMoneyFull(v)}</span>`;
+  const paMgmt=Math.max(0,(c.paTotal||0)-(c.paEmergencyAB||0)-(c.paPermanentCG||0));
+  const paRows=[
+    ["Category A–B (emergency work / debris)",c.paEmergencyAB],
+    ["Category C–G (permanent work)",c.paPermanentCG],
+    ["Category Z (management costs)",paMgmt],
+  ].filter(r=>r[1]>0).map(r=>`<div class="brk-row sub"><span class="k">${r[0]}</span><span class="v">${fmtMoneyFull(r[1])}</span></div>`).join("");
+  const iaRows=[
+    ["Housing Assistance (HA)",c.ihpHousing],
+    ["Other Needs Assistance (ONA)",c.ihpOna],
+  ].filter(r=>r[1]>0).map(r=>`<div class="brk-row sub"><span class="k">${r[0]}</span><span class="v">${fmtMoneyFull(r[1])}</span></div>`).join("");
+
+  const costHtml=`
+    <div class="sec-h">Federal assistance — actual figures for this disaster<span class="src">OpenFEMA</span></div>
+    <div class="costgrid">
+      <div class="costcard pa">
+        <div class="lab">Public Assistance · <span style="color:var(--blue)">obligated</span> (federal share)</div>
+        <div class="big">${fmtMoney(c.paTotal||0)}</div>${exact(c.paTotal||0)}
+        <div class="brk">
+          ${paRows||`<div class="brk-row sub"><span class="k">No obligated PA recorded ${c.paProjects?"(projects pending obligation)":""}</span></div>`}
+          <div class="brk-row"><span class="k">Project worksheets</span><span class="v">${fmtNum(c.paProjects||0)}</span></div>
+          ${c.hmgp>0?`<div class="brk-row"><span class="k">Hazard Mitigation (HMGP) obligated</span><span class="v">${fmtMoneyFull(c.hmgp)}</span></div>`:""}
+        </div>
+      </div>
+      <div class="costcard ia">
+        <div class="lab">Individual Assistance · IHP <span style="color:var(--green-dark)">approved</span></div>
+        <div class="big">${fmtMoney(c.ihpTotal||0)}</div>${exact(c.ihpTotal||0)}
+        <div class="brk">
+          ${iaRows||`<div class="brk-row sub"><span class="k">No IHP approved (PA-only declaration)</span></div>`}
+          <div class="brk-row"><span class="k">Registrations approved</span><span class="v">${fmtNum(c.iaRegistrations||0)}</span></div>
+        </div>
+      </div>
+    </div>`;
+
+  // measured parameters with provenance
+  const P=[];
+  if(hz.windMph)P.push([`${hz.windMph} mph`,"Peak wind gust",`NWS Storm Events · max of ${hz.windReports||0} wind report${hz.windReports===1?"":"s"} (knots→mph)`]);
+  if(hz.hailIn)P.push([`${hz.hailIn}″`,"Max hail diameter",`NWS Storm Events · ${hz.hailReports||0} hail report${hz.hailReports===1?"":"s"}`]);
+  if(hz.torEF!=null)P.push([`EF${hz.torEF}`,"Max tornado intensity",`NWS Storm Events · ${hz.tornadoes||0} tornado${hz.tornadoes===1?"":"es"}`]);
+  if(hz.peakStageFt)P.push([`${hz.peakStageFt} ft`,"Peak river stage",`USGS daily-mean gage height (max across affected-county gages)`]);
+  if(hz.rainIn)P.push([`${hz.rainIn}″`,"Storm-total rainfall (peak)",`RCC-ACIS / NOAA · area mean ${hz.rainMeanIn!=null?hz.rainMeanIn+"″":"n/a"}`]);
+  if(d.reportedDamage>0)P.push([`${fmtMoney(d.reportedDamage)}`,"Reported property damage",`NWS Storm Events sum (NWS best-estimate)`]);
+  const parmHtml=`
+    <div class="sec-h" style="margin-top:22px">Measured event parameters — and where each came from
+      <span class="src">${hz.stormEvents||0} storm reports${hz.countyMatched===false?" · state-level":""}</span></div>
+    <div class="parm">${P.map(p=>`<div class="parmcard"><div class="pv">${p[0]}</div><div class="pl">${p[1]}</div><div class="psrc">${p[2]}</div></div>`).join("")||`<div class="thr-sub">No measured storm parameters joined for this event.</div>`}</div>
+    ${hz.countyMatched===false?`<div class="note" style="margin-top:12px"><span class="i">!</span><span>Designated areas for this declaration did not map to specific counties in OpenFEMA, so hazards are aggregated across the state during the incident window and may overstate the local peak.</span></div>`:""}`;
+
+  // verification source links
+  const fz=n=>encodeURIComponent(`disasterNumber eq ${n}`);
+  const links=[
+    ["🏛️ FEMA disaster page",`https://www.fema.gov/disaster/${d.disasterNumber}`],
+    ["📄 OpenFEMA — PA project worksheets",`https://www.fema.gov/api/open/v2/PublicAssistanceFundedProjectsDetails?$filter=${fz(d.disasterNumber)}&$format=jsona`],
+    ["📊 OpenFEMA — disaster summary",`https://www.fema.gov/api/open/v1/FemaWebDisasterSummaries?$filter=${fz(d.disasterNumber)}&$format=jsona`],
+    ["⛈️ NOAA Storm Events Database",`https://www.ncdc.noaa.gov/stormevents/`],
+  ];
+  const linkHtml=`<div class="sec-h" style="margin-top:22px">Verify at the source</div>
+    <div class="srclinks">${links.map(l=>`<a class="srclink" target="_blank" rel="noopener" href="${l[1]}">${l[0]}</a>`).join("")}</div>
+    <p class="thr-sub" style="margin-top:10px">PA figures are <b>obligated</b> federal share; IHP figures are <b>approved</b> (a different accounting stage). Raw data is provisional and reconciles over the life of each project — verify against the FEMA disaster page for official totals.</p>`;
+
+  el("mBody").innerHTML=costHtml+parmHtml+linkHtml;
+  el("modal").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+function closeDetail(){el("modal").classList.remove("open");document.body.style.overflow="";}
 
 /* ===== nav ===== */
 function showView(v){
@@ -698,17 +838,37 @@ function wire(){
   ["state","incident","popNum","tornado"].forEach(k=>el(k).addEventListener("input",()=>{if(k!=="state"){selectedDisaster=null;el("preset").value="";}render();}));
   el("preset").addEventListener("change",e=>applyPreset(e.target.value));
   el("resetBtn").addEventListener("click",()=>{selectedDisaster=null;el("preset").value="";el("state").value="MI";el("incident").value="Flood";el("popNum").value=250000;el("tornado").value="";setSlider("wind",75);setSlider("hail",1);setSlider("flood",15);setSlider("rain",5);render();});
-  el("refreshBtn").addEventListener("click",refreshDollars);
+  el("refreshBtn").addEventListener("click",()=>location.reload());
   el("watchRefresh").addEventListener("click",loadWatch);
   document.querySelectorAll("table.dis th[data-sort]").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=(k==="state"||k==="tagstr")?1:-1;}renderLedger();}));
+  // detail modal: open via delegation, close via X / overlay / Esc
+  document.body.addEventListener("click",e=>{const t=e.target.closest("[data-dn]");if(t)openDetail(t.getAttribute("data-dn"));});
+  el("mClose").addEventListener("click",closeDetail);
+  el("modal").addEventListener("click",e=>{if(e.target===el("modal"))closeDetail();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDetail();});
 }
 
 /* ===== boot ===== */
-setSource("warn",`Baked NOAA/USGS data · ${DATA.length} disasters`);
-wire();buildPresets();render();buildFilters();renderTimeline();renderLedger();
-refreshDollars();
-loadWatch();
-setInterval(loadWatch,5*60*1000);
+async function loadData(){
+  setSource("warn","Loading sourced dataset…");
+  try{
+    const [dj,gj]=await Promise.all([
+      fetch("data/disasters.json").then(r=>{if(!r.ok)throw 0;return r.json();}),
+      fetch("data/gages.json").then(r=>{if(!r.ok)throw 0;return r.json();})
+    ]);
+    DISASTERS=dj;GAGES=gj;DATA=DISASTERS.slice();
+    setSource("warn",`Sourced dataset · ${DATA.length} disasters (OpenFEMA + NOAA + USGS)`);
+  }catch(e){
+    setSource("err","Could not load data/disasters.json — open via the site URL, not a local file");
+    el("ledgerBody").innerHTML=`<tr><td colspan="11" style="padding:18px;color:var(--red)">Dataset failed to load. This page must be served over http(s) (the GitHub Pages URL), not opened as a local file.</td></tr>`;
+    return;
+  }
+  wire();buildPresets();render();buildFilters();renderTimeline();renderLedger();
+  showView("history");          // facts first
+  loadWatch();
+  setInterval(loadWatch,5*60*1000);
+}
+loadData();
 </script>
 </body>
 </html>

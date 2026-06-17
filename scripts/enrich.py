@@ -49,8 +49,49 @@ def load_storm_events():
                 out.append(dict(
                     date=d, sf=row[ix["STATE_FIPS"]], czt=row[ix["CZ_TYPE"]],
                     czf=(row[ix["CZ_FIPS"]] or "").zfill(3), et=row[ix["EVENT_TYPE"]],
-                    mag=mag, ef=ef_n))
+                    mag=mag, ef=ef_n, dmg=parse_damage(row[ix["DAMAGE_PROPERTY"]])))
     return out
+
+def parse_damage(s):
+    """Parse NOAA DAMAGE_PROPERTY like '2.50K','10.00M','1.2B' -> dollars."""
+    if not s: return 0
+    s = s.strip().upper()
+    mult = 1
+    if s and s[-1] in "KMBT":
+        mult = {"K": 1e3, "M": 1e6, "B": 1e9, "T": 1e12}[s[-1]]; s = s[:-1]
+    try: return float(s) * mult
+    except Exception: return 0
+
+def acis_rain(county_fips_list, start, end):
+    """Peak & mean storm-total rainfall (in) across affected counties, from RCC-ACIS daily sums."""
+    if not county_fips_list: return (None, None)
+    peak_all, means = None, []
+    for fips5 in sorted(set(county_fips_list))[:18]:
+        payload = {"county": fips5, "sdate": start.isoformat(), "edate": end.isoformat(),
+                   "elems": [{"name": "pcpn"}]}
+        try:
+            req = urllib.request.Request("https://data.rcc-acis.org/MultiStnData",
+                data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=40) as r:
+                d = json.load(r)
+        except Exception:
+            continue
+        totals = []
+        for st in d.get("data", []):
+            tot, ok = 0.0, False
+            for day in st.get("data", []):
+                v = day[0] if isinstance(day, list) else day
+                if v in ("M", "S", None, ""): continue
+                if v == "T": v = 0
+                try: tot += float(v); ok = True
+                except Exception: pass
+            if ok: totals.append(tot)
+        if totals:
+            cmax = max(totals)
+            if peak_all is None or cmax > peak_all: peak_all = cmax
+            means.append(sum(totals) / len(totals))
+    return (round(peak_all, 1) if peak_all is not None else None,
+            round(sum(means) / len(means), 1) if means else None)
 
 def usgs_peak_stage(state_abbr, county_fips_list, start, end):
     """Peak daily gage height (ft) across affected counties during the window, from USGS DV."""
@@ -132,27 +173,43 @@ def main():
         hail_in = round(max(hails), 2) if hails else 0
         tor_ef = max(efs) if efs else None
 
+        tags = type_tags(ets, d["title"])
+        county5 = [sf + c for c in counties]
+
         peak_stage = None
-        if ("Flooding" in type_tags(ets, d["title"])) and counties:
+        if "Flooding" in tags and counties:
             peak_stage = usgs_peak_stage(STATE_ABBR.get(sf, d["state"]), list(counties), w0, w1)
+
+        # historic storm-total rainfall (RCC-ACIS) for flood/storm events
+        rain_peak, rain_mean = (None, None)
+        if any(t in tags for t in ("Flooding", "Storms", "Wind")) and county5:
+            rain_peak, rain_mean = acis_rain(county5, w0, w1)
+
+        # reported property damage + report breadth (extent signal)
+        reported_damage = round(sum(e["dmg"] for e in use))
+        n_hail = sum(1 for e in use if e["et"] == "Hail")
+        n_wind = sum(1 for e in use if e["et"] in WIND_TYPES)
+        n_tor = sum(1 for e in use if e["et"] == "Tornado")
 
         rec = dict(
             disasterNumber=d["disasterNumber"], state=d["state"], title=d["title"],
             incidentType=d["incidentType"], begin=d["begin"][:10], end=(d["end"] or d["begin"])[:10],
             fy=d["fy"], paDeclared=d["paDeclared"], iaDeclared=d["iaDeclared"],
             countyCount=len(counties),
-            tags=type_tags(ets, d["title"]),
+            tags=tags,
+            reportedDamage=reported_damage,
             hz=dict(
                 windMph=wind_mph, hailIn=hail_in, torEF=tor_ef,
-                peakStageFt=peak_stage,
+                peakStageFt=peak_stage, rainIn=rain_peak, rainMeanIn=rain_mean,
                 floodReports=len(floods), snowReports=len(snows),
+                hailReports=n_hail, windReports=n_wind, tornadoes=n_tor,
                 stormEvents=len(use), countyMatched=bool(cty)),
             eventTypes=sorted(ets),
         )
         out.append(rec)
         print(f"  DR-{rec['disasterNumber']}-{rec['state']} {rec['begin']}..{rec['end']} "
-              f"wind={wind_mph}mph hail={hail_in}in EF={tor_ef} stage={peak_stage}ft "
-              f"events={len(use)} tags={rec['tags']}")
+              f"wind={wind_mph} hail={hail_in} EF={tor_ef} stage={peak_stage} rain={rain_peak} "
+              f"dmg=${reported_damage/1e6:.0f}M ev={len(use)} {tags}")
 
     out.sort(key=lambda x: -x["disasterNumber"])
     json.dump(out, open(os.path.join(DATA, "disasters.json"), "w"), separators=(",", ":"))
