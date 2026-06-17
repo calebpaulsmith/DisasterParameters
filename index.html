@@ -181,6 +181,11 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
 .alertrow .ev{font-size:13.5px;font-weight:700;}
 .alertrow .ar{font-size:12px;color:var(--ink-3);}
 .alertrow .ct{margin-left:auto;font-weight:800;color:var(--navy);}
+#alertMap svg{background:#0b1c33;border-radius:8px;}
+.hotc{cursor:pointer;}
+.hotc:hover{stroke:#fff;stroke-width:1.3;}
+.maplegend{display:flex;gap:13px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--ink-light);}
+.maplegend i{display:inline-block;width:13px;height:13px;border-radius:3px;margin-right:4px;vertical-align:-2px;}
 .ncrow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 .nctile{background:var(--panel,#f4f6f8);border:1px solid var(--line);border-radius:10px;padding:14px 10px;text-align:center;}
 .nctile .ncv{font-size:26px;font-weight:800;line-height:1.1;}
@@ -411,6 +416,10 @@ tr.clickable:hover td{background:#eef3f8;}
     <div class="card" style="margin-top:22px;border-top:3px solid var(--blue)"><div class="card__hd"><h2>&#128225; Right now — live conditions across Region 5</h2><span class="sub" id="nowSub">live</span></div>
       <div class="card__bd"><div id="nowcast"><div class="skeleton"><span class="spin"></span> Reading live conditions…</div></div></div></div>
 
+    <div class="card" style="margin-top:22px"><div class="card__hd"><h2>&#128506;&#65039; Live alerts by county</h2><span class="sub" id="mapSub">NWS · per-county</span></div>
+      <div class="card__bd"><div id="alertMap"><div class="skeleton"><span class="spin"></span> Loading county map…</div></div>
+        <div id="mapPick" class="thr-sub" style="margin-top:10px;min-height:1.2em"></div></div></div>
+
     <div class="card" style="margin-top:22px"><div class="card__hd"><h2>&#9888;&#65039; Triggers — conditions approaching a past disaster</h2><span class="sub" id="trigSub">live</span></div>
       <div class="card__bd"><div id="triggers"><div class="skeleton"><span class="spin"></span> Evaluating…</div></div></div></div>
 
@@ -490,6 +499,7 @@ const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov",
 /* baked real dataset (NOAA+USGS+OpenFEMA, built offline by scripts/enrich.py) */
 let DISASTERS=[];
 let GAGES=[];
+let COUNTIES=[];
 
 /* normalization ceilings + weights for hazard matching */
 const NORM={wind:130,hail:4.5,stage:60,ef:5,rain:9};
@@ -724,12 +734,47 @@ async function loadAlerts(){
   try{
     const u="https://api.weather.gov/alerts/active?status=actual&message_type=alert,update&"+R5.map(s=>"area[]="+s).join("&");
     const r=await fetch(u,{headers:{Accept:"application/geo+json"}});if(!r.ok)throw 0;const j=await r.json();
-    const byType={};
-    (j.features||[]).forEach(f=>{const p=f.properties,ev=p.event;if(!ev)return;if(!byType[ev])byType[ev]={event:ev,count:0,sev:p.severity||"Unknown",areas:new Set()};
-      byType[ev].count++;if(p.areaDesc)byType[ev].areas.add(p.areaDesc.split(";")[0].trim());});
+    const byType={},ca={},R5SF=new Set(["17","18","26","27","39","55"]);
+    (j.features||[]).forEach(f=>{const p=f.properties,ev=p.event;if(!ev)return;
+      if(!byType[ev])byType[ev]={event:ev,count:0,sev:p.severity||"Unknown",areas:new Set()};
+      byType[ev].count++;if(p.areaDesc)byType[ev].areas.add(p.areaDesc.split(";")[0].trim());
+      const same=(p.geocode||{}).SAME||[],seen=new Set();
+      same.forEach(code=>{const fips=String(code).slice(1);if(fips.length!==5||!R5SF.has(fips.slice(0,2))||seen.has(fips))return;seen.add(fips);
+        const o=ca[fips]||(ca[fips]={count:0,events:{},sev:0});o.count++;o.events[ev]=(o.events[ev]||0)+1;o.sev=Math.max(o.sev,alertWeight(ev));});});
     watchState.alerts=Object.values(byType).sort((a,b)=>alertWeight(b.event)-alertWeight(a.event)||b.count-a.count);
-    renderAlerts();
-  }catch(e){ el("alerts").innerHTML=`<div class="thr-sub">Could not load live alerts (NWS unreachable). The watch falls back to river gages.</div>`; watchState.alerts=[]; }
+    watchState.countyAlerts=ca;
+    renderAlerts();renderAlertMap();
+  }catch(e){ el("alerts").innerHTML=`<div class="thr-sub">Could not load live alerts (NWS unreachable). The watch falls back to river gages.</div>`; watchState.alerts=[];watchState.countyAlerts={};renderAlertMap(); }
+}
+/* ===== live alerts choropleth (R5 counties) ===== */
+let MAPPROJ=null;
+function projectCounties(){
+  let minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
+  COUNTIES.forEach(c=>c.g.forEach(p=>p.forEach(r=>r.forEach(pt=>{if(pt[0]<minx)minx=pt[0];if(pt[0]>maxx)maxx=pt[0];if(pt[1]<miny)miny=pt[1];if(pt[1]>maxy)maxy=pt[1];}))));
+  const k=Math.cos((miny+maxy)/2*Math.PI/180),W=900,pad=8;
+  const s=(W-2*pad)/((maxx-minx)*k);
+  MAPPROJ={minx,maxy,k,s,pad,W,H:Math.ceil((maxy-miny)*s)+2*pad};
+}
+function cpath(c){const {minx,maxy,k,s,pad}=MAPPROJ;let d="";
+  c.g.forEach(p=>p.forEach(r=>{d+="M"+r.map(pt=>`${(pad+(pt[0]-minx)*k*s).toFixed(1)},${(pad+(maxy-pt[1])*s).toFixed(1)}`).join("L")+"Z";}));return d;}
+function alertColor(n){return n>=8?"#7a0b0b":n>=5?"#b42318":n>=3?"#e8590c":n>=2?"#fb8c00":n>=1?"#ffce6b":"#16314f";}
+function renderAlertMap(){
+  const box=el("alertMap");if(!box)return;
+  if(!COUNTIES.length){box.innerHTML=`<div class="thr-sub">County map data unavailable.</div>`;return;}
+  if(!MAPPROJ)projectCounties();
+  const ca=watchState.countyAlerts||{};
+  const paths=COUNTIES.map(c=>{const o=ca[c.f],n=o?o.count:0;
+    const tip=o?`${c.n}, ${c.s} — ${n} alert${n>1?"s":""}: ${Object.entries(o.events).sort((a,b)=>b[1]-a[1]).map(([e,k])=>e+(k>1?` ×${k}`:"")).join(", ")}`:`${c.n}, ${c.s} — no active alerts`;
+    return `<path d="${cpath(c)}" fill="${alertColor(n)}" stroke="#0b1c33" stroke-width="0.4"${n?` class="hotc" data-fips="${c.f}"`:""}><title>${tip.replace(/"/g,"&quot;")}</title></path>`;}).join("");
+  const nHot=Object.keys(ca).length,nTot=Object.values(ca).reduce((s,o)=>s+o.count,0);
+  if(el("mapSub"))el("mapSub").textContent=nHot?`${nHot} counties · ${nTot} county-alerts`:"no active alerts";
+  box.innerHTML=`<svg viewBox="0 0 ${MAPPROJ.W} ${MAPPROJ.H}" style="width:100%;height:auto;display:block">${paths}</svg>
+    <div class="maplegend"><span>alerts / county:</span>${[[0,"0"],[1,"1"],[2,"2"],[3,"3–4"],[5,"5–7"],[8,"8+"]].map(p=>`<span><i style="background:${alertColor(p[0])}"></i>${p[1]}</span>`).join("")}<span style="margin-left:auto" class="thr-sub">tap a county for detail</span></div>`;
+}
+function showCountyAlerts(fips){
+  const c=COUNTIES.find(x=>x.f===fips),o=(watchState.countyAlerts||{})[fips];if(!c||!o)return;
+  el("mapPick").innerHTML=`<b>${c.n} County, ${c.s}</b> — ${o.count} active alert${o.count>1?"s":""}: `+
+    Object.entries(o.events).sort((a,b)=>b[1]-a[1]).map(([e,k])=>`${e}${k>1?` ×${k}`:""}`).join(" · ");
 }
 function renderAlerts(){
   const a=watchState.alerts;
@@ -1096,6 +1141,7 @@ function wire(){
   if(el("groupState"))el("groupState").addEventListener("change",renderLedger);
   // detail modal: open via delegation (gage takes priority over disaster), close via X / overlay / Esc
   document.body.addEventListener("click",e=>{
+    const fc=e.target.closest("[data-fips]"); if(fc){showCountyAlerts(fc.getAttribute("data-fips"));return;}
     const cm=e.target.closest("[data-clearmonth]"); if(cm){monthFilter=null;renderTimeline();renderLedger();return;}
     const mb=e.target.closest("[data-month]"); if(mb){const m=+mb.getAttribute("data-month");monthFilter=monthFilter===m?null:m;renderTimeline();renderLedger();document.getElementById("ledger").scrollIntoView({behavior:"smooth",block:"start"});return;}
     const gt=e.target.closest("[data-gage]"); if(gt){openGage(gt.getAttribute("data-gage"));return;}
@@ -1130,6 +1176,7 @@ async function loadData(){
       fetch("data/gages.json").then(r=>{if(!r.ok)throw 0;return r.json();})
     ]);
     DISASTERS=dj;GAGES=gj;DATA=DISASTERS.slice();
+    fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();}).catch(()=>{});
     setSource("warn",`Sourced dataset · ${DATA.length} disasters (OpenFEMA + NOAA + USGS)`);
   }catch(e){
     setSource("err","Could not load data/disasters.json — open via the site URL, not a local file");
