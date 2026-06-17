@@ -181,6 +181,10 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
 .alertrow .ev{font-size:13.5px;font-weight:700;}
 .alertrow .ar{font-size:12px;color:var(--ink-3);}
 .alertrow .ct{margin-left:auto;font-weight:800;color:var(--navy);}
+.ncrow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.nctile{background:var(--panel,#f4f6f8);border:1px solid var(--line);border-radius:10px;padding:14px 10px;text-align:center;}
+.nctile .ncv{font-size:26px;font-weight:800;line-height:1.1;}
+.nctile .ncl{font-size:11px;color:var(--ink-light);text-transform:uppercase;letter-spacing:.04em;margin-top:4px;}
 .gage{display:grid;grid-template-columns:1fr 80px 64px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line);}
 .gage:last-child{border-bottom:0;}
 .gage .gn{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -391,12 +395,15 @@ tr.clickable:hover td{background:#eef3f8;}
       <button class="btn btn--ghost" style="width:auto;background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)" id="watchRefresh">&#8635; Refresh now</button>
     </div>
 
+    <div class="card" style="margin-top:22px;border-top:3px solid var(--blue)"><div class="card__hd"><h2>&#128225; Right now — live conditions across Region 5</h2><span class="sub" id="nowSub">live</span></div>
+      <div class="card__bd"><div id="nowcast"><div class="skeleton"><span class="spin"></span> Reading live conditions…</div></div></div></div>
+
     <div class="card" style="margin-top:22px"><div class="card__hd"><h2>&#9888;&#65039; Triggers — conditions approaching a past disaster</h2><span class="sub" id="trigSub">live</span></div>
       <div class="card__bd"><div id="triggers"><div class="skeleton"><span class="spin"></span> Evaluating…</div></div></div></div>
 
-    <div class="card" style="margin-top:22px"><div class="card__hd"><h2>&#128202; Key gages — live level vs. declaration threshold</h2><span class="sub">the predictors · tap for history</span></div>
+    <div class="card" style="margin-top:22px"><div class="card__hd"><h2>&#128202; Key gages — live level vs. flood stage (comparable)</h2><span class="sub">the predictors · tap for history</span></div>
       <div class="card__bd"><div id="keygages"><div class="skeleton"><span class="spin"></span> Loading…</div></div>
-        <p class="thr-sub" style="margin-top:12px">Each gage's <b>declaration threshold</b> is the lowest crest that has historically led to a FEMA declaration in its counties. The bar shows the live level as a share of that threshold; past declarations' cost range is shown for context. Tap a gage for its full crest history.</p></div></div>
+        <p class="thr-sub" style="margin-top:12px">Gages are sorted by <b>feet over (or under) flood stage</b> — the comparable metric across rivers. When a gage reaches flood stage during a storm it has historically drawn a FEMA declaration; the past-cost range shows what comparable crests cost. Tap a gage for its full crest history.</p></div></div>
 
     <div class="watchgrid">
       <div class="card"><div class="card__hd"><h2>Active NWS alerts</h2><span class="sub" id="alertSub">api.weather.gov</span></div>
@@ -659,7 +666,7 @@ function alertWeight(ev){for(const k in ALERT_W)if(ev.includes(k))return ALERT_W
 async function loadWatch(){
   el("watchRefresh").disabled=true;
   await Promise.allSettled([loadAlerts(),loadGages()]);
-  computeThreat();el("watchRefresh").disabled=false;
+  renderNowcast();computeThreat();el("watchRefresh").disabled=false;
 }
 async function loadAlerts(){
   try{
@@ -690,21 +697,61 @@ async function loadGages(){
     renderGages();renderKeyGages();
   }catch(e){ el("gages").innerHTML=`<div class="thr-sub">Could not load live USGS gages.</div>`; watchState.gages=[]; }
 }
+/* pool declared crests across ALL key gages on the comparable axis (feet over flood
+   stage) and return the comparable ones within +/-window ft of a given over-flood. */
+function comparableDecl(over,win){
+  win=win||2;
+  const pts=[];
+  GAGES.forEach(g=>g.disasters&&g.disasters.forEach(t=>{if(t.over!=null)pts.push({over:t.over,total:t.total,dn:t.dn,name:g.name});}));
+  const near=pts.filter(p=>Math.abs(p.over-over)<=win).sort((a,b)=>a.total-b.total);
+  if(!near.length)return null;
+  const costs=near.map(p=>p.total);
+  return {n:near.length,lo:Math.min(...costs),hi:Math.max(...costs),med:costs[Math.floor(costs.length/2)],pts:near};
+}
+function overFloodColor(o){return o>=2?"var(--red)":o>=0?"var(--orange)":o>=-3?"var(--gold-dark)":"var(--green-dark)";}
 function renderKeyGages(){
   const box=el("keygages"); if(!box) return;
-  const ref=GAGES.filter(g=>g.minDeclStage&&LIVE[g.id]).map(g=>{const ft=LIVE[g.id].ft;return{g,ft,pct:ft/g.minDeclStage};}).sort((a,b)=>b.pct-a.pct);
+  // comparable axis: feet over (or under) flood stage
+  const ref=GAGES.filter(g=>g.floodStage&&LIVE[g.id]).map(g=>{const ft=LIVE[g.id].ft;return{g,ft,over:+(ft-g.floodStage).toFixed(1)};}).sort((a,b)=>b.over-a.over);
   if(!ref.length){box.innerHTML=`<div class="thr-sub">Live levels unavailable.</div>`;return;}
-  box.innerHTML=ref.map(({g,ft,pct})=>{
-    const costs=g.disasters.map(t=>t.total);
-    const st=g.cats?gageCategory({ft,ratio:ft/(g.cats.minor||9999),cats:g.cats}):gageStatus(pct);
-    const col=pct>=1?"var(--red)":pct>=0.85?"var(--orange)":pct>=0.6?"var(--gold-dark)":"var(--green-dark)";
+  const span=14; // bar scale: -span..+a few ft mapped 0..100%
+  box.innerHTML=ref.map(({g,ft,over})=>{
+    const st=gageCategory({ft,ratio:ft/g.floodStage,cats:g.cats});
+    const col=overFloodColor(over);
+    const costs=(g.disasters||[]).filter(t=>t.over!=null).map(t=>t.total);
+    const past=costs.length?`declared here at +${g.minDeclOver} ft over flood · ${fmtMoney(Math.min(...costs))}–${fmtMoney(Math.max(...costs))}`:(g.minDeclStage?`declared here at ${g.minDeclStage} ft`:`no recent declaration on record`);
+    const w=clamp((over+span)/(span+4)*100,2,100);
+    const ov=over>=0?`+${over.toFixed(1)}`:over.toFixed(1);
     return `<div class="gage clickable" data-gage="${g.id}">
       <div><div class="gn">${g.name}, ${g.state} <span class="openhint">↗</span></div>
-        <div class="gmeta tnum">declares ≥ ${g.minDeclStage} ft · past cost ${fmtMoney(Math.min(...costs))}–${fmtMoney(Math.max(...costs))}</div>
-        <div class="gbar"><i style="width:${clamp(pct*100,2,100)}%;background:${col}"></i></div></div>
-      <div class="gnow tnum">${ft.toFixed(1)} ft</div>
-      <div class="gstat ${st[1]}">${Math.round(pct*100)}%<br><span style="font-weight:600;text-transform:none">of trigger</span></div></div>`;
+        <div class="gmeta tnum">${past}</div>
+        <div class="gbar"><i style="width:${w}%;background:${col}"></i></div></div>
+      <div class="gnow tnum">${ov} ft<br><span style="font-weight:600;font-size:10px;color:var(--ink-light)">vs flood</span></div>
+      <div class="gstat ${st[1]}">${st[0]}</div></div>`;
   }).join("");
+}
+function renderNowcast(){
+  const box=el("nowcast"); if(!box) return;
+  const fa=watchState.alerts.filter(a=>/Flood/i.test(a.event));
+  const faN=fa.reduce((s,x)=>s+x.count,0);
+  const gOver=GAGES.filter(g=>g.floodStage&&LIVE[g.id]).map(g=>({g,ft:LIVE[g.id].ft,over:+(LIVE[g.id].ft-g.floodStage).toFixed(1)})).sort((a,b)=>b.over-a.over);
+  const atFlood=gOver.filter(o=>o.over>=-0.5);
+  el("nowSub").textContent=new Date().toLocaleString();
+  if(!gOver.length&&!watchState.alerts.length){box.innerHTML=`<div class="thr-sub">Live conditions unavailable right now.</div>`;return;}
+  const tile=(v,l,c)=>`<div class="nctile"><div class="ncv" style="color:${c||'var(--navy)'}">${v}</div><div class="ncl">${l}</div></div>`;
+  const worst=gOver[0];
+  let head,cost="";
+  if(atFlood.length){
+    head=`<b style="color:var(--red)">${atFlood.length} key gage${atFlood.length>1?"s":""} at or above flood stage</b> right now.`;
+    cost=atFlood.map(o=>{const cmp=comparableDecl(o.over);
+      return `<div class="brk-row clickable" data-gage="${o.g.id}"><span class="k"><b>${o.g.name}, ${o.g.state}</b> — <span style="color:var(--red)">+${o.over.toFixed(1)} ft over flood</span> ↗</span><span class="v">${cmp?`comparable crests: ${fmtMoney(cmp.lo)}–${fmtMoney(cmp.hi)}`:"—"}</span></div>`;}).join("");
+  } else if(worst){
+    head=`No key river gage is at flood stage right now. Closest: <b>${worst.g.name}, ${worst.g.state}</b> at <b>${worst.over.toFixed(1)} ft</b> to flood.`;
+  } else { head=`No live river gages available.`; }
+  const alertLine=faN?`<b style="color:var(--orange)">${faN} active NWS flood alert${faN>1?"s":""}</b> in Region 5 right now${fa.length?` — ${fa.slice(0,3).map(a=>a.event+" ("+a.count+")").join(", ")}`:""}. These are often <b>flash-flood</b> events that may not show on the big-river gages.`:`No active NWS flood alerts in Region 5.`;
+  box.innerHTML=`<div class="ncrow">${tile(faN,"active flood alerts",faN?"var(--orange)":"var(--green-dark)")}${tile(atFlood.length,"gages ≥ flood stage",atFlood.length?"var(--red)":"var(--green-dark)")}${tile((worst?(worst.over>=0?"+":"")+worst.over.toFixed(1):"—")+" ft","highest gage vs flood",worst?overFloodColor(worst.over):null)}</div>
+    <p style="margin:14px 0 8px">${head}</p>${cost}
+    <p class="thr-sub" style="margin-top:10px">${alertLine}</p>`;
 }
 function gageStatus(r){return r>=1?["Above flood","st-flood","var(--red)"]:r>=0.85?["Near flood","st-near","var(--orange)"]:r>=0.6?["Elevated","st-elev","var(--gold-dark)"]:["Normal","st-normal","var(--green)"];}
 function gageCategory(x){
@@ -855,7 +902,8 @@ function renderDisasterDetail(dn){
   if(dg.length){
     gageHtml=`<div class="sec-h" style="margin-top:22px">River gages that rose — tap for full history &amp; declaration markers<span class="src">USGS · NWS AHPS</span></div>
       <div class="parm">${dg.map(g=>{const col=g.cat==="major"||g.cat==="moderate"?"var(--red)":g.cat==="minor"?"var(--orange)":"var(--gold-dark)";
-        return `<div class="parmcard clickable" data-gage="${g.id}" style="border-left:4px solid ${col}"><div class="pv">${g.stage} ft</div><div class="pl">${g.name}</div><div class="psrc">${g.cat?g.cat[0].toUpperCase()+g.cat.slice(1)+" flood stage":"USGS gage"} · ↗ history</div></div>`;}).join("")}</div>`;
+        const ov=g.over!=null?`+${g.over} ft over flood stage`:(g.cat?g.cat[0].toUpperCase()+g.cat.slice(1)+" flood stage":"USGS gage");
+        return `<div class="parmcard clickable" data-gage="${g.id}" style="border-left:4px solid ${col}"><div class="pv">${g.stage} ft</div><div class="pl">${g.name}</div><div class="psrc">${ov} · ↗ history</div></div>`;}).join("")}</div>`;
   } else if(hz.peakStageFt){
     gageHtml=`<div class="sec-h" style="margin-top:22px">River stage<span class="src">USGS</span></div>
       <div class="parm"><div class="parmcard"><div class="pv">${hz.peakStageFt} ft</div><div class="pl">Peak gage height</div><div class="psrc">USGS daily mean (no key gage in designated counties)</div></div></div>`;
@@ -886,21 +934,30 @@ function renderGageDetail(id){
   el("mTitle").textContent=`${g.river} · ${g.town}, ${g.state}`;
   el("mMeta").innerHTML=`USGS ${g.id}${g.countyFips?` · county FIPS ${g.countyFips}`:""}${g.drainage?` · drains ${fmtNum(g.drainage)} mi²`:""} · ${peaks.length} yrs of record${g.official?` · NWS AHPS official`:""}`;
 
-  // predictive read
+  // predictive read — framed in feet over flood stage (comparable across rivers)
   const ties=g.disasters||[];
   const costs=ties.map(t=>t.total);
+  const fs=g.floodStage; const ov=v=>v>=0?`+${v.toFixed(1)}`:v.toFixed(1);
   let pred;
   if(ties.length){
-    pred=`This gage has driven <b>${ties.length}</b> Region&nbsp;5 FEMA declaration${ties.length>1?"s":""} (2016–present). The lowest crest that led to one was <b>${g.minDeclStage} ft</b>; those events drew <b>${fmtMoney(Math.min(...costs))}–${fmtMoney(Math.max(...costs))}</b> in federal assistance. Record crest <b>${record.s} ft</b> (${record.d.slice(0,4)}).`;
+    const overTxt=g.minDeclOver!=null?`reached <b>${ov(g.minDeclOver)} ft over flood stage</b> (flood stage ${fs} ft)`:`reached <b>${g.minDeclStage} ft</b>`;
+    pred=`This gage has driven <b>${ties.length}</b> Region&nbsp;5 FEMA declaration${ties.length>1?"s":""} (2016–present). The lowest crest that led to one ${overTxt}; those events drew <b>${fmtMoney(Math.min(...costs))}–${fmtMoney(Math.max(...costs))}</b> in federal assistance. Record crest <b>${record.s} ft</b>${fs?` (${ov(+(record.s-fs).toFixed(1))} ft over flood)`:""}, ${record.d.slice(0,4)}.`;
   } else {
-    pred=`No Region&nbsp;5 FEMA declaration has been tied to this gage in the 2016–present window — shown as a monitoring baseline. Record crest <b>${record.s} ft</b> (${record.d.slice(0,4)})${g.cats&&g.cats.minor?`, flood stage ${g.cats.minor} ft`:""}.`;
+    pred=`No Region&nbsp;5 FEMA declaration has been tied to this gage in the 2016–present window — shown as a monitoring baseline. Record crest <b>${record.s} ft</b> (${record.d.slice(0,4)})${fs?`, flood stage ${fs} ft`:""}.`;
   }
   let liveLine;
   if(live){
-    const thr=g.minDeclStage||(g.cats&&g.cats.minor);
-    const pctTxt=thr?` — <b>${Math.round(live.ft/thr*100)}%</b> of the ${g.minDeclStage?`${g.minDeclStage} ft declaration threshold`:`${g.cats.minor} ft flood stage`}`:"";
+    const lo=fs!=null?+(live.ft-fs).toFixed(1):null;
+    const overTxt=lo!=null?` — <b style="color:${overFloodColor(lo)}">${ov(lo)} ft ${lo>=0?"over":"to"} flood stage</b>`:"";
     const stat=g.cats?gageCategory({ft:live.ft,ratio:live.ft/(g.cats.minor||g.floodStage||9999),cats:g.cats})[0]:"";
-    liveLine=`<div style="margin-top:10px;font-size:14px"><b style="color:var(--blue)">Live now: ${live.ft.toFixed(1)} ft</b>${pctTxt}${stat?` · <b>${stat}</b>`:""} <span class="thr-sub">(USGS, ${new Date(live.t).toLocaleString()})</span></div>`;
+    // comparable prediction across all key gages at this over-flood level
+    let cmpTxt="";
+    if(lo!=null){const c=comparableDecl(lo);
+      cmpTxt=lo>=-0.5
+        ? (c?` Comparable Region&nbsp;5 crests near this level over flood (${c.n}) were all declared, costing <b>${fmtMoney(c.lo)}–${fmtMoney(c.hi)}</b> (median ${fmtMoney(c.med)}).`:` At this level a declaration becomes likely.`)
+        : ` Still below flood stage; no key gage has triggered a declaration from here.`;
+    }
+    liveLine=`<div style="margin-top:10px;font-size:14px"><b style="color:var(--blue)">Live now: ${live.ft.toFixed(1)} ft</b>${overTxt}${stat?` · <b>${stat}</b>`:""} <span class="thr-sub">(USGS, ${new Date(live.t).toLocaleString()})</span>${cmpTxt?`<div style="margin-top:6px">${cmpTxt}</div>`:""}</div>`;
   } else if(live===null){ liveLine=`<div class="thr-sub" style="margin-top:10px">Live level unavailable right now.</div>`; }
   else { liveLine=`<div class="skeleton" style="margin-top:10px"><span class="spin"></span> fetching live level…</div>`; }
 
@@ -908,7 +965,7 @@ function renderGageDetail(id){
   const svg=buildTimeline(g,peaks,record,live,declSet);
 
   const declList=ties.length?`<div class="sec-h" style="margin-top:22px">FEMA declaration crests at this gage</div>
-    ${ties.map(t=>`<div class="brk-row clickable" data-dn="${t.dn}" style="cursor:pointer"><span class="k"><b style="color:var(--navy)">DR-${t.dn}</b> · ${fmtDate(t.date)} · crest <b>${t.stage} ft</b> ↗</span><span class="v">${fmtMoney(t.total)}</span></div>`).join("")}`:"";
+    ${ties.map(t=>`<div class="brk-row clickable" data-dn="${t.dn}" style="cursor:pointer"><span class="k"><b style="color:var(--navy)">DR-${t.dn}</b> · ${fmtDate(t.date)} · crest <b>${t.stage} ft</b>${t.over!=null?` (${ov(t.over)} over flood)`:""} ↗</span><span class="v">${fmtMoney(t.total)}</span></div>`).join("")}`:"";
 
   el("mBody").innerHTML=`
     <div class="note" style="background:#eef3f8;border-color:#cfe1f2"><span class="i" style="color:var(--blue)">◆</span><span>${pred}${liveLine}</span></div>

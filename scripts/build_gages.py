@@ -158,10 +158,15 @@ def main():
         cf = g["countyFips"]
         if not cf: continue
         record = max([p["s"] for p in g["peaks"] if p["s"] is not None], default=None)
-        # a crest only counts as a declaration crest if the river was actually elevated:
-        # >= AHPS action stage, else >= 60% of the gage's record crest.
-        thr = (g["cats"] or {}).get("action") if g["cats"] else None
-        if thr is None and record is not None: thr = 0.6 * record
+        fs = g.get("floodStage")  # = AHPS minor flood stage; the comparable datum
+        # a crest counts as a declaration crest only if the river actually reached
+        # flood stage (within 0.5 ft). Gages without an AHPS flood stage fall back
+        # to action stage / 60% of record so they can still tie (but carry no over-flood).
+        if fs is not None:
+            thr = fs - 0.5
+        else:
+            thr = (g["cats"] or {}).get("action")
+            if thr is None and record is not None: thr = 0.6 * record
         for dn, m in dmeta.items():
             if "Flooding" not in m["tags"]: continue
             if cf not in m["counties"]: continue
@@ -174,14 +179,17 @@ def main():
                 if w0 <= pd <= w1 and p["s"] is not None:
                     if best is None or p["s"] > best["s"]: best = p
             if best and (thr is None or best["s"] >= thr):
-                tie = dict(dn=dn, date=best["d"], stage=best["s"], pa=m["pa"], ihp=m["ihp"], total=m["total"], title=m["title"])
+                over = round(best["s"] - fs, 1) if fs is not None else None
+                tie = dict(dn=dn, date=best["d"], stage=best["s"], over=over,
+                           pa=m["pa"], ihp=m["ihp"], total=m["total"], title=m["title"])
                 g["disasters"].append(tie)
-                # category at that stage
                 cat = stage_cat(best["s"], g["cats"])
-                perDisaster[dn].append(dict(id=g["id"], name=g["name"], stage=best["s"], cat=cat))
+                perDisaster[dn].append(dict(id=g["id"], name=g["name"], stage=best["s"], over=over, cat=cat))
         g["disasters"].sort(key=lambda t: -t["stage"])
         decl = [t["stage"] for t in g["disasters"]]
+        overs = [t["over"] for t in g["disasters"] if t.get("over") is not None]
         g["minDeclStage"] = round(min(decl), 1) if decl else None
+        g["minDeclOver"] = round(min(overs), 1) if overs else None
 
     for d in disasters:
         d["gages"] = sorted(perDisaster[d["disasterNumber"]], key=lambda x: -(x["stage"] or 0))
