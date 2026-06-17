@@ -63,14 +63,44 @@ metrics for *this* county."
   drivers: **rainfall (daily + multi-day antecedent), river crest vs flood stage,
   and snowpack (SWE).**
 
+## Precipitation layer results (added via `build_precip.py`)
+
+We added per-county-episode rainfall from gridded PRISM (RCC-ACIS, county-reduced):
+peak 1-day, event total, and 7/14-day **antecedent**. Rerunning declared-vs-not on
+**flood** episodes shows rainfall is a strong driver in some states and a
+**non-driver** in others — which is itself the key result.
+
+Flood episodes, declared vs non-declared (p50 / p90):
+
+| state | peak 1-day (dec / non) | 14-day antecedent (dec / non) | reads as |
+|---|---|---|---|
+| **WI** | **3.39 / 7.5** vs 0.84 / 4.41 | 2.98 / 7.36 vs 2.01 / 4.48 | strongly rain-driven |
+| **IL** | 1.02 / 5.07 vs 0.72 / 3.49 | **3.33 / 8.08** vs 2.48 / 5.17 | rain + antecedent matter |
+| **MN** | 0.56 / 5.54 vs **1.23** / 4.67 | 2.36 / 5.53 vs 1.98 / 4.05 | **rain does NOT separate** |
+
+Declared rate by peak 1-day rainfall (flood episodes):
+- **IL:** <1″ → 10%, ≥4″ → **24%** (heavy rain ~doubles declaration odds).
+- **MN:** <1″ → **42%**, ≥4″ → 45% (flat — low-rain floods are *just as* likely declared).
+
+**The MN result is the headline.** Minnesota flood declarations are largely **spring
+snowmelt** (Red River / Minnesota River basins) — the water comes from melting
+**snowpack**, not concurrent rain — so 42% of MN flood episodes with <1″ of rain are
+still declared. Rainfall alone can't model MN floods; **snowpack (SWE) is the missing
+driver** there, exactly as hypothesized. Meanwhile precip materially improves the
+flood model for **WI / IL** (and flash-flood states generally).
+
+Takeaway for surfacing: rainfall thresholds are meaningful drivers to show for
+**IL/WI/IN/OH/MI flash-flood and rain-driven flooding**, but **MN (and Red River
+WI/ND border) needs the snowpack layer** before its flood metrics are trustworthy.
+
 ## Recommended next steps
 
-1. **Add the precipitation layer** — per-county daily-max + 3/7/14-day antecedent
-   rainfall from gridded PRISM/NLDAS (batch, not the station API) for every
-   episode. This is the single highest-value addition (covers IL flash-flood and
-   MN/WI riverine drivers).
-2. **Add snowpack (SWE)** from SNODAS/NOHRSC for MN/WI/MI Dec–Apr episodes — the
-   missing driver for spring snowmelt floods.
+1. ~~Add the precipitation layer~~ ✅ **done** (`build_precip.py`) — rain + antecedent
+   now separate declared flood episodes in WI/IL; revealed MN floods are *not*
+   rain-driven.
+2. **Add snowpack (SWE)** from SNODAS/NOHRSC for MN/WI/MI Dec–Apr episodes — now the
+   clear top priority: it's the missing driver for the MN spring-snowmelt floods
+   that rainfall can't explain (42% of MN <1″-rain flood episodes are declared).
 3. **Join river crest-over-flood** (we already have `gages.json`) onto flood
    episodes by county.
 4. **Fit a model** — logistic regression / gradient boosting for P(declaration |
