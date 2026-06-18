@@ -33,6 +33,8 @@ scripts/build_county_map.py # OFFLINE: builds county_declarations.json — desig
 scripts/build_county_ihp.py # OFFLINE: adds per-county IHP approved $ to county_declarations.json from IndividualsAndHouseholdsProgramValidRegistrations (needs network; resumable cache)
 scripts/build_timeline.py   # OFFLINE: builds data/timeline.json — one regional monthly series (rain/river/tornado[/snow]) + disaster markers for the Ledger "Hazard timeline" chart
 data/timeline.json          # committed: monthly regional hazard series + per-month disaster list (powers the Ledger hazard timeline)
+scripts/build_covid.py      # OFFLINE: builds data/covid.json — the 6 R5 COVID-19 (Biological) declarations' PA/IHP/projects (needs network)
+data/covid.json             # committed: per-state COVID-19 PA obligated/IHP approved/projects (powers the standalone COVID-19 view; kept OUT of ledger/geography/analyses — ~7× weather PA)
 scripts/enrich.py           # OFFLINE: joins NOAA/USGS hazards onto _disasters_raw.json (NO costs)
 scripts/add_history.py      # OFFLINE: pulls older R5 disasters (FEMA costs + hazards) and merges them in
 scripts/build_gages.py      # OFFLINE: builds gages.json + per-disaster gage lists; ties crests↔declarations
