@@ -298,40 +298,37 @@ details.disc .inner li{margin-bottom:5px;}
 tr.clickable:hover td{background:#eef3f8;}
 .openhint{font-size:10.5px;color:var(--blue);font-weight:600;}
 
-/* ===== Forecast (Will it be declared?) view ===== */
-.fc-states{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
-.fc-statebtn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:9px 13px;cursor:pointer;font-weight:800;color:var(--ink-2);display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:96px;}
-.fc-statebtn .nm{font-size:14px;color:var(--navy);}
-.fc-statebtn .br{font-size:10.5px;font-weight:700;color:var(--ink-3);}
-.fc-statebtn:hover{border-color:var(--blue);}
-.fc-statebtn.active{border-color:var(--gold);background:linear-gradient(120deg,var(--navy-2),var(--navy));}
-.fc-statebtn.active .nm,.fc-statebtn.active .br{color:#fff;}
-.fc-modes{display:flex;gap:6px;margin:14px 0 2px;}
-.fc-mode{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:700;font-size:13px;color:var(--ink-2);}
-.fc-mode.active{background:var(--navy);color:#fff;border-color:var(--navy);}
-.fc-haztag{display:inline-block;background:var(--blue-light);color:var(--navy);font-size:11px;font-weight:800;border-radius:10px;padding:2px 9px;margin-right:5px;}
-.fc-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:18px;align-items:start;}
-@media(max-width:900px){.fc-grid{grid-template-columns:1fr;}}
-.fc-pred{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
-.fc-prob{width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;background:conic-gradient(var(--blue-vivid) var(--p,0%),#e6edf5 0);}
-.fc-prob i{width:96px;height:96px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-style:normal;}
-.fc-prob .pn{font-size:30px;font-weight:900;color:var(--navy);line-height:1;}
-.fc-prob .pl{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--ink-3);letter-spacing:.04em;margin-top:3px;}
-.fc-costs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
-.fc-cost{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg-2);}
-.fc-cost .lab{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--ink-3);}
-.fc-cost .big{font-size:23px;font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums;}
-.fc-cost .rng{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;}
-.fc-flag{border-radius:10px;padding:11px 14px;font-size:13px;font-weight:600;margin-top:14px;display:flex;gap:9px;align-items:flex-start;}
-.fc-flag.met{background:#fdecec;border:1px solid #f4b9b9;color:#7a1212;}
-.fc-flag.warn{background:#fff6e6;border:1px solid #f0d28a;color:#7a4d09;}
-.fc-flag.ok{background:#eef7f0;border:1px solid #bfe0c6;color:#1e5a2e;}
-.impbar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px;}
-.impbar .nm{width:140px;flex:none;color:var(--ink-2);font-weight:600;}
-.impbar .track{flex:1;height:12px;background:#eef2f7;border-radius:6px;overflow:hidden;}
-.impbar .track i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-vivid));}
-.impbar.hl .nm{color:var(--navy);font-weight:800;}
-.impbar.hl .track i{background:linear-gradient(90deg,var(--gold-dark),var(--gold));}
+/* ===== Conditions in Context view ===== */
+.ctx-states{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+.ctx-statebtn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:9px 13px;cursor:pointer;font-weight:800;color:var(--ink-2);display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:120px;}
+.ctx-statebtn .nm{font-size:14px;color:var(--navy);}
+.ctx-statebtn .br{font-size:10.5px;font-weight:700;color:var(--ink-3);}
+.ctx-statebtn:hover{border-color:var(--blue);}
+.ctx-statebtn.active{border-color:var(--gold);background:linear-gradient(120deg,var(--navy-2),var(--navy));}
+.ctx-statebtn.active .nm,.ctx-statebtn.active .br{color:#fff;}
+.ctx-haz{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px;}
+.ctx-haz__hd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.ctx-haz__hd h3{margin:0;color:var(--navy);font-size:16px;}
+.ctx-haz__rate{margin-left:auto;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;}
+.ctx-haz__caveat{font-size:12px;color:var(--ink-2);background:var(--bg-2);border-left:3px solid var(--gold);padding:7px 10px;border-radius:0 6px 6px 0;margin:10px 0;}
+.ctx-driver{margin:12px 0;}
+.ctx-driver .dl{font-weight:700;color:var(--navy);font-size:13px;}
+.ctx-driver .db{font-size:10.5px;color:var(--ink-3);margin-bottom:5px;}
+.dbin{display:flex;align-items:center;gap:8px;font-size:12px;margin:3px 0;}
+.dbin .bl{width:84px;flex:none;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums;}
+.dbin .bt{flex:1;height:15px;background:#eef2f7;border-radius:5px;overflow:hidden;display:flex;}
+.dbin .bt .dec{height:100%;background:var(--blue-vivid);}
+.dbin .bt .non{height:100%;background:#d7e0ea;}
+.dbin .bv{width:120px;flex:none;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-3);}
+.ctx-analog{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;cursor:pointer;}
+.ctx-analog:hover{border-color:var(--blue);background:#f6faff;}
+.ctx-analog .dt{font-weight:800;color:var(--navy);font-size:13px;}
+.ctx-analog .ip{font-size:11.5px;color:var(--ink-3);}
+.ctx-analog .mny{margin-left:auto;text-align:right;font-weight:800;color:var(--navy);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.ctx-cost{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
+.ctx-cost .c{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg-2);}
+.ctx-cost .lab{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--ink-3);}
+.ctx-cost .big{font-size:21px;font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums;}
 .binrow{display:flex;align-items:center;gap:8px;font-size:12px;margin:3px 0;}
 .binrow .bl{width:54px;flex:none;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums;}
 .binrow .bt{flex:1;height:14px;background:#eef2f7;border-radius:5px;overflow:hidden;}
@@ -339,25 +336,10 @@ tr.clickable:hover td{background:#eef3f8;}
 .binrow .bv{width:64px;flex:none;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-3);}
 .binrow.hl{background:#fff8e6;border-radius:5px;}
 .binrow.hl .bl{color:var(--navy);}
-.fc-analog{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;cursor:pointer;}
-.fc-analog:hover{border-color:var(--blue);background:#f6faff;}
-.fc-analog .dt{font-weight:800;color:var(--navy);font-size:13px;}
-.fc-analog .ip{font-size:11.5px;color:var(--ink-3);}
-.fc-analog .mny{margin-left:auto;text-align:right;font-weight:800;color:var(--navy);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap;}
-.fc-map svg{width:100%;height:auto;display:block;background:#0b1c33;border-radius:8px;}
-.fc-driver{margin:6px 0;}
-.fc-driver .row{display:flex;justify-content:space-between;font-size:13px;}
-.fc-driver label{font-weight:700;color:var(--navy);}
-.fc-driver .v{font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;}
-.fc-driver input[type=range]{width:100%;}
-.fc-driver .bs{font-size:10.5px;color:var(--ink-3);margin-top:2px;}
-.histtog{cursor:pointer;color:var(--blue);font-weight:700;font-size:11.5px;}
-.trigparm{border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:var(--bg-2);cursor:pointer;}
-.trigparm:hover{border-color:var(--blue);}
+.trigparm{border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:var(--bg-2);}
 .trigparm .pv{font-size:18px;font-weight:900;color:var(--navy);}
 .trigparm .pl{font-size:11.5px;color:var(--ink-2);font-weight:600;}
 .trigparm .pf{font-size:10.5px;color:var(--ink-3);margin-top:4px;}
-.trigdetail{margin-top:10px;padding:12px;border:1px dashed var(--line);border-radius:9px;background:#fafcfe;}
 </style>
 </head>
 <body>
@@ -394,7 +376,7 @@ tr.clickable:hover td{background:#eef3f8;}
 <nav class="nav">
   <div class="nav__inner">
     <button data-view="history" class="active">&#128467;&#65039; Disaster Ledger</button>
-    <button data-view="forecast">&#129518; Will it be declared?</button>
+    <button data-view="context">&#128202; Conditions in Context</button>
     <button data-view="watch">&#128680; Disaster Watch</button>
     <button data-view="estimator">&#128202; Estimate (beta)</button>
     <div class="navwatch"><span class="threatdot" id="navThreat"></span><span id="navThreatTxt">watch: —</span></div>
@@ -519,60 +501,15 @@ tr.clickable:hover td{background:#eef3f8;}
         <p class="thr-sub" style="margin-top:10px">PA = Public Assistance <b>obligated</b> (federal share). IHP = Individual Assistance <b>approved</b>. Hazards measured from NOAA Storm Events + USGS. Tap any row to see the full breakdown and source links.</p></div></div>
   </section>
 
-  <!-- ============ FORECAST — Will it be declared? (state-first) ============ -->
-  <section class="view" id="view-forecast">
-    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>Rough projection, not a forecast.</b> Declaration likelihoods are <b>empirical declared rates</b> from a 47,057 county-episode panel (2,890 declared); PA/IA dollars are scaled from real OpenFEMA obligations of comparable past state-incidents. Declarations are partly discretionary — treat these as order-of-magnitude, traceable comparisons, not predictions. Tap any analog for its verified, sourced figures.</span></div>
-
-    <div class="card"><div class="card__hd"><h2>Pick a state</h2><span class="sub">prediction is at the <b>state-incident</b> level · counties are the evidence underneath</span></div>
-      <div class="card__bd">
-        <div class="fc-states" id="fcStates"></div>
-        <div class="fc-modes" id="fcModes">
-          <button class="fc-mode active" data-mode="predicted">Predicted (sliders)</button>
-          <button class="fc-mode" data-mode="current">Current (live)</button>
-          <button class="fc-mode" data-mode="past">Past (an analog)</button>
-        </div>
-        <p class="thr-sub" id="fcStateNote" style="margin-top:12px"></p>
-      </div>
-    </div>
-
-    <div class="fc-grid" style="margin-top:18px">
-      <section class="card panel"><div class="card__hd"><h2 id="fcInputTitle">Event drivers</h2><span class="sub" id="fcInputSub">aggregated to the state</span></div>
-        <div class="card__bd" id="fcInputs"></div></section>
-
-      <section class="results">
-        <div class="card"><div class="card__bd">
-          <div class="fc-pred">
-            <div class="fc-prob" id="fcProb"><i><span class="pn" id="fcProbN">—</span><span class="pl">declared</span></i></div>
-            <div style="flex:1;min-width:180px"><h3 id="fcVerdict" style="margin:0 0 4px;color:var(--navy)">Choose a state and event</h3>
-              <p id="fcDriver" style="margin:0;font-size:13px;color:var(--ink-2)"></p></div>
-          </div>
-          <div class="fc-costs">
-            <div class="fc-cost"><div class="lab">Public Assistance · obligated</div><div class="big" id="fcPA">—</div><div class="rng" id="fcPArng">&nbsp;</div></div>
-            <div class="fc-cost"><div class="lab">Individual Assistance · IHP approved</div><div class="big" id="fcIA">—</div><div class="rng" id="fcIArng">&nbsp;</div></div>
-          </div>
-          <div id="fcFlag"></div>
-          <p class="thr-sub" id="fcMatureNote" style="margin-top:10px"></p>
-        </div></div>
-
-        <div class="card"><div class="card__hd"><h2>Why — what drives this state's declarations</h2><span class="sub">feature ranking</span></div>
-          <div class="card__bd"><div id="fcWhy"></div>
-            <p class="thr-sub" id="fcBenchNote" style="margin-top:10px"></p></div></div>
-
-        <div class="card"><div class="card__hd"><h2>How often before</h2><span class="sub">base-rate frequency</span></div>
-          <div class="card__bd"><div id="fcHowOften"></div></div></div>
-
-        <div class="card"><div class="card__hd"><h2>Prior analog state-incidents</h2><span class="sub">real OpenFEMA PA/IA · tap to verify</span></div>
-          <div class="card__bd"><div id="fcAnalogs"></div></div></div>
-      </section>
-    </div>
-
-    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>County drill-down — which counties drive it</h2><span class="sub" id="fcMapSub">the evidence</span></div>
-      <div class="card__bd"><div class="fc-map" id="fcMap"><div class="thr-sub">Select a state above.</div></div>
-        <div id="fcMapPick" class="thr-sub" style="margin-top:10px;min-height:1.2em"></div></div></div>
-
-    <div class="note" style="margin-top:18px"><span class="i">!</span><span>Not endorsed by FEMA, NOAA, NWS or USGS. Uses their public open data. Per-capita declaration indicators ($1.89 statewide, $4.72 countywide) are figures FEMA <em>considers</em>, not automatic triggers. Pending FEMA reform could change the regime. <b>Deferred (TODO):</b> live QPF/forecast ingestion, SVI vulnerability layer, true SNODAS SWE, and any state×hazard cell with too few positives falls back to the pooled state base rate.</span></div>
+  <!-- ============ CONDITIONS IN CONTEXT (state-first, multi-hazard) ============ -->
+  <section class="view" id="view-context">
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>Information, not a forecast.</b> Every bar below is an <b>empirical frequency</b> from a regenerated panel of <span id="ctxPanelN">—</span> Region&nbsp;5 state-storm episodes &mdash; declared <i>and</i> non-declared. It shows where a hazard's severity sits against history, not a probability. <b>Darker</b> = went on to a federal declaration; <b>lighter</b> = did not. Dollars are real OpenFEMA figures (PA <b>obligated</b> &middot; IHP <b>approved</b>). Tap any disaster to verify.</span></div>
+    <div class="card"><div class="card__hd"><h2>Pick a state</h2><span class="sub">which hazards actually drive declarations here</span></div>
+      <div class="card__bd"><div class="ctx-states" id="ctxStates"></div></div></div>
+    <div id="ctxBody"><div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading context&hellip;</div></div>
+    <div class="note" style="margin-top:18px"><span class="i">!</span><span>Not endorsed by FEMA, NOAA, NWS or USGS &mdash; built on their public open data. Declarations are partly discretionary and <b>damage/exposure-mediated</b>: intensity alone does not determine them, which is why the footprint panels matter. <b>Deferred to a follow-up data pass (first cut):</b> winter snowfall &amp; snowpack, rainfall Atlas-14 rarity, and river-stage layers.</span></div>
   </section>
-</main>
+  </main>
 
 <!-- ============ DISASTER DETAIL MODAL ============ -->
 <div class="modal" id="modal" role="dialog" aria-modal="true">
@@ -1128,7 +1065,7 @@ function renderDisasterDetail(dn){
 
   const pt=primaryTrigger(d);
   const triggerHtml=`<div class="trigbanner"><div class="tb-ic">${TRIG_ICON[pt.tag]||"⚠️"}</div><div><div class="tb-lab">Main trigger · ${pt.label}</div><div class="tb-why">${pt.why}</div></div></div>`;
-  el("mBody").innerHTML=triggerHtml+costHtml+gageHtml+parmHtml+trigSection(d)+linkHtml;
+  el("mBody").innerHTML=triggerHtml+costHtml+gageHtml+parmHtml+nexusSection(d)+linkHtml;
 }
 /* ledger modal — "Triggers & how often": per-disaster hazard params + frequency */
 function matchBin(lab,v){lab=String(lab).replace(/[″"]/g,"");
@@ -1137,31 +1074,19 @@ function matchBin(lab,v){lab=String(lab).replace(/[″"]/g,"");
   if(lab.startsWith(">"))return v>parseFloat(lab.slice(1));
   if(lab.includes("-")){const a=parseFloat(lab),b=parseFloat(lab.split("-")[1]);return v>=a&&v<b;}
   return parseFloat(lab)===v;}
-function trigHist(dn,p,byKey,e){
-  const bins=Object.entries(p.histBins||{}); const mx=Math.max(1,...bins.map(b=>b[1]));
-  const bars=bins.map(([lab,n])=>{const hl=matchBin(lab,p.value);
-    const dr=p.declaredByBin&&p.declaredByBin[lab]!=null?` · ${Math.round(p.declaredByBin[lab]*100)}% decl.`:"";
-    return `<div class="binrow ${hl?"hl":""}"><span class="bl">${lab}</span><span class="bt"><i style="width:${Math.round(n/mx*100)}%"></i></span><span class="bv">${n}${hl?" ◀":""}${dr}</span></div>`;}).join("");
-  const rel=(p.related||[]).filter(k=>byKey[k]).map(k=>`${byKey[k].label}: <b>${byKey[k].value}${byKey[k].unit?" "+byKey[k].unit:""}</b>`).join(" · ");
-  const br=e.stateBaseRate||{};
-  return `<div class="thr-sub" style="margin-bottom:6px">${p.histNote||""}. ${p.declBasis?`Declared-rate per bin from ${p.declBasis}.`:""}</div>${bars}
-    ${rel?`<div class="thr-sub" style="margin-top:8px"><b>Related drivers</b> for this event — ${rel}</div>`:""}
-    <div class="thr-sub" style="margin-top:6px">${STATE_NAME[e.state]||e.state} base declared rate: flood ${Math.round((br.flood||0)*100)}%, tornado ${Math.round((br.tornado||0)*100)}%, wind ${Math.round((br.wind||0)*100)}%.</div>`;
+function nexusSection(d){
+  if(!NEXUS)return "";
+  const e=NEXUS[String(d.disasterNumber)]; if(!e||!e.drivers||!e.drivers.length)return "";
+  const cards=e.drivers.map(p=>{
+    const a=p.atLeast||{n:0,declared:0}, pctv=a.n?Math.round(a.declared/a.n*100):0;
+    return `<div class="trigparm"><div class="pv">${p.value}${p.unit?(" "+p.unit):""}</div><div class="pl">${p.label}</div>
+      <div class="pf">${a.declared}/${a.n} ${e.stateName} episodes ≥ this were declared · ${pctv}%</div></div>`;
+  }).join("");
+  const fp=e.footprint||{};
+  return `<div class="sec-h" style="margin-top:22px">Hazard nexus — how this event compares<span class="src">regenerated panel + OpenFEMA</span></div>
+    <p class="thr-sub" style="margin:0 0 10px">This disaster's characterizing drivers, each placed against every ${e.stateName} storm-episode on record (declared <i>and</i> not). Footprint: ${fp.countyCount!=null?fp.countyCount:"—"} designated counties.</p>
+    <div class="parm" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">${cards}</div>`;
 }
-function trigSection(d){
-  if(!TRIG)return "";
-  const e=TRIG[String(d.disasterNumber)]; if(!e||!e.params||!e.params.length)return "";
-  const byKey={}; e.params.forEach(p=>byKey[p.key]=p);
-  const cards=e.params.map(p=>`<div class="trigparm" data-trigparm="${d.disasterNumber}:${p.key}">
-     <div class="pv">${p.value}${p.unit?" "+p.unit:""}</div><div class="pl">${p.label}</div>
-     <div class="pf">how often in ${STATE_NAME[e.state]||e.state} · tap ▾</div></div>`).join("");
-  const details=e.params.map(p=>`<div class="trigdetail" id="td-${d.disasterNumber}-${p.key}" style="display:none">${trigHist(d.disasterNumber,p,byKey,e)}</div>`).join("");
-  return `<div class="sec-h" style="margin-top:22px">Triggers &amp; how often<span class="src">PoC panel + OpenFEMA</span></div>
-    <p class="thr-sub" style="margin:0 0 10px">This disaster's characterizing hazard parameters, and how often a comparable level has occurred among ${STATE_NAME[e.state]||e.state}'s declared disasters. Tap a parameter to investigate its distribution and related drivers.</p>
-    <div class="parm" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">${cards}</div>${details}`;
-}
-function toggleTrigParm(idstr){const i=idstr.indexOf(":");const dn=idstr.slice(0,i),key=idstr.slice(i+1);
-  const box=document.getElementById(`td-${dn}-${key}`); if(box)box.style.display=box.style.display==="none"?"block":"none";}
 function closeDetail(){mStack=[];el("modal").classList.remove("open");document.body.style.overflow="";}
 
 /* ===== GAGE DETAIL — crest history, declaration markers, live predictive read ===== */
@@ -1272,7 +1197,7 @@ function showView(v){
   document.querySelectorAll(".nav button[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
   document.querySelectorAll(".view").forEach(s=>s.classList.toggle("active",s.id==="view-"+v));
   if(v==="watch"&&!watchState.ready)loadWatch();
-  if(v==="forecast"){ if(!Object.keys(fcSliders).length)fcDefaults(); if(PRED)fcRender(); else el("fcStateNote").textContent="Loading predictor…"; }
+  if(v==="context"){ ctxRenderStates(); ctxRender(); }
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
@@ -1290,10 +1215,7 @@ function wire(){
   if(el("groupState"))el("groupState").addEventListener("change",renderLedger);
   // detail modal: open via delegation (gage takes priority over disaster), close via X / overlay / Esc
   document.body.addEventListener("click",e=>{
-    const fs=e.target.closest("[data-fcstate]"); if(fs){fcSetState(fs.getAttribute("data-fcstate"));return;}
-    const fm=e.target.closest("[data-mode]"); if(fm&&fm.classList.contains("fc-mode")){fcSetMode(fm.getAttribute("data-mode"));return;}
-    const ff=e.target.closest("[data-fcfips]"); if(ff){fcMapPick(ff.getAttribute("data-fcfips"));return;}
-    const tp=e.target.closest("[data-trigparm]"); if(tp){toggleTrigParm(tp.getAttribute("data-trigparm"));return;}
+    const cs=e.target.closest("[data-ctxstate]"); if(cs){ctxSetState(cs.getAttribute("data-ctxstate"));return;}
     const fc=e.target.closest("[data-fips]"); if(fc){showCountyAlerts(fc.getAttribute("data-fips"));return;}
     const cm=e.target.closest("[data-clearmonth]"); if(cm){monthFilter=null;renderTimeline();renderLedger();return;}
     const mb=e.target.closest("[data-month]"); if(mb){const m=+mb.getAttribute("data-month");monthFilter=monthFilter===m?null:m;renderTimeline();renderLedger();document.getElementById("ledger").scrollIntoView({behavior:"smooth",block:"start"});return;}
@@ -1321,265 +1243,51 @@ async function resolveBuild(){
 }
 
 /* ============================================================================
-   FORECAST — "Will it be declared?" (state-first; counties = the evidence)
-   Reads data/predictor.json (+model.json). Likelihoods are EMPIRICAL declared
-   rates from the PoC county panel; PA/IA $ are scaled from real OpenFEMA analogs.
+   CONDITIONS IN CONTEXT (state-first, multi-hazard)
+   Reads data/context.json (+event_nexus.json). Every figure is an EMPIRICAL
+   frequency from the regenerated state-episode panel (declared + non-declared);
+   dollars are real OpenFEMA PA-obligated / IHP-approved.
    ============================================================================ */
-let PRED=null, MODEL=null, TRIG=null;
-let fcState="MN", fcMode="predicted";
-let fcSliders={};            // driverKey -> value (predicted mode)
-let fcPastDn=null;
-const HAZ_LABEL={flood:"flooding",tornado:"tornadoes",wind:"wind",hail:"hail"};
-const FC_DRIVERS={
-  nCountiesOverFlood:{label:"# counties over flood stage",hazard:"flood",min:0,max:20,step:1,unit:"",
-    declAnchor:0.82,primary:true,note:"footprint / exposure — the statewide aggregate that clears the per-capita bar"},
-  rainDayMaxIn:{label:"peak 1-day rainfall",hazard:"flood",min:0,max:8,step:0.1,unit:"in",modulates:true,
-    note:"flash/rain-driven flooding"},
-  snowMeltIn:{label:"rapid snowmelt (1-day SWE loss)",hazard:"flood",min:0,max:6,step:0.1,unit:"in",modulates:true,
-    note:"spring snowmelt — the MN flood driver rainfall can't capture"},
-  totTornadoes:{label:"total tornadoes",hazard:"tornado",min:0,max:20,step:1,unit:"",primary:true,gentle:1.7,
-    note:"count barely separates declared from not — damage/exposure does"},
-  maxGustMph:{label:"peak wind gust",hazard:"wind",min:0,max:130,step:1,unit:"mph",primary:true,gentle:1.6,floor:60},
-};
-function fcStateDrivers(){
-  const list=["nCountiesOverFlood", fcState==="MN"?"snowMeltIn":"rainDayMaxIn","totTornadoes","maxGustMph"];
-  return list;
+let CTX=null, NEXUS=null, ctxState="MN";
+const HAZ_EMOJI={flood:"🌊",tornado:"🌪️",wind:"💨",hail:"🧊",winter:"❄️"};
+function ctxRenderStates(){
+  if(!CTX)return;
+  el("ctxStates").innerHTML=Object.keys(CTX.states).map(s=>{
+    const st=CTX.states[s], top=st.hazardProfile[0];
+    return `<button class="ctx-statebtn ${s===ctxState?"active":""}" data-ctxstate="${s}"><span class="nm">${st.name}</span><span class="br">${st.nDisasters} disasters${top?" · "+top.label+" "+Math.round(top.declaredRate*100)+"%":""}</span></button>`;
+  }).join("");
 }
-function fcDefaults(){
-  fcSliders={nCountiesOverFlood:0,rainDayMaxIn:0,snowMeltIn:0,totTornadoes:0,maxGustMph:0};
+function dbar(b){
+  const dec=b.declared, pctv=b.n?Math.round(dec/b.n*100):0, dw=b.n?dec/b.n*100:0;
+  return `<div class="dbin"><span class="bl">${b.lab}</span><span class="bt"><span class="dec" style="width:${dw}%"></span><span class="non" style="width:${100-dw}%"></span></span><span class="bv">${dec}/${b.n} · ${pctv}%</span></div>`;
 }
-function clamp01(v){return Math.max(0,Math.min(1,v));}
-function rampProb(base,anchor,val,warn,decl){
-  if(val<=0) return base*0.4;
-  if(val<warn) return base*0.4 + (base-base*0.4)*(val/warn);
-  if(val<decl) return base + (anchor-base)*((val-warn)/(decl-warn));
-  return Math.min(0.92, anchor + (anchor-base)*0.3*Math.min(1,(val-decl)/Math.max(1,decl)));
+function ctxHazCard(h,prof,dist){
+  const drivers=(dist&&dist.drivers)?Object.values(dist.drivers):[];
+  const dhtml=drivers.map(d=>`<div class="ctx-driver"><div class="dl">${d.label}</div><div class="db">${d.basis||""}</div>${d.bins.map(dbar).join("")}</div>`).join("");
+  return `<div class="ctx-haz"><div class="ctx-haz__hd"><h3>${HAZ_EMOJI[h]||""} ${prof.label}</h3><span class="ctx-haz__rate">${prof.nDeclared}/${prof.nEpisodes} declared · ${Math.round(prof.declaredRate*100)}%</span></div>
+    ${dist?`<div class="ctx-haz__caveat">${dist.caveat}</div>`:""}
+    ${dhtml||'<p class="thr-sub">Driver distribution for this hazard is deferred to the follow-up data pass.</p>'}</div>`;
 }
-function gentleProb(base,val,floor,mult){
-  if(val<=floor) return base*0.5 + base*0.5*clamp01(val/Math.max(1,floor));
-  const span=Math.max(1,(FC_DRIVERS.totTornadoes.max-floor));
-  return Math.min(0.85, base + base*(mult-1)*clamp01((val-floor)/span));
+function ctxRender(){
+  if(!CTX){el("ctxBody").innerHTML='<div class="skeleton"><span class="spin"></span> Loading…</div>';return;}
+  if(el("ctxPanelN"))el("ctxPanelN").textContent=fmtNum(CTX.panel.episodes);
+  const st=CTX.states[ctxState]; if(!st){el("ctxBody").innerHTML="";return;}
+  const hazHtml=st.hazardProfile.map(p=>ctxHazCard(p.hazard,p,st.distributions[p.hazard])).join("");
+  const fp=st.footprint||{};
+  const fpHtml=Object.keys(fp).map(k=>`<div class="ctx-driver"><div class="dl">${fp[k].label}</div>${fp[k].bins.map(dbar).join("")}</div>`).join("");
+  const cs=st.costSummary;
+  const costHtml=`<div class="ctx-cost">
+    <div class="c"><div class="lab">PA obligated · median</div><div class="big">${fmtMoney(cs.paMedian)}</div><div class="thr-sub">P90 ${fmtMoney(cs.paP90)} · max ${fmtMoney(cs.paMax)}</div></div>
+    <div class="c"><div class="lab">IHP approved · median</div><div class="big">${fmtMoney(cs.ihpMedian)}</div><div class="thr-sub">P90 ${fmtMoney(cs.ihpP90)} · max ${fmtMoney(cs.ihpMax)}</div></div>
+    <div class="c"><div class="lab">Declared state-episodes</div><div class="big">${cs.n}</div><div class="thr-sub">${st.nDisasters} disasters on record</div></div></div>`;
+  const an=st.analogs.slice(0,10).map(a=>`<div class="ctx-analog" data-dn="${a.dn}"><div><div class="dt">DR-${a.dn} · ${fmtDate(a.date)}</div><div class="ip">${a.it}${(a.tags&&a.tags.length)?" · "+a.tags.join(", "):""}</div></div><div class="mny">${fmtMoney(a.pa+a.ihp)}<div class="ip" style="font-weight:600">PA ${fmtMoney(a.pa)} · IHP ${fmtMoney(a.ihp)}</div></div></div>`).join("");
+  el("ctxBody").innerHTML=`
+    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>${st.name}: what drives a declaration</h2><span class="sub">declared vs. not — by hazard, by severity</span></div><div class="card__bd">${hazHtml}</div></div>
+    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>Footprint &amp; exposure</h2><span class="sub">the real separators — extent over intensity</span></div><div class="card__bd">${fpHtml||'<p class="thr-sub">—</p>'}</div></div>
+    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>What declarations have cost</h2><span class="sub">${cs.source}</span></div><div class="card__bd">${costHtml}</div></div>
+    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>${st.name} disasters on record</h2><span class="sub">real OpenFEMA · tap to verify</span></div><div class="card__bd">${an||'<p class="thr-sub">—</p>'}</div></div>`;
 }
-/* core prediction — picks the hazard whose drivers imply the highest declared rate */
-function fcPredict(vals){
-  const S=PRED.states[fcState], br=S.baseRateByHazard||{}, tg=S.triggers||{};
-  const cand=[];
-  // FLOOD (primary driver = # counties over flood stage; modulated by rain/snow)
-  if(br.flood!=null){
-    const t=tg.nCountiesOverFlood||{warn:3,declThreshold:6};
-    let p=rampProb(br.flood,FC_DRIVERS.nCountiesOverFlood.declAnchor,vals.nCountiesOverFlood||0,t.warn,t.declThreshold);
-    // modulate by rain / snowmelt relative to their decl thresholds
-    let mod=1, modName="";
-    if(fcState==="MN"){const st=tg.snowMeltIn; const sm=vals.snowMeltIn||0;
-      if(st){mod*=0.85+0.4*clamp01(sm/st.declThreshold); if(sm>=st.warn)modName="snowmelt";}}
-    else {const rt=tg.rainDayMaxIn; const rn=vals.rainDayMaxIn||0;
-      if(rt){mod*=0.85+0.4*clamp01(rn/rt.declThreshold); if(rn>=rt.warn)modName="heavy rain";}}
-    p=clamp01(p*mod);
-    cand.push({hazard:"flood",p,driver:"nCountiesOverFlood",val:vals.nCountiesOverFlood||0,trig:t,mod:modName});
-  }
-  // TORNADO (gentle — count barely matters; surfaced for honesty)
-  if(br.tornado!=null && (vals.totTornadoes||0)>0)
-    cand.push({hazard:"tornado",p:gentleProb(br.tornado,vals.totTornadoes,0,1.7),driver:"totTornadoes",val:vals.totTornadoes,trig:null});
-  // WIND
-  if(br.wind!=null && (vals.maxGustMph||0)>=60)
-    cand.push({hazard:"wind",p:gentleProb(br.wind,vals.maxGustMph,60,1.6),driver:"maxGustMph",val:vals.maxGustMph,trig:null});
-  if(!cand.length) cand.push({hazard:(S.dominantHazards[0]||"flood").split(" ")[0],p:(br.flood||PRED.panel.baseRate),driver:"nCountiesOverFlood",val:0,trig:tg.nCountiesOverFlood});
-  cand.sort((a,b)=>b.p-a.p);
-  return cand[0];
-}
-function fcCostEst(p){
-  const cs=PRED.states[fcState].costSummary||{};
-  const br=PRED.states[fcState].baseRateByHazard.flood||PRED.panel.baseRate;
-  const sev=clamp01((p-br)/Math.max(0.05,(0.85-br)));     // 0 at base rate -> 1 near certainty
-  const lerp=(a,b)=>a==null?null:(b==null?a:Math.round(a+(b-a)*sev));
-  return {pa:lerp(cs.paMedian,cs.paP90),paLo:cs.paMedian,paHi:cs.paP90||cs.paMax,
-          ia:lerp(cs.ihpMedian,cs.ihpP90),iaLo:cs.ihpMedian,iaHi:cs.ihpP90||cs.ihpMax};
-}
-/* gather driver values for the active mode */
-function fcGatherVals(){
-  if(fcMode==="predicted") return {...fcSliders};
-  if(fcMode==="current"){
-    const over=GAGES.filter(g=>g.state===fcState&&g.floodStage&&LIVE[g.id]&&LIVE[g.id].ft>=g.floodStage).length;
-    const ca=watchState.countyAlerts||{};
-    let torC=0; Object.entries(ca).forEach(([f,o])=>{if(f.slice(0,2)===SF[fcState]&&Object.keys(o.events).some(e=>/Tornado/i.test(e)))torC++;});
-    return {nCountiesOverFlood:over, rainDayMaxIn:0, snowMeltIn:0, totTornadoes:torC, maxGustMph:0};
-  }
-  return {...fcSliders};
-}
-const SF={IL:"17",IN:"18",MI:"26",MN:"27",OH:"39",WI:"55"};
-
-/* ----- render ----- */
-function fcRenderStates(){
-  el("fcStates").innerHTML=R5.map(s=>{const S=PRED.states[s];
-    const fr=Math.round((S.baseRateByHazard.flood||0)*100);
-    return `<button class="fc-statebtn ${s===fcState?"active":""}" data-fcstate="${s}">
-      <span class="nm">${S.name}</span><span class="br">${S.dominantHazards[0]} · base ${fr}%</span></button>`;}).join("");
-}
-function fcRender(){
-  if(!PRED){el("fcStateNote").textContent="Predictor data unavailable.";return;}
-  const S=PRED.states[fcState];
-  fcRenderStates();
-  el("fcStateNote").innerHTML=`<b>${S.name}.</b> Dominant hazard(s): ${S.dominantHazards.map(h=>`<span class="fc-haztag">${h}</span>`).join("")} ${S.driverNote}`;
-  // mode buttons
-  document.querySelectorAll("#fcModes .fc-mode").forEach(b=>b.classList.toggle("active",b.dataset.mode===fcMode));
-  fcRenderInputs();
-  if(fcMode==="past"){fcRenderPast();}
-  else {fcRenderPrediction(fcGatherVals());}
-  fcRenderWhy();
-  fcRenderHowOften();
-  fcRenderAnalogs();
-  fcRenderMap();
-}
-function fcRenderInputs(){
-  const box=el("fcInputs");
-  if(fcMode==="predicted"){
-    el("fcInputTitle").textContent="Event drivers (aggregated to the state)";
-    el("fcInputSub").textContent="slide the relevant drivers";
-    box.innerHTML=fcStateDrivers().map(k=>{const d=FC_DRIVERS[k];
-      return `<div class="fc-driver"><div class="row"><label>${d.label}</label><span class="v"><span id="fcv-${k}">${fcSliders[k]}</span> ${d.unit}</span></div>
-        <input type="range" id="fcs-${k}" min="${d.min}" max="${d.max}" step="${d.step}" value="${fcSliders[k]}">
-        <div class="bs">${d.note||""}</div></div>`;}).join("");
-    fcStateDrivers().forEach(k=>{const s=el("fcs-"+k);if(s)s.addEventListener("input",()=>{fcSliders[k]=parseFloat(s.value);el("fcv-"+k).textContent=s.value;fcRenderPrediction(fcGatherVals());fcRenderMap();});});
-  } else if(fcMode==="current"){
-    el("fcInputTitle").textContent="Live conditions in "+PRED.states[fcState].name;
-    el("fcInputSub").textContent="NWS alerts + USGS gages";
-    const v=fcGatherVals();
-    const ready=watchState.ready;
-    box.innerHTML=`${ready?"":`<div class="thr-sub" style="margin-bottom:10px"><span class="spin"></span> Pulling live NWS + USGS…</div>`}
-      <div class="fc-driver"><div class="row"><label>Key gages over flood stage (live)</label><span class="v">${v.nCountiesOverFlood}</span></div><div class="bs">USGS instantaneous values vs NWS flood stage, in ${PRED.states[fcState].name}</div></div>
-      <div class="fc-driver"><div class="row"><label>Counties under tornado warning</label><span class="v">${v.totTornadoes}</span></div><div class="bs">live NWS alerts (SAME-coded to counties)</div></div>
-      <p class="thr-sub">Live rainfall/QPF is not ingested (deferred); the current-mode prediction is driven by the live flood footprint + active warnings. Use <b>Predicted</b> to add a rainfall/snowmelt scenario.</p>
-      <button class="btn btn--ghost" id="fcReloadLive">&#8635; Refresh live</button>`;
-    const rl=el("fcReloadLive");if(rl)rl.addEventListener("click",()=>{loadWatch().then(()=>fcRender());});
-    if(!ready) loadWatch().then(()=>{if(fcMode==="current")fcRender();});
-  } else { // past
-    el("fcInputTitle").textContent="Pick a past state-incident";
-    el("fcInputSub").textContent=PRED.states[fcState].nDeclared+" declared in "+PRED.states[fcState].name;
-    const ana=PRED.states[fcState].analogs;
-    if(!fcPastDn||!ana.find(a=>a.dn===fcPastDn))fcPastDn=ana.length?ana[0].dn:null;
-    box.innerHTML=`<div class="field"><label for="fcPast">Declared disaster</label>
-      <select id="fcPast">${ana.map(a=>`<option value="${a.dn}" ${a.dn===fcPastDn?"selected":""}>${fmtDate(a.date)} · DR-${a.dn} · ${titleCase(a.it||a.title||"")}</option>`).join("")}</select></div>
-      <div id="fcPastFeat"></div>`;
-    el("fcPast").addEventListener("change",e=>{fcPastDn=+e.target.value;fcRenderPast();fcRenderMap();});
-  }
-}
-function fcRenderPrediction(vals){
-  const pr=fcPredict(vals); const p=pr.p;
-  el("fcProb").style.setProperty("--p",(p*100).toFixed(0)+"%");
-  el("fcProbN").textContent=Math.round(p*100)+"%";
-  const dlabel=FC_DRIVERS[pr.driver]?FC_DRIVERS[pr.driver].label:pr.driver;
-  el("fcVerdict").textContent=p>=0.5?`Likely declared — ${Math.round(p*100)}%`:p>=0.25?`Possible declaration — ${Math.round(p*100)}%`:`Declaration unlikely — ${Math.round(p*100)}%`;
-  el("fcDriver").innerHTML=`Driven by <b>${HAZ_LABEL[pr.hazard]||pr.hazard}</b> · primary driver: <b>${dlabel}</b> = ${pr.val}${FC_DRIVERS[pr.driver]&&FC_DRIVERS[pr.driver].unit?" "+FC_DRIVERS[pr.driver].unit:""}${pr.mod?` (modulated by ${pr.mod})`:""}. <span class="thr-sub">Empirical declared rate, ${PRED.states[fcState].name} ${pr.hazard} episodes.</span>`;
-  const c=fcCostEst(p);
-  el("fcPA").textContent=fmtMoney(c.pa||0); el("fcPArng").textContent=c.paLo!=null?`comparable range ${fmtMoney(c.paLo)} – ${fmtMoney(c.paHi)}`:"insufficient analogs";
-  el("fcIA").textContent=c.ia!=null?fmtMoney(c.ia):"—"; el("fcIArng").textContent=c.iaLo!=null?`range ${fmtMoney(c.iaLo)} – ${fmtMoney(c.iaHi)}`:"PA-only history";
-  el("fcMatureNote").innerHTML="PA is <b>obligated</b>, IHP is <b>approved</b> — different accounting stages. Obligations lag and reconcile over years, so recent comparables under-count. Costs scaled from real OpenFEMA medians/P90 for "+PRED.states[fcState].name+".";
-  // approaching-trigger flag
-  fcRenderFlag(pr);
-}
-function fcRenderFlag(pr){
-  const box=el("fcFlag");
-  if(pr.trig&&pr.driver==="nCountiesOverFlood"){
-    const v=pr.val,t=pr.trig;
-    if(v>=t.declThreshold) box.innerHTML=`<div class="fc-flag met"><span>&#128308;</span><span><b>Trigger met.</b> ${v} counties over flood stage is at/above this state's empirical declaration threshold (${t.declThreshold}). Multi-county flooding of this footprint has historically cleared the statewide per-capita bar.</span></div>`;
-    else if(v>=t.warn) box.innerHTML=`<div class="fc-flag warn"><span>&#128993;</span><span><b>Approaching trigger.</b> ${v} counties over flood stage is past the warning level (${t.warn}) but below the empirical declaration threshold (${t.declThreshold}).</span></div>`;
-    else box.innerHTML=`<div class="fc-flag ok"><span>&#9989;</span><span>Below the warning level (${t.warn} counties over flood stage). Flood footprint is small.</span></div>`;
-  } else box.innerHTML="";
-}
-function fcRenderPast(){
-  const a=PRED.states[fcState].analogs.find(x=>x.dn===fcPastDn); if(!a)return;
-  el("fcProb").style.setProperty("--p","100%");
-  el("fcProbN").textContent="✓";
-  el("fcVerdict").innerHTML=`Declared — <span class="clickable" style="color:var(--blue)" data-dn="${a.dn}">DR-${a.dn} ↗</span>`;
-  el("fcDriver").innerHTML=`${titleCase(a.title||a.it||"")} · ${fmtRange(a.date,a.end)}. Actual federal assistance below (real OpenFEMA figures).`;
-  el("fcPA").textContent=fmtMoney(a.pa||0); el("fcPArng").textContent="actual obligated (OpenFEMA)";
-  el("fcIA").textContent=fmtMoney(a.ihp||0); el("fcIArng").textContent="actual IHP approved";
-  el("fcMatureNote").innerHTML=`<b>Verified figures.</b> Tap DR-${a.dn} above for the full sourced breakdown and provenance.`;
-  el("fcFlag").innerHTML="";
-  // show the analog's measured params
-  const f=a.feat||{}; const items=[];
-  const add=(k,lab,u)=>{if(f[k]!=null)items.push(`<div class="trigparm" style="cursor:default"><div class="pv">${f[k]}${u||""}</div><div class="pl">${lab}</div></div>`);};
-  add("countyCount","designated counties","");add("peakStageFt","peak river stage"," ft");
-  add("rainDayMaxIn","peak 1-day rain"," in");add("rainIn","total incident rain"," in");
-  add("tornadoes","tornadoes","");add("windMph","peak wind"," mph");add("hailIn","max hail"," in");
-  add("reportedDamage","reported damage","");
-  const feat=el("fcPastFeat"); if(feat)feat.innerHTML=`<div class="sec-h" style="margin-top:14px">Measured event parameters</div><div class="parm" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))">${items.join("")||'<span class="thr-sub">No measured params.</span>'}</div>`;
-}
-function fcRenderWhy(){
-  const ord=(MODEL&&MODEL.featureOrdering&&MODEL.featureOrdering.ranked)||["sumDamageProxy","sumPopExposed","nCountiesOverFlood","snowMeltIn","totTornadoes"];
-  const top=ord.slice(0,6);
-  const pr=fcMode==="past"?null:fcPredict(fcGatherVals());
-  el("fcWhy").innerHTML=top.map((k,i)=>{const w=100-i*14; const hl=pr&&pr.driver===k;
-    return `<div class="impbar ${hl?"hl":""}"><span class="nm">${k}</span><span class="track"><i style="width:${w}%"></i></span></div>`;}).join("");
-  el("fcBenchNote").innerHTML=`Ordering from the PoC panel: declarations are <b>damage/exposure-mediated, not intensity-triggered</b> (# tornadoes / EF / gust barely separate declared from non-declared). Benchmarks: occurrence AUROC ~${MODEL?MODEL.benchmarks.occurrenceAUROC:0.87}, conditional cost R²~${MODEL?MODEL.benchmarks.diazJosephCostR2:0.43} (Diaz & Joseph 2019); ${MODEL?MODEL.benchmarks.note:""}.`;
-}
-function fcRenderHowOften(){
-  const S=PRED.states[fcState];
-  const vals=fcMode==="past"?null:fcGatherVals();
-  const brks=S.baseRates||{};
-  let html="";
-  // state x hazard base rates (always)
-  html+=`<div class="thr-sub" style="margin-bottom:6px">Declared base rate by hazard, ${S.name} (PoC panel):</div>`;
-  html+=Object.entries(S.baseRateByHazard).map(([h,r])=>{const w=Math.round(r*100);
-    return `<div class="binrow"><span class="bl">${h}</span><span class="bt"><i style="width:${Math.min(100,w*2)}%"></i></span><span class="bv">${w}% decl.</span></div>`;}).join("");
-  // measured declared-rate by driver bin where we have it
-  const rk=fcState==="MN"?null:"rainDayMaxIn";
-  if(rk&&brks[rk]){const b=brks[rk]; const cur=vals?vals[rk]:null;
-    html+=`<div class="thr-sub" style="margin:12px 0 4px">Declared rate by ${b.hazard==="flood"?"peak 1-day rainfall (flood episodes)":rk}:</div>`;
-    html+=b.bins.map(bn=>{const inb=cur!=null&&cur>=bn.lo&&(bn.hi==null||cur<bn.hi);
-      return `<div class="binrow ${inb?"hl":""}"><span class="bl">${bn.lab}</span><span class="bt"><i style="width:${Math.round(bn.declRate*100*2)}%"></i></span><span class="bv">${Math.round(bn.declRate*100)}% decl.</span></div>`;}).join("");
-    html+=`<div class="thr-sub" style="margin-top:4px">${b.basis}</div>`;
-  } else if(fcState==="MN"){
-    html+=`<div class="thr-sub" style="margin-top:12px">MN flood declared rate is <b>flat across rainfall</b> (&lt;1″→42%, ≥4″→45%) — the driver is snowmelt, not rain. Pooled state base rate applies; per-rainfall-bin separation isn't meaningful here.</div>`;
-  }
-  el("fcHowOften").innerHTML=html;
-}
-function fcRenderAnalogs(){
-  const ana=PRED.states[fcState].analogs.slice(0,6);
-  el("fcAnalogs").innerHTML=ana.map(a=>`<div class="fc-analog" data-dn="${a.dn}">
-    <div><div class="dt">DR-${a.dn} · ${fmtDate(a.date)}</div><div class="ip">${titleCase(a.it||a.title||"")}</div></div>
-    <div class="mny">${fmtMoney(a.pa||0)} PA<br><span style="font-weight:600;color:var(--ink-3)">${a.ihp?fmtMoney(a.ihp)+" IHP":"PA-only"}</span></div></div>`).join("")
-    ||`<div class="thr-sub">No declared analogs on record.</div>`;
-}
-/* state-zoomed county choropleth: highlights contributing (gage) counties */
-let FCPROJ=null,FCPROJST=null;
-function fcProjectState(s){
-  const cs=COUNTIES.filter(c=>c.s===s); if(!cs.length){FCPROJ=null;return;}
-  let minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
-  cs.forEach(c=>c.g.forEach(p=>p.forEach(r=>r.forEach(pt=>{if(pt[0]<minx)minx=pt[0];if(pt[0]>maxx)maxx=pt[0];if(pt[1]<miny)miny=pt[1];if(pt[1]>maxy)maxy=pt[1];}))));
-  const k=Math.cos((miny+maxy)/2*Math.PI/180),W=760,pad=8;
-  const s2=(W-2*pad)/((maxx-minx)*k);
-  FCPROJ={minx,maxy,k,s:s2,pad,W,H:Math.ceil((maxy-miny)*s2)+2*pad};FCPROJST=s;
-}
-function fcCpath(c){const {minx,maxy,k,s,pad}=FCPROJ;let d="";
-  c.g.forEach(p=>p.forEach(r=>{d+="M"+r.map(pt=>`${(pad+(pt[0]-minx)*k*s).toFixed(1)},${(pad+(maxy-pt[1])*s).toFixed(1)}`).join("L")+"Z";}));return d;}
-function fcRenderMap(){
-  const box=el("fcMap"); if(!box)return;
-  if(!COUNTIES.length){box.innerHTML=`<div class="thr-sub">County map data unavailable.</div>`;return;}
-  if(FCPROJST!==fcState)fcProjectState(fcState);
-  if(!FCPROJ){box.innerHTML=`<div class="thr-sub">No county geometry for ${fcState}.</div>`;return;}
-  const cb=PRED.states[fcState].counties||{};
-  // which counties are "contributing": gage over flood stage (current) / gage present (else)
-  const overSet=new Set();
-  if(fcMode==="current"){GAGES.forEach(g=>{if(g.state===fcState&&g.floodStage&&LIVE[g.id]&&LIVE[g.id].ft>=g.floodStage&&g.countyFips)overSet.add(g.countyFips);});}
-  const cs=COUNTIES.filter(c=>c.s===fcState);
-  const paths=cs.map(c=>{const has=cb[c.f]; const over=overSet.has(c.f);
-    const fill=over?"#e8590c":has?"#ffce6b":"#16314f";
-    const tip=has?`${c.n}, ${c.s} — key flood gage: ${has.name} (flood stage ${has.floodStageFt} ft)${over?" · OVER FLOOD now":""}`:`${c.n}, ${c.s} — no key gage; pooled state base rate`;
-    return `<path d="${fcCpath(c)}" fill="${fill}" stroke="#0b1c33" stroke-width="0.4"${has?` class="hotc" data-fcfips="${c.f}"`:""}><title>${tip.replace(/"/g,"&quot;")}</title></path>`;}).join("");
-  el("fcMapSub").textContent=`${Object.keys(cb).length} key-gage counties`+(overSet.size?` · ${overSet.size} over flood now`:"");
-  box.innerHTML=`<svg viewBox="0 0 ${FCPROJ.W} ${FCPROJ.H}">${paths}</svg>
-    <div class="maplegend"><span>county role:</span><span><i style="background:#e8590c"></i>over flood (live)</span><span><i style="background:#ffce6b"></i>key flood gage</span><span><i style="background:#16314f"></i>pooled base rate</span><span style="margin-left:auto" class="thr-sub">tap a highlighted county</span></div>`;
-}
-function fcMapPick(fips){
-  const cb=PRED.states[fcState].counties||{}; const c=COUNTIES.find(x=>x.f===fips); const o=cb[fips];
-  if(!o){el("fcMapPick").innerHTML=`<b>${c?c.n:fips} County</b> — no key gage; this county rides into a declaration on the statewide aggregate (pooled base rate ${Math.round((PRED.states[fcState].baseRateByHazard.flood||0)*100)}% for flood).`;return;}
-  const t=(o.triggers||{}).ftAboveFlood;
-  el("fcMapPick").innerHTML=`<b>${o.name}</b> (${o.river||""}) — relevant hazard: <b>${o.relevantHazards.join(", ")}</b>. Flood stage ${o.floodStageFt} ft${t?`; warns +${t.warn} ft, historically declared by +${t.declThreshold} ft over flood${t.official?" (NWS AHPS)":""}`:""}. ${o.baseRateNote||""} · <span class="clickable" style="color:var(--blue)" data-gage="${o.gageId}">gage history ↗</span>`;
-}
-function fcSetState(s){fcState=s;fcPastDn=null;if(FCPROJST!==s)fcProjectState(s);el("fcMapPick").innerHTML="";fcRender();}
-function fcSetMode(m){fcMode=m;el("fcMapPick").innerHTML="";fcRender();}
-function fcInit(){fcDefaults();if(PRED)fcRender();}
+function ctxSetState(s){ctxState=s;ctxRenderStates();ctxRender();}
 
 /* ===== boot ===== */
 async function loadData(){
@@ -1590,10 +1298,9 @@ async function loadData(){
       fetch("data/gages.json").then(r=>{if(!r.ok)throw 0;return r.json();})
     ]);
     DISASTERS=dj;GAGES=gj;DATA=DISASTERS.slice();
-    fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();if(PRED&&document.getElementById("view-forecast").classList.contains("active"))fcRenderMap();}).catch(()=>{});
-    fetch("data/predictor.json").then(r=>r.ok?r.json():null).then(p=>{PRED=p;if(p&&document.getElementById("view-forecast").classList.contains("active")){if(!Object.keys(fcSliders).length)fcDefaults();fcRender();}}).catch(()=>{});
-    fetch("data/model.json").then(r=>r.ok?r.json():null).then(m=>{MODEL=m;}).catch(()=>{});
-    fetch("data/triggers.json").then(r=>r.ok?r.json():null).then(t=>{TRIG=t;}).catch(()=>{});
+    fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();}).catch(()=>{});
+    fetch("data/context.json").then(r=>r.ok?r.json():null).then(c=>{CTX=c;if(document.getElementById("view-context").classList.contains("active")){ctxRenderStates();ctxRender();}}).catch(()=>{});
+    fetch("data/event_nexus.json").then(r=>r.ok?r.json():null).then(n=>{NEXUS=n;}).catch(()=>{});
     setSource("warn",`Sourced dataset · ${DATA.length} disasters (OpenFEMA + NOAA + USGS)`);
   }catch(e){
     setSource("err","Could not load data/disasters.json — open via the site URL, not a local file");

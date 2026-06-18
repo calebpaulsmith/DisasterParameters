@@ -69,7 +69,9 @@ def acis_multistn(fips, sdate, edate, retries=4):
     return None
 
 def num(v):
-    """ACIS daily value -> float inches. 'M' (missing) and 'T' (trace) -> None/0."""
+    """ACIS daily value -> float inches. 'M' (missing) and 'T' (trace) -> None/0.
+    MultiStnData returns each day as a 1-element list (e.g. [['12']]) -> unwrap it."""
+    if isinstance(v,list): v=v[0] if v else None
     if v in (None,"","M","S"): return None
     if v=="T": return 0.0
     try:
