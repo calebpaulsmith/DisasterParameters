@@ -353,6 +353,8 @@ tr.clickable:hover td{background:#eef3f8;}
 .geotoggle button{font:inherit;font-size:12.5px;font-weight:700;padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--ink-2);border-radius:20px;cursor:pointer;}
 .geotoggle button.active{background:var(--navy);color:#fff;border-color:var(--navy);}
 #geoMap svg .hotc{cursor:pointer;} #geoMap svg .hotc:hover{stroke:#0d2342;stroke-width:1.1;}
+#geoMap svg path.cselect{stroke:#0d2342;stroke-width:2.4;vector-effect:non-scaling-stroke;paint-order:stroke fill;animation:cselGlow 1.5s ease-in-out infinite;}
+@keyframes cselGlow{0%,100%{filter:drop-shadow(0 0 1px rgba(242,169,0,.65));}50%{filter:drop-shadow(0 0 6px rgba(242,169,0,1));}}
 .geotbl{width:100%;border-collapse:collapse;font-size:13px;}
 .geotbl th,.geotbl td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;}
 .geotbl th.num,.geotbl td.num{text-align:right;font-variant-numeric:tabular-nums;}
@@ -1031,9 +1033,10 @@ function renderGeoMap(){
   if(!MAPPROJ)projectCounties();
   const dc=DECL.counties||{},m=geoMetric,gf=geoStateFilter,cf=geoCountyFocus;
   const paths=COUNTIES.map(c=>{const o=dc[c.f],v=o?(o[m]||0):0;
-    const sel=cf?c.f===cf:(gf&&c.s===gf), dim=cf?c.f!==cf:(gf&&c.s!==gf);
+    const csel=cf&&c.f===cf, sel=cf?c.f===cf:(gf&&c.s===gf), dim=cf?c.f!==cf:(gf&&c.s!==gf);
     const tip=o?`${c.n}, ${c.s} — ${GEO_META[m].fmt(v)} ${GEO_META[m].label}`:`${c.n}, ${c.s} — none`;
-    return `<path d="${cpath(c)}" fill="${geoColor(m,v)}" stroke="${sel?'#0d2342':'#fff'}" stroke-width="${sel?0.9:0.4}"${o&&v?` class="hotc" data-gfips="${c.f}"`:""}${dim?' opacity="0.22"':''}><title>${tip.replace(/"/g,"&quot;")}</title></path>`;}).join("");
+    const cls=(o&&v?"hotc":"")+(csel?" cselect":"");
+    return `<path d="${cpath(c)}" fill="${geoColor(m,v)}" stroke="${sel?'#0d2342':'#fff'}" stroke-width="${sel?0.9:0.4}"${cls.trim()?` class="${cls.trim()}"`:""}${o&&v?` data-gfips="${c.f}"`:""}${dim?' opacity="0.22"':''}><title>${tip.replace(/"/g,"&quot;")}</title></path>`;}).join("");
   const bb=cf?geoCountyBBox(cf):(gf?geoStateBBox(gf):null);
   const vb=bb?`${bb.x.toFixed(1)} ${bb.y.toFixed(1)} ${bb.w.toFixed(1)} ${bb.h.toFixed(1)}`:`0 0 ${MAPPROJ.W} ${MAPPROJ.H}`;
   box.innerHTML=`<svg viewBox="${vb}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;background:#f7f9fc;border-radius:8px">${paths}</svg>
@@ -1069,9 +1072,10 @@ function renderGeoBoard(){
 function countyDetailHTML(o,fips){
   const list=o.disasters.map(d=>`<div class="declrow clickable" data-dn="${d.dn}"><span class="dk"><b style="color:var(--navy)">DR-${d.dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">${fmtMoney(d.pa)} PA ↗</span></div>`).join("");
   const apps=o.applicants||[];
+  const more=(o.nApplicants||apps.length)-apps.length;
   const appList=apps.length&&fips?`<div class="declsub">Top PA applicants${o.nApplicants?` · ${fmtNum(o.nApplicants)} total`:""}</div>`
-    +apps.slice(0,8).map((a,i)=>`<div class="declrow clickable" data-gappl="${fips}|${i}"><span class="dk"><b style="color:var(--navy)">${a.name}</b> · ${a.nDisasters} dis</span><span class="dv">${fmtMoney(a.pa)} PA ↗</span></div>`).join("")
-    +(o.nApplicants>apps.slice(0,8).length?`<p class="thr-sub" style="padding:4px 8px">…full list in the “Applicants” board above</p>`:""):"";
+    +apps.map((a,i)=>`<div class="declrow clickable" data-gappl="${fips}|${i}"><span class="dk"><b style="color:var(--navy)">${a.name}</b> · ${a.nDisasters} dis</span><span class="dv">${fmtMoney(a.pa)} PA ↗</span></div>`).join("")
+    +(more>0?`<p class="thr-sub" style="padding:4px 8px">…and ${fmtNum(more)} smaller applicant${more>1?"s":""} not itemized (top ${apps.length} by PA shown)</p>`:""):"";
   return `<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${o.count}</b> disaster${o.count>1?"s":""}<br>PA <b>${fmtMoney(o.paObligated)}</b> · IHP <b>${fmtMoney(o.ihpApproved||0)}</b> · <b>${fmtNum(o.paProjects)}</b> projects${o.nApplicants?` · <b>${fmtNum(o.nApplicants)}</b> applicants`:""}</div>${list}${appList}`;
 }
 function showCountyGeo(fips){            // enter county focus: zoom, applicants board, detail
