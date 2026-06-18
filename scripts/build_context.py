@@ -93,13 +93,15 @@ def pct(vals,p):
 def load(name): return json.load(open(os.path.join(DATA,name)))
 
 def distribution(rows, key, bins):
-    """bins with explicit total (n) and declared counts — the declared-vs-non denominator."""
+    """bins with explicit total (n), declared count, and the declared disasters' DR
+    numbers (dns) for drill-down — the declared-vs-non denominator, fully traceable."""
     out=[]; any_data=False
     for lab,lo,hi in bins:
         sub=[r for r in rows if (r.get(key) is not None) and r[key]>=lo and (hi is None or r[key]<hi)]
-        d=sum(r["declared"] for r in sub)
+        decl=[r for r in sub if r["declared"]]
+        dns=sorted({r["dn"] for r in decl if r.get("dn")})
         if sub: any_data=True
-        out.append({"lab":lab,"lo":lo,"hi":hi,"n":len(sub),"declared":d})
+        out.append({"lab":lab,"lo":lo,"hi":hi,"n":len(sub),"declared":len(decl),"dns":dns})
     return out if any_data else None
 
 def at_least(rows, key, value):
@@ -137,11 +139,20 @@ def analog(d):
             "it":d.get("incidentType"),"title":d.get("title"),"tags":d.get("tags",[]),
             "pa":(d.get("costs") or {}).get("paTotal",0),"ihp":(d.get("costs") or {}).get("ihpTotal",0)}
 
+def is_notable(r):
+    """A NOTABLE episode = one with NOAA Storm Events property damage > 0. This is the
+    declared-rate denominator the maintainer chose: it strips the many trivial $0 NWS
+    reports that flatten the curve. CAVEAT: Storm Events under-records riverine/ag flood
+    loss, so this excludes some real flood declarations (surfaced per state below)."""
+    return (r.get("sumDamageProxy") or 0)>0
+
 def build_context(state_panel,county_panel,disasters,gages):
     states={}
     for s in STATE_NAME:
-        srows=[r for r in state_panel if r["state"]==s]
+        srows_all=[r for r in state_panel if r["state"]==s]
+        srows=[r for r in srows_all if is_notable(r)]            # notable (damage>0) denominator
         prof=hazard_profile(srows)
+        flood0=[r for r in srows_all if is_flood(r) and not is_notable(r) and r["declared"]]
         # per hazard, per driver: distribution over the hazard's member episodes
         dist={}
         for h,member in HAZARD_MEMBER.items():
@@ -164,6 +175,14 @@ def build_context(state_panel,county_panel,disasters,gages):
         rr=lambda v: round(v) if v is not None else None
         dis_s=[d for d in disasters if d["state"]==s]
         states[s]={"name":STATE_NAME[s],"pop":STATE_POP[s],
+            "denominator":{"basis":"Storm Events property damage > 0 (notable episodes)",
+                "nAll":len(srows_all),"nNotable":len(srows),
+                "declaredAll":sum(r["declared"] for r in srows_all),
+                "declaredNotable":sum(r["declared"] for r in srows),
+                "floodExcluded":len(flood0),
+                "floodCaveat":(f"{len(flood0)} declared flood episodes here have $0 recorded "
+                    "Storm Events damage (riverine/agricultural loss isn't in that field) and are "
+                    "excluded from these rates — so flood is undercounted by this filter.")},
             "hazardProfile":prof,"distributions":dist,"footprint":fp,
             "costSummary":{"n":len(decl),"paMedian":rr(pct(pa,50)),"paP90":rr(pct(pa,90)),"paMax":rr(max(pa)) if pa else None,
                 "ihpMedian":rr(pct(ih,50)),"ihpP90":rr(pct(ih,90)),"ihpMax":rr(max(ih)) if ih else None,
@@ -172,11 +191,29 @@ def build_context(state_panel,county_panel,disasters,gages):
             "analogs":sorted([analog(d) for d in dis_s],key=lambda a:a["date"],reverse=True),
             "counties":county_flood_reference(s,gages,county_panel)}
     nd=sum(r["declared"] for r in state_panel)
+    notable=[r for r in state_panel if is_notable(r)]; ndn=sum(r["declared"] for r in notable)
     return {"generated":dt.date.today().isoformat()[:7],"build":"panel",
-        "kind":"information","note":"Empirical frequencies from the regenerated state-episode panel "
-            "(declared + non-declared). No probabilities, no fitted model. PA is obligated, IHP approved.",
+        "kind":"information","note":"Empirical frequencies from the regenerated state-episode panel. "
+            "Rates are computed over NOTABLE episodes (Storm Events property damage > 0). "
+            "No probabilities, no fitted model. PA is obligated, IHP approved.",
+        "provenance":{
+            "unit":"state-storm episode — each NOAA Storm Events episode's counties aggregated to the state level",
+            "hazardMembership":"an episode counts toward a hazard if it carried that hazard's signal "
+                "(flood: a county over flood stage or a Flood/Winter incident; tornado: ≥1 tornado; "
+                "wind: gust ≥50 mph; hail: ≥0.75 in; winter: snowfall present)",
+            "declaredRule":"declared = at least one designated county of the episode falls inside a FEMA "
+                "disaster window (OpenFEMA); the bar gets cleared at the STATE level, not per county",
+            "denominator":"NOTABLE episodes only — Storm Events property damage > 0; this strips the many "
+                "trivial $0 NWS reports that flatten the curve",
+            "metric":"each driver value is the PEAK across the episode's counties (peak envelope)",
+            "caveat":"Storm Events damage under-records riverine/agricultural flood loss, so the damage>0 "
+                "denominator excludes some real flood declarations (counted per state as floodExcluded)",
+            "source":"scripts/build_context.py over data/state_panel.json (NOAA Storm Events + OpenFEMA)"},
         "panel":{"episodes":len(state_panel),"declared":nd,
-                 "baseRate":round(nd/max(1,len(state_panel)),3),"source":"scripts/build_state_panel.py"},
+                 "baseRate":round(nd/max(1,len(state_panel)),3),
+                 "notableEpisodes":len(notable),"notableDeclared":ndn,
+                 "notableBaseRate":round(ndn/max(1,len(notable)),3),
+                 "source":"scripts/build_state_panel.py"},
         "states":states}
 
 # ---- event_nexus.json : per-disaster driver values placed in history ----
@@ -227,7 +264,7 @@ def build_event_nexus(state_panel,disasters):
                 if fb in (None,0): continue
                 v=fb
             member=HAZARD_MEMBER[hz_fam]
-            ctx=at_least([r for r in srows if member(r)], key, v)
+            ctx=at_least([r for r in srows if member(r) and is_notable(r)], key, v)
             drivers.append({"key":key,"label":label,"unit":unit,"hazard":hz_fam,
                 "value":round(v,2),"atLeast":ctx})
         out[str(dn)]={"state":s,"stateName":STATE_NAME.get(s,s),"title":d.get("title"),
