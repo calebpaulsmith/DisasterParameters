@@ -325,6 +325,21 @@ tr.clickable:hover td{background:#eef3f8;}
 .bindrill{font-size:11.5px;color:var(--ink-2);background:#fafcfe;border:1px dashed var(--line);border-radius:8px;padding:8px 10px;margin:2px 0 8px 92px;}
 .drchip{display:inline-block;background:var(--blue-light);color:var(--navy);font-weight:700;border-radius:8px;padding:1px 7px;margin:2px 2px 0 0;cursor:pointer;}
 .drchip:hover{background:var(--gold);}
+.sep{padding:12px 0;border-top:1px solid var(--line);}
+.sep:first-child{border-top:none;}
+.sep__hd{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px;margin-bottom:2px;}
+.sep__lab{font-weight:800;color:var(--navy);font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sep__cmp{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;}
+.aucm{display:inline-flex;align-items:center;gap:6px;}
+.aucm__bar{width:62px;height:8px;background:#eef2f7;border-radius:5px;overflow:hidden;}
+.aucm__fill{display:block;height:100%;background:var(--ink-3);}
+.aucm__v{font-size:11px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums;}
+.aucm.s3 .aucm__fill{background:#1a7f37;} .aucm.s3 .aucm__v{color:#1a7f37;}
+.aucm.s2 .aucm__fill{background:var(--blue-vivid);}
+.aucm.s1 .aucm__fill{background:#b8860b;}
+.aucm.s0 .aucm__fill{background:#c0392b;} .aucm.s0 .aucm__v{color:#c0392b;}
+.sep-head{font-size:13.5px;color:var(--ink);background:var(--blue-light);border-radius:10px;padding:10px 12px;}
+.ctx-insight{font-size:13px;color:var(--ink-2);margin:12px 2px 8px;line-height:1.5;}
 .ctx-analog{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;cursor:pointer;}
 .ctx-analog:hover{border-color:var(--blue);background:#f6faff;}
 .ctx-analog .dt{font-weight:800;color:var(--navy);font-size:13px;}
@@ -508,8 +523,8 @@ tr.clickable:hover td{background:#eef3f8;}
 
   <!-- ============ CONDITIONS IN CONTEXT (state-first, multi-hazard) ============ -->
   <section class="view" id="view-context">
-    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>Information, not a forecast.</b> Every bar is a plain <b>declared ÷ comparable episodes</b> frequency from a regenerated panel of <span id="ctxPanelN">—</span> Region&nbsp;5 state-storm episodes &mdash; declared <i>and</i> non-declared. For <b>wind &amp; tornado</b>, rates are over episodes with recorded damage (Storm Events logs those losses well); <b>flood, hail &amp; winter</b> use all episodes, because Storm Events under-records flood loss and a declared flood often logs $0. <b>Darker</b> = triggered a declaration <i>for that hazard</i> (it was a tagged cause — a tornado riding a flood declaration doesn't count as a flood trigger); <b>lighter</b> = did not. <b>Tap any bar</b> to see the actual disasters in it, or open &ldquo;How these percentages are prepared.&rdquo; Dollars are real OpenFEMA figures (PA <b>obligated</b> &middot; IHP <b>approved</b>).</span></div>
-    <div class="card"><div class="card__hd"><h2>Pick a state</h2><span class="sub">which hazards actually drive declarations here</span></div>
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>Information, not a forecast.</b> The one question here: <b>what empirically separates a state-storm episode that got a federal declaration from one that didn't?</b> Across <span id="ctxPanelN">—</span> Region&nbsp;5 episodes (declared <i>and</i> not), every metric is ranked by <b>separation power (AUC)</b> — 0.5 is a coin-flip, 1.0 is perfect. The headline: <b>extent separates, peak intensity barely does</b>. <b>Darker</b> = went on to a federal declaration; <b>lighter</b> = did not. <b>Tap any bar</b> to see the actual disasters in it. Dollars are real OpenFEMA figures (PA <b>obligated</b> &middot; IHP <b>approved</b>).</span></div>
+    <div class="card"><div class="card__hd"><h2>Scope</h2><span class="sub">all of Region 5, or a single state</span></div>
       <div class="card__bd"><div class="ctx-states" id="ctxStates"></div></div></div>
     <div id="ctxBody"><div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading context&hellip;</div></div>
     <div class="note" style="margin-top:18px"><span class="i">!</span><span>Not endorsed by FEMA, NOAA, NWS or USGS &mdash; built on their public open data. Declarations are partly discretionary and <b>damage/exposure-mediated</b>: intensity alone does not determine them, which is why the footprint panels matter. <b>Deferred to a follow-up data pass (first cut):</b> winter snowfall &amp; snowpack, rainfall Atlas-14 rarity, and river-stage layers.</span></div>
@@ -1254,14 +1269,13 @@ async function resolveBuild(){
    frequency from the regenerated state-episode panel (declared + non-declared);
    dollars are real OpenFEMA PA-obligated / IHP-approved.
    ============================================================================ */
-let CTX=null, NEXUS=null, ctxState="MN";
-const HAZ_EMOJI={flood:"🌊",tornado:"🌪️",wind:"💨",hail:"🧊",winter:"❄️"};
+let CTX=null, NEXUS=null, ctxState="ALL";
 function ctxRenderStates(){
   if(!CTX)return;
-  el("ctxStates").innerHTML=Object.keys(CTX.states).map(s=>{
-    const st=CTX.states[s], top=st.hazardProfile[0];
-    return `<button class="ctx-statebtn ${s===ctxState?"active":""}" data-ctxstate="${s}"><span class="nm">${st.name}</span><span class="br">${st.nDisasters} disasters${top?" · "+top.label+" "+Math.round(top.declaredRate*100)+"%":""}</span></button>`;
-  }).join("");
+  const mk=(code,nm,sep)=>`<button class="ctx-statebtn ${code===ctxState?"active":""}" data-ctxstate="${code}"><span class="nm">${nm}</span><span class="br">${sep.nDeclared}/${fmtNum(sep.nEpisodes)} declared${sep.combinedAUC?" · AUC "+sep.combinedAUC.toFixed(2):""}</span></button>`;
+  let h=mk("ALL","All Region 5",CTX.region);
+  h+=Object.keys(CTX.states).map(s=>mk(s,CTX.states[s].name,CTX.states[s].separation)).join("");
+  el("ctxStates").innerHTML=h;
 }
 function binDrill(b){
   const dns=b.dns||[];
@@ -1271,57 +1285,72 @@ function binDrill(b){
   return `<b>${b.declared}</b> declared episode${b.declared===1?"":"s"}${dlab}${chips?": "+chips:""} &middot; <b>${non}</b> not declared <span style="color:var(--ink-3)">(of ${b.n} episodes)</span>`;
 }
 function dbar(b,uid){
-  if(!b.n)return "";   // skip empty bins (e.g. the $0 band under the damage>0 denominator)
+  if(!b.n)return "";
   const dec=b.declared, pctv=Math.round(dec/b.n*100), dw=dec/b.n*100;
   return `<div class="dbin" data-binkey="${uid}" title="tap to see which disasters"><span class="bl">${b.lab}</span><span class="bt"><span class="dec" style="width:${dw}%"></span><span class="non" style="width:${100-dw}%"></span></span><span class="bv">${dec}/${b.n} · ${pctv}%</span></div>
    <div class="bindrill" id="bd-${uid}" style="display:none">${binDrill(b)}</div>`;
 }
-function driverBlock(d,pfx){
-  return `<div class="ctx-driver"><div class="dl">${d.label}</div><div class="db">${d.basis||""}</div>${d.bins.map((b,i)=>dbar(b,pfx+"_"+i)).join("")}</div>`;
+function aucMeter(a){
+  const w=Math.max(0,Math.min(100,(a-0.5)/0.5*100));
+  const word=a>=0.64?"strong":a>=0.58?"moderate":a>=0.54?"weak":"≈ none";
+  const cls=a>=0.64?"s3":a>=0.58?"s2":a>=0.54?"s1":"s0";
+  return `<span class="aucm ${cls}" title="AUC ${a.toFixed(3)} — ${word} separation"><span class="aucm__bar"><span class="aucm__fill" style="width:${w}%"></span></span><span class="aucm__v">AUC ${a.toFixed(2)}</span></span>`;
 }
-function ctxHazCard(h,prof,dist){
-  const drivers=(dist&&dist.drivers)?Object.entries(dist.drivers):[];
-  const dhtml=drivers.map(([k,d])=>driverBlock(d,`${ctxState}_${h}_${k}`)).join("");
-  const gate=(dist&&dist.gate)||prof.gate;
-  const gtxt=gate==="damage>0"?"counted over episodes with recorded damage":"counted over all episodes (Storm Events under-records this hazard's $ loss)";
-  const hl=(prof.label||"").toLowerCase();
-  return `<div class="ctx-haz"><div class="ctx-haz__hd"><h3>${HAZ_EMOJI[h]||""} ${prof.label}</h3><span class="ctx-haz__rate">${prof.nDeclared}/${prof.nEpisodes} triggered a ${hl} declaration · ${Math.round(prof.declaredRate*100)}%</span></div>
-    <div class="db" style="margin-bottom:2px">denominator: <b>${gate}</b> — ${gtxt} · declared = ${hl} was a tagged cause</div>
-    ${dist?`<div class="ctx-haz__caveat">${dist.caveat}</div>`:""}
-    ${dhtml||'<p class="thr-sub">Driver distribution for this hazard is deferred to the follow-up data pass.</p>'}</div>`;
+function sepVal(s,v){
+  if(s.unit==="$") return fmtMoney(v);
+  if(s.key==="sumPopExposed") return fmtNum(v);
+  const u=(s.unit&&s.unit!=="$")?(" "+s.unit):"";
+  return (Math.round(v*100)/100)+u;
 }
-function ctxMethod(st){
-  const pv=CTX.provenance||{}, dn=st.denominator||{}, pl=CTX.panel||{};
-  return `<details class="disc"><summary>How these percentages are prepared — what goes into them</summary><div class="inner">
-    <p>Each bar is a plain frequency: <b>declared ÷ comparable episodes</b>, computed from a regenerated panel — no model, no weighting. <b>Tap any bar</b> to see the actual disasters in it.</p>
-    <ul>
-      <li><b>Unit:</b> ${pv.unit||""}.</li>
-      <li><b>Counts toward a hazard when:</b> ${pv.hazardMembership||""}.</li>
-      <li><b>Declared means:</b> ${pv.declaredRule||""}.</li>
-      <li><b>Denominator (hazard-specific):</b> ${pv.denominator||""}. ${dn.note||""}</li>
-      <li><b>Each value is:</b> ${pv.metric||""}.</li>
-      <li><b>Caveat:</b> ${dn.floodCaveat||pv.caveat||""}</li>
-      <li><b>Source:</b> ${pv.source||""}; whole-panel base rate ${pl.notableEpisodes?Math.round(pl.notableBaseRate*100):0}% over ${fmtNum(pl.notableEpisodes||0)} notable episodes.</li>
-    </ul></div></details>`;
+function sepCard(s,pfx){
+  return `<div class="sep">
+    <div class="sep__hd"><div class="sep__lab">${s.label} ${aucMeter(s.auc)}</div>
+      <div class="sep__cmp">not declared <b>${sepVal(s,s.medN)}</b> &rarr; declared <b>${sepVal(s,s.medD)}</b> <span style="color:var(--ink-3)">(median)</span></div></div>
+    <div class="db">${s.basis||""}</div>
+    ${s.bins.map((b,i)=>dbar(b,pfx+"_"+i)).join("")}
+  </div>`;
 }
+function sepMethod(){
+  const pv=CTX.provenance||{};
+  return `<details class="disc"><summary>How this is measured — AUC, what counts as “declared”, sources</summary><div class="inner"><ul>
+    <li><b>Unit:</b> ${pv.unit||""}.</li>
+    <li><b>Declared:</b> ${pv.declaredRule||""}.</li>
+    <li><b>AUC / combined:</b> ${pv.metric||""}.</li>
+    <li><b>Each metric:</b> ${pv.envelope||""}.</li>
+    <li><b>Caveat:</b> ${pv.caveat||""}.</li>
+    <li><b>Source:</b> ${pv.source||""}.</li>
+  </ul></div></details>`;
+}
+function ctxScope(){ return ctxState==="ALL"?CTX.region:(CTX.states[ctxState]||{}).separation; }
 function ctxRender(){
   if(!CTX){el("ctxBody").innerHTML='<div class="skeleton"><span class="spin"></span> Loading…</div>';return;}
   if(el("ctxPanelN"))el("ctxPanelN").textContent=fmtNum(CTX.panel.episodes);
-  const st=CTX.states[ctxState]; if(!st){el("ctxBody").innerHTML="";return;}
-  const hazHtml=st.hazardProfile.map(p=>ctxHazCard(p.hazard,p,st.distributions[p.hazard])).join("");
-  const fp=st.footprint||{};
-  const fpHtml=Object.keys(fp).map(k=>driverBlock(fp[k],`${ctxState}_fp_${k}`)).join("");
-  const cs=st.costSummary;
-  const costHtml=`<div class="ctx-cost">
-    <div class="c"><div class="lab">PA obligated · median</div><div class="big">${fmtMoney(cs.paMedian)}</div><div class="thr-sub">P90 ${fmtMoney(cs.paP90)} · max ${fmtMoney(cs.paMax)}</div></div>
-    <div class="c"><div class="lab">IHP approved · median</div><div class="big">${fmtMoney(cs.ihpMedian)}</div><div class="thr-sub">P90 ${fmtMoney(cs.ihpP90)} · max ${fmtMoney(cs.ihpMax)}</div></div>
-    <div class="c"><div class="lab">Declared state-episodes</div><div class="big">${cs.n}</div><div class="thr-sub">${st.nDisasters} disasters on record</div></div></div>`;
-  const an=st.analogs.slice(0,10).map(a=>`<div class="ctx-analog" data-dn="${a.dn}"><div><div class="dt">DR-${a.dn} · ${fmtDate(a.date)}</div><div class="ip">${a.it}${(a.tags&&a.tags.length)?" · "+a.tags.join(", "):""}</div></div><div class="mny">${fmtMoney(a.pa+a.ihp)}<div class="ip" style="font-weight:600">PA ${fmtMoney(a.pa)} · IHP ${fmtMoney(a.ihp)}</div></div></div>`).join("");
-  el("ctxBody").innerHTML=`
-    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>${st.name}: what drives a declaration</h2><span class="sub">declared vs. not · notable episodes (damage&gt;0) · tap a bar</span></div><div class="card__bd">${ctxMethod(st)}${hazHtml}</div></div>
-    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>Footprint &amp; exposure</h2><span class="sub">the real separators — extent over intensity</span></div><div class="card__bd">${fpHtml||'<p class="thr-sub">—</p>'}</div></div>
-    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>What declarations have cost</h2><span class="sub">${cs.source}</span></div><div class="card__bd">${costHtml}</div></div>
+  const sep=ctxScope(); if(!sep){el("ctxBody").innerHTML="";return;}
+  const pfx=ctxState;
+  const weights=(sep.weights||[]).slice(0,4).map(([k,w])=>{
+    const nm=k.replace(/^(sum|max|n)(?=[A-Z])/,"").replace(/([A-Z])/g," $1").trim().toLowerCase();
+    return `${nm} <b>${w>0?"+":""}${w}</b>`; }).join(" &middot; ");
+  const sepHtml=sep.separators.map((s,i)=>sepCard(s,`${pfx}_${i}`)).join("");
+  let extra="";
+  if(ctxState!=="ALL"){
+    const st=CTX.states[ctxState], cs=st.costSummary;
+    const costHtml=`<div class="ctx-cost">
+      <div class="c"><div class="lab">PA obligated · median</div><div class="big">${fmtMoney(cs.paMedian)}</div><div class="thr-sub">P90 ${fmtMoney(cs.paP90)} · max ${fmtMoney(cs.paMax)}</div></div>
+      <div class="c"><div class="lab">IHP approved · median</div><div class="big">${fmtMoney(cs.ihpMedian)}</div><div class="thr-sub">P90 ${fmtMoney(cs.ihpP90)} · max ${fmtMoney(cs.ihpMax)}</div></div>
+      <div class="c"><div class="lab">Declared state-episodes</div><div class="big">${cs.n}</div><div class="thr-sub">${st.nDisasters} disasters on record</div></div></div>`;
+    const an=st.analogs.slice(0,10).map(a=>`<div class="ctx-analog" data-dn="${a.dn}"><div><div class="dt">DR-${a.dn} · ${fmtDate(a.date)}</div><div class="ip">${a.it}${(a.tags&&a.tags.length)?" · "+a.tags.join(", "):""}</div></div><div class="mny">${fmtMoney(a.pa+a.ihp)}<div class="ip" style="font-weight:600">PA ${fmtMoney(a.pa)} · IHP ${fmtMoney(a.ihp)}</div></div></div>`).join("");
+    extra=`<div class="card" style="margin-top:18px"><div class="card__hd"><h2>What declarations have cost</h2><span class="sub">${cs.source}</span></div><div class="card__bd">${costHtml}</div></div>
     <div class="card" style="margin-top:18px"><div class="card__hd"><h2>${st.name} disasters on record</h2><span class="sub">real OpenFEMA · tap to verify</span></div><div class="card__bd">${an||'<p class="thr-sub">—</p>'}</div></div>`;
+  }
+  el("ctxBody").innerHTML=`
+    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>${sep.name}: what separates declared from not</h2><span class="sub">${sep.nDeclared}/${fmtNum(sep.nEpisodes)} episodes declared · ${(sep.baseRate*100).toFixed(1)}% base rate</span></div>
+      <div class="card__bd">
+        <div class="sep-head">All metrics together separate declared from non-declared at <b>AUC ${sep.combinedAUC||"—"}</b> <span style="color:var(--ink-3)">(0.5 = coin-flip, 1.0 = perfect)</span>. Strongest pulls: ${weights||"—"}.</div>
+        <p class="ctx-insight">${CTX.insight||""}</p>
+        ${sepMethod()}
+      </div></div>
+    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>Every metric, ranked by separation power</h2><span class="sub">AUC · not-declared &rarr; declared median · tap a bar for the disasters</span></div><div class="card__bd">${sepHtml}</div></div>
+    ${extra}`;
 }
 function ctxSetState(s){ctxState=s;ctxRenderStates();ctxRender();}
 
