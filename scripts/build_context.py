@@ -80,7 +80,7 @@ HAZARD_CAVEAT={
  "tornado":"Tornado COUNT and EF barely separate declared from non-declared episodes — footprint and property damage are the real separators (see the footprint panels).",
  "wind":"Peak gust is recorded well, but declarations track damage/extent more than the gust value.",
  "hail":"Max hail size is recorded well, but declarations track damage/extent more than the stone size.",
- "winter":"Thin sample (few winter-only declarations); snowfall is real, snowpack water (SWE) is an estimate from observed depth.",
+ "winter":"In Region 5 a snow/ice storm rarely triggers a federal declaration on its own — the consequent spring SNOWMELT FLOODING usually does (see the Flooding chart). Snowfall/snowpack severity is deferred to the follow-up data pass, so winter shows little here by design.",
 }
 HAZARD_LABEL={"flood":"Flooding","tornado":"Tornado","wind":"Wind","hail":"Hail","winter":"Winter storm"}
 
@@ -92,28 +92,32 @@ def pct(vals,p):
 
 def load(name): return json.load(open(os.path.join(DATA,name)))
 
-def distribution(rows, key, bins):
-    """bins with explicit total (n) and declared counts — the declared-vs-non denominator."""
+def distribution(rows, key, bins, decl_fn):
+    """bins with explicit total (n), declared count, and the declared disasters' DR
+    numbers (dns) for drill-down. decl_fn(r) decides what counts as a declaration in
+    THIS context — for a hazard's chart it's 'declared AND that hazard was a tagged
+    cause', so e.g. a tornado riding a flood declaration doesn't inflate the flood rate."""
     out=[]; any_data=False
     for lab,lo,hi in bins:
         sub=[r for r in rows if (r.get(key) is not None) and r[key]>=lo and (hi is None or r[key]<hi)]
-        d=sum(r["declared"] for r in sub)
+        decl=[r for r in sub if decl_fn(r)]
+        dns=sorted({r["dn"] for r in decl if r.get("dn")})
         if sub: any_data=True
-        out.append({"lab":lab,"lo":lo,"hi":hi,"n":len(sub),"declared":d})
+        out.append({"lab":lab,"lo":lo,"hi":hi,"n":len(sub),"declared":len(decl),"dns":dns})
     return out if any_data else None
 
-def at_least(rows, key, value):
+def at_least(rows, key, value, decl_fn):
     """events with driver >= value: total + declared (the 'compare to past events/non-events' line)."""
     sub=[r for r in rows if (r.get(key) is not None) and r[key]>=value]
-    d=sum(r["declared"] for r in sub)
+    d=sum(1 for r in sub if decl_fn(r))
     return {"n":len(sub),"declared":d}
 
-def hazard_profile(srows):
+def hazard_profile(srows_all, decl_for):
     prof=[]
-    for h,member in HAZARD_MEMBER.items():
-        mem=[r for r in srows if member(r)]; d=sum(r["declared"] for r in mem)
+    for h in HAZARD_MEMBER:
+        mem=gated_members(h,srows_all); df=decl_for(h); d=sum(1 for r in mem if df(r))
         if mem: prof.append({"hazard":h,"label":HAZARD_LABEL[h],"nEpisodes":len(mem),
-                             "nDeclared":d,"declaredRate":round(d/len(mem),3)})
+                             "nDeclared":d,"declaredRate":round(d/len(mem),3),"gate":hazard_gate(h)})
     return sorted(prof,key=lambda p:-p["declaredRate"])
 
 def county_flood_reference(state,gages,county_rows):
@@ -137,33 +141,76 @@ def analog(d):
             "it":d.get("incidentType"),"title":d.get("title"),"tags":d.get("tags",[]),
             "pa":(d.get("costs") or {}).get("paTotal",0),"ihp":(d.get("costs") or {}).get("ihpTotal",0)}
 
+def is_notable(r):
+    """NOTABLE = NOAA Storm Events property damage > 0."""
+    return (r.get("sumDamageProxy") or 0)>0
+
+# The damage>0 gate strips trivial $0 NWS reports that flatten the curve — but Storm Events
+# RECORDS wind/tornado damage well and UNDER-records riverine/agricultural FLOOD loss (a
+# declared flood often logs $0; the real loss is FEMA PA on public infrastructure). So we
+# apply the gate ONLY to wind & tornado; flood, hail and winter use every member episode.
+NOTABLE_HAZARDS={"wind","tornado"}
+def hazard_gate(h):
+    return "damage>0" if h in NOTABLE_HAZARDS else "all episodes"
+def gated_members(h, srows_all):
+    mem=[r for r in srows_all if HAZARD_MEMBER[h](r)]
+    if h in NOTABLE_HAZARDS: mem=[r for r in mem if is_notable(r)]
+    return mem
+
+# ATTRIBUTION: a hazard's declared rate counts a declaration only when that hazard was a
+# tagged CAUSE of the disaster (the thing that "pushed it over", or one of them) — not just
+# any declaration the episode happened to fall inside. Disaster tags come from disasters.json.
+HAZARD_TAGS={"flood":{"Flooding","Dam-Levee"},"tornado":{"Tornado"},
+ "wind":{"Wind"},"hail":{"Hail"},"winter":{"Snow-Ice"}}
+def make_decl_for(dn2tags):
+    def decl_for(h):
+        tags=HAZARD_TAGS.get(h,set())
+        return lambda r: bool(r.get("declared")) and bool(dn2tags.get(r.get("dn"),set()) & tags)
+    return decl_for
+def decl_any(r):       # for cross-hazard panels (footprint): any declaration counts
+    return bool(r.get("declared"))
+
 def build_context(state_panel,county_panel,disasters,gages):
+    dn2tags={d["disasterNumber"]:set(d.get("tags") or []) for d in disasters}
+    decl_for=make_decl_for(dn2tags)
     states={}
     for s in STATE_NAME:
-        srows=[r for r in state_panel if r["state"]==s]
-        prof=hazard_profile(srows)
-        # per hazard, per driver: distribution over the hazard's member episodes
+        srows_all=[r for r in state_panel if r["state"]==s]
+        prof=hazard_profile(srows_all, decl_for)
+        # per hazard, per driver: distribution over the hazard's gated member episodes
+        # (wind/tornado gated to damage>0; flood/hail/winter use all member episodes).
+        # Declared = this hazard was a TAGGED CAUSE of the disaster (attribution).
         dist={}
-        for h,member in HAZARD_MEMBER.items():
-            mem=[r for r in srows if member(r)]
+        for h in HAZARD_MEMBER:
+            mem=gated_members(h,srows_all); df=decl_for(h)
             if len(mem)<10: continue
             hd={}
             for key,label,unit,bins in DRIVERS[h]:
-                b=distribution(mem,key,bins)
+                b=distribution(mem,key,bins,df)
                 if b: hd[key]={"label":label,"unit":unit,"basis":DRIVER_BASIS.get(key,"regenerated state-episode panel"),"bins":b}
-            if hd: dist[h]={"label":HAZARD_LABEL[h],"caveat":HAZARD_CAVEAT[h],"nEpisodes":len(mem),
-                            "nDeclared":sum(r["declared"] for r in mem),"drivers":hd}
-        # footprint/exposure distributions over all state-episodes that cleared any bar
+            if hd: dist[h]={"label":HAZARD_LABEL[h],"caveat":HAZARD_CAVEAT[h],"gate":hazard_gate(h),
+                            "nEpisodes":len(mem),"nDeclared":sum(1 for r in mem if df(r)),"drivers":hd}
+        # footprint/exposure: over ALL episodes that cleared any bar (no damage gate — it
+        # spans floods, where damage>0 would undercount); any declaration counts here
         fp={}
-        active=[r for r in srows if (r.get("nCountiesOverThreshold") or 0)>=1 or (r.get("nCountiesOverFlood") or 0)>=1]
+        active=[r for r in srows_all if (r.get("nCountiesOverThreshold") or 0)>=1 or (r.get("nCountiesOverFlood") or 0)>=1]
         for key,label,unit,bins in FOOTPRINT:
-            b=distribution(active,key,bins)
+            b=distribution(active,key,bins,decl_any)
             if b: fp[key]={"label":label,"unit":unit,"bins":b}
-        decl=[r for r in srows if r["declared"] and r["paTotal"]>0]
+        decl=[r for r in srows_all if r["declared"] and r["paTotal"]>0]
         pa=[r["paTotal"] for r in decl]; ih=[r["ihpTotal"] for r in decl if r["ihpTotal"]>0]
         rr=lambda v: round(v) if v is not None else None
         dis_s=[d for d in disasters if d["state"]==s]
+        notable=[r for r in srows_all if is_notable(r)]
         states[s]={"name":STATE_NAME[s],"pop":STATE_POP[s],
+            "denominator":{"basis":"damage>0 for wind & tornado; all episodes for flood, hail & winter",
+                "nAll":len(srows_all),"nNotable":len(notable),
+                "declaredAll":sum(r["declared"] for r in srows_all),
+                "declaredNotable":sum(r["declared"] for r in notable),
+                "note":("Storm Events records wind/tornado damage well, so those rates use notable "
+                    "episodes (damage>0). It under-records flood loss (a declared flood often logs $0 "
+                    "— the real loss is FEMA PA on public infrastructure), so flood/hail/winter rates "
+                    "use every member episode rather than dropping the $0-damage ones.")},
             "hazardProfile":prof,"distributions":dist,"footprint":fp,
             "costSummary":{"n":len(decl),"paMedian":rr(pct(pa,50)),"paP90":rr(pct(pa,90)),"paMax":rr(max(pa)) if pa else None,
                 "ihpMedian":rr(pct(ih,50)),"ihpP90":rr(pct(ih,90)),"ihpMax":rr(max(ih)) if ih else None,
@@ -172,11 +219,33 @@ def build_context(state_panel,county_panel,disasters,gages):
             "analogs":sorted([analog(d) for d in dis_s],key=lambda a:a["date"],reverse=True),
             "counties":county_flood_reference(s,gages,county_panel)}
     nd=sum(r["declared"] for r in state_panel)
+    notable=[r for r in state_panel if is_notable(r)]; ndn=sum(r["declared"] for r in notable)
     return {"generated":dt.date.today().isoformat()[:7],"build":"panel",
-        "kind":"information","note":"Empirical frequencies from the regenerated state-episode panel "
-            "(declared + non-declared). No probabilities, no fitted model. PA is obligated, IHP approved.",
+        "kind":"information","note":"Empirical frequencies from the regenerated state-episode panel. "
+            "Rates are computed over NOTABLE episodes (Storm Events property damage > 0). "
+            "No probabilities, no fitted model. PA is obligated, IHP approved.",
+        "provenance":{
+            "unit":"state-storm episode — each NOAA Storm Events episode's counties aggregated to the state level",
+            "hazardMembership":"an episode counts toward a hazard if it carried that hazard's signal "
+                "(flood: a county over flood stage or a Flood/Winter incident; tornado: ≥1 tornado; "
+                "wind: gust ≥50 mph; hail: ≥0.75 in; winter: snowfall present)",
+            "declaredRule":"declared, for a hazard's chart, = the episode fell inside a FEMA disaster "
+                "(OpenFEMA, state level) AND that hazard was a TAGGED CAUSE of it — so a tornado that "
+                "merely rode a flood declaration is NOT counted in the flood rate. Usually one hazard is "
+                "the trigger; compound disasters count toward each of their tagged hazards",
+            "denominator":"hazard-specific: WIND & TORNADO rates use notable episodes (Storm Events "
+                "property damage > 0, which strips trivial $0 NWS reports); FLOOD, HAIL & WINTER use "
+                "every member episode",
+            "metric":"each driver value is the PEAK across the episode's counties (peak envelope)",
+            "caveat":"the damage>0 gate is applied to wind & tornado only — Storm Events under-records "
+                "riverine/agricultural flood loss (declared floods often log $0; the real loss is FEMA PA "
+                "on public infrastructure), so gating flood on damage would drop real declarations",
+            "source":"scripts/build_context.py over data/state_panel.json (NOAA Storm Events + OpenFEMA)"},
         "panel":{"episodes":len(state_panel),"declared":nd,
-                 "baseRate":round(nd/max(1,len(state_panel)),3),"source":"scripts/build_state_panel.py"},
+                 "baseRate":round(nd/max(1,len(state_panel)),3),
+                 "notableEpisodes":len(notable),"notableDeclared":ndn,
+                 "notableBaseRate":round(ndn/max(1,len(notable)),3),
+                 "source":"scripts/build_state_panel.py"},
         "states":states}
 
 # ---- event_nexus.json : per-disaster driver values placed in history ----
@@ -201,6 +270,8 @@ def primary_hazard(d):
     return "wind"
 
 def build_event_nexus(state_panel,disasters):
+    dn2tags={d["disasterNumber"]:set(d.get("tags") or []) for d in disasters}
+    decl_for=make_decl_for(dn2tags)
     by_dn=collections.defaultdict(list)
     for r in state_panel:
         if r.get("dn"): by_dn[r["dn"]].append(r)
@@ -226,8 +297,7 @@ def build_event_nexus(state_panel,disasters):
                     "maxSnowfallEventIn":hz.get("snowfallIn"),"maxSweAntecedentIn":hz.get("sweIn")}.get(key)
                 if fb in (None,0): continue
                 v=fb
-            member=HAZARD_MEMBER[hz_fam]
-            ctx=at_least([r for r in srows if member(r)], key, v)
+            ctx=at_least(gated_members(hz_fam, srows), key, v, decl_for(hz_fam))
             drivers.append({"key":key,"label":label,"unit":unit,"hazard":hz_fam,
                 "value":round(v,2),"atLeast":ctx})
         out[str(dn)]={"state":s,"stateName":STATE_NAME.get(s,s),"title":d.get("title"),
