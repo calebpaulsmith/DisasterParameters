@@ -343,6 +343,7 @@ tr.clickable:hover td{background:#eef3f8;}
 #declMap svg .hotc{cursor:pointer;}
 #declMap svg .hotc:hover{stroke:#0d2342;stroke-width:1.1;}
 .declpick .declhd{font-size:13.5px;color:var(--ink);margin-bottom:6px;}
+.declsub{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:10px 0 4px;border-top:1px solid var(--line);padding-top:8px;}
 .declrow{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:5px 8px;border-radius:7px;}
 .declrow:nth-child(even){background:#f4f7fb;}
 .declrow:hover{background:var(--blue-light);}
@@ -1065,15 +1066,19 @@ function renderGeoBoard(){
   }
   box.innerHTML=html||`<p class="thr-sub">—</p>`;
 }
-function countyDetailHTML(o){
+function countyDetailHTML(o,fips){
   const list=o.disasters.map(d=>`<div class="declrow clickable" data-dn="${d.dn}"><span class="dk"><b style="color:var(--navy)">DR-${d.dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">${fmtMoney(d.pa)} PA ↗</span></div>`).join("");
-  return `<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${o.count}</b> disaster${o.count>1?"s":""}<br>PA <b>${fmtMoney(o.paObligated)}</b> · IHP <b>${fmtMoney(o.ihpApproved||0)}</b> · <b>${fmtNum(o.paProjects)}</b> projects${o.nApplicants?` · <b>${fmtNum(o.nApplicants)}</b> applicants`:""}</div>${list}`;
+  const apps=o.applicants||[];
+  const appList=apps.length&&fips?`<div class="declsub">Top PA applicants${o.nApplicants?` · ${fmtNum(o.nApplicants)} total`:""}</div>`
+    +apps.slice(0,8).map((a,i)=>`<div class="declrow clickable" data-gappl="${fips}|${i}"><span class="dk"><b style="color:var(--navy)">${a.name}</b> · ${a.nDisasters} dis</span><span class="dv">${fmtMoney(a.pa)} PA ↗</span></div>`).join("")
+    +(o.nApplicants>apps.slice(0,8).length?`<p class="thr-sub" style="padding:4px 8px">…full list in the “Applicants” board above</p>`:""):"";
+  return `<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${o.count}</b> disaster${o.count>1?"s":""}<br>PA <b>${fmtMoney(o.paObligated)}</b> · IHP <b>${fmtMoney(o.ihpApproved||0)}</b> · <b>${fmtNum(o.paProjects)}</b> projects${o.nApplicants?` · <b>${fmtNum(o.nApplicants)}</b> applicants`:""}</div>${list}${appList}`;
 }
 function showCountyGeo(fips){            // enter county focus: zoom, applicants board, detail
   const o=(DECL.counties||{})[fips];if(!o)return;
   geoCountyFocus=fips; geoStateFilter=o.state;
   renderGeoStates();renderGeoMap();renderGeoBoard();
-  const box=el("geoPick"); if(box)box.innerHTML=countyDetailHTML(o);
+  const box=el("geoPick"); if(box)box.innerHTML=countyDetailHTML(o,fips);
   syncHash();
 }
 function showApplicant(fips,idx){
@@ -1109,7 +1114,7 @@ function geoSelectState(s){
 }
 function setGeoMetric(m){geoMetric=m;document.querySelectorAll("#geoToggle button").forEach(b=>b.classList.toggle("active",b.dataset.geom===m));renderGeoStates();renderGeoMap();renderGeoBoard();}
 function geoRenderAll(){renderGeoStates();renderGeoMap();renderGeoBoard();
-  if(geoCountyFocus){const o=DECL.counties[geoCountyFocus];if(o)el("geoPick").innerHTML=countyDetailHTML(o);}
+  if(geoCountyFocus){const o=DECL.counties[geoCountyFocus];if(o)el("geoPick").innerHTML=countyDetailHTML(o,geoCountyFocus);}
   else if(geoStateFilter)showStateGeo(geoStateFilter);}
 /* ===== COVID-19 view (self-contained) ===== */
 let COVID=null;
