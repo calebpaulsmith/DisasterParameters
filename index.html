@@ -561,7 +561,7 @@ tr.clickable:hover td{background:#eef3f8;}
 
   <!-- ============ GEOGRAPHY (state + county rollup: disasters · dollars · projects) ============ -->
   <section class="view" id="view-geography">
-    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>Where the disasters &mdash; and the dollars &mdash; land.</b> Federal money rolled up by <b>state</b> and by <b>county</b>: how many declared disasters, Public&nbsp;Assistance <b>obligated</b>, and PA <b>project worksheets</b>. State totals match the ledger (OpenFEMA); county figures are summed from per-project <b>federal share obligated</b> (PublicAssistanceFundedProjectsDetails). <b>Tap a county</b> (map or list) for its disasters. PA is <b>obligated</b>; IHP is <b>approved</b>.</span></div>
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>Where the disasters &mdash; and the dollars &mdash; land.</b> Federal money rolled up by <b>state</b> and by <b>county</b>: how many declared disasters, Public&nbsp;Assistance <b>obligated</b>, PA <b>project worksheets</b>, and IHP <b>approved</b> (individual assistance). State totals match the ledger (OpenFEMA); county figures are summed from per-project <b>federal share obligated</b> (PublicAssistanceFundedProjectsDetails). <b>Tap a county</b> (map or list) for its disasters. PA is <b>obligated</b>; IHP is <b>approved</b>.</span></div>
 
     <div class="card"><div class="card__hd"><h2>By state</h2><span class="sub">disasters &middot; PA obligated &middot; projects &middot; IHP approved</span></div>
       <div class="card__bd"><div id="geoStates"><div class="skeleton"><span class="spin"></span> Loading…</div></div></div></div>
@@ -571,7 +571,8 @@ tr.clickable:hover td{background:#eef3f8;}
         <div class="geotoggle" id="geoToggle">
           <button data-geom="count" class="active">Disasters declared</button>
           <button data-geom="paObligated">PA obligated</button>
-          <button data-geom="paProjects">PA projects</button></div>
+          <button data-geom="paProjects">PA projects</button>
+          <button data-geom="ihpApproved">IHP approved</button></div>
         <div id="geoMap"><div class="skeleton"><span class="spin"></span> Loading county map…</div></div>
         <div id="geoPick" class="declpick" style="margin-top:10px;min-height:1.2em"></div>
       </div></div>
@@ -934,16 +935,19 @@ function showCountyDecl(fips){
 let geoMetric="count", geoStateFilter=null;
 const GEO_META={count:{label:"disasters",fmt:v=>String(v)},
   paObligated:{label:"PA obligated",fmt:v=>fmtMoney(v)},
-  paProjects:{label:"projects",fmt:v=>fmtNum(v)}};
+  paProjects:{label:"projects",fmt:v=>fmtNum(v)},
+  ihpApproved:{label:"IHP approved",fmt:v=>fmtMoney(v)}};
 function geoColor(m,v){
   if(!v)return"#eef2f7";
   if(m==="count")return v>=8?"#5a189a":v>=6?"#7b2cbf":v>=4?"#9d4edd":v>=2?"#c77dff":"#e0aaff";
   if(m==="paObligated")return v>=30e6?"#0b6e3b":v>=15e6?"#1a9850":v>=5e6?"#52b788":v>=1e6?"#95d5b2":"#d8f3dc";
+  if(m==="ihpApproved")return v>=1e8?"#7a0b0b":v>=2.5e7?"#b42318":v>=5e6?"#e8590c":v>=5e5?"#fb8c00":"#ffce6b";
   return v>=300?"#08519c":v>=150?"#2171b5":v>=75?"#4292c6":v>=25?"#6baed6":"#c6dbef";
 }
 const GEO_LEGEND={count:[[0,"0"],[1,"1"],[2,"2–3"],[4,"4–5"],[6,"6–7"],[8,"8+"]],
   paObligated:[[0,"$0"],[1,"<$1M"],[1e6,"1–5M"],[5e6,"5–15M"],[15e6,"15–30M"],[30e6,"$30M+"]],
-  paProjects:[[0,"0"],[1,"<25"],[25,"25–74"],[75,"75–149"],[150,"150–299"],[300,"300+"]]};
+  paProjects:[[0,"0"],[1,"<25"],[25,"25–74"],[75,"75–149"],[150,"150–299"],[300,"300+"]],
+  ihpApproved:[[0,"$0"],[1,"<$500k"],[5e5,"0.5–5M"],[5e6,"5–25M"],[2.5e7,"25–100M"],[1e8,"$100M+"]]};
 function renderGeoStates(){
   const box=el("geoStates");if(!box||!DECL)return;
   const sts=Object.entries(DECL.states).sort((a,b)=>b[1].paObligated-a[1].paObligated);
@@ -974,14 +978,14 @@ function renderGeoBoard(){
   if(el("geoBoardSub"))el("geoBoardSub").textContent=`ranked by ${GEO_META[m].label}${geoStateFilter?" · "+geoStateFilter+" only (tap state again to clear)":""}`;
   box.innerHTML=top.map(([f,v],i)=>`<div class="georow clickable" data-gfips="${f}">
     <span class="gr"><span class="grk">${i+1}</span><b>${v.name}</b>, ${v.state}</span>
-    <span class="gv">${GEO_META[m].fmt(v[m])}<span class="thr-sub"> · ${v.count} dis · ${fmtMoney(v.paObligated)} · ${fmtNum(v.paProjects)} proj</span></span></div>`).join("")
+    <span class="gv">${GEO_META[m].fmt(v[m])}<span class="thr-sub"> · ${v.count} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved||0)} IHP · ${fmtNum(v.paProjects)} proj</span></span></div>`).join("")
     ||`<p class="thr-sub">—</p>`;
 }
 function showCountyGeo(fips){
   const o=(DECL.counties||{})[fips],box=el("geoPick");if(!box)return;
   if(!o){box.innerHTML="";return;}
   const list=o.disasters.map(d=>`<div class="declrow clickable" data-dn="${d.dn}"><span class="dk"><b style="color:var(--navy)">DR-${d.dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">${fmtMoney(d.pa)} PA ↗</span></div>`).join("");
-  box.innerHTML=`<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${o.count}</b> disaster${o.count>1?"s":""} · PA obligated <b>${fmtMoney(o.paObligated)}</b> · <b>${fmtNum(o.paProjects)}</b> projects</div>${list}`;
+  box.innerHTML=`<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${o.count}</b> disaster${o.count>1?"s":""} · PA obligated <b>${fmtMoney(o.paObligated)}</b> · <b>${fmtNum(o.paProjects)}</b> projects · IHP approved <b>${fmtMoney(o.ihpApproved||0)}</b></div>${list}`;
 }
 function setGeoMetric(m){geoMetric=m;document.querySelectorAll("#geoToggle button").forEach(b=>b.classList.toggle("active",b.dataset.geom===m));renderGeoMap();renderGeoBoard();}
 function geoRenderAll(){renderGeoStates();renderGeoMap();renderGeoBoard();}
