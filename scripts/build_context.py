@@ -211,7 +211,10 @@ def build_separation(rows,name,pop):
     seps=[]
     for key,label,unit,bins,basis in SEPARATORS:
         vals=[r.get(key) for r in rows if r.get(key) is not None]
-        if not vals or min(vals)==max(vals): continue   # unpopulated / no variation (e.g. sparse stage) → omit, don't imply "no separation"
+        nz=sum(1 for v in vals if v)
+        # omit metrics with no variation OR too little coverage to claim a separation
+        # (e.g. river stage exists for only the few gaged counties → misleading at the panel level)
+        if not vals or min(vals)==max(vals) or nz<max(50,int(0.01*len(rows))): continue
         a=auc(rows,key)
         if a is None: continue
         b=distribution(rows,key,bins,decl_any)

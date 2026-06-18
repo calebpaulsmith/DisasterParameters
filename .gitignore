@@ -15,3 +15,7 @@ data/_atlas14_cache.json
 
 # NWS zone->county crosswalk cache (regenerable; pulled by scripts/build_panel.py)
 data/_zone_county.json
+
+# USGS daily-stage history + IHP registration caches (regenerable; build_county_*/augment_stage)
+data/_stage_cache.json
+data/_ihp_cache.json
