@@ -28,6 +28,8 @@ Three views (in priority order — **facts first**):
 index.html                  # the entire app (HTML+CSS+vanilla JS, no build step)
 data/disasters.json         # 80 Region 5 disasters (FY2007–2026) — the source of truth (committed)
 data/gages.json             # 19 key USGS river gages: AHPS + crest history + declaration ties (committed)
+data/county_declarations.json # per-county declaration count + disaster list (committed; powers the Watch "Declaration history by county" choropleth)
+scripts/build_county_map.py # OFFLINE: builds county_declarations.json from _disasters_raw counties + disasters.json (no network)
 scripts/enrich.py           # OFFLINE: joins NOAA/USGS hazards onto _disasters_raw.json (NO costs)
 scripts/add_history.py      # OFFLINE: pulls older R5 disasters (FEMA costs + hazards) and merges them in
 scripts/build_gages.py      # OFFLINE: builds gages.json + per-disaster gage lists; ties crests↔declarations
