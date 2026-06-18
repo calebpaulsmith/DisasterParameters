@@ -1046,7 +1046,7 @@ function renderGeoMap(){
     const cls=(o&&v?"hotc":"")+(csel?" cselect":"");
     return `<path d="${cpath(c)}" fill="${geoColor(m,v)}" stroke="${sel?'#0d2342':'#fff'}" stroke-width="${sel?0.9:0.4}"${cls.trim()?` class="${cls.trim()}"`:""}${o&&v?` data-gfips="${c.f}"`:""}${dim?' opacity="0.22"':''}><title>${tip.replace(/"/g,"&quot;")}</title></path>`;}).join("");
   box.innerHTML=`<svg viewBox="${vbStr(geoVB)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;background:#f7f9fc;border-radius:8px;cursor:grab;touch-action:none">${paths}</svg>
-    <div class="maphint thr-sub">drag to pan · scroll to zoom</div>
+    <div class="maphint thr-sub">drag to pan · pinch or scroll to zoom</div>
     <div class="maplegend" style="margin-top:6px"><span>${GEO_META[m].label}:</span>${GEO_LEGEND[m].map(p=>`<span><i style="background:${geoColor(m,p[0])}"></i>${p[1]}</span>`).join("")}</div>`;
   geoBindMapControls();
 }
@@ -1078,16 +1078,28 @@ function geoAnimateTo(t,ms){
 function geoFocus(animate){const t=geoTargetVB();if(!t)return;if(animate)geoAnimateTo(t);else{geoVB={...t};geoApplyVB();}}
 function geoBindMapControls(){
   const box=el("geoMap"); if(!box||box._geoBound)return; box._geoBound=true;
-  let drag=null, moved=0;
+  const pts=new Map(); let drag=null, moved=0, pinch=null;   // pts: active pointers → pinch (2-finger) zoom/pan
   const sz=()=>{const s=geoSvg();return s?s.getBoundingClientRect():null;};
+  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y), mid=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
   box.addEventListener("pointerdown",e=>{const s=geoSvg();if(!s||!geoVB)return;
     if(geoAnimRAF){cancelAnimationFrame(geoAnimRAF);geoAnimRAF=null;}
-    drag={x:e.clientX,y:e.clientY}; moved=0; s.style.cursor="grabbing"; try{s.setPointerCapture(e.pointerId);}catch(_){}});
-  box.addEventListener("pointermove",e=>{if(!drag||!geoVB)return; const r=sz();if(!r)return;
-    const dx=e.clientX-drag.x, dy=e.clientY-drag.y; moved+=Math.abs(dx)+Math.abs(dy);
-    geoVB.x-=dx*geoVB.w/r.width; geoVB.y-=dy*geoVB.h/r.height; drag={x:e.clientX,y:e.clientY}; geoApplyVB();});
-  const end=()=>{const s=geoSvg();if(s)s.style.cursor="grab"; if(drag&&moved>6)geoDidPan=true; drag=null;};
-  box.addEventListener("pointerup",end); box.addEventListener("pointercancel",end); box.addEventListener("pointerleave",end);
+    pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); s.style.cursor="grabbing"; try{s.setPointerCapture(e.pointerId);}catch(_){}
+    if(pts.size===2){const[a,b]=[...pts.values()]; const m=mid(a,b); pinch={dist:dist(a,b),x:m.x,y:m.y}; drag=null;}
+    else if(pts.size===1){drag={x:e.clientX,y:e.clientY}; moved=0;}});
+  box.addEventListener("pointermove",e=>{if(!geoVB||!pts.has(e.pointerId))return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    const r=sz();if(!r)return;
+    if(pts.size>=2&&pinch){const[a,b]=[...pts.values()]; const nd=dist(a,b),nm=mid(a,b);
+      const wx=geoVB.x+(pinch.x-r.left)/r.width*geoVB.w, wy=geoVB.y+(pinch.y-r.top)/r.height*geoVB.h;  // world pt under old midpoint
+      let nw=geoVB.w*(pinch.dist/Math.max(1,nd)); nw=Math.max(MAPPROJ.W*0.05,Math.min(MAPPROJ.W*1.35,nw)); const nh=geoVB.h*(nw/geoVB.w);
+      geoVB.x=wx-(nm.x-r.left)/r.width*nw; geoVB.y=wy-(nm.y-r.top)/r.height*nh; geoVB.w=nw; geoVB.h=nh;
+      pinch={dist:nd,x:nm.x,y:nm.y}; moved=999; geoApplyVB(); return;}
+    if(drag){const dx=e.clientX-drag.x, dy=e.clientY-drag.y; moved+=Math.abs(dx)+Math.abs(dy);
+      geoVB.x-=dx*geoVB.w/r.width; geoVB.y-=dy*geoVB.h/r.height; drag={x:e.clientX,y:e.clientY}; geoApplyVB();}});
+  const end=e=>{pts.delete(e.pointerId); const s=geoSvg();
+    if(pts.size<2)pinch=null;
+    if(pts.size===1){const[p]=[...pts.values()]; drag={x:p.x,y:p.y};}
+    else if(pts.size===0){if((drag&&moved>6)||moved===999)geoDidPan=true; drag=null; if(s)s.style.cursor="grab";}};
+  box.addEventListener("pointerup",end); box.addEventListener("pointercancel",end);
   box.addEventListener("click",e=>{if(geoDidPan){geoDidPan=false;e.stopPropagation();e.preventDefault();}},true);
   box.addEventListener("wheel",e=>{if(!geoVB||!MAPPROJ)return; e.preventDefault();
     if(geoAnimRAF){cancelAnimationFrame(geoAnimRAF);geoAnimRAF=null;}
