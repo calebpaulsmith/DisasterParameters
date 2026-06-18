@@ -148,7 +148,7 @@ def label(agg):
         for (b,e,dn,cost) in by_county.get(fips,[]):
             if o["begin"]<=e+dt.timedelta(days=10) and o["end"]>=b-dt.timedelta(days=4):
                 decl=(dn,cost); break
-        rows.append(dict(fips=fips,state=o["state"],name=o["name"],
+        rows.append(dict(fips=fips,state=o["state"],name=o["name"],ep=ep,
             begin=o["begin"].isoformat(),end=o["end"].isoformat(),month=o["begin"].month,
             ets=sorted(o["ets"]),gust=round(o["gust"]),sustained=round(o["sustained"]),
             hail=round(o["hail"],2),tor=o["tor"],ef=o["ef"],flood=o["flood"],
