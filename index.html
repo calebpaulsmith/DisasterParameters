@@ -386,6 +386,17 @@ tr.clickable:hover td{background:#eef3f8;}
 .statecard .sv{font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;margin-top:2px;}
 .statecard .pabar{width:100%;height:6px;margin:4px 0 0;}
 @media(max-width:860px){.geodash{grid-template-columns:1fr;height:auto;}.geocol--right{grid-template-rows:auto auto;}.geoscroll{max-height:280px;}.geomap{min-height:320px;}}
+.covgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.covcard{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:#fff;}
+.covcard .covhd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:15px;color:var(--navy);}
+.covcard .covbig{font-size:25px;font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums;margin:6px 0 2px;line-height:1.1;}
+.covcard .covbig span{display:block;font-size:11px;font-weight:600;color:var(--ink-3);}
+.covcard .covbrk{font-size:10.5px;color:var(--ink-3);border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:6px;}
+.covrow{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-2);padding:2px 0;}
+.covrow.sub{font-size:11px;color:var(--ink-3);}
+.covrow b{color:var(--navy);font-variant-numeric:tabular-nums;}
+.covlinks{display:flex;gap:10px;margin-top:9px;}
+.covlinks a{font-size:11.5px;font-weight:700;color:var(--blue);text-decoration:none;}
 .ctx-analog{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;cursor:pointer;}
 .ctx-analog:hover{border-color:var(--blue);background:#f6faff;}
 .ctx-analog .dt{font-weight:800;color:var(--navy);font-size:13px;}
@@ -443,6 +454,7 @@ tr.clickable:hover td{background:#eef3f8;}
   <div class="nav__inner">
     <button data-view="history" class="active">&#128467;&#65039; Disaster Ledger</button>
     <button data-view="geography">&#128506;&#65039; Geography</button>
+    <button data-view="covid">&#129440; COVID-19</button>
     <button data-view="context">&#128202; Conditions in Context</button>
     <button data-view="watch">&#128680; Disaster Watch</button>
     <button data-view="estimator">&#128202; Estimate (beta)</button>
@@ -596,6 +608,12 @@ tr.clickable:hover td{background:#eef3f8;}
         <div class="geopane geopane--detail"><div class="geoh">Detail</div><div id="geoPick" class="geoscroll declpick"><span class="thr-sub">Tap a county or state for its disasters &amp; dollars.</span></div></div>
       </aside>
     </div>
+  </section>
+
+  <!-- ============ COVID-19 (self-contained; kept out of the weather views) ============ -->
+  <section class="view" id="view-covid">
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>The pandemic, on its own scale.</b> Region&nbsp;5's six <b>COVID-19</b> major disaster declarations (one per state, March&nbsp;2020, <b>statewide</b>). These obligations are roughly <b>7× a state's entire weather PA</b>, so they're shown here separately rather than swamping the ledger, maps, and hazard analyses. PA is <b>obligated</b> (mostly Category B emergency protective measures — testing, PPE, vaccination); IHP is <b>approved</b>. Real OpenFEMA figures &mdash; not endorsed by FEMA.</span></div>
+    <div id="covidBody"><div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading COVID-19 figures…</div></div>
   </section>
 
   <!-- ============ CONDITIONS IN CONTEXT (state-first, multi-hazard) ============ -->
@@ -1093,6 +1111,29 @@ function setGeoMetric(m){geoMetric=m;document.querySelectorAll("#geoToggle butto
 function geoRenderAll(){renderGeoStates();renderGeoMap();renderGeoBoard();
   if(geoCountyFocus){const o=DECL.counties[geoCountyFocus];if(o)el("geoPick").innerHTML=countyDetailHTML(o);}
   else if(geoStateFilter)showStateGeo(geoStateFilter);}
+/* ===== COVID-19 view (self-contained) ===== */
+let COVID=null;
+function renderCovid(){
+  const box=el("covidBody"); if(!box)return;
+  if(!COVID){box.innerHTML=`<div class="skeleton"><span class="spin"></span> Loading…</div>`;return;}
+  const r=COVID.region, fz=n=>encodeURIComponent(`disasterNumber eq ${n}`);
+  const summary=`<div class="ctx-cost" style="margin-top:18px">
+    <div class="c"><div class="lab">PA obligated · Region 5</div><div class="big">${fmtMoney(r.paTotal)}</div><div class="thr-sub">6 statewide declarations</div></div>
+    <div class="c"><div class="lab">IHP approved · Region 5</div><div class="big">${fmtMoney(r.ihpTotal)}</div><div class="thr-sub">individual assistance</div></div>
+    <div class="c"><div class="lab">PA project worksheets</div><div class="big">${fmtNum(r.paProjects)}</div><div class="thr-sub">${fmtNum(r.iaRegistrations)} IA registrations</div></div></div>`;
+  const sts=Object.entries(COVID.states).sort((a,b)=>b[1].paTotal-a[1].paTotal);
+  const cards=sts.map(([s,v])=>`<div class="covcard">
+    <div class="covhd"><b>${v.name}</b><span class="thr-sub">DR-${v.dn} · ${v.begin?fmtDate(v.begin):"Mar 2020"}</span></div>
+    <div class="covbig">${fmtMoney(v.paTotal)}<span>PA obligated · $${v.paPerCapita}/capita</span></div>
+    <div class="covbrk">Emergency&nbsp;A–B ${fmtMoney(v.paEmergencyAB)} · Permanent&nbsp;C–G ${fmtMoney(v.paPermanentCG)} · Mgmt&nbsp;Z ${fmtMoney(v.catZ)}</div>
+    <div class="covrow"><span>IHP approved</span><b>${fmtMoney(v.ihpTotal)}</b></div>
+    <div class="covrow sub"><span>· Housing / ONA</span><span>${fmtMoney(v.ihpHousing)} / ${fmtMoney(v.ihpOna)}</span></div>
+    <div class="covrow"><span>PA projects</span><b>${fmtNum(v.paProjects)}</b></div>
+    <div class="covlinks"><a href="https://www.fema.gov/disaster/${v.dn}" target="_blank" rel="noopener">🏛️ FEMA page ↗</a><a href="https://www.fema.gov/api/open/v1/FemaWebDisasterSummaries?$filter=${fz(v.dn)}&$format=jsona" target="_blank" rel="noopener">📊 OpenFEMA ↗</a></div></div>`).join("");
+  box.innerHTML=`<div class="card"><div class="card__hd"><h2>COVID-19 across Region 5</h2><span class="sub">${COVID.source.split(" (")[0]}</span></div>
+      <div class="card__bd">${summary}<div class="covgrid" style="margin-top:16px">${cards}</div>
+      <p class="thr-sub" style="margin-top:12px">PA breakdown reconciles: Emergency (A–B) + Permanent (C–G) + Management (Z) = PA obligated. Figures are provisional and reconcile over the life of each project — verify on the FEMA disaster page.</p></div></div>`;
+}
 /* ===== one hazard timeline overlaid with declarations (ledger view) ===== */
 let TML=null;
 const TML_SERIES=[{k:"rain",c:"#2171b5",lab:"peak 1-day rain",u:"in"},
@@ -1506,7 +1547,7 @@ function buildTimeline(g,peaks,record,live,declSet){
 }
 
 /* ===== nav + shareable hash routing (#view, #geography/MN) ===== */
-const VALID_VIEWS=["history","geography","context","watch","estimator"];
+const VALID_VIEWS=["history","geography","covid","context","watch","estimator"];
 function curView(){const b=document.querySelector(".nav button.active");return b?b.dataset.view:"history";}
 function syncHash(){let h=curView();
   if(h==="geography"){ if(geoCountyFocus)h+="/"+geoStateFilter+"/"+geoCountyFocus; else if(geoStateFilter)h+="/"+geoStateFilter; }
@@ -1517,6 +1558,7 @@ function showView(v,noScroll){
   if(v==="watch"&&!watchState.ready)loadWatch();
   if(v==="watch")renderDeclMap();
   if(v==="geography")geoRenderAll();
+  if(v==="covid")renderCovid();
   if(v==="history")renderHazTimeline();
   if(v==="context"){ ctxRenderStates(); ctxRender(); }
   syncHash();
@@ -1687,6 +1729,7 @@ async function loadData(){
     DISASTERS=dj;GAGES=gj;DATA=DISASTERS.slice();
     fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();renderDeclMap();}).catch(()=>{});
     fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
+    fetch("data/covid.json").then(r=>r.ok?r.json():null).then(c=>{COVID=c;if(document.getElementById("view-covid").classList.contains("active"))renderCovid();}).catch(()=>{});
     fetch("data/timeline.json").then(r=>r.ok?r.json():null).then(t=>{TML=t;renderHazTimeline();}).catch(()=>{});
     fetch("data/context.json").then(r=>r.ok?r.json():null).then(c=>{CTX=c;if(document.getElementById("view-context").classList.contains("active")){ctxRenderStates();ctxRender();}}).catch(()=>{});
     fetch("data/event_nexus.json").then(r=>r.ok?r.json():null).then(n=>{NEXUS=n;}).catch(()=>{});
