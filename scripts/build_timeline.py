@@ -31,7 +31,7 @@ def main():
         rd=r.get("rainDayMaxIn") or 0
         if rd: rain[m]=max(rain[m],rd)
         torn[m]+=int(r.get("tor") or 0)
-        sv=max(r.get("snowMeltIn") or 0, (r.get("snowfallDayMaxIn") or 0))
+        sv=r.get("snowDepthPreIn") or 0   # peak antecedent snowpack depth (intuitive "snow on the ground")
         if sv: snow[m]=max(snow[m],sv); snow_any=True
 
     # river: peak (daily stage − flood stage) across gages, by month
