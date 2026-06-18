@@ -365,6 +365,8 @@ tr.clickable:hover td{background:#eef3f8;}
 .georow .grk{display:inline-block;min-width:20px;color:var(--ink-3);font-weight:700;font-variant-numeric:tabular-nums;}
 .georow .gv{font-weight:800;color:var(--navy);white-space:nowrap;font-variant-numeric:tabular-nums;}
 .georow .gv .thr-sub{font-weight:400;}
+#tmlChart svg{background:#fbfdff;border-radius:8px;}
+.tmlband{cursor:pointer;} .tmlband:hover{fill:rgba(13,35,66,0.06);}
 .ctx-analog{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;cursor:pointer;}
 .ctx-analog:hover{border-color:var(--blue);background:#f6faff;}
 .ctx-analog .dt{font-weight:800;color:var(--navy);font-size:13px;}
@@ -539,6 +541,11 @@ tr.clickable:hover td{background:#eef3f8;}
         <div class="timeline" id="timeline" style="margin-top:20px"></div>
         <div class="season" id="seasonNote"></div>
       </div></div>
+    <div class="card"><div class="card__hd"><h2>&#128200; Hazard timeline vs. declarations</h2><span class="sub" id="tmlSub">rain · river · tornado overlaid with disasters</span></div>
+      <div class="card__bd">
+        <p class="thr-sub" style="margin:0 0 8px">One picture of <b>what was happening when each disaster hit</b>: peak rainfall, river crest above flood stage, and tornado reports across Region&nbsp;5, with a marker for every declaration. Each line is scaled to its own range (real values on hover). <b>Tap a month</b> for the detail.</p>
+        <div id="tmlChart"><div class="skeleton"><span class="spin"></span> Loading timeline…</div></div>
+        <div id="tmlPick" class="declpick" style="margin-top:8px;min-height:1.2em"></div></div></div>
     <div class="card"><div class="card__hd"><h2>Region 5 disaster ledger</h2>
         <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-light);cursor:pointer;margin-left:auto"><input type="checkbox" id="groupState"> Group by state</label>
         <span class="sub" id="ledgerSub" style="margin-left:14px">tap a row for sourced detail · click a header to sort</span></div>
@@ -978,6 +985,43 @@ function showCountyGeo(fips){
 }
 function setGeoMetric(m){geoMetric=m;document.querySelectorAll("#geoToggle button").forEach(b=>b.classList.toggle("active",b.dataset.geom===m));renderGeoMap();renderGeoBoard();}
 function geoRenderAll(){renderGeoStates();renderGeoMap();renderGeoBoard();}
+/* ===== one hazard timeline overlaid with declarations (ledger view) ===== */
+let TML=null;
+const TML_SERIES=[{k:"rain",c:"#2171b5",lab:"peak 1-day rain",u:"in"},
+  {k:"river",c:"#0e7490",lab:"river over flood",u:"ft"},
+  {k:"snow",c:"#7b2cbf",lab:"snowfall/melt",u:"in"},
+  {k:"tornado",c:"#e8590c",lab:"tornado reports",u:""}];
+function renderHazTimeline(){
+  const box=el("tmlChart"); if(!box||!TML)return;
+  const M=TML.months,n=M.length; if(!n)return;
+  const W=920,H=210,pl=10,pr=10,pt=20,pb=22,iw=W-pl-pr,ih=H-pt-pb;
+  const x=i=>pl+(n>1?i*iw/(n-1):0), step=n>1?iw/(n-1):iw;
+  const yFor=(v,mx)=>pt+ih-(mx>0?Math.max(0,v)/mx*ih:0);
+  let lines="";
+  TML_SERIES.forEach(s=>{const arr=TML.series[s.k]; if(!arr)return; const mx=TML.max[s.k]||1;
+    const pts=arr.map((v,i)=>`${x(i).toFixed(1)},${yFor(v==null?0:v,mx).toFixed(1)}`).join(" ");
+    lines+=`<polyline points="${pts}" fill="none" stroke="${s.c}" stroke-width="1.4" opacity="0.92"/>`;});
+  let grid="";
+  M.forEach((m,i)=>{if(m.endsWith("-01")){const xi=x(i).toFixed(1);
+    grid+=`<line x1="${xi}" y1="${pt}" x2="${xi}" y2="${pt+ih}" stroke="#e7edf3" stroke-width="1"/><text x="${xi}" y="${H-6}" font-size="9" fill="#8a94a6" text-anchor="middle">${m.slice(0,4)}</text>`;}});
+  let marks="";
+  M.forEach((m,i)=>{const ds=TML.disasters[m]; if(ds&&ds.length){const xi=x(i).toFixed(1);
+    marks+=`<path d="M${(xi-3)},${pt-9} L${(+xi+3)},${pt-9} L${xi},${pt-2} Z" fill="#0d2342" opacity="${Math.min(1,0.4+ds.length*0.2).toFixed(2)}"><title>${m}: ${ds.length} declaration${ds.length>1?"s":""}</title></path>`;}});
+  const bands=M.map((m,i)=>`<rect x="${(x(i)-step/2).toFixed(1)}" y="${pt}" width="${step.toFixed(1)}" height="${ih}" fill="transparent" class="tmlband" data-tmlm="${m}"/>`).join("");
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${grid}${lines}${marks}${bands}</svg>
+    <div class="maplegend">${TML_SERIES.filter(s=>TML.series[s.k]).map(s=>`<span><i style="background:${s.c}"></i>${s.lab} <span class="thr-sub">(max ${TML.max[s.k]}${s.u})</span></span>`).join("")}<span><i style="background:#0d2342"></i>declaration</span>${TML.snowPending?`<span class="thr-sub" style="margin-left:auto">snow pending</span>`:""}</div>`;
+}
+function showTimelineMonth(m){
+  const box=el("tmlPick"); if(!box||!TML)return;
+  const i=TML.months.indexOf(m); if(i<0){box.innerHTML="";return;}
+  const S=TML.series, v=k=>S[k]?S[k][i]:null, ds=TML.disasters[m]||[];
+  const bits=[`rain <b>${v("rain")??0}in</b>`];
+  if(S.snow)bits.push(`snow <b>${v("snow")??0}in</b>`);
+  bits.push(`river <b>${v("river")==null?"—":v("river")+"ft"}</b>`,`tornado <b>${v("tornado")??0}</b>`);
+  const list=ds.map(d=>`<div class="declrow clickable" data-dn="${d.dn}"><span class="dk"><b style="color:var(--navy)">DR-${d.dn}</b> · ${d.state} · ${d.it||""}</span><span class="dv">${fmtMoney(d.pa)} PA ↗</span></div>`).join("");
+  const mlab=new Date(m+"-01T00:00:00").toLocaleDateString(undefined,{year:"numeric",month:"long"});
+  box.innerHTML=`<div class="declhd"><b>${mlab}</b> — ${bits.join(" · ")}${ds.length?` · <b>${ds.length}</b> declaration${ds.length>1?"s":""}`:" · no declarations that month"}</div>${list}`;
+}
 function renderAlerts(){
   const a=watchState.alerts;
   el("alertSub").textContent=`${a.reduce((s,x)=>s+x.count,0)} active · Region 5`;
@@ -1212,9 +1256,21 @@ function renderDisasterDetail(dn){
       <div class="parm"><div class="parmcard"><div class="pv">${hz.peakStageFt} ft</div><div class="pl">Peak gage height</div><div class="psrc">USGS daily mean (no key gage in designated counties)</div></div></div>`;
   }
 
+  // cross-link into the Geography view: the counties this disaster designated
+  let geoLinkHtml="";
+  if(DECL&&DECL.counties){
+    const aff=Object.entries(DECL.counties).filter(([f,v])=>(v.disasters||[]).some(x=>x.dn===d.disasterNumber))
+      .map(([f,v])=>({f,name:v.name,pa:v.paObligated||0})).sort((a,b)=>b.pa-a.pa);
+    if(aff.length){
+      const chips=aff.map(a=>`<span class="drchip" data-geocounty="${a.f}">${a.name}${a.pa?` · ${fmtMoney(a.pa)}`:""}</span>`).join(" ");
+      geoLinkHtml=`<div class="sec-h" style="margin-top:22px">Where it landed — county &amp; state breakdown<span class="src">Geography</span></div>
+        <p class="thr-sub" style="margin:0 0 8px">${aff.length} designated count${aff.length>1?"ies":"y"} · tap one for its full disaster &amp; dollar history, or <span class="drchip" data-geostate="${d.state}">open the ${d.state} state rollup →</span></p>
+        <div class="bindrill" style="line-height:2.1">${chips}</div>`;
+    }
+  }
   const pt=primaryTrigger(d);
   const triggerHtml=`<div class="trigbanner"><div class="tb-ic">${TRIG_ICON[pt.tag]||"⚠️"}</div><div><div class="tb-lab">Main trigger · ${pt.label}</div><div class="tb-why">${pt.why}</div></div></div>`;
-  el("mBody").innerHTML=triggerHtml+costHtml+gageHtml+parmHtml+nexusSection(d)+linkHtml;
+  el("mBody").innerHTML=triggerHtml+costHtml+gageHtml+parmHtml+nexusSection(d)+geoLinkHtml+linkHtml;
 }
 /* ledger modal — "Triggers & how often": per-disaster hazard params + frequency */
 function matchBin(lab,v){lab=String(lab).replace(/[″"]/g,"");
@@ -1348,6 +1404,7 @@ function showView(v){
   if(v==="watch"&&!watchState.ready)loadWatch();
   if(v==="watch")renderDeclMap();
   if(v==="geography")geoRenderAll();
+  if(v==="history")renderHazTimeline();
   if(v==="context"){ ctxRenderStates(); ctxRender(); }
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -1373,8 +1430,11 @@ function wire(){
     const gm=e.target.closest("#geoToggle button[data-geom]"); if(gm){setGeoMetric(gm.getAttribute("data-geom"));return;}
     const gf=e.target.closest("[data-gfips]"); if(gf){showCountyGeo(gf.getAttribute("data-gfips"));document.getElementById("geoPick").scrollIntoView({behavior:"smooth",block:"nearest"});return;}
     const gs=e.target.closest("[data-gstate]"); if(gs){const s=gs.getAttribute("data-gstate");geoStateFilter=geoStateFilter===s?null:s;renderGeoStates();renderGeoBoard();document.getElementById("geoBoard").scrollIntoView({behavior:"smooth",block:"nearest"});return;}
+    const gjc=e.target.closest("[data-geocounty]"); if(gjc){const f=gjc.getAttribute("data-geocounty");closeDetail();showView("geography");geoStateFilter=(DECL.counties[f]||{}).state||null;setGeoMetric("paObligated");renderGeoStates();showCountyGeo(f);setTimeout(()=>{const p=document.getElementById("geoPick");if(p)p.scrollIntoView({behavior:"smooth",block:"center"});},80);return;}
+    const gjs=e.target.closest("[data-geostate]"); if(gjs){const s=gjs.getAttribute("data-geostate");closeDetail();showView("geography");geoStateFilter=s;setGeoMetric("paObligated");renderGeoStates();setTimeout(()=>{const b=document.getElementById("geoBoard");if(b)b.scrollIntoView({behavior:"smooth",block:"start"});},80);return;}
     const cm=e.target.closest("[data-clearmonth]"); if(cm){monthFilter=null;renderTimeline();renderLedger();return;}
     const mb=e.target.closest("[data-month]"); if(mb){const m=+mb.getAttribute("data-month");monthFilter=monthFilter===m?null:m;renderTimeline();renderLedger();document.getElementById("ledger").scrollIntoView({behavior:"smooth",block:"start"});return;}
+    const tm=e.target.closest("[data-tmlm]"); if(tm){showTimelineMonth(tm.getAttribute("data-tmlm"));return;}
     const gt=e.target.closest("[data-gage]"); if(gt){openGage(gt.getAttribute("data-gage"));return;}
     const t=e.target.closest("[data-dn]"); if(t)openDetail(t.getAttribute("data-dn"));
   });
@@ -1500,6 +1560,7 @@ async function loadData(){
     DISASTERS=dj;GAGES=gj;DATA=DISASTERS.slice();
     fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();renderDeclMap();}).catch(()=>{});
     fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
+    fetch("data/timeline.json").then(r=>r.ok?r.json():null).then(t=>{TML=t;renderHazTimeline();}).catch(()=>{});
     fetch("data/context.json").then(r=>r.ok?r.json():null).then(c=>{CTX=c;if(document.getElementById("view-context").classList.contains("active")){ctxRenderStates();ctxRender();}}).catch(()=>{});
     fetch("data/event_nexus.json").then(r=>r.ok?r.json():null).then(n=>{NEXUS=n;}).catch(()=>{});
     setSource("warn",`Sourced dataset · ${DATA.length} disasters (OpenFEMA + NOAA + USGS)`);

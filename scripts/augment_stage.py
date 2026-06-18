@@ -107,49 +107,60 @@ def hours_above(readings, flood_stage, daily_mean):
         hrs.add(t[:13])
     return len(hrs)
 
+def pull_history(site, start="2007-01-01"):
+    """One daily-mean (00065/00003) pull of a gage's WHOLE period → {date 'YYYY-MM-DD': peak ft}.
+    Pulling each gage once (≈19 calls) instead of per-episode keeps this fast and reliable, and
+    the cached histories also power the Geography timeline's river series."""
+    dv=usgs(DV_URL,{"format":"json","sites":site,"parameterCd":"00065","statCd":"00003",
+                    "startDT":start,"endDT":dt.date.today().isoformat()})
+    out={}
+    for t,v in (parse_ts(dv) if dv else []):
+        d=t[:10]
+        if d: out[d]=max(out.get(d,-1e9), v)
+    return out
+
 def main():
     panel=os.path.join(DATA,"county_panel.json")
     rows=json.load(open(panel))
     gages=json.load(open(os.path.join(DATA,"gages.json")))
-
-    # county FIPS -> list of gages
     by_county=collections.defaultdict(list)
     for g in gages:
-        cf=g.get("countyFips")
-        if cf: by_county[cf].append(g)
+        if g.get("countyFips"): by_county[g["countyFips"]].append(g)
 
-    # group rows needing a lookup by (gage_site, window) to reuse pulls within a county
+    # --- pull each gage's full daily history once (cached, incremental, resumable) ---
+    cache_path=os.path.join(DATA,"_stage_cache.json")
+    cache=json.load(open(cache_path)) if os.path.exists(cache_path) else {}
+    sites=sorted({g["id"] for g in gages if g.get("id")})
+    for i,site in enumerate(sites,1):
+        if site in cache: continue
+        h=pull_history(site); time.sleep(0.4)
+        cache[site]=h
+        json.dump(cache,open(cache_path,"w"),separators=(",",":"))
+        print(f"  [{i}/{len(sites)}] gage {site}: {len(h)} daily stage values")
+
+    # --- compute peak ft-above-flood per county-episode from the cached histories ---
     targets=[r for r in rows if r["fips"] in by_county]
-    print(f"{len(targets)} rows fall in {len(by_county)} gaged counties; pulling USGS stage…")
-
-    done=0
+    print(f"{len(targets)} rows in {len(by_county)} gaged counties; computing from history…")
+    stamped=0
     for r in targets:
         b=dt.date.fromisoformat(r["begin"]); e=dt.date.fromisoformat(r["end"])
         if (e-b).days>30: e=b+dt.timedelta(days=30)
-        sd=b.isoformat(); ed=(e+dt.timedelta(days=1)).isoformat()
-        best=None  # (ftAbove, cat, hours, daily_flag, site)
+        days=[(b+dt.timedelta(days=i)).isoformat() for i in range((e-b).days+2)]
+        best=None
         for g in by_county[r["fips"]]:
-            site=g.get("id"); fs=g.get("floodStage")
-            if not site: continue
-            readings,daily=pull_stage(site, sd, ed); time.sleep(0.3)
-            if not readings: continue
-            peak=max(v for _,v in readings)
+            h=cache.get(g.get("id")) or {}; fs=g.get("floodStage")
+            vals=[h[d] for d in days if d in h]
+            if not vals: continue
+            peak=max(vals)
             ftabove=round(peak-fs,2) if fs is not None else None
-            cat=category(peak, g.get("cats"))
-            hrs=hours_above(readings, fs, daily)
-            cand=(ftabove if ftabove is not None else -9999, cat, hrs, daily, site, ftabove)
+            hrs=(sum(1 for d in days if fs is not None and h.get(d,-1e9)>=fs))*24
+            cand=(ftabove if ftabove is not None else -9999, category(peak,g.get("cats")), hrs, g.get("id"), ftabove)
             if best is None or cand[0]>best[0]: best=cand
         if best is not None:
-            r["ftAboveFlood"]=best[5]      # may be None if gage had no floodStage
-            r["stageCat"]=best[1]
-            r["hoursAboveFlood"]=best[2]
-            r["stageDailyMean"]=best[3]
-            r["stageGage"]=best[4]
-        done+=1
-        if done%50==0: print(f"  …{done}/{len(targets)} rows")
+            r["ftAboveFlood"]=best[4]; r["stageCat"]=best[1]; r["hoursAboveFlood"]=best[2]
+            r["stageDailyMean"]=True; r["stageGage"]=best[3]; stamped+=1
 
     json.dump(rows,open(panel,"w"),separators=(",",":"))
-    stamped=sum(1 for r in rows if "ftAboveFlood" in r)
     print(f"stamped stage onto {stamped} rows -> data/county_panel.json")
 
 if __name__=="__main__":
