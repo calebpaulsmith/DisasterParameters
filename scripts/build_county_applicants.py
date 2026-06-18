@@ -9,8 +9,10 @@ SOURCE / METHOD
     numberOfProjects. We aggregate by (county FIPS, applicantName): PA obligated,
     project count, and the set of disasters. County name+state → FIPS via
     r5_counties.json. Only the ledger's disasters are counted. NEEDS NETWORK.
-  - Stored as counties[fips].applicants = top 15 by PA obligated, each
-    {name, pa, projects, nDisasters, dns[]}. Additive; run after build_county_map.py.
+  - Stored as counties[fips].applicants = FULL list sorted by PA obligated, each
+    {name, pa, projects, nDisasters, dns[]} (~1.3MB committed; the UI shows the top
+    15 then an "expand" button reveals the rest). nApplicants = count. Additive;
+    run after build_county_map.py.
 
 Re-run any time: python3 scripts/build_county_applicants.py
 """
@@ -63,7 +65,7 @@ def main():
     for fips,apps in by_county.items():
         if fips in cd["counties"]:
             apps.sort(key=lambda a:-a["pa"])
-            cd["counties"][fips]["applicants"]=apps[:15]
+            cd["counties"][fips]["applicants"]=apps   # full list (~1.3MB committed; UI shows top 15 then expands)
             cd["counties"][fips]["nApplicants"]=len(apps)
             nset+=1
     cd["source"]=cd.get("source","")+" + top applicants from PublicAssistanceFundedProjectsSummaries"
