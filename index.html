@@ -348,6 +348,23 @@ tr.clickable:hover td{background:#eef3f8;}
 .declrow:hover{background:var(--blue-light);}
 .declrow .dk{color:var(--ink-2);font-variant-numeric:tabular-nums;}
 .declrow .dv{color:var(--ink-3);white-space:nowrap;}
+.geotoggle{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.geotoggle button{font:inherit;font-size:12.5px;font-weight:700;padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--ink-2);border-radius:20px;cursor:pointer;}
+.geotoggle button.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+#geoMap svg .hotc{cursor:pointer;} #geoMap svg .hotc:hover{stroke:#0d2342;stroke-width:1.1;}
+.geotbl{width:100%;border-collapse:collapse;font-size:13px;}
+.geotbl th,.geotbl td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;}
+.geotbl th.num,.geotbl td.num{text-align:right;font-variant-numeric:tabular-nums;}
+.geotbl th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-3);}
+.geotbl tbody tr{cursor:pointer;} .geotbl tbody tr:hover{background:#f4f7fb;}
+.geotbl tr.gsel{background:var(--blue-light);}
+.pabar{display:inline-block;width:54px;height:7px;background:#eef2f7;border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:7px;}
+.pabar span{display:block;height:100%;background:#1a9850;}
+.georow{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:7px 8px;border-radius:7px;font-size:13px;cursor:pointer;}
+.georow:nth-child(even){background:#f4f7fb;} .georow:hover{background:var(--blue-light);}
+.georow .grk{display:inline-block;min-width:20px;color:var(--ink-3);font-weight:700;font-variant-numeric:tabular-nums;}
+.georow .gv{font-weight:800;color:var(--navy);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.georow .gv .thr-sub{font-weight:400;}
 .ctx-analog{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;cursor:pointer;}
 .ctx-analog:hover{border-color:var(--blue);background:#f6faff;}
 .ctx-analog .dt{font-weight:800;color:var(--navy);font-size:13px;}
@@ -404,6 +421,7 @@ tr.clickable:hover td{background:#eef3f8;}
 <nav class="nav">
   <div class="nav__inner">
     <button data-view="history" class="active">&#128467;&#65039; Disaster Ledger</button>
+    <button data-view="geography">&#128506;&#65039; Geography</button>
     <button data-view="context">&#128202; Conditions in Context</button>
     <button data-view="watch">&#128680; Disaster Watch</button>
     <button data-view="estimator">&#128202; Estimate (beta)</button>
@@ -532,6 +550,27 @@ tr.clickable:hover td{background:#eef3f8;}
           <th data-sort="pa">PA oblig.</th><th data-sort="ihp">IHP appr.</th>
         </tr></thead><tbody id="ledgerBody"></tbody></table></div>
         <p class="thr-sub" style="margin-top:10px">PA = Public Assistance <b>obligated</b> (federal share). IHP = Individual Assistance <b>approved</b>. Hazards measured from NOAA Storm Events + USGS. Tap any row to see the full breakdown and source links.</p></div></div>
+  </section>
+
+  <!-- ============ GEOGRAPHY (state + county rollup: disasters · dollars · projects) ============ -->
+  <section class="view" id="view-geography">
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>Where the disasters &mdash; and the dollars &mdash; land.</b> Federal money rolled up by <b>state</b> and by <b>county</b>: how many declared disasters, Public&nbsp;Assistance <b>obligated</b>, and PA <b>project worksheets</b>. State totals match the ledger (OpenFEMA); county figures are summed from per-project <b>federal share obligated</b> (PublicAssistanceFundedProjectsDetails). <b>Tap a county</b> (map or list) for its disasters. PA is <b>obligated</b>; IHP is <b>approved</b>.</span></div>
+
+    <div class="card"><div class="card__hd"><h2>By state</h2><span class="sub">disasters &middot; PA obligated &middot; projects &middot; IHP approved</span></div>
+      <div class="card__bd"><div id="geoStates"><div class="skeleton"><span class="spin"></span> Loading…</div></div></div></div>
+
+    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>By county</h2><span class="sub" id="geoMapSub">tap a county for detail</span></div>
+      <div class="card__bd">
+        <div class="geotoggle" id="geoToggle">
+          <button data-geom="count" class="active">Disasters declared</button>
+          <button data-geom="paObligated">PA obligated</button>
+          <button data-geom="paProjects">PA projects</button></div>
+        <div id="geoMap"><div class="skeleton"><span class="spin"></span> Loading county map…</div></div>
+        <div id="geoPick" class="declpick" style="margin-top:10px;min-height:1.2em"></div>
+      </div></div>
+
+    <div class="card" style="margin-top:18px"><div class="card__hd"><h2>Top counties</h2><span class="sub" id="geoBoardSub">ranked by the selected metric</span></div>
+      <div class="card__bd"><div id="geoBoard"></div></div></div>
   </section>
 
   <!-- ============ CONDITIONS IN CONTEXT (state-first, multi-hazard) ============ -->
@@ -884,6 +923,61 @@ function showCountyDecl(fips){
   const list=o.disasters.map(d=>`<div class="declrow clickable" data-dn="${d.dn}"><span class="dk"><b style="color:var(--navy)">DR-${d.dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">${(d.tags||[]).slice(0,3).join(", ")} ↗</span></div>`).join("");
   box.innerHTML=`<div class="declhd"><b>${o.name} County, ${o.state}</b> — declared <b>${o.count}</b> time${o.count>1?"s":""}</div>${list}`;
 }
+/* ===== Geography view: state + county rollup (disasters · dollars · projects) ===== */
+let geoMetric="count", geoStateFilter=null;
+const GEO_META={count:{label:"disasters",fmt:v=>String(v)},
+  paObligated:{label:"PA obligated",fmt:v=>fmtMoney(v)},
+  paProjects:{label:"projects",fmt:v=>fmtNum(v)}};
+function geoColor(m,v){
+  if(!v)return"#eef2f7";
+  if(m==="count")return v>=8?"#5a189a":v>=6?"#7b2cbf":v>=4?"#9d4edd":v>=2?"#c77dff":"#e0aaff";
+  if(m==="paObligated")return v>=30e6?"#0b6e3b":v>=15e6?"#1a9850":v>=5e6?"#52b788":v>=1e6?"#95d5b2":"#d8f3dc";
+  return v>=300?"#08519c":v>=150?"#2171b5":v>=75?"#4292c6":v>=25?"#6baed6":"#c6dbef";
+}
+const GEO_LEGEND={count:[[0,"0"],[1,"1"],[2,"2–3"],[4,"4–5"],[6,"6–7"],[8,"8+"]],
+  paObligated:[[0,"$0"],[1,"<$1M"],[1e6,"1–5M"],[5e6,"5–15M"],[15e6,"15–30M"],[30e6,"$30M+"]],
+  paProjects:[[0,"0"],[1,"<25"],[25,"25–74"],[75,"75–149"],[150,"150–299"],[300,"300+"]]};
+function renderGeoStates(){
+  const box=el("geoStates");if(!box||!DECL)return;
+  const sts=Object.entries(DECL.states).sort((a,b)=>b[1].paObligated-a[1].paObligated);
+  const maxPA=Math.max(...sts.map(([,v])=>v.paObligated))||1;
+  const rows=sts.map(([s,v])=>`<tr class="clickable ${s===geoStateFilter?'gsel':''}" data-gstate="${s}"><td><b>${v.name}</b> <span class="thr-sub">${s}</span></td>
+    <td class="num">${v.nDisasters}</td>
+    <td class="num"><div class="pabar"><span style="width:${Math.round(v.paObligated/maxPA*100)}%"></span></div>${fmtMoney(v.paObligated)}</td>
+    <td class="num">${fmtNum(v.paProjects)}</td><td class="num">${fmtMoney(v.ihpApproved)}</td></tr>`).join("");
+  box.innerHTML=`<table class="geotbl"><thead><tr><th>State</th><th class="num">Disasters</th><th class="num">PA obligated</th><th class="num">PA projects</th><th class="num">IHP approved</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="thr-sub" style="margin-top:8px">State totals are OpenFEMA disaster summaries (match the ledger). Tap a state to spotlight its counties below.</p>`;
+}
+function renderGeoMap(){
+  const box=el("geoMap");if(!box||!COUNTIES.length||!DECL)return;
+  if(!MAPPROJ)projectCounties();
+  const dc=DECL.counties||{},m=geoMetric;
+  const paths=COUNTIES.map(c=>{const o=dc[c.f],v=o?(o[m]||0):0;
+    const tip=o?`${c.n}, ${c.s} — ${GEO_META[m].fmt(v)} ${GEO_META[m].label}`:`${c.n}, ${c.s} — none`;
+    return `<path d="${cpath(c)}" fill="${geoColor(m,v)}" stroke="#fff" stroke-width="0.4"${o&&v?` class="hotc" data-gfips="${c.f}"`:""}><title>${tip.replace(/"/g,"&quot;")}</title></path>`;}).join("");
+  box.innerHTML=`<svg viewBox="0 0 ${MAPPROJ.W} ${MAPPROJ.H}" style="width:100%;height:auto;display:block;background:#f7f9fc;border-radius:8px">${paths}</svg>
+    <div class="maplegend"><span>${GEO_META[m].label} / county:</span>${GEO_LEGEND[m].map(p=>`<span><i style="background:${geoColor(m,p[0])}"></i>${p[1]}</span>`).join("")}<span style="margin-left:auto" class="thr-sub">tap a county</span></div>`;
+}
+function renderGeoBoard(){
+  const box=el("geoBoard");if(!box||!DECL)return;
+  const m=geoMetric;
+  let ent=Object.entries(DECL.counties).filter(([,v])=>v[m]);
+  if(geoStateFilter)ent=ent.filter(([,v])=>v.state===geoStateFilter);
+  const top=ent.sort((a,b)=>b[1][m]-a[1][m]).slice(0,15);
+  if(el("geoBoardSub"))el("geoBoardSub").textContent=`ranked by ${GEO_META[m].label}${geoStateFilter?" · "+geoStateFilter+" only (tap state again to clear)":""}`;
+  box.innerHTML=top.map(([f,v],i)=>`<div class="georow clickable" data-gfips="${f}">
+    <span class="gr"><span class="grk">${i+1}</span><b>${v.name}</b>, ${v.state}</span>
+    <span class="gv">${GEO_META[m].fmt(v[m])}<span class="thr-sub"> · ${v.count} dis · ${fmtMoney(v.paObligated)} · ${fmtNum(v.paProjects)} proj</span></span></div>`).join("")
+    ||`<p class="thr-sub">—</p>`;
+}
+function showCountyGeo(fips){
+  const o=(DECL.counties||{})[fips],box=el("geoPick");if(!box)return;
+  if(!o){box.innerHTML="";return;}
+  const list=o.disasters.map(d=>`<div class="declrow clickable" data-dn="${d.dn}"><span class="dk"><b style="color:var(--navy)">DR-${d.dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">${fmtMoney(d.pa)} PA ↗</span></div>`).join("");
+  box.innerHTML=`<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${o.count}</b> disaster${o.count>1?"s":""} · PA obligated <b>${fmtMoney(o.paObligated)}</b> · <b>${fmtNum(o.paProjects)}</b> projects</div>${list}`;
+}
+function setGeoMetric(m){geoMetric=m;document.querySelectorAll("#geoToggle button").forEach(b=>b.classList.toggle("active",b.dataset.geom===m));renderGeoMap();renderGeoBoard();}
+function geoRenderAll(){renderGeoStates();renderGeoMap();renderGeoBoard();}
 function renderAlerts(){
   const a=watchState.alerts;
   el("alertSub").textContent=`${a.reduce((s,x)=>s+x.count,0)} active · Region 5`;
@@ -1253,6 +1347,7 @@ function showView(v){
   document.querySelectorAll(".view").forEach(s=>s.classList.toggle("active",s.id==="view-"+v));
   if(v==="watch"&&!watchState.ready)loadWatch();
   if(v==="watch")renderDeclMap();
+  if(v==="geography")geoRenderAll();
   if(v==="context"){ ctxRenderStates(); ctxRender(); }
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -1275,6 +1370,9 @@ function wire(){
     const bk=e.target.closest("[data-binkey]"); if(bk){const bd=document.getElementById("bd-"+bk.getAttribute("data-binkey")); if(bd)bd.style.display=bd.style.display==="none"?"block":"none"; return;}
     const fc=e.target.closest("[data-fips]"); if(fc){showCountyAlerts(fc.getAttribute("data-fips"));return;}
     const dcf=e.target.closest("[data-cfips]"); if(dcf){showCountyDecl(dcf.getAttribute("data-cfips"));document.getElementById("declPick").scrollIntoView({behavior:"smooth",block:"nearest"});return;}
+    const gm=e.target.closest("#geoToggle button[data-geom]"); if(gm){setGeoMetric(gm.getAttribute("data-geom"));return;}
+    const gf=e.target.closest("[data-gfips]"); if(gf){showCountyGeo(gf.getAttribute("data-gfips"));document.getElementById("geoPick").scrollIntoView({behavior:"smooth",block:"nearest"});return;}
+    const gs=e.target.closest("[data-gstate]"); if(gs){const s=gs.getAttribute("data-gstate");geoStateFilter=geoStateFilter===s?null:s;renderGeoStates();renderGeoBoard();document.getElementById("geoBoard").scrollIntoView({behavior:"smooth",block:"nearest"});return;}
     const cm=e.target.closest("[data-clearmonth]"); if(cm){monthFilter=null;renderTimeline();renderLedger();return;}
     const mb=e.target.closest("[data-month]"); if(mb){const m=+mb.getAttribute("data-month");monthFilter=monthFilter===m?null:m;renderTimeline();renderLedger();document.getElementById("ledger").scrollIntoView({behavior:"smooth",block:"start"});return;}
     const gt=e.target.closest("[data-gage]"); if(gt){openGage(gt.getAttribute("data-gage"));return;}
@@ -1401,7 +1499,7 @@ async function loadData(){
     ]);
     DISASTERS=dj;GAGES=gj;DATA=DISASTERS.slice();
     fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();renderDeclMap();}).catch(()=>{});
-    fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;renderDeclMap();}).catch(()=>{});
+    fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
     fetch("data/context.json").then(r=>r.ok?r.json():null).then(c=>{CTX=c;if(document.getElementById("view-context").classList.contains("active")){ctxRenderStates();ctxRender();}}).catch(()=>{});
     fetch("data/event_nexus.json").then(r=>r.ok?r.json():null).then(n=>{NEXUS=n;}).catch(()=>{});
     setSource("warn",`Sourced dataset · ${DATA.length} disasters (OpenFEMA + NOAA + USGS)`);
