@@ -57,6 +57,10 @@ PFDS_URL="https://hdsc.nws.noaa.gov/cgi-bin/hdsc/new/cgi_readH5.py"
 
 # ARI columns (years) returned by the PFDS point service, in order.
 ARIS=[1,2,5,10,25,50,100,200,500,1000]
+# Canonical Atlas-14 duration row order (19 rows). The PFDS CGI no longer emits a
+# `durations` array, so we map the quantiles matrix rows to these labels by index.
+PFDS_DURATIONS=["5-min","10-min","15-min","30-min","60-min","2-hr","3-hr","6-hr","12-hr",
+                "1-day","2-day","3-day","4-day","7-day","10-day","20-day","30-day","45-day","60-day"]
 # Duration row labels we care about (days). PFDS also returns sub-daily rows; we
 # only consume daily+ durations here, mapped by index after the sub-daily rows.
 DAY_DURATIONS=[1,2,3,4,7,10,20,30,45,60]
@@ -118,6 +122,10 @@ def parse_pfds(txt):
         except Exception: return None
     quant=grab("quantiles")
     durs=grab("durations")
+    # The PFDS CGI no longer emits a `durations` array — rows are in the fixed Atlas-14
+    # order, so fall back to the canonical labels when it's absent / mismatched.
+    if (not durs or len(durs)!=len(quant)) and quant and len(quant)==len(PFDS_DURATIONS):
+        durs=PFDS_DURATIONS
     if not quant or not durs or len(quant)!=len(durs): return None
     out={}
     for label,row in zip(durs,quant):
