@@ -508,7 +508,7 @@ tr.clickable:hover td{background:#eef3f8;}
 
   <!-- ============ CONDITIONS IN CONTEXT (state-first, multi-hazard) ============ -->
   <section class="view" id="view-context">
-    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>Information, not a forecast.</b> Every bar is a plain <b>declared ÷ comparable episodes</b> frequency from a regenerated panel of <span id="ctxPanelN">—</span> Region&nbsp;5 state-storm episodes &mdash; declared <i>and</i> non-declared. Rates are over <b>notable episodes</b> (NOAA Storm Events damage&nbsp;&gt;&nbsp;0), which is why severity separates. <b>Darker</b> = went on to a federal declaration; <b>lighter</b> = did not. <b>Tap any bar</b> to see the actual disasters in it, or open &ldquo;How these percentages are prepared.&rdquo; Dollars are real OpenFEMA figures (PA <b>obligated</b> &middot; IHP <b>approved</b>).</span></div>
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>Information, not a forecast.</b> Every bar is a plain <b>declared ÷ comparable episodes</b> frequency from a regenerated panel of <span id="ctxPanelN">—</span> Region&nbsp;5 state-storm episodes &mdash; declared <i>and</i> non-declared. For <b>wind &amp; tornado</b>, rates are over episodes with recorded damage (Storm Events logs those losses well); <b>flood, hail &amp; winter</b> use all episodes, because Storm Events under-records flood loss and a declared flood often logs $0. <b>Darker</b> = went on to a federal declaration; <b>lighter</b> = did not. <b>Tap any bar</b> to see the actual disasters in it, or open &ldquo;How these percentages are prepared.&rdquo; Dollars are real OpenFEMA figures (PA <b>obligated</b> &middot; IHP <b>approved</b>).</span></div>
     <div class="card"><div class="card__hd"><h2>Pick a state</h2><span class="sub">which hazards actually drive declarations here</span></div>
       <div class="card__bd"><div class="ctx-states" id="ctxStates"></div></div></div>
     <div id="ctxBody"><div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading context&hellip;</div></div>
@@ -1268,7 +1268,7 @@ function binDrill(b){
   const chips=dns.map(dn=>`<span class="drchip" data-dn="${dn}">DR-${dn}</span>`).join(" ");
   const non=b.n-b.declared;
   const dlab=dns.length&&dns.length!==b.declared?` across ${dns.length} disaster${dns.length>1?"s":""}`:"";
-  return `<b>${b.declared}</b> declared episode${b.declared===1?"":"s"}${dlab}${chips?": "+chips:""} &middot; <b>${non}</b> not declared <span style="color:var(--ink-3)">(of ${b.n} notable episodes)</span>`;
+  return `<b>${b.declared}</b> declared episode${b.declared===1?"":"s"}${dlab}${chips?": "+chips:""} &middot; <b>${non}</b> not declared <span style="color:var(--ink-3)">(of ${b.n} episodes)</span>`;
 }
 function dbar(b,uid){
   if(!b.n)return "";   // skip empty bins (e.g. the $0 band under the damage>0 denominator)
@@ -1282,7 +1282,10 @@ function driverBlock(d,pfx){
 function ctxHazCard(h,prof,dist){
   const drivers=(dist&&dist.drivers)?Object.entries(dist.drivers):[];
   const dhtml=drivers.map(([k,d])=>driverBlock(d,`${ctxState}_${h}_${k}`)).join("");
+  const gate=(dist&&dist.gate)||prof.gate;
+  const gtxt=gate==="damage>0"?"counted over episodes with recorded damage":"counted over all episodes (Storm Events under-records this hazard's $ loss)";
   return `<div class="ctx-haz"><div class="ctx-haz__hd"><h3>${HAZ_EMOJI[h]||""} ${prof.label}</h3><span class="ctx-haz__rate">${prof.nDeclared}/${prof.nEpisodes} declared · ${Math.round(prof.declaredRate*100)}%</span></div>
+    <div class="db" style="margin-bottom:2px">denominator: <b>${gate}</b> — ${gtxt}</div>
     ${dist?`<div class="ctx-haz__caveat">${dist.caveat}</div>`:""}
     ${dhtml||'<p class="thr-sub">Driver distribution for this hazard is deferred to the follow-up data pass.</p>'}</div>`;
 }
@@ -1294,7 +1297,7 @@ function ctxMethod(st){
       <li><b>Unit:</b> ${pv.unit||""}.</li>
       <li><b>Counts toward a hazard when:</b> ${pv.hazardMembership||""}.</li>
       <li><b>Declared means:</b> ${pv.declaredRule||""}.</li>
-      <li><b>Denominator:</b> ${pv.denominator||""}. In ${st.name}, that's <b>${dn.nNotable}</b> of ${dn.nAll} episodes (<b>${dn.declaredNotable}</b> declared → ${dn.nNotable?Math.round(dn.declaredNotable/dn.nNotable*100):0}% base, vs ${dn.nAll?Math.round(dn.declaredAll/dn.nAll*100):0}% across all episodes).</li>
+      <li><b>Denominator (hazard-specific):</b> ${pv.denominator||""}. ${dn.note||""}</li>
       <li><b>Each value is:</b> ${pv.metric||""}.</li>
       <li><b>Caveat:</b> ${dn.floodCaveat||pv.caveat||""}</li>
       <li><b>Source:</b> ${pv.source||""}; whole-panel base rate ${pl.notableEpisodes?Math.round(pl.notableBaseRate*100):0}% over ${fmtNum(pl.notableEpisodes||0)} notable episodes.</li>
