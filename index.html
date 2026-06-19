@@ -408,6 +408,42 @@ tr.clickable:hover td{background:#eef3f8;}
 #geoMap svg .clbl{fill:#0b1c33;font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:.55px;stroke-linejoin:round;text-anchor:middle;dominant-baseline:middle;font-family:'Public Sans',sans-serif;}
 #geoMap svg path.dsel{stroke:#0d2342;}
 @media(max-width:860px){.geodash{grid-template-columns:1fr;height:auto;}.geocol--right{grid-template-rows:auto auto;}.geoscroll{max-height:280px;}.geomap{min-height:320px;}}
+/* ===== mobile Geography sorter ===== */
+#geoMobile{display:none;}
+@media(max-width:760px){
+  #view-geography .geobar,#view-geography .geodash{display:none;}
+  #geoMobile{display:block;}
+}
+.gm-head{position:sticky;top:0;z-index:6;background:#fff;border-bottom:1px solid var(--line);padding:10px 2px 9px;margin:-2px 0 4px;}
+.gm-crumb{display:flex;gap:10px;font-size:12px;font-weight:700;color:var(--blue);margin-bottom:5px;flex-wrap:wrap;}
+.gm-crumb span{cursor:pointer;}
+.gm-title{font-size:19px;font-weight:900;color:var(--navy);line-height:1.15;}
+.gm-sub{font-size:11.5px;color:var(--ink-3);margin-top:3px;}
+.gm-stat{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;}
+.gm-stat span{background:var(--blue-light);color:var(--navy);font-weight:800;font-size:11px;border-radius:999px;padding:3px 9px;font-variant-numeric:tabular-nums;}
+.gm-tabs{display:flex;gap:6px;margin-top:9px;}
+.gm-tab{flex:1;padding:8px;border:1px solid var(--line);background:#fff;border-radius:9px;font-weight:800;font-size:13px;color:var(--ink-2);cursor:pointer;}
+.gm-tab.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+.gm-sech{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;font-weight:800;color:var(--ink-3);margin:14px 0 6px;}
+.gm-sortbar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;margin-bottom:6px;}
+.gm-chip{flex:0 0 auto;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:800;font-size:12.5px;color:var(--ink-2);cursor:pointer;white-space:nowrap;}
+.gm-chip.active{background:var(--gold);color:var(--navy);border-color:var(--gold-dark);}
+.gm-list{display:flex;flex-direction:column;gap:7px;}
+.gm-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;cursor:pointer;}
+.gm-row:active{background:#f4f7fb;}
+.gm-row.static{cursor:default;}
+.gm-rk{flex:0 0 auto;width:22px;height:22px;border-radius:6px;background:var(--blue-light);color:var(--navy);font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;}
+.gm-rmain{flex:1;min-width:0;}
+.gm-rmain b{display:block;font-size:14px;color:var(--navy);font-weight:800;overflow:hidden;text-overflow:ellipsis;}
+.gm-rsub{display:block;font-size:11px;color:var(--ink-3);margin-top:1px;}
+.gm-bar{height:5px;border-radius:3px;background:#eef1f6;margin-top:6px;overflow:hidden;}
+.gm-bar span{display:block;height:100%;border-radius:3px;}
+.gm-rval{flex:0 0 auto;text-align:right;font-weight:900;color:var(--navy);font-size:13.5px;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:4px;}
+.gm-go{color:var(--ink-3);font-weight:700;font-size:18px;}
+.gmmap{height:210px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#f7f9fc;margin:2px 0 6px;}
+.gmmap svg{width:100%;height:100%;display:block;}
+.gm-more,.gm-fulllink{display:block;width:100%;text-align:center;padding:11px;margin-top:8px;border:1px solid var(--line);border-radius:11px;background:#f0f6ff;color:var(--blue);font-weight:800;font-size:13px;cursor:pointer;}
+.gm-fulllink{background:var(--navy);color:#fff;border-color:var(--navy);margin-bottom:4px;}
 .covgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
 .covcard{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:#fff;}
 .covcard .covhd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:15px;color:var(--navy);}
@@ -630,6 +666,7 @@ tr.clickable:hover td{background:#eef3f8;}
         <div class="geopane geopane--detail"><div class="geoh">Detail</div><div id="geoPick" class="geoscroll declpick"><span class="thr-sub">Tap a county or state for its disasters &amp; dollars.</span></div></div>
       </aside>
     </div>
+    <div id="geoMobile"></div>
   </section>
 
   <!-- ============ COVID-19 (self-contained; kept out of the weather views) ============ -->
@@ -1206,6 +1243,7 @@ function fetchDisasterApplicants(dn){
       geoDisApplCache[dn]=list;
     }catch(e){geoDisApplCache[dn]="error";}
     if(geoDisasterFocus===dn)renderGeoBoard();
+    if(isMobileGeo()&&gmLevel==="disaster"&&gmDisaster===dn)renderGeoMobile();
   })();
 }
 function renderGeoBoard(){
@@ -1291,9 +1329,129 @@ function geoSelectState(s){
   syncHash();
 }
 function setGeoMetric(m){geoMetric=m;document.querySelectorAll("#geoToggle button").forEach(b=>b.classList.toggle("active",b.dataset.geom===m));renderGeoStates();renderGeoMap();renderGeoBoard();}
-function geoRenderAll(){renderGeoStates();renderGeoMap();renderGeoBoard();geoFocus(false);
+function geoRenderAll(){
+  if(isMobileGeo()){renderGeoMobile();return;}
+  renderGeoStates();renderGeoMap();renderGeoBoard();geoFocus(false);
   if(geoCountyFocus){const o=DECL.counties[geoCountyFocus];if(o)el("geoPick").innerHTML=countyDetailHTML(o,geoCountyFocus);}
   else if(geoStateFilter)showStateGeo(geoStateFilter);}
+/* ===== MOBILE Geography — a single-column, in-depth sorter/drill-down ===== */
+function isMobileGeo(){return window.matchMedia("(max-width:760px)").matches;}
+let gmLevel="region", gmState=null, gmDisaster=null, gmCounty=null, gmTab="disasters", gmSort="paObligated", gmAsc=false, gmExpanded=false;
+const GM_SORTS=[["count","Disasters"],["paObligated","PA $"],["paProjects","Projects"],["ihpApproved","IHP $"],["az","A–Z"]];
+function gmVal(key,kind,o){ // value of entity o for a sort key
+  if(key==="az")return 0;
+  if(kind==="state")return o[GEO_KEY[key]]||0;
+  if(kind==="county")return o[key]||0;
+  if(kind==="disaster")return key==="count"?1:key==="paObligated"?(o.pa||0):key==="paProjects"?((o.costs||{}).paProjects||0):(o.ihp||0);
+  if(kind==="appl")return key==="paProjects"?(o.projects||0):(o.pa||0);
+  return 0;
+}
+function gmFmt(key,kind,o){const v=gmVal(key==="az"?"paObligated":key,kind,o);return (GEO_META[key]||GEO_META.paObligated).fmt(v);}
+function gmSortChips(){return `<div class="gm-sortbar">${GM_SORTS.map(([k,l])=>`<button class="gm-chip${gmSort===k?" active":""}" data-gmsort="${k}">${l}${gmSort===k&&k!=="az"?(gmAsc?" ▲":" ▼"):""}${gmSort===k&&k==="az"?(gmAsc?" ▲":" ▼"):""}</button>`).join("")}</div>`;}
+function gmSortRows(rows,kind){const az=gmSort==="az";
+  return rows.slice().sort((a,b)=>az?(gmAsc?b._n.localeCompare(a._n):a._n.localeCompare(b._n)):(gmAsc?gmVal(gmSort,kind,a._o)-gmVal(gmSort,kind,b._o):gmVal(gmSort,kind,b._o)-gmVal(gmSort,kind,a._o)));}
+function gmBar(v,mx,col){return `<div class="gm-bar"><span style="width:${mx?Math.round(Math.min(1,v/mx)*100):0}%;background:${col}"></span></div>`;}
+function renderGeoMobile(){const box=el("geoMobile");if(!box||!DECL)return;
+  if(gmLevel==="state"&&gmState)return gmRenderState(box);
+  if(gmLevel==="disaster"&&gmDisaster)return gmRenderDisaster(box);
+  if(gmLevel==="county"&&gmCounty)return gmRenderCounty(box);
+  gmRenderHome(box);
+}
+function gmRenderHome(box){
+  geoComputeStatewide();
+  const col=GEO_BAR[gmSort]||GEO_BAR.paObligated, fmtk=gmSort==="az"?"paObligated":gmSort;
+  const rows=Object.entries(DECL.states).map(([s,v])=>({_n:v.name,_o:v,s,v}));
+  const sorted=gmSortRows(rows,"state");
+  const mx=Math.max(...sorted.map(r=>gmVal(fmtk,"state",r._o)),1);
+  const totPA=Object.values(DECL.states).reduce((a,v)=>a+(v.paObligated||0),0);
+  const totIHP=Object.values(DECL.states).reduce((a,v)=>a+(v.ihpApproved||0),0);
+  const totDis=Object.values(DECL.states).reduce((a,v)=>a+(v.nDisasters||0),0);
+  box.innerHTML=`<div class="gm-head"><div class="gm-title">Region 5 — Geography</div>
+      <div class="gm-sub">${totDis} disasters · ${fmtMoney(totPA)} PA obligated · ${fmtMoney(totIHP)} IHP approved · tap a state to drill in</div></div>
+    <div class="gm-sech">Sort states by</div>${gmSortChips()}
+    <div class="gm-list">${sorted.map(r=>`<div class="gm-row" data-gmstate="${r.s}">
+        <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${r.v.nDisasters} disasters · ${fmtMoney(r.v.paObligated)} PA · ${fmtMoney(r.v.ihpApproved)} IHP</span>
+          ${gmBar(gmVal(fmtk,"state",r._o),mx,col)}</div>
+        <div class="gm-rval">${gmFmt(gmSort,"state",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`;
+}
+function gmRenderState(box){
+  const s=gmState, st=DECL.states[s]; if(!st)return gmRenderHome(box);
+  const col=GEO_BAR[gmSort]||GEO_BAR.paObligated, fmtk=gmSort==="az"?"paObligated":gmSort;
+  const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span></div>
+      <div class="gm-title">${st.name}</div>
+      <div class="gm-stat"><span>${st.nDisasters} disasters</span><span>${fmtMoney(st.paObligated)} PA</span><span>${fmtMoney(st.ihpApproved)} IHP</span><span>${fmtNum(st.paProjects)} projects</span></div>
+      <div class="gm-tabs"><button class="gm-tab${gmTab==="disasters"?" active":""}" data-gmtab="disasters">Disasters</button><button class="gm-tab${gmTab==="counties"?" active":""}" data-gmtab="counties">Counties</button></div></div>`;
+  let body="";
+  if(gmTab==="counties"){
+    const rows=Object.entries(DECL.counties).filter(([f,v])=>v.state===s).map(([f,v])=>({_n:v.name,_o:v,f,v}));
+    const sorted=gmSortRows(rows,"county"); const mx=Math.max(...sorted.map(r=>gmVal(fmtk,"county",r._o)),1);
+    body=`<div class="gm-sech">Sort ${sorted.length} counties by</div>${gmSortChips()}
+      <div class="gm-list">${sorted.map(r=>`<div class="gm-row" data-gmcounty="${r.f}">
+        <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${r.v.count} disasters · ${fmtMoney(r.v.paObligated)} PA · ${fmtNum(r.v.nApplicants||0)} applicants</span>${gmBar(gmVal(fmtk,"county",r._o),mx,col)}</div>
+        <div class="gm-rval">${gmFmt(gmSort,"county",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`;
+  } else {
+    const rows=DISASTERS.filter(d=>d.state===s).map(d=>({_n:"DR-"+d.disasterNumber,_o:d,d}));
+    const sorted=gmSortRows(rows,"disaster"); const mx=Math.max(...sorted.map(r=>gmVal(fmtk,"disaster",r._o)),1);
+    body=`<div class="gm-sech">Sort ${sorted.length} disasters by</div>${gmSortChips()}
+      <div class="gm-list">${sorted.map(r=>{const d=r.d;return `<div class="gm-row" data-gmdisaster="${d.disasterNumber}">
+        <div class="gm-rmain"><b>DR-${d.disasterNumber} · ${d.incidentType||(d.tags||[])[0]||""}</b><span class="gm-rsub">${(d.begin||"").slice(0,7)} · ${geoDisasterFips(d.disasterNumber).size} counties · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP</span>${gmBar(gmVal(fmtk,"disaster",r._o),mx,col)}</div>
+        <div class="gm-rval">${gmFmt(gmSort,"disaster",r._o)}<span class="gm-go">›</span></div></div>`;}).join("")}</div>`;
+  }
+  const bb=geoStateBBox(s); box.innerHTML=head+(bb?gmMiniMap(new Set(COUNTIES.filter(c=>c.s===s).map(c=>c.f)),bb,true):"")+body;
+}
+function gmRenderDisaster(box){
+  const dn=gmDisaster, d=disasterMeta(dn); const fset=geoDisasterFips(dn);
+  const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span> <span data-gmback="state">‹ ${d.state}</span></div>
+      <div class="gm-title">DR-${dn} · ${d.state}</div>
+      <div class="gm-sub">${d.begin?fmtDate(d.begin):""}${d.incidentType?" · "+d.incidentType:""} · ${(d.title||"").toLowerCase()}</div>
+      <div class="gm-stat"><span>${fset.size} counties</span><span>${fmtMoney(d.pa||0)} PA</span><span>${fmtMoney(d.ihp||0)} IHP</span><span>${fmtNum((d.costs||{}).paProjects||0)} projects</span></div></div>`;
+  const fHi=fset.size?fset:new Set(COUNTIES.filter(c=>c.s===d.state).map(c=>c.f));
+  const bb=geoMultiBBox(fset)||geoStateBBox(d.state);
+  const mapHtml=bb?gmMiniMap(fHi,bb,true):"";
+  // declared counties (sortable, tappable)
+  const fmtk=gmSort==="az"?"paObligated":gmSort, colc=GEO_BAR[gmSort]||GEO_BAR.paObligated;
+  const crows=[...fset].filter(f=>DECL.counties[f]).map(f=>{const v=DECL.counties[f];const dd=(v.disasters||[]).find(x=>x.dn===dn)||{};return {_n:v.name,_o:v,f,v,dpa:dd.pa||0,dihp:dd.ihp||0};});
+  const csorted=gmSortRows(crows,"county"); const cmx=Math.max(...csorted.map(r=>gmVal(fmtk,"county",r._o)),1);
+  const cHtml=csorted.length?`<div class="gm-sech">${csorted.length} declared counties — sort by</div>${gmSortChips()}
+    <div class="gm-list">${csorted.map(r=>`<div class="gm-row" data-gmcounty="${r.f}">
+      <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">this disaster: ${fmtMoney(r.dpa)} PA · ${fmtMoney(r.dihp)} IHP</span>${gmBar(gmVal(fmtk,"county",r._o),cmx,colc)}</div>
+      <div class="gm-rval">${gmFmt(gmSort,"county",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`:"";
+  // live applicants for this disaster
+  const data=geoDisApplCache[dn]; let aHtml;
+  if(data==="loading"||data==null){aHtml=`<div class="gm-sech">Applicants (obligated federal share)</div><div class="skeleton"><span class="spin"></span> Loading from OpenFEMA…</div>`; if(data==null)fetchDisasterApplicants(dn);}
+  else if(data==="error")aHtml=`<div class="gm-sech">Applicants</div><p class="thr-sub">Couldn't load. <a target="_blank" rel="noopener" href="https://www.fema.gov/api/open/v1/PublicAssistanceFundedProjectsSummaries?$filter=${encodeURIComponent("disasterNumber eq "+dn)}&$format=jsona">View on OpenFEMA ↗</a></p>`;
+  else if(!data.length)aHtml=`<div class="gm-sech">Applicants</div><p class="thr-sub">No PA applicant obligations recorded yet (obligations lag).</p>`;
+  else {const shown=gmExpanded?data:data.slice(0,20);
+    aHtml=`<div class="gm-sech">${fmtNum(data.length)} applicants — obligated $ (this disaster)</div>
+      <div class="gm-list">${shown.map((a,i)=>`<div class="gm-row static"><div class="gm-rk">${i+1}</div><div class="gm-rmain"><b>${a.name}</b><span class="gm-rsub">${fmtNum(a.projects)} projects · ${a.nCounties} counties</span></div><div class="gm-rval">${fmtMoney(a.pa)}</div></div>`).join("")}</div>
+      ${data.length>20?`<button class="gm-more" data-gmexpand="1">${gmExpanded?"▲ Show top 20":"▾ Show all "+fmtNum(data.length)+" applicants"}</button>`:""}`;}
+  box.innerHTML=head+mapHtml+`<button class="gm-fulllink" data-dn="${dn}">Full disaster details — costs, hazards, gages ↗</button>`+cHtml+aHtml;
+}
+function gmRenderCounty(box){
+  const f=gmCounty, o=DECL.counties[f]; if(!o)return gmRenderHome(box);
+  const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span> <span data-gmback="state">‹ ${o.state}</span></div>
+      <div class="gm-title">${o.name} County, ${o.state}</div>
+      <div class="gm-stat"><span>${o.count} disasters</span><span>${fmtMoney(o.paObligated)} PA</span><span>${fmtMoney(o.ihpApproved||0)} IHP</span><span>${fmtNum(o.nApplicants||0)} applicants</span></div></div>`;
+  const bb=geoCountyBBox(f); const mapHtml=bb?gmMiniMap(new Set([f]),bb,false):"";
+  const dis=(o.disasters||[]).slice().sort((a,b)=>(b.pa||0)-(a.pa||0));
+  const dHtml=`<div class="gm-sech">${dis.length} disasters here</div><div class="gm-list">${dis.map(d=>`<div class="gm-row" data-gmdisaster="${d.dn}"><div class="gm-rmain"><b>DR-${d.dn} · ${d.it||""}</b><span class="gm-rsub">${(d.date||"").slice(0,7)} · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP</span></div><div class="gm-rval"><span class="gm-go">›</span></div></div>`).join("")}</div>`;
+  const apps=o.applicants||[], shown=gmExpanded?apps:apps.slice(0,20);
+  const aHtml=apps.length?`<div class="gm-sech">${fmtNum(o.nApplicants||apps.length)} applicants (all-time PA)</div>
+    <div class="gm-list">${shown.map((a,i)=>`<div class="gm-row static"><div class="gm-rk">${i+1}</div><div class="gm-rmain"><b>${a.name}</b><span class="gm-rsub">${a.nDisasters} disasters · ${fmtNum(a.projects)} projects</span></div><div class="gm-rval">${fmtMoney(a.pa)}</div></div>`).join("")}</div>
+    ${apps.length>20?`<button class="gm-more" data-gmexpand="1">${gmExpanded?"▲ Show top 20":"▾ Show all "+fmtNum(apps.length)+" applicants"}</button>`:""}`:"";
+  box.innerHTML=head+mapHtml+dHtml+aHtml;
+}
+function gmMiniMap(focus,bb,tap){
+  if(!COUNTIES.length||!DECL)return ""; if(!MAPPROJ)projectCounties();
+  const m=geoMetric,dc=DECL.counties;
+  const paths=COUNTIES.map(c=>{const o=dc[c.f],v=o?(o[m]||0):0; const hi=focus?focus.has(c.f):true;
+    return `<path d="${cpath(c)}" fill="${geoColor(m,v)}" stroke="${hi?'#0d2342':'#fff'}" stroke-width="${hi?0.8:0.3}"${tap&&hi&&o?` class="hotc" data-gmcounty="${c.f}"`:""}${hi?"":' opacity="0.14"'}><title>${c.n}, ${c.s}</title></path>`;}).join("");
+  return `<div class="gmmap"><svg viewBox="${vbStr(bb)}" preserveAspectRatio="xMidYMid meet">${paths}</svg></div>`;
+}
+function gmGoState(s){gmLevel="state";gmState=s;gmTab="disasters";gmDisaster=null;gmCounty=null;gmExpanded=false;renderGeoMobile();window.scrollTo({top:0,behavior:"smooth"});}
+function gmGoCounty(f){const o=DECL.counties[f];if(!o)return;gmLevel="county";gmCounty=f;gmState=o.state;gmExpanded=false;renderGeoMobile();window.scrollTo({top:0,behavior:"smooth"});}
+function gmGoDisaster(dn){gmLevel="disaster";gmDisaster=dn;gmState=disasterMeta(dn).state||gmState;gmExpanded=false;renderGeoMobile();window.scrollTo({top:0,behavior:"smooth"});}
+function gmBack(to){if(to==="region"){gmLevel="region";gmState=null;gmDisaster=null;gmCounty=null;}else if(to==="state"){gmLevel="state";gmDisaster=null;gmCounty=null;}gmExpanded=false;renderGeoMobile();window.scrollTo({top:0,behavior:"smooth"});}
 /* ===== COVID-19 view (self-contained) ===== */
 let COVID=null;
 function renderCovid(){
@@ -1780,13 +1938,20 @@ function wire(){
     const gbc=e.target.closest("#geoBackCounties"); if(gbc){geoExitCounty();return;}
     const gbd=e.target.closest("#geoBackDisaster"); if(gbd){geoExitDisaster();return;}
     const gdis=e.target.closest("[data-geodis]"); if(gdis){enterDisasterFocus(+gdis.getAttribute("data-geodis"));return;}
+    const mso=e.target.closest("[data-gmsort]"); if(mso){const k=mso.getAttribute("data-gmsort"); if(gmSort===k)gmAsc=!gmAsc; else{gmSort=k;gmAsc=(k==="az");} if(GEO_META[k])geoMetric=k; renderGeoMobile(); return;}
+    const mtb=e.target.closest("[data-gmtab]"); if(mtb){gmTab=mtb.getAttribute("data-gmtab");gmExpanded=false;renderGeoMobile();return;}
+    const mbk=e.target.closest("[data-gmback]"); if(mbk){gmBack(mbk.getAttribute("data-gmback"));return;}
+    const mst=e.target.closest("[data-gmstate]"); if(mst){gmGoState(mst.getAttribute("data-gmstate"));return;}
+    const mds=e.target.closest("[data-gmdisaster]"); if(mds){gmGoDisaster(+mds.getAttribute("data-gmdisaster"));return;}
+    const mco=e.target.closest("[data-gmcounty]"); if(mco){gmGoCounty(mco.getAttribute("data-gmcounty"));return;}
+    const mex=e.target.closest("[data-gmexpand]"); if(mex){gmExpanded=!gmExpanded;renderGeoMobile();return;}
     const gcl=e.target.closest("#geoClear"); if(gcl){geoCountyFocus=null;geoStateFilter=null;geoDisasterFocus=null;renderGeoStates();renderGeoMap();renderGeoBoard();geoFocus(true);el("geoPick").innerHTML=`<span class="thr-sub">Tap a county or state for its disasters &amp; dollars.</span>`;syncHash();return;}
     const gax=e.target.closest("[data-applexpand]"); if(gax){geoApplExpanded=!geoApplExpanded;renderGeoBoard();const o=geoCountyFocus&&DECL.counties[geoCountyFocus];if(o)el("geoPick").innerHTML=countyDetailHTML(o,geoCountyFocus);return;}
     const gap=e.target.closest("[data-gappl]"); if(gap){const p=gap.getAttribute("data-gappl").split("|");showApplicant(p[0],+p[1]);return;}
     const gf=e.target.closest("[data-gfips]"); if(gf){showCountyGeo(gf.getAttribute("data-gfips"));return;}
     const gs=e.target.closest("[data-gstate]"); if(gs){geoSelectState(gs.getAttribute("data-gstate"));return;}
-    const gjc=e.target.closest("[data-geocounty]"); if(gjc){const f=gjc.getAttribute("data-geocounty");closeDetail();geoStateFilter=(DECL.counties[f]||{}).state||null;geoMetric="paObligated";showView("geography");setGeoMetric("paObligated");showCountyGeo(f);return;}
-    const gjs=e.target.closest("[data-geostate]"); if(gjs){const s=gjs.getAttribute("data-geostate");closeDetail();geoStateFilter=s;geoMetric="paObligated";showView("geography");setGeoMetric("paObligated");showStateGeo(s);syncHash();return;}
+    const gjc=e.target.closest("[data-geocounty]"); if(gjc){const f=gjc.getAttribute("data-geocounty");closeDetail();if(isMobileGeo()){showView("geography");gmGoCounty(f);return;}geoStateFilter=(DECL.counties[f]||{}).state||null;geoMetric="paObligated";showView("geography");setGeoMetric("paObligated");showCountyGeo(f);return;}
+    const gjs=e.target.closest("[data-geostate]"); if(gjs){const s=gjs.getAttribute("data-geostate");closeDetail();if(isMobileGeo()){showView("geography");gmGoState(s);return;}geoStateFilter=s;geoMetric="paObligated";showView("geography");setGeoMetric("paObligated");showStateGeo(s);syncHash();return;}
     const cm=e.target.closest("[data-clearmonth]"); if(cm){monthFilter=null;renderTimeline();renderLedger();return;}
     const mb=e.target.closest("[data-month]"); if(mb){const m=+mb.getAttribute("data-month");monthFilter=monthFilter===m?null:m;renderTimeline();renderLedger();document.getElementById("ledger").scrollIntoView({behavior:"smooth",block:"start"});return;}
     const tm=e.target.closest("[data-tmlm]"); if(tm){showTimelineMonth(tm.getAttribute("data-tmlm"));return;}
@@ -1797,6 +1962,7 @@ function wire(){
   el("mBack").addEventListener("click",modalBack);
   el("modal").addEventListener("click",e=>{if(e.target===el("modal"))closeDetail();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape")modalBack();});
+  window.matchMedia("(max-width:760px)").addEventListener("change",()=>{const v=el("view-geography");if(v&&v.classList.contains("active"))geoRenderAll();});
   resolveBuild();
 }
 async function resolveBuild(){
