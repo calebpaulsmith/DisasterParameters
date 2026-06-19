@@ -6,6 +6,11 @@ data/_disasters_raw.json
 __pycache__/
 *.pyc
 
+# Node deps (only ever installed transiently for headless-browser UI verification; not part of the app)
+node_modules/
+package.json
+package-lock.json
+
 # PoC panel intermediates (regenerable, large)
 data/county_panel.json
 data/state_panel.json
