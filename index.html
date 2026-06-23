@@ -1171,7 +1171,7 @@ function geoCountyCenter(c){if(c._cx!=null)return {x:c._cx,y:c._cy};
   const {minx,maxy,k,s:sc,pad}=MAPPROJ; let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
   c.g.forEach(p=>p.forEach(r=>r.forEach(pt=>{const px=pad+(pt[0]-minx)*k*sc,py=pad+(maxy-pt[1])*sc;
     if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;})));
-  c._cx=(x0+x1)/2; c._cy=(y0+y1)/2; c._cw=x1-x0; c._ch=y1-y0; return {x:c._cx,y:c._cy};}
+  c._cx=(x0+x1)/2; c._cy=(y0+y1)/2; return {x:c._cx,y:c._cy};}
 function geoUpdateLabels(){            // county names appear once zoomed in past ~state level
   const s=geoSvg(); if(!s||!geoVB||!MAPPROJ)return; const g=s.querySelector(".geolabels"); if(!g)return;
   if(geoVB.w>MAPPROJ.W*0.42){if(g.childNodes.length)g.textContent="";return;}   // labels appear a little further in
@@ -1182,10 +1182,9 @@ function geoUpdateLabels(){            // county names appear once zoomed in pas
   else if(dset)cands=cands.filter(c=>dset.has(c.f));
   else if(geoStateFilter)cands=cands.filter(c=>c.s===geoStateFilter);
   cands=cands.slice(0,60);
+  const fs=(geoVB.w*0.013).toFixed(2);   // size tracks the viewBox, so labels stay the SAME on-screen size at every zoom
   g.innerHTML=cands.map(c=>{const p=geoCountyCenter(c);
-    // dynamic per-county size: fit the name to the county's width (map units, so it also scales with zoom)
-    let fs=1.6*(c._cw||12)/Math.max(5,c.n.length); fs=Math.max(2.4,Math.min(11,fs));
-    return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" font-size="${fs.toFixed(1)}" class="clbl">${c.n}</text>`;}).join("");
+    return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" font-size="${fs}" class="clbl">${c.n}</text>`;}).join("");
 }
 function geoApplyVB(){const s=geoSvg();if(s&&geoVB){s.setAttribute("viewBox",vbStr(geoVB));geoUpdateLabels();}}
 function geoAnimateTo(t,ms){
@@ -1537,18 +1536,30 @@ function renderHazTimeline(){
   const dateToX=ds=>{ if(!ds)return null; const ym=ds.slice(0,7), i=mi[ym]; if(i==null)return null;
     const day=+ds.slice(8,10)||1, f=Math.min(1,Math.max(0,(day-1)/daysIn(ym))); return x(i)+f*step; };
   const byDn=new Map(DISASTERS.map(d=>[d.disasterNumber,d]));
-  let marks="";
+  let marks="", hits="";
   M.forEach(m=>{(TML.disasters[m]||[]).forEach(d=>{ const full=byDn.get(d.dn)||d;
     let xa=dateToX(full.begin), xb=dateToX(full.end||full.begin);
     if(xa==null)xa=xb; if(xb==null)xb=xa; if(xa==null)return;
     let lo=Math.min(xa,xb), hi=Math.max(xa,xb);
     if(hi-lo<2.5){const c=(lo+hi)/2; lo=c-1.25; hi=c+1.25;}            // keep short incidents visible at this scale
     lo=Math.max(pl,lo); hi=Math.min(pl+iw,hi);
-    marks+=`<rect x="${lo.toFixed(1)}" y="${pt}" width="${Math.max(0.8,hi-lo).toFixed(1)}" height="${ih}" fill="#0d2342" opacity="0.16"><title>DR-${d.dn} · ${full.state||d.state||""} — ${fmtRange(full.begin,full.end)}</title></rect>`;
+    marks+=`<rect x="${lo.toFixed(1)}" y="${pt}" width="${Math.max(0.8,hi-lo).toFixed(1)}" height="${ih}" fill="#0d2342" opacity="0.16" style="pointer-events:none"/>`;
+    // wider transparent hit target so the thin band is easy to hover/tap: hover→ledger row below, click→open card
+    const cx=(lo+hi)/2, hw=Math.max((hi-lo)/2,3.5), hx=Math.max(pl,cx-hw), hx2=Math.min(pl+iw,cx+hw);
+    hits+=`<rect x="${hx.toFixed(1)}" y="${pt}" width="${(hx2-hx).toFixed(1)}" height="${ih}" fill="transparent" class="tmlinc" data-dn="${d.dn}" style="cursor:pointer"><title>DR-${d.dn} · ${full.state||d.state||""} — ${fmtRange(full.begin,full.end)} (tap to open)</title></rect>`;
   });});
   const bands=M.map((m,i)=>`<rect x="${(x(i)-step/2).toFixed(1)}" y="${pt}" width="${step.toFixed(1)}" height="${ih}" fill="transparent" class="tmlband" data-tmlm="${m}"/>`).join("");
-  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${grid}${marks}${lines}${bands}</svg>
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${grid}${marks}${lines}${bands}${hits}</svg>
     <div class="maplegend">${TML_SERIES.filter(s=>TML.series[s.k]).map(s=>`<span><i style="background:${s.c}"></i>${s.lab} <span class="thr-sub">(max ${TML.max[s.k]}${s.u})</span></span>`).join("")}<span><i style="background:#0d2342;opacity:.5"></i>incident period</span>${TML.snowPending?`<span class="thr-sub" style="margin-left:auto">snow pending</span>`:""}</div>`;
+  if(!box._tmlHover){box._tmlHover=true;
+    box.addEventListener("mouseover",e=>{const t=e.target.closest("[data-dn]"); if(t)showTimelineDisaster(+t.getAttribute("data-dn"));});
+  }
+}
+function showTimelineDisaster(dn){
+  const box=el("tmlPick"); if(!box)return;
+  const d=DISASTERS.find(x=>x.disasterNumber===dn); if(!d)return;
+  box.innerHTML=`<div class="thr-sub" style="margin:0 0 6px">From the ledger — <b>DR-${dn}</b> · tap the chart to open its full card:</div>`
+    +`<div class="tablewrap"><table class="dis"><tbody>${disasterRow(d)}</tbody></table></div>`;
 }
 function showTimelineMonth(m){
   const box=el("tmlPick"); if(!box||!TML)return;
