@@ -668,13 +668,15 @@ tr.clickable:hover td{background:#eef3f8;}
     <div class="geobar">
       <div class="geotoggle" id="geoToggle">
         <button data-geom="count" class="active">Disasters</button>
-        <button data-geom="paProjects">Projects</button></div>
-      <div class="paia dim" id="paiaToggle" role="group" aria-label="Federal assistance type">
-        <span class="paia__lab">Federal&nbsp;$</span>
-        <button class="paia__sq pa on" data-aid="pa" title="Public Assistance — obligated"><span class="paia__k">PA</span><span class="paia__t">Public</span></button>
-        <button class="paia__sq ia on" data-aid="ia" title="Individual Assistance — IHP approved"><span class="paia__k">IA</span><span class="paia__t">Individual</span></button>
+        <button data-geom="paObligated">PA $</button>
+        <button data-geom="paProjects">Projects</button>
+        <button data-geom="ihpApproved">IA $</button></div>
+      <div class="paia" id="paiaToggle" role="group" aria-label="Filter disasters by assistance type">
+        <span class="paia__lab">With</span>
+        <button class="paia__sq pa on" data-aid="pa" title="Include disasters that carried PA (Public Assistance) obligations"><span class="paia__k">PA</span><span class="paia__t">Public</span></button>
+        <button class="paia__sq ia on" data-aid="ia" title="Include disasters that carried IA (Individual Assistance) approvals"><span class="paia__k">IA</span><span class="paia__t">Individual</span></button>
       </div>
-      <span class="geohint thr-sub">Federal footprint by place — toggle <b>PA</b> / <b>IA</b>, tap a state or county to drill in.</span>
+      <span class="geohint thr-sub">Disasters by place — <b>With PA / IA</b> shows only disasters carrying that assistance (both = all); tap a state or county to drill in.</span>
     </div>
     <div class="geodash">
       <aside class="geocol geocol--states"><div class="geoh">By state <span id="geoClear" class="geoclear" style="display:none">show all ✕</span></div><div id="geoStates" class="geoscroll"><div class="skeleton"><span class="spin"></span></div></div></aside>
@@ -1081,47 +1083,41 @@ const APPL_CAP=15;
 const GEO_META={count:{label:"disasters",fmt:v=>String(v)},
   paObligated:{label:"PA obligated",fmt:v=>fmtMoney(v)},
   paProjects:{label:"projects",fmt:v=>fmtNum(v)},
-  ihpApproved:{label:"IA approved",fmt:v=>fmtMoney(v)},
-  paIhp:{label:"PA + IA",fmt:v=>fmtMoney(v)}};
+  ihpApproved:{label:"IHP approved",fmt:v=>fmtMoney(v)}};
 function geoColor(m,v){
   if(!v)return"#eef2f7";
   if(m==="count")return v>=8?"#5a189a":v>=6?"#7b2cbf":v>=4?"#9d4edd":v>=2?"#c77dff":"#e0aaff";
   if(m==="paObligated")return v>=30e6?"#0b6e3b":v>=15e6?"#1a9850":v>=5e6?"#52b788":v>=1e6?"#95d5b2":"#d8f3dc";
   if(m==="ihpApproved")return v>=1e8?"#7a0b0b":v>=2.5e7?"#b42318":v>=5e6?"#e8590c":v>=5e5?"#fb8c00":"#ffce6b";
-  if(m==="paIhp")return v>=50e6?"#3a0ca3":v>=20e6?"#4361ee":v>=5e6?"#4895ef":v>=1e6?"#4cc9f0":"#caf0f8";
   return v>=300?"#08519c":v>=150?"#2171b5":v>=75?"#4292c6":v>=25?"#6baed6":"#c6dbef";
 }
 const GEO_LEGEND={count:[[0,"0"],[1,"1"],[2,"2–3"],[4,"4–5"],[6,"6–7"],[8,"8+"]],
   paObligated:[[0,"$0"],[1,"<$1M"],[1e6,"1–5M"],[5e6,"5–15M"],[15e6,"15–30M"],[30e6,"$30M+"]],
   paProjects:[[0,"0"],[1,"<25"],[25,"25–74"],[75,"75–149"],[150,"150–299"],[300,"300+"]],
-  ihpApproved:[[0,"$0"],[1,"<$500k"],[5e5,"0.5–5M"],[5e6,"5–25M"],[2.5e7,"25–100M"],[1e8,"$100M+"]],
-  paIhp:[[0,"$0"],[1,"<$1M"],[1e6,"1–5M"],[5e6,"5–20M"],[20e6,"20–50M"],[50e6,"$50M+"]]};
-const GEO_KEY={count:"nDisasters",paObligated:"paObligated",paProjects:"paProjects",ihpApproved:"ihpApproved",paIhp:"paIhp"};
-const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",ihpApproved:"#e8590c",paIhp:"#4361ee"};
+  ihpApproved:[[0,"$0"],[1,"<$500k"],[5e5,"0.5–5M"],[5e6,"5–25M"],[2.5e7,"25–100M"],[1e8,"$100M+"]]};
+const GEO_KEY={count:"nDisasters",paObligated:"paObligated",paProjects:"paProjects",ihpApproved:"ihpApproved"};
+const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",ihpApproved:"#e8590c"};
 function geoComputeStatewide(){
   if(!DECL||DECL._sw)return; DECL._sw=true;
   const sum={};
   Object.values(DECL.counties).forEach(v=>{const a=sum[v.state]||(sum[v.state]={pa:0,proj:0,ihp:0});
-    v.paIhp=(v.paObligated||0)+(v.ihpApproved||0);
     a.pa+=v.paObligated||0;a.proj+=v.paProjects||0;a.ihp+=v.ihpApproved||0;});
   Object.entries(DECL.states).forEach(([s,st])=>{const a=sum[s]||{pa:0,proj:0,ihp:0};
     st.countyPA=a.pa;st.countyProjects=a.proj;st.countyIHP=a.ihp;
     st.paStatewide=Math.max(0,st.paObligated-a.pa);
     st.projectsStatewide=Math.max(0,st.paProjects-a.proj);
-    st.ihpStatewide=Math.max(0,st.ihpApproved-a.ihp);
-    st.paIhp=(st.paObligated||0)+(st.ihpApproved||0);
-    st.paIhpStatewide=st.paStatewide+st.ihpStatewide;});
+    st.ihpStatewide=Math.max(0,st.ihpApproved-a.ihp);});
 }
 function renderGeoStates(){
   const box=el("geoStates");if(!box||!DECL)return; geoComputeStatewide();
-  const m=geoMetric,key=GEO_KEY[m];
-  const sts=Object.entries(DECL.states).sort((a,b)=>(b[1][key]||0)-(a[1][key]||0));
-  const mx=Math.max(...sts.map(([,v])=>v[key]||0))||1;
+  const m=geoMetric;
+  const sts=Object.entries(DECL.states).sort((a,b)=>geoStateVal(b[1],b[0],m)-geoStateVal(a[1],a[0],m));
+  const mx=Math.max(...sts.map(([s,v])=>geoStateVal(v,s,m)))||1;
   box.innerHTML=sts.map(([s,v])=>{
-    const sel=s===geoStateFilter;
+    const sel=s===geoStateFilter, sv=geoStateVal(v,s,m);
     const card=`<div class="statecard ${sel?'sel':''}" data-gstate="${s}">
-      <div class="sn">${v.name}<span>${GEO_META[m].fmt(v[key]||0)}</span></div>
-      <div class="pabar"><span style="width:${Math.round((v[key]||0)/mx*100)}%;background:${GEO_BAR[m]}"></span></div>
+      <div class="sn">${v.name}<span>${GEO_META[m].fmt(sv)}</span></div>
+      <div class="pabar"><span style="width:${Math.round(sv/mx*100)}%;background:${GEO_BAR[m]}"></span></div>
       <div class="sv">${v.nDisasters} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved)} IHP <span class="scexp">${sel?"▲":"▾ disasters"}</span></div></div>`;
     if(!sel)return card;
     const ds=DISASTERS.filter(d=>d.state===s).sort((a,b)=>(b.pa||0)-(a.pa||0)||(b.begin||"").localeCompare(a.begin||""));
@@ -1157,7 +1153,7 @@ function renderGeoMap(){
   if(!geoVB)geoVB=geoTargetVB()||geoFullVB();
   const dc=DECL.counties||{},m=geoMetric,gf=geoStateFilter,cf=geoCountyFocus;
   const df=geoDisasterFocus, dsetRaw=df?geoDisasterFips(df):null, useD=!!(dsetRaw&&dsetRaw.size);
-  const paths=COUNTIES.map(c=>{const o=dc[c.f],v=o?(o[m]||0):0;
+  const paths=COUNTIES.map(c=>{const o=dc[c.f],v=o?geoCountyVal(o,m):0;
     const inD=useD?dsetRaw.has(c.f):false;
     const csel=!df&&cf&&c.f===cf;
     const sel=useD?inD:(cf?c.f===cf:(gf&&c.s===gf)), dim=useD?!inD:(cf?c.f!==cf:(gf&&c.s!==gf));
@@ -1338,15 +1334,15 @@ function renderGeoBoard(){
     return;
   }
   const m=geoMetric;
-  let ent=Object.entries(DECL.counties).filter(([,v])=>v[m]);
+  let ent=Object.entries(DECL.counties).filter(([,v])=>geoCountyVal(v,m));
   if(geoStateFilter)ent=ent.filter(([,v])=>v.state===geoStateFilter);
-  const top=ent.sort((a,b)=>b[1][m]-a[1][m]).slice(0,geoStateFilter?40:25);
-  if(sub)sub.innerHTML=`<span class="gbscope">${geoStateFilter?DECL.states[geoStateFilter].name:"Region 5 — all states"}</span><span class="gbtag">top counties · ${GEO_META[m].label}</span>`;
+  const top=ent.sort((a,b)=>geoCountyVal(b[1],m)-geoCountyVal(a[1],m)).slice(0,geoStateFilter?40:25);
+  if(sub)sub.innerHTML=`<span class="gbscope">${geoStateFilter?DECL.states[geoStateFilter].name:"Region 5 — all states"}</span><span class="gbtag">top counties · ${GEO_META[m].label}${m==="count"&&geoFiltering()?` · with ${geoPA?"PA":""}${geoPA&&geoIA?"+":""}${geoIA?"IA":""}`:""}</span>`;
   let html=top.map(([f,v],i)=>`<div class="georow clickable" data-gfips="${f}">
     <span class="gr"><span class="grk">${i+1}</span><b>${v.name}</b>, ${v.state}</span>
-    <span class="gv">${GEO_META[m].fmt(v[m])}<span class="thr-sub"> · ${v.count} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved||0)} IHP · ${fmtNum(v.paProjects)} proj</span></span></div>`).join("");
+    <span class="gv">${GEO_META[m].fmt(geoCountyVal(v,m))}<span class="thr-sub"> · ${v.count} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved||0)} IHP · ${fmtNum(v.paProjects)} proj</span></span></div>`).join("");
   if(geoStateFilter){const st=DECL.states[geoStateFilter];
-    const swv={count:0,paObligated:st.paStatewide,paProjects:st.projectsStatewide,ihpApproved:st.ihpStatewide,paIhp:st.paIhpStatewide}[m]||0;
+    const swv={count:0,paObligated:st.paStatewide,paProjects:st.projectsStatewide,ihpApproved:st.ihpStatewide}[m]||0;
     if(swv)html+=`<div class="georow" style="background:#fff8e6;cursor:default"><span class="gr"><span class="grk">∑</span><b>Statewide</b> <span class="thr-sub">not tied to a county</span></span><span class="gv">${GEO_META[m].fmt(swv)}</span></div>`;
   }
   box.innerHTML=html||`<p class="thr-sub">—</p>`;
@@ -1394,18 +1390,30 @@ function geoSelectState(s){
   syncHash();
 }
 function setGeoMetric(m){geoMetric=m;
-  if(m==="paObligated"){geoPA=true;geoIA=false;} else if(m==="ihpApproved"){geoPA=false;geoIA=true;} else if(m==="paIhp"){geoPA=true;geoIA=true;}
   document.querySelectorAll("#geoToggle button").forEach(b=>b.classList.toggle("active",b.dataset.geom===m));
   syncPaiaUI();renderGeoStates();renderGeoMap();renderGeoBoard();}
-function assistMetric(){return geoPA&&geoIA?"paIhp":geoPA?"paObligated":"ihpApproved";}
+/* PA/IA tiles FILTER which disasters are shown in the Disasters (count) view:
+   PA → disasters that carried PA obligations, IA → those with IA approvals, both → all. */
+function geoFiltering(){return !(geoPA&&geoIA);}
+function geoKeep(d){return (geoPA&&((d.pa||0)>0))||(geoIA&&((d.ihp||0)>0));}
+function geoCountyVal(o,m){
+  if(m!=="count")return o[m]||0;
+  if(!geoFiltering())return o.count||0;
+  return (o.disasters||[]).filter(geoKeep).length;
+}
+function geoStateVal(st,s,m){
+  if(m!=="count")return st[GEO_KEY[m]]||0;
+  if(!geoFiltering())return st.nDisasters||0;
+  return DISASTERS.filter(d=>d.state===s&&geoKeep(d)).length;
+}
 function clickAssist(which){
-  const dollar=(geoMetric==="paObligated"||geoMetric==="ihpApproved"||geoMetric==="paIhp");
-  if(dollar){ if(which==="pa")geoPA=!geoPA; else geoIA=!geoIA; if(!geoPA&&!geoIA){if(which==="pa")geoIA=true;else geoPA=true;} }
-  setGeoMetric(assistMetric());   // first click from a non-$ view just enters $ mode with the current selection
+  if(which==="pa")geoPA=!geoPA; else geoIA=!geoIA;
+  if(!geoPA&&!geoIA){if(which==="pa")geoIA=true;else geoPA=true;}   // keep at least one selected
+  if(geoMetric!=="count"){setGeoMetric("count");return;}            // the filter applies to the Disasters view
+  syncPaiaUI();renderGeoStates();renderGeoMap();renderGeoBoard();
 }
 function syncPaiaUI(){const pt=el("paiaToggle"); if(!pt)return;
-  const dollar=(geoMetric==="paObligated"||geoMetric==="ihpApproved"||geoMetric==="paIhp");
-  pt.classList.toggle("dim",!dollar);
+  pt.classList.toggle("dim",geoMetric!=="count");   // filter only meaningful for the Disasters (count) view
   pt.querySelectorAll(".paia__sq").forEach(b=>b.classList.toggle("on", b.dataset.aid==="pa"?geoPA:geoIA));}
 function geoRenderAll(){
   if(isMobileGeo()){renderGeoMobile();return;}
