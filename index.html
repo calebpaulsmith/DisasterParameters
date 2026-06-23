@@ -1182,7 +1182,7 @@ function geoUpdateLabels(){            // county names appear once zoomed in pas
   else if(dset)cands=cands.filter(c=>dset.has(c.f));
   else if(geoStateFilter)cands=cands.filter(c=>c.s===geoStateFilter);
   cands=cands.slice(0,60);
-  const fs=(geoVB.w*0.013).toFixed(2);   // size tracks the viewBox, so labels stay the SAME on-screen size at every zoom
+  const fs="4";   // constant in map units: identical for every county, and grows on screen as you zoom in
   g.innerHTML=cands.map(c=>{const p=geoCountyCenter(c);
     return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" font-size="${fs}" class="clbl">${c.n}</text>`;}).join("");
 }
