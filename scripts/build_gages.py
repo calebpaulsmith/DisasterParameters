@@ -40,6 +40,21 @@ KEY = [
   ("03270500","Great Miami River","Dayton","OH"),
   ("03335500","Wabash River","Lafayette","IN"),
   ("03353000","White River","Indianapolis","IN"),
+  # --- additional gages just downstream of / at major Region 5 cities ---
+  ("03227500","Scioto River","Columbus","OH"),
+  ("05568500","Illinois River","Kingston Mines","IL"),  # Peoria
+  ("04183000","Maumee River","New Haven","IN"),         # Fort Wayne
+  ("04113000","Grand River","Lansing","MI"),
+  ("04101500","St. Joseph River","Niles","MI"),         # South Bend reach
+  ("04166500","River Rouge","Detroit","MI"),
+  ("03098600","Mahoning River","Youngstown","OH"),
+  ("04206000","Cuyahoga River","Old Portage","OH"),     # Akron
+  ("05437500","Rock River","Rockton","IL"),             # Rockford
+  ("04148500","Flint River","Flint","MI"),
+  ("05429500","Yahara River","McFarland","WI"),         # Madison reach
+  ("05435500","Pecatonica River","Freeport","IL"),
+  ("04086000","Sheboygan River","Sheboygan","WI"),
+  ("03255000","Ohio River","Cincinnati","OH"),
 ]
 
 def fetch(url, timeout=40, retries=3, post=None, headers=None):
