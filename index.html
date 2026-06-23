@@ -1171,7 +1171,7 @@ function geoCountyCenter(c){if(c._cx!=null)return {x:c._cx,y:c._cy};
   const {minx,maxy,k,s:sc,pad}=MAPPROJ; let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
   c.g.forEach(p=>p.forEach(r=>r.forEach(pt=>{const px=pad+(pt[0]-minx)*k*sc,py=pad+(maxy-pt[1])*sc;
     if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;})));
-  c._cx=(x0+x1)/2; c._cy=(y0+y1)/2; c._cw=x1-x0; c._ch=y1-y0; return {x:c._cx,y:c._cy};}
+  c._cx=(x0+x1)/2; c._cy=(y0+y1)/2; return {x:c._cx,y:c._cy};}
 function geoUpdateLabels(){            // county names appear once zoomed in past ~state level
   const s=geoSvg(); if(!s||!geoVB||!MAPPROJ)return; const g=s.querySelector(".geolabels"); if(!g)return;
   if(geoVB.w>MAPPROJ.W*0.42){if(g.childNodes.length)g.textContent="";return;}   // labels appear a little further in
@@ -1182,10 +1182,9 @@ function geoUpdateLabels(){            // county names appear once zoomed in pas
   else if(dset)cands=cands.filter(c=>dset.has(c.f));
   else if(geoStateFilter)cands=cands.filter(c=>c.s===geoStateFilter);
   cands=cands.slice(0,60);
+  const fs=(geoVB.w*0.013).toFixed(2);   // size tracks the viewBox, so labels stay the SAME on-screen size at every zoom
   g.innerHTML=cands.map(c=>{const p=geoCountyCenter(c);
-    // dynamic per-county size: fit the name to the county's width (map units, so it also scales with zoom)
-    let fs=1.6*(c._cw||12)/Math.max(5,c.n.length); fs=Math.max(2.4,Math.min(11,fs));
-    return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" font-size="${fs.toFixed(1)}" class="clbl">${c.n}</text>`;}).join("");
+    return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" font-size="${fs}" class="clbl">${c.n}</text>`;}).join("");
 }
 function geoApplyVB(){const s=geoSvg();if(s&&geoVB){s.setAttribute("viewBox",vbStr(geoVB));geoUpdateLabels();}}
 function geoAnimateTo(t,ms){
