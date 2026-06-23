@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Disaster Obligation Estimator &amp; Watch — FEMA Region 5</title>
+<title>Disaster Data — FEMA Region 5</title>
 <meta name="description" content="Independent tool: estimate likely FEMA PA/IA obligated dollars from measured hazard parameters (NOAA Storm Events + USGS), with a live Region 5 disaster watch and historical timeline." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -41,19 +41,19 @@ button{font-family:inherit;}
 
 /* masthead */
 .masthead{background:linear-gradient(120deg,var(--navy-2),var(--navy) 55%,var(--blue-dark) 130%);color:#fff;border-bottom:4px solid var(--gold);}
-.masthead__inner{max-width:1320px;margin:0 auto;padding:18px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
-.seal{width:54px;height:54px;flex:none;filter:drop-shadow(0 3px 7px rgba(0,0,0,.4));}
+.masthead__inner{max-width:1320px;margin:0 auto;padding:8px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.seal{width:36px;height:36px;flex:none;filter:drop-shadow(0 3px 7px rgba(0,0,0,.4));}
 .masthead__titles{flex:1 1 360px;min-width:240px;}
 .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);}
-.masthead h1{font-size:clamp(20px,3vw,30px);margin:2px 0 4px;color:#fff;}
-.masthead__sub{font-size:14px;color:#cdd9e8;max-width:70ch;}
+.masthead h1{font-size:clamp(17px,2.2vw,22px);margin:0;line-height:1.1;color:#fff;}
+.masthead__sub{font-size:13px;color:#cdd9e8;margin:1px 0 0;}
 .masthead__meta{display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:190px;}
 .pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);color:#eaf1fa;white-space:nowrap;}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--gold);}
 .dot.live{background:#23d160;animation:pulse 2s infinite;}
 .dot.warn{background:var(--gold);}.dot.err{background:var(--red-vivid);}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(35,209,96,.55);}70%{box-shadow:0 0 0 9px rgba(35,209,96,0);}100%{box-shadow:0 0 0 0 rgba(35,209,96,0);}}
-.masthead__disc{font-size:10.5px;color:#9fb2cb;text-align:right;}
+.masthead__disc{font-size:10.5px;color:#9fb2cb;text-align:left;margin-top:2px;}
 
 /* nav */
 .nav{position:sticky;top:0;z-index:50;background:var(--navy);border-bottom:1px solid rgba(255,255,255,.12);box-shadow:var(--shadow-sm);}
@@ -375,7 +375,7 @@ tr.clickable:hover td{background:#eef3f8;}
 .betatag{display:inline-block;background:var(--gold);color:#3a2c00;font-size:9.5px;font-weight:800;letter-spacing:.06em;padding:1px 6px;border-radius:9px;vertical-align:1px;margin-left:6px;}
 .geobar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
 .geohint{flex:1;min-width:220px;}
-.geodash{display:grid;grid-template-columns:210px 1fr 330px;gap:12px;height:calc(100vh - 250px);min-height:470px;}
+.geodash{display:grid;grid-template-columns:210px 1fr 330px;gap:12px;height:calc(100vh - 232px);min-height:440px;}
 .geocol{min-height:0;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:12px;}
 .geocol--map{background:#f7f9fc;}
 .geocol--right{background:none;border:none;display:grid;grid-template-rows:1fr 1fr;gap:12px;}
@@ -497,13 +497,9 @@ tr.clickable:hover td{background:#eef3f8;}
   <div class="masthead__inner">
     <svg class="seal" viewBox="0 0 100 100" role="img" aria-label="Region 5 disaster crest mark"><defs><linearGradient id="chipg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1f4d8f"/><stop offset="1" stop-color="#0d2342"/></linearGradient></defs><rect x="5" y="5" width="90" height="90" rx="24" fill="url(#chipg)" stroke="#ffbe2e" stroke-width="4.5"/><clipPath id="chipc"><rect x="5" y="5" width="90" height="90" rx="24"/></clipPath><g clip-path="url(#chipc)"><line x1="5" y1="60" x2="95" y2="60" stroke="#35c4d4" stroke-width="2.6" stroke-dasharray="7 4.5" opacity="0.9"/><path d="M8,74 C24,72 28,22 48,19 C68,16 74,58 92,63 L92,95 L8,95 Z" fill="#ffbe2e" opacity="0.16"/><path d="M8,74 C24,72 28,22 48,19 C68,16 74,58 92,63" fill="none" stroke="#ffbe2e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="48" cy="19" r="6.5" fill="#ffbe2e" stroke="#0d2342" stroke-width="2.6"/><text x="12" y="89" font-family="ui-monospace,Menlo,monospace" font-size="16" font-weight="700" fill="#9fc0e6">R5</text></g></svg>
     <div class="masthead__titles">
-      <div class="eyebrow">Disaster Recovery Analytics &middot; FEMA Region 5 <span class="betatag">BETA</span></div>
-      <h1>Disaster Obligation Estimator &amp; Watch</h1>
-      <p class="masthead__sub">A <b>traceable ledger</b> of every Region 5 disaster — tap one for its <b>actual</b> PA/IA cost breakdown and the specific gages/parameters that drove it. Tap a <b>gage</b> for its century of crests with declarations marked, and watch <b>live</b> levels against the stage that has historically triggered a declaration.</p>
-    </div>
-    <div class="masthead__meta">
-      <span class="pill"><span class="dot" id="srcDot"></span><span id="srcLabel">Loading…</span></span>
-      <div class="masthead__disc">IL · IN · MI · MN · OH · WI · Not endorsed by FEMA</div>
+      <h1>Disaster Data</h1>
+      <p class="masthead__sub">A <b>traceable ledger</b> of every FEMA Region&nbsp;5 disaster</p>
+      <div class="masthead__disc">IL &middot; IN &middot; MI &middot; MN &middot; OH &middot; WI &middot; Not endorsed by FEMA</div>
     </div>
   </div>
 </header>
@@ -656,7 +652,7 @@ tr.clickable:hover td{background:#eef3f8;}
         <button data-geom="paObligated">PA obligated</button>
         <button data-geom="paProjects">PA projects</button>
         <button data-geom="ihpApproved">IHP approved</button></div>
-      <span class="geohint thr-sub">Federal footprint by place — state totals match the ledger; county $ summed from per-project federal share. Tap a state to zoom · tap a county to zoom in and see its top applicants.</span>
+      <span class="geohint thr-sub">Federal footprint by place — tap a state or county to zoom in and see its disasters, dollars &amp; top applicants.</span>
     </div>
     <div class="geodash">
       <aside class="geocol geocol--states"><div class="geoh">By state <span id="geoClear" class="geoclear" style="display:none">show all ✕</span></div><div id="geoStates" class="geoscroll"><div class="skeleton"><span class="spin"></span></div></div></aside>
@@ -703,13 +699,14 @@ tr.clickable:hover td{background:#eef3f8;}
 
 <footer>
   <div class="footer__inner">
-    <div style="max-width:32ch"><h4>Disaster Obligation Estimator &amp; Watch</h4><p>Independent, transparent estimator of likely FEMA PA/IA obligated dollars for FEMA Region 5, built on public open data with measured hazards and live monitoring.</p></div>
+    <div style="max-width:32ch"><h4>Disaster Data</h4><p>Independent, transparent ledger of FEMA PA/IA obligated dollars for FEMA Region 5, built on public open data with measured hazards and live monitoring.</p></div>
     <div><h4>Data sources</h4><ul>
       <li>OpenFEMA — obligations &amp; declarations</li><li>NOAA Storm Events — wind / hail / tornado</li>
-      <li>USGS Water Services — river stage</li><li>NWS api.weather.gov — live alerts</li></ul></div>
+      <li>USGS Water Services — river stage</li><li>NWS api.weather.gov — live alerts</li></ul>
+      <span class="pill" style="margin-top:10px"><span class="dot" id="srcDot"></span><span id="srcLabel">Loading…</span></span></div>
     <div><h4>Use responsibly</h4><ul><li>Not for eligibility / rights determinations</li><li>Estimates &amp; live thresholds are illustrative</li><li>Verify against FEMA PDAs &amp; NWS/USGS official data</li></ul></div>
     <p class="footer__disclaimer">This product uses FEMA's OpenFEMA API, NOAA, NWS, and USGS public data, but is not endorsed by any of them. River flood-stage thresholds are approximate; gage data is provisional and subject to revision.
-      <br>Build <a id="buildLink" href="https://github.com/calebpaulsmith/DisasterParameters" target="_blank" rel="noopener"><code id="buildSha">__BUILD_SHA__</code></a> · deployed <span id="buildDate">__BUILD_DATE__</span></p>
+      <br>Build <a id="buildLink" href="https://github.com/calebpaulsmith/DisasterParameters" target="_blank" rel="noopener"><code id="buildSha">__BUILD_SHA__</code></a></p>
   </div>
 </footer>
 
