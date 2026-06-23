@@ -1536,18 +1536,30 @@ function renderHazTimeline(){
   const dateToX=ds=>{ if(!ds)return null; const ym=ds.slice(0,7), i=mi[ym]; if(i==null)return null;
     const day=+ds.slice(8,10)||1, f=Math.min(1,Math.max(0,(day-1)/daysIn(ym))); return x(i)+f*step; };
   const byDn=new Map(DISASTERS.map(d=>[d.disasterNumber,d]));
-  let marks="";
+  let marks="", hits="";
   M.forEach(m=>{(TML.disasters[m]||[]).forEach(d=>{ const full=byDn.get(d.dn)||d;
     let xa=dateToX(full.begin), xb=dateToX(full.end||full.begin);
     if(xa==null)xa=xb; if(xb==null)xb=xa; if(xa==null)return;
     let lo=Math.min(xa,xb), hi=Math.max(xa,xb);
     if(hi-lo<2.5){const c=(lo+hi)/2; lo=c-1.25; hi=c+1.25;}            // keep short incidents visible at this scale
     lo=Math.max(pl,lo); hi=Math.min(pl+iw,hi);
-    marks+=`<rect x="${lo.toFixed(1)}" y="${pt}" width="${Math.max(0.8,hi-lo).toFixed(1)}" height="${ih}" fill="#0d2342" opacity="0.16"><title>DR-${d.dn} · ${full.state||d.state||""} — ${fmtRange(full.begin,full.end)}</title></rect>`;
+    marks+=`<rect x="${lo.toFixed(1)}" y="${pt}" width="${Math.max(0.8,hi-lo).toFixed(1)}" height="${ih}" fill="#0d2342" opacity="0.16" style="pointer-events:none"/>`;
+    // wider transparent hit target so the thin band is easy to hover/tap: hover→ledger row below, click→open card
+    const cx=(lo+hi)/2, hw=Math.max((hi-lo)/2,3.5), hx=Math.max(pl,cx-hw), hx2=Math.min(pl+iw,cx+hw);
+    hits+=`<rect x="${hx.toFixed(1)}" y="${pt}" width="${(hx2-hx).toFixed(1)}" height="${ih}" fill="transparent" class="tmlinc" data-dn="${d.dn}" style="cursor:pointer"><title>DR-${d.dn} · ${full.state||d.state||""} — ${fmtRange(full.begin,full.end)} (tap to open)</title></rect>`;
   });});
   const bands=M.map((m,i)=>`<rect x="${(x(i)-step/2).toFixed(1)}" y="${pt}" width="${step.toFixed(1)}" height="${ih}" fill="transparent" class="tmlband" data-tmlm="${m}"/>`).join("");
-  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${grid}${marks}${lines}${bands}</svg>
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${grid}${marks}${lines}${bands}${hits}</svg>
     <div class="maplegend">${TML_SERIES.filter(s=>TML.series[s.k]).map(s=>`<span><i style="background:${s.c}"></i>${s.lab} <span class="thr-sub">(max ${TML.max[s.k]}${s.u})</span></span>`).join("")}<span><i style="background:#0d2342;opacity:.5"></i>incident period</span>${TML.snowPending?`<span class="thr-sub" style="margin-left:auto">snow pending</span>`:""}</div>`;
+  if(!box._tmlHover){box._tmlHover=true;
+    box.addEventListener("mouseover",e=>{const t=e.target.closest("[data-dn]"); if(t)showTimelineDisaster(+t.getAttribute("data-dn"));});
+  }
+}
+function showTimelineDisaster(dn){
+  const box=el("tmlPick"); if(!box)return;
+  const d=DISASTERS.find(x=>x.disasterNumber===dn); if(!d)return;
+  box.innerHTML=`<div class="thr-sub" style="margin:0 0 6px">From the ledger — <b>DR-${dn}</b> · tap the chart to open its full card:</div>`
+    +`<div class="tablewrap"><table class="dis"><tbody>${disasterRow(d)}</tbody></table></div>`;
 }
 function showTimelineMonth(m){
   const box=el("tmlPick"); if(!box||!TML)return;
