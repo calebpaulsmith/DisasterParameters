@@ -1002,10 +1002,11 @@ function countyGagesHtml(fips){
   const gs=(typeof GAGES!=="undefined"?GAGES:[]).filter(g=>g.countyFips===fips);
   if(!gs.length)return `<p class="thr-sub" style="margin:4px 0 0">No monitored river gages in this county.</p>`;
   return gs.map(g=>{const n=(typeof LIVE!=="undefined"&&LIVE[g.id])||null, ft=n?n.ft:null;
-    const over=ft!=null&&g.floodStage!=null?ft-g.floodStage:null;
-    const status=over==null?`<span class="thr-sub">level unavailable</span>`
-      :`<b style="color:${overFloodColor(over)}">${ft.toFixed(1)} ft</b> · ${over>=0?`+${over.toFixed(1)} ft over`:`${Math.abs(over).toFixed(1)} ft below`} flood`;
-    return `<div class="declrow clickable" data-gage="${g.id}"><span class="dk"><b style="color:var(--navy)">${g.name}</b>${g.river?` · ${g.river}`:""}</span><span class="dv">${status} ↗</span></div>`;}).join("");
+    const status= ft==null ? `<span class="thr-sub">level unavailable</span>`
+      : g.floodStage!=null
+        ? `<b style="color:${overFloodColor(ft-g.floodStage)}">${ft.toFixed(1)} ft</b> · ${(ft-g.floodStage)>=0?`+${(ft-g.floodStage).toFixed(1)} ft over`:`${Math.abs(ft-g.floodStage).toFixed(1)} ft below`} flood`
+        : `<b>${ft.toFixed(1)} ft</b> <span class="thr-sub">· flood stage n/a</span>`;
+    return `<div class="declrow clickable" data-gage="${g.id}"><span class="dk"><b style="color:var(--navy)">${g.name}</b></span><span class="dv">${status} ↗</span></div>`;}).join("");
 }
 function showCountyAlerts(fips){
   const c=COUNTIES.find(x=>x.f===fips); if(!c)return;
@@ -1859,7 +1860,7 @@ async function fetchGageLive(id){
 function renderGageDetail(id){
   const g=GAGES.find(x=>x.id===id); if(!g) return;
   const peaks=(g.peaks||[]).filter(p=>p.s!=null);
-  const record=peaks.reduce((m,p)=>p.s>m.s?p:m,{s:-1});
+  const record=peaks.reduce((m,p)=>p.s>m.s?p:m,{s:-1,d:""});
   const live=LIVE[id];
   el("mDr").textContent=g.name;
   el("mTitle").textContent=`${g.river} · ${g.town}, ${g.state}`;
