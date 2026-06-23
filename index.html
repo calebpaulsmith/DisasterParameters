@@ -1180,7 +1180,7 @@ function geoBindMapControls(){
     if(geoAnimRAF){cancelAnimationFrame(geoAnimRAF);geoAnimRAF=null;}
     pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); s.style.cursor="grabbing"; try{s.setPointerCapture(e.pointerId);}catch(_){}
     if(pts.size===2){const[a,b]=[...pts.values()]; const m=mid(a,b); pinch={dist:dist(a,b),x:m.x,y:m.y}; drag=null;}
-    else if(pts.size===1){drag={x:e.clientX,y:e.clientY}; moved=0;}});
+    else if(pts.size===1){geoDidPan=false; drag={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY}; moved=0;}});
   box.addEventListener("pointermove",e=>{if(!geoVB||!pts.has(e.pointerId))return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
     const r=sz();if(!r)return;
     if(pts.size>=2&&pinch){const[a,b]=[...pts.values()]; const nd=dist(a,b),nm=mid(a,b);
@@ -1189,11 +1189,21 @@ function geoBindMapControls(){
       geoVB.x=wx-(nm.x-r.left)/r.width*nw; geoVB.y=wy-(nm.y-r.top)/r.height*nh; geoVB.w=nw; geoVB.h=nh;
       pinch={dist:nd,x:nm.x,y:nm.y}; moved=999; geoApplyVB(); return;}
     if(drag){const dx=e.clientX-drag.x, dy=e.clientY-drag.y; moved+=Math.abs(dx)+Math.abs(dy);
-      geoVB.x-=dx*geoVB.w/r.width; geoVB.y-=dy*geoVB.h/r.height; drag={x:e.clientX,y:e.clientY}; geoApplyVB();}});
-  const end=e=>{pts.delete(e.pointerId); const s=geoSvg();
+      geoVB.x-=dx*geoVB.w/r.width; geoVB.y-=dy*geoVB.h/r.height; drag={x:e.clientX,y:e.clientY,sx:drag.sx,sy:drag.sy}; geoApplyVB();}});
+  const end=e=>{const was=drag, ex=e.clientX, ey=e.clientY; pts.delete(e.pointerId); const s=geoSvg();
     if(pts.size<2)pinch=null;
-    if(pts.size===1){const[p]=[...pts.values()]; drag={x:p.x,y:p.y};}
-    else if(pts.size===0){if((drag&&moved>6)||moved===999)geoDidPan=true; drag=null; if(s)s.style.cursor="grab";}};
+    if(pts.size===1){const[p]=[...pts.values()]; drag={x:p.x,y:p.y,sx:p.x,sy:p.y};}
+    else if(pts.size===0){
+      // pan-vs-tap by NET displacement: accumulated touch jitter was tripping the old `moved>6` test,
+      // making a stationary tap look like a pan and swallowing the click.
+      const net=was?Math.hypot(ex-was.sx,ey-was.sy):0;
+      if(net>8||moved===999){geoDidPan=true;}              // a real drag / pinch — swallow the trailing click
+      else{ // a tap: pointer capture can mis-target the native click, so resolve the county by coordinates
+        const tgt=document.elementFromPoint(ex,ey), cf=tgt&&tgt.closest?tgt.closest("[data-gfips]"):null;
+        if(cf){geoDidPan=true; showCountyGeo(cf.getAttribute("data-gfips"));}
+      }
+      drag=null; if(s)s.style.cursor="grab";
+    }};
   box.addEventListener("pointerup",end); box.addEventListener("pointercancel",end);
   box.addEventListener("click",e=>{if(geoDidPan){geoDidPan=false;e.stopPropagation();e.preventDefault();}},true);
   box.addEventListener("wheel",e=>{if(!geoVB||!MAPPROJ)return; e.preventDefault();
