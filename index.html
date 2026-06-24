@@ -1137,7 +1137,7 @@ let GEO_YR0=2007, GEO_YR1=2026;              // full data span (set from DECL on
 let geoYearLo=GEO_YR0, geoYearHi=GEO_YR1;    // selected range (inclusive)
 let geoTlDomLo=GEO_YR0, geoTlDomHi=GEO_YR1;  // visible (animated) domain — expands/contracts toward the selection
 let geoTlAnim=null;
-const GEO_YEARKEY={paObligated:"paByYear",ihpApproved:"ihpByYear",hmgpObligated:"hmgpByYear",mitObligated:"mitByYear",empg:"empgByYear",afg:"afgByYear"};
+const GEO_YEARKEY={paObligated:"paByYear",paProjects:"paProjectsByYear",ihpApproved:"ihpByYear",hmgpObligated:"hmgpByYear",mitObligated:"mitByYear",empg:"empgByYear",afg:"afgByYear"};
 function geoYrFiltering(){return geoYearLo>GEO_YR0||geoYearHi<GEO_YR1;}
 function yrSum(map,lo,hi){if(!map)return 0;let s=0;for(const y in map){const n=+y;if(n>=lo&&n<=hi)s+=map[y];}return s;}
 function inYr(rec){if(!geoYrFiltering())return true;const y=+String(rec.date||rec.begin||"").slice(0,4);return y>=geoYearLo&&y<=geoYearHi;}
@@ -1503,7 +1503,7 @@ function countyDetailHTML(o,fips){
   const pa=F?yrSum(o.paByYear,geoYearLo,geoYearHi):(o.paObligated||0), ih=F?yrSum(o.ihpByYear,geoYearLo,geoYearHi):(o.ihpApproved||0), hm=F?yrSum(o.hmgpByYear,geoYearLo,geoYearHi):(o.hmgpObligated||0);
   const list=dis.map(d=>`<div class="declrow clickable" data-dn="${d.dn}"><span class="dk"><b style="color:var(--navy)">DR-${d.dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">${fmtMoney(d.pa)} <span class="thr-sub">DR&nbsp;total</span> ↗</span></div>`).join("");
   const span=F?` <span class="thr-sub">(${geoYearLo}–${geoYearHi})</span>`:` <span class="thr-sub">(all-time)</span>`;
-  return `<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${dis.length}</b> disaster${dis.length===1?"":"s"}${span}<br>PA <b>${fmtMoney(pa)}</b> · IHP <b>${fmtMoney(ih)}</b> · HMGP <b>${fmtMoney(hm)}</b>${F?"":` · <b>${fmtNum(o.paProjects)}</b> projects`}${(!F&&o.nApplicants)?` · <b>${fmtNum(o.nApplicants)}</b> applicants →`:""}</div><div class="declsub">Disasters that designated this county <span class="thr-sub">· $ = that disaster's whole-DR total, not this county's share</span></div>${list}${geoYrCap(true)}`;
+  return `<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${dis.length}</b> disaster${dis.length===1?"":"s"}${span}<br>PA <b>${fmtMoney(pa)}</b> · IHP <b>${fmtMoney(ih)}</b> · HMGP <b>${fmtMoney(hm)}</b> · <b>${fmtNum(F?yrSum(o.paProjectsByYear,geoYearLo,geoYearHi):o.paProjects)}</b> projects${(!F&&o.nApplicants)?` · <b>${fmtNum(o.nApplicants)}</b> applicants →`:""}</div><div class="declsub">Disasters that designated this county <span class="thr-sub">· $ = that disaster's whole-DR total, not this county's share</span></div>${list}${geoYrCap(true)}`;
 }
 function showCountyGeo(fips){            // enter county focus: zoom, applicants board, detail
   const o=(DECL.counties||{})[fips];if(!o)return;
@@ -1621,7 +1621,7 @@ function geoCountyVal(o,m){
   if(m==="count"){ if(!geoFiltering()&&!F)return o.count||0; return (o.disasters||[]).filter(d=>geoProgKeep(geoFull(d.dn))&&inYr(d)).length; }
   if(GEO_STATEONLY[m]){const st=DECL.states[o.state]; if(!st)return 0; return F?yrSum(st[GEO_YEARKEY[m]],geoYearLo,geoYearHi):(st[m]||0);}   // fill county by its state's value
   if(m==="mitObligated"){ if(F)return yrSum(o.mitByYear,geoYearLo,geoYearHi); return geoMitProg==="ALL"?(o.mitObligated||0):((o.mitByProgram||{})[geoMitProg]||0); }  // per-program mit isn't year-sliced (v1) → year filter sums all programs
-  if(F&&GEO_YEARKEY[m])return yrSum(o[GEO_YEARKEY[m]],geoYearLo,geoYearHi);   // paProjects has no byYear → stays all-time
+  if(F&&GEO_YEARKEY[m])return yrSum(o[GEO_YEARKEY[m]],geoYearLo,geoYearHi);   // paObligated/paProjects/ihp/hmgp/mit → windowed by obligation year
   return o[m]||0;
 }
 function geoStateVal(st,s,m){

@@ -7,6 +7,8 @@ else (re-run any time: python3 scripts/build_county_byyear.py).
 Each county and state gains:
   paByYear   – PublicAssistanceFundedProjectsDetails.federalShareObligated bucketed by
                year(lastObligationDate)         [TRUE obligation year]
+  paProjectsByYear – count of PA project worksheets by year(lastObligationDate) (every
+               dated worksheet, matching the all-time paProjects)   [TRUE obligation year]
   hmgpByYear – HazardMitigationAssistanceProjects v4 (programArea=HMGP)
                federalShareObligated by year(initialObligationDate)   [TRUE obl. year]
   mitByYear  – HazardMitigationAssistanceProjects v4 (programArea ne HMGP, the non-disaster
@@ -54,8 +56,9 @@ def main():
     dis=json.load(open(os.path.join(DATA,"disasters.json")))
     cty=cd["counties"]; states=cd["states"]
 
-    # year accumulators: fips/state -> {year: $}
+    # year accumulators: fips/state -> {year: $}  (+ PA worksheet COUNT by year)
     paC=collections.defaultdict(lambda:collections.defaultdict(float)); paSW=collections.defaultdict(lambda:collections.defaultdict(float))
+    pjC=collections.defaultdict(lambda:collections.defaultdict(int)); pjSW=collections.defaultdict(lambda:collections.defaultdict(int))
     hmC=collections.defaultdict(lambda:collections.defaultdict(float)); hmSW=collections.defaultdict(lambda:collections.defaultdict(float))
     miC=collections.defaultdict(lambda:collections.defaultdict(float)); miSW=collections.defaultdict(lambda:collections.defaultdict(float))
 
@@ -73,16 +76,18 @@ def main():
             for r in recs:
                 y=yr(r.get("lastObligationDate"))
                 if not y: continue
-                try: amt=float(r.get("federalShareObligated") or 0)
-                except Exception: amt=0.0
-                if not amt: continue
                 sc=str(r.get("stateNumberCode") or "").zfill(2); cc=r.get("countyCode")
                 ab=FIPS2AB.get(sc)
                 if not ab: continue
-                if cc and str(cc).strip() and str(cc)!="000":
-                    paC[sc+str(cc).zfill(3)][y]+=amt
-                else:
-                    paSW[ab][y]+=amt
+                try: amt=float(r.get("federalShareObligated") or 0)
+                except Exception: amt=0.0
+                isC = cc and str(cc).strip() and str(cc)!="000"
+                fips=sc+str(cc).zfill(3) if isC else None
+                if isC: pjC[fips][y]+=1                 # count EVERY dated worksheet (matches all-time paProjects)
+                else:   pjSW[ab][y]+=1
+                if amt:                                  # dollars: skip zero-share adjustments
+                    if isC: paC[fips][y]+=amt
+                    else:   paSW[ab][y]+=amt
             got+=len(recs); skip+=len(recs)
             if len(recs)<1000: break
         if k%10==0 or k==len(dns): print(f"  PA [{k}/{len(dns)}] DR-{dn}: {got} worksheets")
@@ -171,12 +176,15 @@ def main():
         if f in cty and srt(yrs): cty[f]["hmgpByYear"]=srt(yrs)
     for f,yrs in miC.items():
         if f in cty and srt(yrs): cty[f]["mitByYear"]=srt(yrs)
+    for f,yrs in pjC.items():
+        if f in cty and srt(yrs): cty[f]["paProjectsByYear"]=srt(yrs)
     for ab,st in states.items():
         pa=rollstate(ab,paC,paSW); hm=rollstate(ab,hmC,hmSW); mi=rollstate(ab,miC,miSW)
-        ih=srt(ihpStateByYear.get(ab,{}))
+        pj=rollstate(ab,pjC,pjSW); ih=srt(ihpStateByYear.get(ab,{}))
         if pa: st["paByYear"]=pa
         if hm: st["hmgpByYear"]=hm
         if mi: st["mitByYear"]=mi
+        if pj: st["paProjectsByYear"]=pj
         if ih: st["ihpByYear"]=ih
         print(f"  {ab}: PA {sum(pa.values()):,} · HMGP {sum(hm.values()):,} · MIT {sum(mi.values()):,} · IHP {sum(ih.values()):,}  ({len(pa)}y/{len(hm)}y/{len(mi)}y/{len(ih)}y)")
 
