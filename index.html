@@ -1084,7 +1084,7 @@ function showCountyDecl(fips){
 let geoMetric="count", geoStateFilter=null, geoCountyFocus=null, geoApplExpanded=false;
 let geoPA=true, geoIA=true, geoHMGP=true;   // PA / IA / HMGP program filter for the Disasters view
 let geoVB=null, geoAnimRAF=null, geoDidPan=false;   // map viewBox state for animated pan/zoom
-let geoDisasterFocus=null, geoDisApplCache={};      // disaster-focus mode + live per-disaster applicant cache
+let geoDisasterFocus=null, geoDisApplCache={}, geoDisMACache={};   // disaster-focus + live per-disaster PA-applicant & mission-assignment caches
 const APPL_CAP=15;
 const GEO_META={count:{label:"disasters",fmt:v=>String(v)},
   paObligated:{label:"PA obligated",fmt:v=>fmtMoney(v)},
@@ -1281,6 +1281,7 @@ function enterDisasterFocus(dn){
   renderGeoStates();renderGeoMap();renderGeoBoard();geoFocus(true);
   const box=el("geoPick"); if(box)box.innerHTML=disasterDetailHTML(dn);
   if(!geoDisApplCache[dn])fetchDisasterApplicants(dn);
+  if(geoDisMACache[dn]==null)fetchDisasterMA(dn); else renderDisasterMA(dn);
   syncHash();
 }
 function geoExitDisaster(){const s=geoStateFilter; geoDisasterFocus=null; renderGeoStates();renderGeoMap();renderGeoBoard();geoFocus(true);
@@ -1291,7 +1292,38 @@ function disasterDetailHTML(dn){
     ${d.begin?fmtDate(d.begin):""}${d.incidentType?" · "+d.incidentType:""} · <b>${nC}</b> declared count${nC===1?"y":"ies"}<br>
     PA <b>${fmtMoney(d.pa||0)}</b> · IHP <b>${fmtMoney(d.ihp||0)}</b> · <b>${fmtNum(c.paProjects||0)}</b> projects</div>
     <div class="declrow clickable" data-dn="${dn}"><span class="dk"><b style="color:var(--navy)">Full disaster details</b> · costs, hazards, gages</span><span class="dv">open ↗</span></div>
-    <p class="thr-sub" style="margin-top:8px">Counties this disaster designated are highlighted on the map — tap any one for its own history. Applicants (left) are this disaster's <b>obligated federal share</b>, live from OpenFEMA.</p>`;
+    <p class="thr-sub" style="margin-top:8px">Counties this disaster designated are highlighted on the map — tap any one for its own history. Applicants (left) are this disaster's <b>obligated federal share</b>, live from OpenFEMA.</p>
+    <div id="geoMABox"></div>`;
+}
+function fetchDisasterMA(dn){
+  geoDisMACache[dn]="loading"; renderDisasterMA(dn);
+  const ENT="MissionAssignments", sel="agency,fedCostShareAmt,obligationAmount", agg={};
+  (async()=>{
+    try{
+      let skip=0;
+      for(let page=0;page<6;page++){
+        const u=`https://www.fema.gov/api/open/v2/${ENT}?$filter=${encodeURIComponent("disasterNumber eq "+dn)}&$select=${sel}&$top=1000&$skip=${skip}&$format=json`;
+        const r=await fetch(u); if(!r.ok)throw new Error(r.status);
+        const recs=(await r.json())[ENT]||[]; if(!recs.length)break;
+        recs.forEach(x=>{const k=x.agency||"(agency)"; const a=agg[k]||(agg[k]={name:k,amt:0,n:0});
+          a.amt+=+(x.fedCostShareAmt||x.obligationAmount||0); a.n++;});
+        skip+=recs.length; if(recs.length<1000)break;
+      }
+      geoDisMACache[dn]=Object.values(agg).map(a=>({name:a.name,amt:Math.round(a.amt),n:a.n})).sort((x,y)=>y.amt-x.amt);
+    }catch(e){geoDisMACache[dn]="error";}
+    if(geoDisasterFocus===dn)renderDisasterMA(dn);
+  })();
+}
+function renderDisasterMA(dn){
+  const box=el("geoMABox"); if(!box)return;
+  const data=geoDisMACache[dn];
+  if(data==="loading"||data==null){box.innerHTML=`<div class="declsub" style="margin-top:12px">Federal mission assignments</div><div class="skeleton"><span class="spin"></span> Loading from OpenFEMA…</div>`;return;}
+  if(data==="error"){box.innerHTML=`<div class="declsub" style="margin-top:12px">Federal mission assignments</div><p class="thr-sub">Couldn't load — <a target="_blank" rel="noopener" href="https://www.fema.gov/api/open/v2/MissionAssignments?$filter=${encodeURIComponent("disasterNumber eq "+dn)}&$format=jsona">view on OpenFEMA ↗</a></p>`;return;}
+  if(!data.length){box.innerHTML=`<div class="declsub" style="margin-top:12px">Federal mission assignments</div><p class="thr-sub">None recorded for DR-${dn}.</p>`;return;}
+  const tot=data.reduce((s,x)=>s+x.amt,0);
+  box.innerHTML=`<div class="declsub" style="margin-top:12px">Federal mission assignments · <b>${fmtMoney(tot)}</b> <span class="thr-sub">fed share · ${data.length} agenc${data.length===1?"y":"ies"}</span></div>`
+    +data.slice(0,12).map(a=>`<div class="declrow"><span class="dk">${a.name}</span><span class="dv">${fmtMoney(a.amt)}<span class="thr-sub"> · ${a.n}</span></span></div>`).join("")
+    +`<p class="thr-sub" style="margin-top:6px">Mission assignments are federal-agency taskings (state-level, not county-attributable), live from OpenFEMA.</p>`;
 }
 function fetchDisasterApplicants(dn){
   geoDisApplCache[dn]="loading"; renderGeoBoard();
