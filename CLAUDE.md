@@ -31,6 +31,7 @@ data/gages.json             # 19 key USGS river gages: AHPS + crest history + de
 data/county_declarations.json # committed geo rollup: per-county declaration count + disaster list + PA obligated $ + projects, and per-state totals (powers the Watch "Declaration history" map and the Geography view)
 scripts/build_county_map.py # OFFLINE: builds county_declarations.json — designations from _disasters_raw + disasters.json; per-county PA $/projects pulled from OpenFEMA PublicAssistanceFundedProjectsDetails (needs network)
 scripts/build_county_ihp.py # OFFLINE: adds per-county IHP approved $ to county_declarations.json from IndividualsAndHouseholdsProgramValidRegistrations (needs network; resumable cache)
+scripts/build_county_hmgp.py # OFFLINE: adds per-county + per-state-statewide HMGP (§404) obligated $ + subrecipient lists to county_declarations.json from HazardMitigationAssistanceProjects v4 (programArea=HMGP; needs network). Dollars conserved: a project lands in its county or the state STATEWIDE bucket.
 scripts/build_timeline.py   # OFFLINE: builds data/timeline.json — one regional monthly series (rain/river/tornado[/snow]) + disaster markers for the Ledger "Hazard timeline" chart
 data/timeline.json          # committed: monthly regional hazard series + per-month disaster list (powers the Ledger hazard timeline)
 scripts/build_covid.py      # OFFLINE: builds data/covid.json — the 6 R5 COVID-19 (Biological) declarations' PA/IHP/projects (needs network)

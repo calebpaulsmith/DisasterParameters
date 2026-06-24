@@ -674,7 +674,8 @@ tr.clickable:hover td{background:#eef3f8;}
         <button data-geom="count" class="active">Disasters</button>
         <button data-geom="paObligated">PA $</button>
         <button data-geom="paProjects">Projects</button>
-        <button data-geom="ihpApproved">IA $</button></div>
+        <button data-geom="ihpApproved">IA $</button>
+        <button data-geom="hmgpObligated">HMGP $</button></div>
       <div class="paia" id="paiaToggle" role="group" aria-label="Filter disasters by program">
         <span class="paia__lab">With</span>
         <button class="paia__sq pa on" data-aid="pa" title="Disasters with a PA (Public Assistance) declaration"><span class="paia__k">PA</span><span class="paia__t">Public</span></button>
@@ -1088,20 +1089,23 @@ const APPL_CAP=15;
 const GEO_META={count:{label:"disasters",fmt:v=>String(v)},
   paObligated:{label:"PA obligated",fmt:v=>fmtMoney(v)},
   paProjects:{label:"projects",fmt:v=>fmtNum(v)},
-  ihpApproved:{label:"IHP approved",fmt:v=>fmtMoney(v)}};
+  ihpApproved:{label:"IHP approved",fmt:v=>fmtMoney(v)},
+  hmgpObligated:{label:"HMGP obligated",fmt:v=>fmtMoney(v)}};
 function geoColor(m,v){
   if(!v)return"#eef2f7";
   if(m==="count")return v>=8?"#5a189a":v>=6?"#7b2cbf":v>=4?"#9d4edd":v>=2?"#c77dff":"#e0aaff";
   if(m==="paObligated")return v>=30e6?"#0b6e3b":v>=15e6?"#1a9850":v>=5e6?"#52b788":v>=1e6?"#95d5b2":"#d8f3dc";
   if(m==="ihpApproved")return v>=1e8?"#7a0b0b":v>=2.5e7?"#b42318":v>=5e6?"#e8590c":v>=5e5?"#fb8c00":"#ffce6b";
+  if(m==="hmgpObligated")return v>=10e6?"#3d2a6e":v>=2e6?"#5a3e8e":v>=5e5?"#7b5fb0":v>=1e5?"#9d8ec9":"#e7e0f2";
   return v>=300?"#08519c":v>=150?"#2171b5":v>=75?"#4292c6":v>=25?"#6baed6":"#c6dbef";
 }
 const GEO_LEGEND={count:[[0,"0"],[1,"1"],[2,"2–3"],[4,"4–5"],[6,"6–7"],[8,"8+"]],
   paObligated:[[0,"$0"],[1,"<$1M"],[1e6,"1–5M"],[5e6,"5–15M"],[15e6,"15–30M"],[30e6,"$30M+"]],
   paProjects:[[0,"0"],[1,"<25"],[25,"25–74"],[75,"75–149"],[150,"150–299"],[300,"300+"]],
-  ihpApproved:[[0,"$0"],[1,"<$500k"],[5e5,"0.5–5M"],[5e6,"5–25M"],[2.5e7,"25–100M"],[1e8,"$100M+"]]};
-const GEO_KEY={count:"nDisasters",paObligated:"paObligated",paProjects:"paProjects",ihpApproved:"ihpApproved"};
-const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",ihpApproved:"#e8590c"};
+  ihpApproved:[[0,"$0"],[1,"<$500k"],[5e5,"0.5–5M"],[5e6,"5–25M"],[2.5e7,"25–100M"],[1e8,"$100M+"]],
+  hmgpObligated:[[0,"$0"],[1,"<$100k"],[1e5,"100–500k"],[5e5,"0.5–2M"],[2e6,"2–10M"],[1e7,"$10M+"]]};
+const GEO_KEY={count:"nDisasters",paObligated:"paObligated",paProjects:"paProjects",ihpApproved:"ihpApproved",hmgpObligated:"hmgpObligated"};
+const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",ihpApproved:"#e8590c",hmgpObligated:"#6a4c93"};
 function geoComputeStatewide(){
   if(!DECL||DECL._sw)return; DECL._sw=true;
   const sum={};
@@ -1112,8 +1116,6 @@ function geoComputeStatewide(){
     st.paStatewide=Math.max(0,st.paObligated-a.pa);
     st.projectsStatewide=Math.max(0,st.paProjects-a.proj);
     st.ihpStatewide=Math.max(0,st.ihpApproved-a.ihp);});
-  // HMGP (§404) is not county-attributable in our data — sum it per state from the disaster records
-  DISASTERS.forEach(d=>{const st=DECL.states[d.state]; if(st)st.hmgp=(st.hmgp||0)+(((d.costs&&d.costs.hmgp)||0));});
 }
 function renderGeoStates(){
   const box=el("geoStates");if(!box||!DECL)return; geoComputeStatewide();
@@ -1125,7 +1127,7 @@ function renderGeoStates(){
     const card=`<div class="statecard ${sel?'sel':''}" data-gstate="${s}">
       <div class="sn">${v.name}<span>${GEO_META[m].fmt(sv)}</span></div>
       <div class="pabar"><span style="width:${Math.round(sv/mx*100)}%;background:${GEO_BAR[m]}"></span></div>
-      <div class="sv">${v.nDisasters} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved)} IHP · ${fmtMoney(v.hmgp||0)} HMGP <span class="scexp">${sel?"▲":"▾ disasters"}</span></div></div>`;
+      <div class="sv">${v.nDisasters} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved)} IHP · ${fmtMoney(v.hmgpObligated||0)} HMGP <span class="scexp">${sel?"▲":"▾ disasters"}</span></div></div>`;
     if(!sel)return card;
     const ds=DISASTERS.filter(d=>d.state===s).sort((a,b)=>(b.pa||0)-(a.pa||0)||(b.begin||"").localeCompare(a.begin||""));
     const rows=ds.map(d=>`<div class="geodrow${geoDisasterFocus===d.disasterNumber?' active':''}" data-geodis="${d.disasterNumber}">
@@ -1330,14 +1332,15 @@ function renderGeoBoard(){
       +(data.length>APPL_CAP?`<div class="georow applmore clickable" data-applexpand="1">${geoApplExpanded?"▲ Show top "+APPL_CAP:"▾ Show all "+fmtNum(data.length)+" applicants"}</div>`:"");
     return;
   }
-  if(geoCountyFocus){                       // county focus → APPLICANTS here
-    const o=DECL.counties[geoCountyFocus]||{}, apps=o.applicants||[], shown=geoApplExpanded?apps:apps.slice(0,APPL_CAP);
-    if(sub)sub.innerHTML=`<span><span class="gbscope">📍 ${o.name} County, ${o.state}</span> <span class="gbtag">· ${apps.length?fmtNum(apps.length)+" PA applicants":"PA applicants"}</span></span><span class="geoclear" id="geoBackCounties">← all counties</span>`;
-    box.innerHTML=apps.length?shown.map((a,i)=>`<div class="georow clickable" data-gappl="${geoCountyFocus}|${i}">
-      <span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b></span>
-      <span class="gv">${fmtMoney(a.pa)}<span class="thr-sub"> · ${a.nDisasters} dis · ${fmtNum(a.projects)} proj</span></span></div>`).join("")
-      +(apps.length>APPL_CAP?`<div class="georow applmore clickable" data-applexpand="1">${geoApplExpanded?"▲ Show top "+APPL_CAP:"▾ Show all "+fmtNum(apps.length)+" applicants"}</div>`:"")
-      :`<p class="thr-sub">No applicant-level PA records for this county.</p>`;
+  if(geoCountyFocus){                       // county focus → APPLICANTS here (HMGP subrecipients on the HMGP metric)
+    const o=DECL.counties[geoCountyFocus]||{}, isHm=geoMetric==="hmgpObligated";
+    const apps=(isHm?o.hmgpApplicants:o.applicants)||[], shown=geoApplExpanded?apps:apps.slice(0,APPL_CAP), lbl=isHm?"HMGP subrecipients":"PA applicants";
+    if(sub)sub.innerHTML=`<span><span class="gbscope">📍 ${o.name} County, ${o.state}</span> <span class="gbtag">· ${apps.length?fmtNum(apps.length)+" "+lbl:lbl}</span></span><span class="geoclear" id="geoBackCounties">← all counties</span>`;
+    box.innerHTML=apps.length?shown.map((a,i)=>isHm
+      ?`<div class="georow"><span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b></span><span class="gv">${fmtMoney(a.hmgp)}<span class="thr-sub"> · ${a.nDisasters} dis · ${fmtNum(a.projects)} proj</span></span></div>`
+      :`<div class="georow clickable" data-gappl="${geoCountyFocus}|${i}"><span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b></span><span class="gv">${fmtMoney(a.pa)}<span class="thr-sub"> · ${a.nDisasters} dis · ${fmtNum(a.projects)} proj</span></span></div>`).join("")
+      +(apps.length>APPL_CAP?`<div class="georow applmore clickable" data-applexpand="1">${geoApplExpanded?"▲ Show top "+APPL_CAP:"▾ Show all "+fmtNum(apps.length)+" "+lbl}</div>`:"")
+      :`<p class="thr-sub">No ${isHm?"HMGP subrecipient":"applicant-level PA"} records for this county.</p>`;
     return;
   }
   const m=geoMetric;
@@ -1349,7 +1352,7 @@ function renderGeoBoard(){
     <span class="gr"><span class="grk">${i+1}</span><b>${v.name}</b>, ${v.state}</span>
     <span class="gv">${GEO_META[m].fmt(geoCountyVal(v,m))}<span class="thr-sub"> · ${v.count} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved||0)} IHP · ${fmtNum(v.paProjects)} proj</span></span></div>`).join("");
   if(geoStateFilter){const st=DECL.states[geoStateFilter];
-    const swv={count:0,paObligated:st.paStatewide,paProjects:st.projectsStatewide,ihpApproved:st.ihpStatewide}[m]||0;
+    const swv={count:0,paObligated:st.paStatewide,paProjects:st.projectsStatewide,ihpApproved:st.ihpStatewide,hmgpObligated:st.hmgpStatewide}[m]||0;
     if(swv)html+=`<div class="georow" style="background:#fff8e6;cursor:default"><span class="gr"><span class="grk">∑</span><b>Statewide</b> <span class="thr-sub">not tied to a county</span></span><span class="gv">${GEO_META[m].fmt(swv)}</span></div>`;
   }
   box.innerHTML=html||`<p class="thr-sub">—</p>`;
