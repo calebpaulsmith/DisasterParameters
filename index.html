@@ -427,6 +427,10 @@ tr.clickable:hover td{background:#eef3f8;}
 .geotl svg{display:block;touch-action:none;cursor:default;}
 .geotl svg .gtlhit{cursor:pointer;} .geotl svg .gtlhandle{cursor:ew-resize;}
 .gtlnote{font-size:9.5px;line-height:1.35;margin-top:3px;}
+.gmtl{margin:10px 0 6px;}
+.gmpaia{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:7px;}
+.gmpaia__b{font-size:11px;font-weight:800;color:var(--ink-3);background:#fff;border:1px solid var(--line);border-radius:9px;padding:4px 11px;cursor:pointer;min-height:32px;}
+.gmpaia__b.on{color:#fff;background:var(--navy);border-color:var(--navy);}
 .geocol{min-height:0;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:12px;}
 .geocol--map{background:#f7f9fc;}
 .geocol--right{background:none;border:none;display:grid;grid-template-rows:1fr 1fr;gap:12px;}
@@ -462,8 +466,9 @@ tr.clickable:hover td{background:#eef3f8;}
 /* ===== mobile Geography sorter ===== */
 #geoMobile{display:none;}
 @media(max-width:760px){
-  #view-geography .geobar,#view-geography .geodash,#view-geography .geotl{display:none;}
+  #view-geography .geobar,#view-geography .geodash,#geoTimeline{display:none;}   /* hide desktop timeline; #gmTimeline (also .geotl) stays */
   #geoMobile{display:block;max-width:100%;overflow-x:hidden;}
+  #gmTimeline{display:block;}
 }
 .gm-head{position:sticky;top:0;z-index:6;background:#fff;border-bottom:1px solid var(--line);padding:10px 2px 9px;margin:-2px 0 4px;}
 .gm-crumb{display:flex;gap:10px;font-size:12px;font-weight:700;color:var(--blue);margin-bottom:5px;flex-wrap:wrap;}
@@ -1181,6 +1186,7 @@ function geoComputeStatewide(){
   Object.values(DECL.counties).forEach(v=>{const a=sum[v.state]||(sum[v.state]={pa:0,proj:0,ihp:0});
     a.pa+=v.paObligated||0;a.proj+=v.paProjects||0;a.ihp+=v.ihpApproved||0;});
   Object.entries(DECL.states).forEach(([s,st])=>{const a=sum[s]||{pa:0,proj:0,ihp:0};
+    st._ab=s;   // stash the abbreviation so mobile gmVal can call geoStateVal(o,o._ab,…)
     st.countyPA=a.pa;st.countyProjects=a.proj;st.countyIHP=a.ihp;
     st.paStatewide=Math.max(0,st.paObligated-a.pa);
     st.projectsStatewide=Math.max(0,st.paProjects-a.proj);
@@ -1590,12 +1596,13 @@ function prepTrendHTML(m,s){
 }
 function setGeoMetric(m){geoMetric=m;
   geoGroup=(GEO_STATEONLY[m]||m==="mitObligated")?"nondis":"disaster";
+  geoSetYearBounds();   // span the active metric's data; keeps any selected range clamped in-bounds
   document.querySelectorAll("#geoToggle button").forEach(b=>b.classList.toggle("active",b.dataset.geom===m));
   document.querySelectorAll("#geoGroup button").forEach(b=>b.classList.toggle("active",b.dataset.grp===geoGroup));
   const tg=el("geoToggle"); if(tg)tg.dataset.grp=geoGroup;
   const pa=el("paiaToggle"); if(pa)pa.style.display=geoGroup==="disaster"?"":"none";
   const ct=document.querySelector(".covtog"); if(ct)ct.style.display=geoGroup==="disaster"?"":"none";
-  syncPaiaUI();syncMitChips();renderGeoStates();renderGeoMap();renderGeoBoard();
+  syncPaiaUI();syncMitChips();renderGeoStates();renderGeoMap();renderGeoBoard();renderGeoTimeline();
   const b=el("geoPick");
   if(b&&!geoDisasterFocus){
     if(geoCountyFocus&&DECL&&DECL.counties[geoCountyFocus])b.innerHTML=countyDetailHTML(DECL.counties[geoCountyFocus],geoCountyFocus);
@@ -1627,7 +1634,8 @@ function geoCountyVal(o,m){
 function geoStateVal(st,s,m){
   const F=geoYrFiltering();
   const cov=(geoCovid&&COVID&&COVID.states&&!F)?COVID.states[s]:null;   // COVID is statewide & undated → only when NOT year-filtering
-  if(m==="count"){ let n=(!geoFiltering()&&!F)?(st.nDisasters||0):DISASTERS.filter(d=>d.state===s&&geoProgKeep(d)&&inYr(d)).length; if(cov)n+=1; return n; }
+  if(m==="count"){ let n=(!geoFiltering()&&!F)?(st.nDisasters||0):DISASTERS.filter(d=>d.state===s&&geoProgKeep(d)&&inYr(d)).length;
+    if(geoCovid&&COVID&&COVID.states&&COVID.states[s]&&(!F||(geoYearLo<=2020&&geoYearHi>=2020)))n+=1; return n; }   // COVID = incident year 2020
   if(GEO_STATEONLY[m])return F?yrSum(st[GEO_YEARKEY[m]],geoYearLo,geoYearHi):(st[m]||0);
   if(m==="mitObligated"){ if(F)return yrSum(st.mitByYear,geoYearLo,geoYearHi); return geoMitProg==="ALL"?(st.mitObligated||0):((st.mitByProgram||{})[geoMitProg]||0); }
   let v=(F&&GEO_YEARKEY[m])?yrSum(st[GEO_YEARKEY[m]],geoYearLo,geoYearHi):(st[GEO_KEY[m]]||0);
@@ -1637,22 +1645,53 @@ function geoStateVal(st,s,m){
 function clickAssist(which){
   if(which==="pa")geoPA=!geoPA; else if(which==="ia")geoIA=!geoIA; else geoHMGP=!geoHMGP;
   if(!geoPA&&!geoIA&&!geoHMGP){if(which==="pa")geoPA=true;else if(which==="ia")geoIA=true;else geoHMGP=true;}  // keep ≥1
-  if(geoMetric!=="count"){setGeoMetric("count");return;}            // the filter applies to the Disasters view
-  syncPaiaUI();renderGeoStates();renderGeoMap();renderGeoBoard();
+  if(geoMetric!=="count"){setGeoMetric("count"); if(isMobileGeo())renderGeoMobile(); return;}   // the filter applies to the Disasters view
+  if(isMobileGeo()){syncPaiaUI();renderGeoMobile();return;}
+  syncPaiaUI();renderGeoStates();renderGeoMap();renderGeoBoard();renderGeoTimeline();
 }
 function syncPaiaUI(){const pt=el("paiaToggle"); if(!pt)return;
   pt.classList.toggle("dim",geoMetric!=="count");   // filter only meaningful for the Disasters (count) view
   pt.querySelectorAll(".paia__sq").forEach(b=>{const a=b.dataset.aid; b.classList.toggle("on", a==="pa"?geoPA:a==="ia"?geoIA:geoHMGP);});}
-/* ===== year-of-obligation timeline (stacked by program) + draggable range filter ===== */
-const GEO_TL_PROGS=[
-  {yk:"paByYear",  lab:"PA",         c:GEO_BAR.paObligated},
-  {yk:"ihpByYear", lab:"IHP",        c:GEO_BAR.ihpApproved, proxy:true},
-  {yk:"hmgpByYear",lab:"HMGP",       c:GEO_BAR.hmgpObligated},
-  {yk:"mitByYear", lab:"Mitigation", c:GEO_BAR.mitObligated}];
-function geoSetYearBounds(){            // span the data actually covers (PA/mit can predate the ledger)
-  if(!DECL||!DECL.states)return; let lo=9999,hi=0;
-  Object.values(DECL.states).forEach(st=>GEO_TL_PROGS.forEach(p=>{for(const y in (st[p.yk]||{})){const n=+y; if(n<lo)lo=n; if(n>hi)hi=n;}}));
-  if(hi>=lo){const wasFull=geoYearLo<=GEO_YR0&&geoYearHi>=GEO_YR1; GEO_YR0=lo;GEO_YR1=hi; if(wasFull){geoYearLo=lo;geoYearHi=hi;} geoTlDomLo=lo;geoTlDomHi=hi;}
+/* ===== per-view timeline: a single series for the ACTIVE metric + draggable range filter =====
+   Disasters(count) → # declarations by incident year, honoring the PA/IA/HMGP switcher +
+   COVID toggle. Dollar/projects metrics → that metric's *ByYear, scope-aware. */
+const GEO_TL_DOLLAR_KEYS=["paByYear","ihpByYear","hmgpByYear","mitByYear"];   // for spanning bounds
+let geoTlBoxId="geoTimeline";          // the container currently rendered (desktop or mobile)
+function geoScopeCountByYear(){         // # disasters by incident year for the active scope + filters
+  const agg={}, F=geoFiltering();       // F = a PA/IA/HMGP toggle is OFF → restrict the set
+  const add=y=>{ if(y>=1900)agg[y]=(agg[y]||0)+1; };
+  if(geoCountyFocus){const o=DECL.counties[geoCountyFocus]||{};
+    (o.disasters||[]).forEach(d=>{ if(!F||geoProgKeep(geoFull(d.dn)))add(+String(d.date||"").slice(0,4)); });
+    return agg;}                         // county: COVID isn't county-allocated (matches geoCountyVal)
+  const s=geoStateFilter;
+  DISASTERS.forEach(d=>{ if(s&&d.state!==s)return; if(!F||geoProgKeep(d))add(+String(d.begin||"").slice(0,4)); });
+  if(geoCovid&&COVID&&COVID.states)Object.keys(COVID.states).forEach(st=>{ if(s&&st!==s)return; add(2020); });
+  return agg;
+}
+function geoMetricByYear(m){            // scope-aware {year:value} for any metric
+  if(m==="count")return geoScopeCountByYear();
+  const yk=GEO_YEARKEY[m]; if(!yk)return {};
+  if(GEO_STATEONLY[m]){                  // EMPG/AFG live at state level
+    const s=geoStateFilter||(geoCountyFocus?(DECL.counties[geoCountyFocus]||{}).state:null);
+    if(s)return (DECL.states[s]||{})[yk]||{};
+    const agg={}; Object.values(DECL.states).forEach(st=>{const mm=st[yk]; if(mm)for(const y in mm)agg[y]=(agg[y]||0)+mm[y];}); return agg;}
+  return geoScopeByYear(yk);
+}
+function geoTlSeries(){
+  const m=geoMetric;
+  return {map:geoMetricByYear(m), label:(m==="count"?"Disasters declared":GEO_META[m].label),
+          color:GEO_BAR[m]||"#0d2342", kind:(m==="count"?"count":(m==="paProjects"?"projects":"money")),
+          proxy:(m==="ihpApproved")};
+}
+function geoTlFmt(kind,v){return kind==="money"?fmtMoney(v):fmtNum(v);}
+function geoSetYearBounds(){            // full span for the ACTIVE metric (region-wide, scope-independent)
+  if(!DECL||!DECL.states)return; let lo=9999,hi=0; const ext=y=>{if(y>=1900){if(y<lo)lo=y;if(y>hi)hi=y;}};
+  if(geoMetric==="count"){ DISASTERS.forEach(d=>ext(+String(d.begin||"").slice(0,4))); if(geoCovid)ext(2020); }
+  else { const yk=GEO_YEARKEY[geoMetric]; const keys=yk?[yk]:GEO_TL_DOLLAR_KEYS;
+    Object.values(DECL.states).forEach(st=>keys.forEach(k=>{for(const y in (st[k]||{}))ext(+y);})); }
+  if(hi>=lo){const wasFull=geoYearLo<=GEO_YR0&&geoYearHi>=GEO_YR1; GEO_YR0=lo;GEO_YR1=hi;
+    if(wasFull){geoYearLo=lo;geoYearHi=hi;} else {geoYearLo=Math.max(lo,Math.min(hi,geoYearLo));geoYearHi=Math.max(lo,Math.min(hi,geoYearHi));}
+    geoTlDomLo=lo;geoTlDomHi=hi;}
 }
 function geoScopeByYear(yk){            // byYear map for the current region/state/county scope
   if(!DECL)return {};
@@ -1665,15 +1704,14 @@ function geoScopeLabel(){
   if(geoStateFilter)return (DECL.states[geoStateFilter]||{}).name||geoStateFilter;
   return "Region 5";
 }
-function geoTlSvg(){const b=el("geoTimeline");return b?b.querySelector("svg"):null;}
-function renderGeoTimeline(){
-  const box=el("geoTimeline"); if(!box||!DECL)return;
-  const series=GEO_TL_PROGS.map(p=>({...p,map:geoScopeByYear(p.yk)}));
+function geoTlSvg(){const b=el(geoTlBoxId);return b?b.querySelector("svg"):null;}
+function renderGeoTimeline(boxId){
+  boxId=boxId||"geoTimeline"; const box=el(boxId); if(!box||!DECL)return; geoTlBoxId=boxId;
+  const ser=geoTlSeries(), map=ser.map;
   const lo=Math.round(geoTlDomLo), hi=Math.round(geoTlDomHi); const years=[]; for(let y=lo;y<=hi;y++)years.push(y);
-  const stacks=years.map(y=>{const segs=series.map(p=>({lab:p.lab,c:p.c,v:p.map[y]||0})); return {y,segs,tot:segs.reduce((a,b)=>a+b.v,0)};});
-  // when a range is selected, scale to the in-range max so the focused bars use the full height (context bars clamp at the top)
-  const scaleSet=geoYrFiltering()?stacks.filter(s=>s.y>=geoYearLo&&s.y<=geoYearHi):stacks;
-  const mx=Math.max(1,...scaleSet.map(s=>s.tot));
+  // when a range is selected, scale to the in-range max so focused bars use the full height (context bars clamp)
+  const scaleYears=geoYrFiltering()?years.filter(y=>y>=geoYearLo&&y<=geoYearHi):years;
+  const mx=Math.max(1,...scaleYears.map(y=>map[y]||0));
   const W=1000,H=148,padL=10,padR=10,padT=10,axH=22,plotH=H-padT-axH,iw=W-padL-padR,base=padT+plotH;
   const span=Math.max(0.001,geoTlDomHi-geoTlDomLo), slot=iw/span, bw=Math.max(2,slot*0.72);
   const xOf=y=>padL+(y-geoTlDomLo)/span*iw;
@@ -1681,26 +1719,27 @@ function renderGeoTimeline(){
   const xLo=clampX(xOf(geoYearLo)-slot/2), xHi=clampX(xOf(geoYearHi)+slot/2);
   const lblEvery=years.length<=14?1:(years.length<=22?2:3);
   let bars="";
-  stacks.forEach(s=>{const cx=xOf(s.y); if(cx<padL-slot||cx>W-padR+slot)return; let yTop=base;
-    const insel=s.y>=geoYearLo&&s.y<=geoYearHi, op=insel?1:0.26;
-    s.segs.forEach(seg=>{if(seg.v<=0)return; let h=seg.v/mx*plotH; if(yTop-h<padT)h=yTop-padT; if(h<=0.3)return; yTop-=h;
-      bars+=`<rect x="${(cx-bw/2).toFixed(1)}" y="${yTop.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${seg.c}" opacity="${op}"><title>${s.y} · ${seg.lab}: ${fmtMoney(seg.v)}</title></rect>`;});
-    bars+=`<rect class="gtlhit" x="${(cx-slot/2).toFixed(1)}" y="${padT}" width="${slot.toFixed(1)}" height="${plotH}" fill="transparent" data-tlyear="${s.y}"><title>${s.y}: ${fmtMoney(s.tot)} — click to isolate</title></rect>`;});
+  years.forEach(y=>{const cx=xOf(y); if(cx<padL-slot||cx>W-padR+slot)return; const v=map[y]||0;
+    const insel=y>=geoYearLo&&y<=geoYearHi, op=insel?1:0.26;
+    if(v>0){let h=v/mx*plotH; if(h>plotH)h=plotH; if(h>=0.3){const yTop=base-h;
+      bars+=`<rect x="${(cx-bw/2).toFixed(1)}" y="${yTop.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${ser.color}" opacity="${op}"><title>${y} · ${ser.label}: ${geoTlFmt(ser.kind,v)}</title></rect>`;}}
+    bars+=`<rect class="gtlhit" x="${(cx-slot/2).toFixed(1)}" y="${padT}" width="${slot.toFixed(1)}" height="${plotH}" fill="transparent" data-tlyear="${y}"><title>${y}: ${geoTlFmt(ser.kind,v)} — click to isolate</title></rect>`;});
   let labs=""; years.forEach((y,i)=>{if(i%lblEvery&&i!==years.length-1)return; const cx=xOf(y); if(cx<padL||cx>W-padR)return;
     labs+=`<text x="${cx.toFixed(1)}" y="${base+13}" font-size="9.5" text-anchor="middle" fill="#8a94a6">${("'"+String(y).slice(2))}</text>`;});
   const sel=`<rect x="${xLo.toFixed(1)}" y="${padT-3}" width="${Math.max(0,xHi-xLo).toFixed(1)}" height="${plotH+3}" fill="rgba(13,35,66,0.05)" stroke="${geoYrFiltering()?"#d4a017":"transparent"}" stroke-width="1" pointer-events="none"/>`;
-  const handle=(x,id)=>`<g data-tlhandle="${id}" class="gtlhandle"><rect x="${(x-7).toFixed(1)}" y="${padT-3}" width="14" height="${plotH+3}" fill="transparent"/><line x1="${x.toFixed(1)}" y1="${(padT-3).toFixed(1)}" x2="${x.toFixed(1)}" y2="${base.toFixed(1)}" stroke="#0d2342" stroke-width="1.5"/><rect x="${(x-3.5).toFixed(1)}" y="${(padT+plotH/2-9).toFixed(1)}" width="7" height="18" rx="2.5" fill="#0d2342"/></g>`;
-  const svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:118px">
+  const handle=(x,id)=>`<g data-tlhandle="${id}" class="gtlhandle"><rect x="${(x-9).toFixed(1)}" y="${padT-3}" width="18" height="${plotH+3}" fill="transparent"/><line x1="${x.toFixed(1)}" y1="${(padT-3).toFixed(1)}" x2="${x.toFixed(1)}" y2="${base.toFixed(1)}" stroke="#0d2342" stroke-width="1.5"/><rect x="${(x-3.5).toFixed(1)}" y="${(padT+plotH/2-9).toFixed(1)}" width="7" height="18" rx="2.5" fill="#0d2342"/></g>`;
+  const svg=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:118px;touch-action:none">
     <line x1="${padL}" y1="${base}" x2="${W-padR}" y2="${base}" stroke="#e2e8f0" stroke-width="1"/>
-    ${bars}${sel}${handle(xLo,"lo")}${handle(xHi,"hi")}</svg>`;
+    ${bars}${labs}${sel}${handle(xLo,"lo")}${handle(xHi,"hi")}</svg>`;
   const rng=geoYrFiltering()?`<b>${geoYearLo}–${geoYearHi}</b>`:`<b>all years</b> (${GEO_YR0}–${GEO_YR1})`;
-  const wtot=GEO_TL_PROGS.reduce((a,p)=>a+yrSum(geoScopeByYear(p.yk),geoYearLo,geoYearHi),0);
-  const legend=GEO_TL_PROGS.map(p=>`<span class="gtlk"><i style="background:${p.c}"></i>${p.lab}${p.proxy?"*":""}</span>`).join("");
-  box.innerHTML=`<div class="gtlhd"><span><b>Obligations by year</b> · ${geoScopeLabel()} · ${rng} · <b>${fmtMoney(wtot)}</b></span>
-      <span class="gtlleg">${legend}${geoYrFiltering()?`<button class="gtlreset" data-tlreset="1">all years ✕</button>`:""}</span></div>
+  const wtot=yrSum(map,geoYearLo,geoYearHi);
+  const basis=ser.kind==="count"?"counted by disaster (incident) year — toggle PA/IA/HMGP above to change which declarations are included":
+    (ser.proxy?"proxy by disaster (incident) year":(GEO_STATEONLY[geoMetric]?"by grant fiscal year":"by true obligation year — recent years under-count as obligations lag"));
+  box.innerHTML=`<div class="gtlhd"><span><b>${ser.label} by year</b> · ${geoScopeLabel()} · ${rng} · <b>${geoTlFmt(ser.kind,wtot)}</b></span>
+      <span class="gtlleg"><span class="gtlk"><i style="background:${ser.color}"></i>${ser.label}${ser.proxy?"*":""}</span>${geoYrFiltering()?`<button class="gtlreset" data-tlreset="1">all years ✕</button>`:""}</span></div>
     ${svg}
-    <div class="gtlnote thr-sub">Drag the handles to filter every figure on this tab to a year range (or click a bar for one year). PA · HMGP · Mitigation = <b>true obligation year</b>; <b>IHP*</b> = proxy by disaster (incident) year. Recent years under-count (obligations lag); EMPG/AFG &amp; COVID-19 are excluded here.</div>`;
-  geoTlBind();
+    <div class="gtlnote thr-sub">Drag the handles to filter every figure on this tab to a year range (or click a bar for one year). Values ${basis}.</div>`;
+  geoTlBind(boxId);
 }
 function geoTlYearAtX(clientX){
   const s=geoTlSvg(); if(!s)return geoYearLo; const r=s.getBoundingClientRect();
@@ -1711,7 +1750,7 @@ function geoTlAnimateDomain(tLo,tHi){
   if(geoTlAnim)cancelAnimationFrame(geoTlAnim);
   const fLo=geoTlDomLo,fHi=geoTlDomHi,t0=performance.now(),dur=420,ease=p=>1-Math.pow(1-p,3);
   (function step(now){const p=Math.min(1,(now-t0)/dur),e=ease(p);
-    geoTlDomLo=fLo+(tLo-fLo)*e; geoTlDomHi=fHi+(tHi-fHi)*e; renderGeoTimeline();
+    geoTlDomLo=fLo+(tLo-fLo)*e; geoTlDomHi=fHi+(tHi-fHi)*e; renderGeoTimeline(geoTlBoxId);
     if(p<1)geoTlAnim=requestAnimationFrame(step); else geoTlAnim=null;})(t0);
 }
 function geoTlFocus(){            // visible domain tracks the selection, with context margin → expand/contract feel
@@ -1719,19 +1758,19 @@ function geoTlFocus(){            // visible domain tracks the selection, with c
   if(geoYrFiltering()){const ctx=Math.max(1,Math.round((geoYearHi-geoYearLo)*0.5)+2); tLo=Math.max(GEO_YR0,geoYearLo-ctx); tHi=Math.min(GEO_YR1,geoYearHi+ctx);}
   geoTlAnimateDomain(tLo,tHi);
 }
-function geoTlCommit(){ geoTlFocus(); renderGeoStates();renderGeoMap();renderGeoBoard(); geoRefreshDetail(); }
+function geoTlCommit(){ geoTlFocus(); if(isMobileGeo()){renderGeoMobile();} else {renderGeoStates();renderGeoMap();renderGeoBoard(); geoRefreshDetail();} }
 function geoTlSetRange(lo,hi){ lo=Math.max(GEO_YR0,Math.min(GEO_YR1,lo)); hi=Math.max(GEO_YR0,Math.min(GEO_YR1,hi));
   geoYearLo=Math.min(lo,hi); geoYearHi=Math.max(lo,hi); geoTlCommit(); }
-function geoTlBind(){
+function geoTlBind(boxId){
   // bind on the STABLE container (the inner <svg> is rebuilt on every render) so pointer capture survives a drag
-  const box=el("geoTimeline"); if(!box||box._tlBound)return; box._tlBound=true;
+  const box=el(boxId||"geoTimeline"); if(!box||box._tlBound)return; box._tlBound=true;
   let drag=null;   // "lo" | "hi"
   box.addEventListener("pointerdown",e=>{const h=e.target.closest&&e.target.closest("[data-tlhandle]"); if(!h)return;
-    drag=h.getAttribute("data-tlhandle"); try{box.setPointerCapture(e.pointerId);}catch(_){} e.preventDefault();});
+    drag=h.getAttribute("data-tlhandle"); geoTlBoxId=box.id; try{box.setPointerCapture(e.pointerId);}catch(_){} e.preventDefault();});
   box.addEventListener("pointermove",e=>{if(!drag)return; const dlo=Math.ceil(geoTlDomLo),dhi=Math.floor(geoTlDomHi);
     let y=Math.max(dlo,Math.min(dhi,geoTlYearAtX(e.clientX)));   // clamp to the visible window during a drag
     if(drag==="lo")geoYearLo=Math.min(y,geoYearHi); else geoYearHi=Math.max(y,geoYearLo);
-    renderGeoTimeline();});
+    renderGeoTimeline(box.id);});
   const up=e=>{if(!drag)return; drag=null; try{box.releasePointerCapture(e.pointerId);}catch(_){} box._supTs=performance.now(); geoTlCommit();};
   box.addEventListener("pointerup",up); box.addEventListener("pointercancel",up);
   box.addEventListener("click",e=>{if(box._supTs&&performance.now()-box._supTs<350){e.stopPropagation();e.preventDefault();}},true);   // swallow the synthetic click right after a handle drag
@@ -1752,10 +1791,10 @@ function geoRenderAll(){
 function isMobileGeo(){return window.matchMedia("(max-width:760px)").matches;}
 let gmLevel="region", gmState=null, gmDisaster=null, gmCounty=null, gmTab="disasters", gmSort="paObligated", gmAsc=false, gmExpanded=false;
 const GM_SORTS=[["count","Disasters"],["paObligated","PA $"],["paProjects","Projects"],["ihpApproved","IHP $"],["hmgpObligated","HMGP $"],["mitObligated","Mit $"],["az","A–Z"]];
-function gmVal(key,kind,o){ // value of entity o for a sort key
+function gmVal(key,kind,o){ // value of entity o for a sort key (year-windowed via the shared value fns)
   if(key==="az")return 0;
-  if(kind==="state")return o[GEO_KEY[key]]||0;
-  if(kind==="county")return o[key]||0;
+  if(kind==="state")return geoStateVal(o,o._ab,key);   // honors year range + PA/IA/HMGP + COVID
+  if(kind==="county")return geoCountyVal(o,key);        // honors year range
   if(kind==="disaster")return key==="count"?1:key==="paObligated"?(o.pa||0):key==="paProjects"?((o.costs||{}).paProjects||0):key==="hmgpObligated"?((o.costs||{}).hmgp||0):key==="mitObligated"?0:(o.ihp||0);
   if(kind==="appl")return key==="paProjects"?(o.projects||0):(o.pa||0);
   return 0;
@@ -1766,10 +1805,27 @@ function gmSortRows(rows,kind){const az=gmSort==="az";
   return rows.slice().sort((a,b)=>az?(gmAsc?b._n.localeCompare(a._n):a._n.localeCompare(b._n)):(gmAsc?gmVal(gmSort,kind,a._o)-gmVal(gmSort,kind,b._o):gmVal(gmSort,kind,b._o)-gmVal(gmSort,kind,a._o)));}
 function gmBar(v,mx,col){return `<div class="gm-bar"><span style="width:${mx?Math.round(Math.min(1,v/mx)*100):0}%;background:${col}"></span></div>`;}
 function renderGeoMobile(){const box=el("geoMobile");if(!box||!DECL)return;
-  if(gmLevel==="state"&&gmState)return gmRenderState(box);
-  if(gmLevel==="disaster"&&gmDisaster)return gmRenderDisaster(box);
-  if(gmLevel==="county"&&gmCounty)return gmRenderCounty(box);
-  gmRenderHome(box);
+  geoComputeStatewide();
+  // mirror the drill level into the shared scope vars so the timeline + value fns scope correctly
+  geoCountyFocus=(gmLevel==="county")?gmCounty:null;
+  geoStateFilter=(gmLevel==="region")?null:(gmState||null);
+  if(gmLevel==="state"&&gmState)gmRenderState(box);
+  else if(gmLevel==="disaster"&&gmDisaster)gmRenderDisaster(box);
+  else if(gmLevel==="county"&&gmCounty)gmRenderCounty(box);
+  else gmRenderHome(box);
+  if(gmLevel!=="disaster")gmInjectTimeline(box);
+}
+function gmInjectTimeline(box){
+  const head=box.querySelector(".gm-head");
+  const tl=document.createElement("div"); tl.id="gmTimeline"; tl.className="geotl gmtl";
+  if(head)head.insertAdjacentElement("afterend",tl); else box.prepend(tl);
+  renderGeoTimeline("gmTimeline");
+  if(geoMetric==="count"){   // the Disasters view: expose the PA/IA/HMGP switcher + COVID toggle on mobile too
+    const sw=`<div class="gmpaia">${[["pa","PA",geoPA],["ia","IA",geoIA],["hm","HMGP",geoHMGP]].map(([a,l,on])=>
+        `<button class="gmpaia__b${on?" on":""}" data-aid="${a}">${l}</button>`).join("")}
+      <button class="gmpaia__b${geoCovid?" on":""}" data-gmcovid="1">COVID-19</button><span class="thr-sub">declared</span></div>`;
+    tl.insertAdjacentHTML("beforeend",sw);
+  }
 }
 function gmRenderHome(box){
   geoComputeStatewide();
@@ -1777,23 +1833,25 @@ function gmRenderHome(box){
   const rows=Object.entries(DECL.states).map(([s,v])=>({_n:v.name,_o:v,s,v}));
   const sorted=gmSortRows(rows,"state");
   const mx=Math.max(...sorted.map(r=>gmVal(fmtk,"state",r._o)),1);
-  const totPA=Object.values(DECL.states).reduce((a,v)=>a+(v.paObligated||0),0);
-  const totIHP=Object.values(DECL.states).reduce((a,v)=>a+(v.ihpApproved||0),0);
-  const totDis=Object.values(DECL.states).reduce((a,v)=>a+(v.nDisasters||0),0);
+  const F=geoYrFiltering(), pre=F?`${geoYearLo}–${geoYearHi}`:"all-time";
+  const totPA=Object.entries(DECL.states).reduce((a,[s,v])=>a+geoStateVal(v,s,"paObligated"),0);
+  const totIHP=Object.entries(DECL.states).reduce((a,[s,v])=>a+geoStateVal(v,s,"ihpApproved"),0);
+  const totDis=Object.entries(DECL.states).reduce((a,[s,v])=>a+geoStateVal(v,s,"count"),0);
   box.innerHTML=`<div class="gm-head"><div class="gm-title">Region 5 — Geography</div>
-      <div class="gm-sub">${totDis} disasters · ${fmtMoney(totPA)} PA obligated · ${fmtMoney(totIHP)} IHP approved · tap a state to drill in</div></div>
+      <div class="gm-sub">${pre} · ${totDis} disasters · ${fmtMoney(totPA)} PA obligated · ${fmtMoney(totIHP)} IHP approved · tap a state to drill in</div></div>
     <div class="gm-sech">Sort states by</div>${gmSortChips()}
     <div class="gm-list">${sorted.map(r=>`<div class="gm-row" data-gmstate="${r.s}">
-        <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">all-time · ${r.v.nDisasters} dis · ${fmtMoney(r.v.paObligated)} PA · ${fmtMoney(r.v.ihpApproved)} IHP · ${fmtMoney(r.v.hmgpObligated||0)} HMGP<br>${fmtMoney(r.v.mitObligated||0)} mitigation · ${fmtMoney(r.v.empg||0)} EMPG · ${fmtMoney(r.v.afg||0)} AFG <span class="thr-sub">(non-disaster)</span></span>
+        <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${pre} · ${geoStateVal(r.v,r.s,"count")} dis · ${fmtMoney(geoStateVal(r.v,r.s,"paObligated"))} PA · ${fmtMoney(geoStateVal(r.v,r.s,"ihpApproved"))} IHP · ${fmtMoney(geoStateVal(r.v,r.s,"hmgpObligated"))} HMGP<br>${fmtMoney(geoStateVal(r.v,r.s,"mitObligated"))} mitigation · ${fmtMoney(geoStateVal(r.v,r.s,"empg"))} EMPG · ${fmtMoney(geoStateVal(r.v,r.s,"afg"))} AFG <span class="thr-sub">(non-disaster)</span></span>
           ${gmBar(gmVal(fmtk,"state",r._o),mx,col)}</div>
         <div class="gm-rval">${gmFmt(gmSort,"state",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`;
 }
 function gmRenderState(box){
   const s=gmState, st=DECL.states[s]; if(!st)return gmRenderHome(box);
   const col=GEO_BAR[gmSort]||GEO_BAR.paObligated, fmtk=gmSort==="az"?"paObligated":gmSort;
+  const Fs=geoYrFiltering();
   const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span></div>
       <div class="gm-title">${st.name}</div>
-      <div class="gm-stat"><span>${st.nDisasters} disasters</span><span>${fmtMoney(st.paObligated)} PA</span><span>${fmtMoney(st.ihpApproved)} IHP</span><span>${fmtNum(st.paProjects)} projects</span></div>
+      <div class="gm-stat"><span>${geoStateVal(st,s,"count")} disasters</span><span>${fmtMoney(geoStateVal(st,s,"paObligated"))} PA</span><span>${fmtMoney(geoStateVal(st,s,"ihpApproved"))} IHP</span><span>${fmtNum(geoStateVal(st,s,"paProjects"))} projects</span>${Fs?`<span class="thr-sub">${geoYearLo}–${geoYearHi}</span>`:""}</div>
       <div class="gm-tabs"><button class="gm-tab${gmTab==="disasters"?" active":""}" data-gmtab="disasters">Disasters</button><button class="gm-tab${gmTab==="counties"?" active":""}" data-gmtab="counties">Counties</button></div></div>`;
   let body="";
   if(gmTab==="counties"){
@@ -1804,9 +1862,9 @@ function gmRenderState(box){
         <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${r.v.count} disasters · ${fmtMoney(r.v.paObligated)} PA · ${fmtNum(r.v.nApplicants||0)} applicants</span>${gmBar(gmVal(fmtk,"county",r._o),mx,col)}</div>
         <div class="gm-rval">${gmFmt(gmSort,"county",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`;
   } else {
-    const rows=DISASTERS.filter(d=>d.state===s).map(d=>({_n:"DR-"+d.disasterNumber,_o:d,d}));
+    const rows=DISASTERS.filter(d=>d.state===s&&inYr(d)).map(d=>({_n:"DR-"+d.disasterNumber,_o:d,d}));
     const sorted=gmSortRows(rows,"disaster"); const mx=Math.max(...sorted.map(r=>gmVal(fmtk,"disaster",r._o)),1);
-    body=`<div class="gm-sech">Sort ${sorted.length} disasters by</div>${gmSortChips()}
+    body=`<div class="gm-sech">Sort ${sorted.length} disasters${geoYrFiltering()?` in ${geoYearLo}–${geoYearHi}`:""} by</div>${gmSortChips()}
       <div class="gm-list">${sorted.map(r=>{const d=r.d;return `<div class="gm-row" data-gmdisaster="${d.disasterNumber}">
         <div class="gm-rmain"><b>DR-${d.disasterNumber} · ${d.incidentType||(d.tags||[])[0]||""}</b><span class="gm-rsub">${(d.begin||"").slice(0,7)} · ${geoDisasterFips(d.disasterNumber).size} counties · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP</span>${gmBar(gmVal(fmtk,"disaster",r._o),mx,col)}</div>
         <div class="gm-rval">${gmFmt(gmSort,"disaster",r._o)}<span class="gm-go">›</span></div></div>`;}).join("")}</div>`;
@@ -1846,10 +1904,10 @@ function gmRenderCounty(box){
   const f=gmCounty, o=DECL.counties[f]; if(!o)return gmRenderHome(box);
   const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span> <span data-gmback="state">‹ ${o.state}</span></div>
       <div class="gm-title">${o.name} County, ${o.state}</div>
-      <div class="gm-stat"><span>${o.count} disasters</span><span>${fmtMoney(o.paObligated)} PA</span><span>${fmtMoney(o.ihpApproved||0)} IHP</span><span>${fmtMoney(o.hmgpObligated||0)} HMGP</span><span>${fmtMoney(o.mitObligated||0)} mitigation</span><span class="thr-sub">all-time</span></div></div>`;
+      <div class="gm-stat"><span>${geoCountyVal(o,"count")} disasters</span><span>${fmtMoney(geoCountyVal(o,"paObligated"))} PA</span><span>${fmtMoney(geoCountyVal(o,"ihpApproved"))} IHP</span><span>${fmtMoney(geoCountyVal(o,"hmgpObligated"))} HMGP</span><span>${fmtMoney(geoCountyVal(o,"mitObligated"))} mitigation</span><span class="thr-sub">${geoYrFiltering()?geoYearLo+"–"+geoYearHi:"all-time"}</span></div></div>`;
   const bb=geoCountyBBox(f); const mapHtml=bb?gmMiniMap(new Set([f]),bb,false):"";
-  const dis=(o.disasters||[]).slice().sort((a,b)=>(b.pa||0)-(a.pa||0));
-  const dHtml=`<div class="gm-sech">${dis.length} disasters here <span class="thr-sub">· $ = whole-DR total, not this county's share</span></div><div class="gm-list">${dis.map(d=>`<div class="gm-row" data-gmdisaster="${d.dn}"><div class="gm-rmain"><b>DR-${d.dn} · ${d.it||""}</b><span class="gm-rsub">${(d.date||"").slice(0,7)} · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP <span class="thr-sub">DR-wide</span></span></div><div class="gm-rval"><span class="gm-go">›</span></div></div>`).join("")}</div>`;
+  const dis=(o.disasters||[]).slice().filter(inYr).sort((a,b)=>(b.pa||0)-(a.pa||0));
+  const dHtml=`<div class="gm-sech">${dis.length} disasters here${geoYrFiltering()?` in ${geoYearLo}–${geoYearHi}`:""} <span class="thr-sub">· $ = whole-DR total, not this county's share</span></div><div class="gm-list">${dis.map(d=>`<div class="gm-row" data-gmdisaster="${d.dn}"><div class="gm-rmain"><b>DR-${d.dn} · ${d.it||""}</b><span class="gm-rsub">${(d.date||"").slice(0,7)} · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP <span class="thr-sub">DR-wide</span></span></div><div class="gm-rval"><span class="gm-go">›</span></div></div>`).join("")}</div>`;
   const apps=o.applicants||[], shown=gmExpanded?apps:apps.slice(0,20);
   const aHtml=apps.length?`<div class="gm-sech">${fmtNum(o.nApplicants||apps.length)} applicants (all-time PA)</div>
     <div class="gm-list">${shown.map((a,i)=>`<div class="gm-row static"><div class="gm-rk">${i+1}</div><div class="gm-rmain"><b>${a.name}</b><span class="gm-rsub">${a.nDisasters} disasters · ${fmtNum(a.projects)} projects</span></div><div class="gm-rval">${fmtMoney(a.pa)}</div></div>`).join("")}</div>
@@ -2415,13 +2473,14 @@ function wire(){
     const gm=e.target.closest("#geoToggle button[data-geom]"); if(gm){setGeoMetric(gm.getAttribute("data-geom"));return;}
     const tly=e.target.closest("[data-tlyear]"); if(tly){const y=+tly.getAttribute("data-tlyear"); geoTlSetRange(y,y); return;}
     const tlr=e.target.closest("[data-tlreset]"); if(tlr){geoTlSetRange(GEO_YR0,GEO_YR1); return;}
-    const aid=e.target.closest("#paiaToggle [data-aid]"); if(aid){clickAssist(aid.getAttribute("data-aid"));return;}
-    const cvt=e.target.closest("#geoCovidTog"); if(cvt){geoCovid=cvt.checked; renderGeoStates();renderGeoMap();renderGeoBoard(); if(geoStateFilter&&!GEO_STATEONLY[geoMetric])showStateGeo(geoStateFilter); return;}
+    const aid=e.target.closest("[data-aid]"); if(aid){clickAssist(aid.getAttribute("data-aid"));return;}   // desktop #paiaToggle + mobile .gmpaia
+    const gmc=e.target.closest("[data-gmcovid]"); if(gmc){geoCovid=!geoCovid; geoSetYearBounds(); renderGeoMobile(); return;}
+    const cvt=e.target.closest("#geoCovidTog"); if(cvt){geoCovid=cvt.checked; geoSetYearBounds(); renderGeoStates();renderGeoMap();renderGeoBoard();renderGeoTimeline(); if(geoStateFilter&&!GEO_STATEONLY[geoMetric])showStateGeo(geoStateFilter); return;}
     const mp=e.target.closest("#mitChips [data-mitprog]"); if(mp){geoMitProg=mp.getAttribute("data-mitprog");syncMitChips();renderGeoStates();renderGeoMap();renderGeoBoard();return;}
     const gbc=e.target.closest("#geoBackCounties"); if(gbc){geoExitCounty();return;}
     const gbd=e.target.closest("#geoBackDisaster"); if(gbd){geoExitDisaster();return;}
     const gdis=e.target.closest("[data-geodis]"); if(gdis){enterDisasterFocus(+gdis.getAttribute("data-geodis"));return;}
-    const mso=e.target.closest("[data-gmsort]"); if(mso){const k=mso.getAttribute("data-gmsort"); if(gmSort===k)gmAsc=!gmAsc; else{gmSort=k;gmAsc=(k==="az");} if(GEO_META[k])geoMetric=k; renderGeoMobile(); return;}
+    const mso=e.target.closest("[data-gmsort]"); if(mso){const k=mso.getAttribute("data-gmsort"); if(gmSort===k)gmAsc=!gmAsc; else{gmSort=k;gmAsc=(k==="az");} if(GEO_META[k]){geoMetric=k;geoSetYearBounds();} renderGeoMobile(); return;}
     const mtb=e.target.closest("[data-gmtab]"); if(mtb){gmTab=mtb.getAttribute("data-gmtab");gmExpanded=false;renderGeoMobile();return;}
     const mbk=e.target.closest("[data-gmback]"); if(mbk){gmBack(mbk.getAttribute("data-gmback"));return;}
     const mst=e.target.closest("[data-gmstate]"); if(mst){gmGoState(mst.getAttribute("data-gmstate"));return;}
