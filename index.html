@@ -563,6 +563,7 @@ tr.clickable:hover td{background:#eef3f8;}
 <nav class="nav">
   <div class="nav__inner">
     <button data-view="history" class="active">&#128467;&#65039; Disaster Ledger</button>
+    <button data-view="timelines">&#9201;&#65039; Disaster Timelines</button>
     <button data-view="geography">&#128506;&#65039; Geography</button>
     <button data-view="newsreel">&#128240; Newsreel</button>
     <button data-view="covid">&#129440; COVID-19</button>
@@ -699,6 +700,23 @@ tr.clickable:hover td{background:#eef3f8;}
           <th data-sort="pa">PA oblig.</th><th data-sort="ihp">IHP appr.</th>
         </tr></thead><tbody id="ledgerBody"></tbody></table></div>
         <p class="thr-sub" style="margin-top:10px">PA = Public Assistance <b>obligated</b> (federal share). IHP = Individual Assistance <b>approved</b>. Hazards measured from NOAA Storm Events + USGS. Tap any row to see the full breakdown and source links.</p></div></div>
+  </section>
+
+  <!-- ============ DISASTER TIMELINES (incident date vs declaration date — how long to get declared) ============ -->
+  <section class="view" id="view-timelines">
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>How long until it's official?</b> Every Region&nbsp;5 disaster plotted by <b>when the incident ended</b> (horizontal) against <b>when FEMA declared it</b> (vertical). The dashed line marks "declared the day the incident ended" — the higher a point sits above it, the longer the wait. Points <i>below</i> the line were declared <b>while the disaster was still ongoing</b>. Declaration lag = declaration date &minus; incident end date. Real OpenFEMA declaration dates &mdash; <b>not endorsed by FEMA</b>.</span></div>
+    <div id="tlHeadlines" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px"></div>
+    <div class="card"><div class="card__hd"><h2>&#9201;&#65039; Incident end vs. declaration date</h2><span class="sub">each dot is a disaster · tap for sourced detail</span></div>
+      <div class="card__bd">
+        <div id="tlScatter"><div class="skeleton"><span class="spin"></span> Loading timelines…</div></div>
+        <div id="tlLegend" class="maplegend"></div></div></div>
+    <div class="card"><div class="card__hd"><h2>&#128202; Declaration lag distribution</h2><span class="sub">days from incident end to declaration</span></div>
+      <div class="card__bd"><div id="tlHistogram"></div></div></div>
+    <div class="card"><div class="card__hd"><h2>&#128200; Are declarations getting faster?</h2><span class="sub">median lag by incident year</span></div>
+      <div class="card__bd"><div id="tlTrend"></div></div></div>
+    <div class="card"><div class="card__hd"><h2>Median lag by group</h2>
+        <div class="geogrp" id="tlBreakToggle" style="margin-bottom:0"><button data-tlbreak="state" class="active">By state</button><button data-tlbreak="type">By incident type</button></div></div>
+      <div class="card__bd"><div id="tlBreakdown"></div></div></div>
   </section>
 
   <!-- ============ GEOGRAPHY (state + county rollup: disasters · dollars · projects) ============ -->
@@ -2046,6 +2064,122 @@ function showTimelineMonth(m){
   const mlab=new Date(m+"-01T00:00:00").toLocaleDateString(undefined,{year:"numeric",month:"long"});
   box.innerHTML=`<div class="declhd"><b>${mlab}</b> — ${bits.join(" · ")}${ds.length?` · <b>${ds.length}</b> declaration${ds.length>1?"s":""}`:" · no declarations that month"}</div>${list}`;
 }
+
+/* ===== DISASTER TIMELINES (incident end → declaration lag) ===== */
+const TL_STATES={IL:"Illinois",IN:"Indiana",MI:"Michigan",MN:"Minnesota",OH:"Ohio",WI:"Wisconsin"};
+let tlBreakBy="state";
+function tlDayNum(s){return new Date(s+"T00:00:00").getTime();}
+function tlLag(d){ // signed days from incident end to declaration (negative = declared during incident)
+  if(!d.declared||!d.end)return null;
+  return Math.round((tlDayNum(d.declared)-tlDayNum(d.end))/86400000);
+}
+function tlData(){return DATA.filter(d=>d.declared);}
+function tlMedian(arr){if(!arr.length)return null;const s=[...arr].sort((a,b)=>a-b),m=s.length>>1;return s.length%2?s[m]:Math.round((s[m-1]+s[m])/2);}
+function tlColor(lag){
+  if(lag==null)return "#9aa5b1";
+  if(lag<=0)return "#6a4c93";   // declared during/before incident end
+  if(lag<=30)return "#1a9850";
+  if(lag<=60)return "#d4a017";
+  if(lag<=90)return "#e8590c";
+  return "#d7191c";
+}
+function tlGroupLabel(k){return TL_STATES[k]||titleCase(k);}
+function renderTimelines(){renderTlHeadlines();renderTlScatter();renderTlHistogram();renderTlTrend();renderTlBreakdown();}
+
+function renderTlHeadlines(){
+  const box=el("tlHeadlines"); if(!box)return;
+  const withLag=tlData().map(d=>[d,tlLag(d)]).filter(x=>x[1]!=null);
+  if(!withLag.length){box.innerHTML='<p class="thr-sub">No declaration dates available.</p>';return;}
+  const med=tlMedian(withLag.map(x=>x[1]));
+  const fast=withLag.reduce((a,b)=>b[1]<a[1]?b:a);
+  const slow=withLag.reduce((a,b)=>b[1]>a[1]?b:a);
+  const during=withLag.filter(x=>x[1]<=0).length;
+  const card=(lab,big,sub,dn)=>`<div class="costcard"${dn?` data-dn="${dn}" style="cursor:pointer"`:""}><div class="lab">${lab}</div><div class="big">${big}</div><span class="thr-sub">${sub}</span></div>`;
+  box.innerHTML=
+    card("Median lag",`${med} days`,`from incident end · ${withLag.length} disasters`)+
+    card("Longest wait",`${slow[1]} days`,`DR-${slow[0].disasterNumber}-${slow[0].state} · tap →`,slow[0].disasterNumber)+
+    card("Quickest",`${fast[1]} days`,`DR-${fast[0].disasterNumber}-${fast[0].state} · tap →`,fast[0].disasterNumber)+
+    card("Declared during incident",`${during}`,`before the incident window closed`);
+}
+
+function renderTlScatter(){
+  const box=el("tlScatter"); if(!box)return;
+  const rows=tlData();
+  if(!rows.length){box.innerHTML='<p class="thr-sub">No declaration dates available.</p>';el("tlLegend").innerHTML="";return;}
+  const xs=rows.map(d=>tlDayNum(d.end)), ys=rows.map(d=>tlDayNum(d.declared));
+  const lo=Math.min(...xs,...ys), hi=Math.max(...xs,...ys);
+  const W=920,H=520,pl=44,pr=16,pt=16,pb=42,iw=W-pl-pr,ih=H-pt-pb;
+  const sx=t=>pl+(hi>lo?(t-lo)/(hi-lo):0.5)*iw;
+  const sy=t=>pt+ih-(hi>lo?(t-lo)/(hi-lo):0.5)*ih;
+  const diag=`<line x1="${sx(lo).toFixed(1)}" y1="${sy(lo).toFixed(1)}" x2="${sx(hi).toFixed(1)}" y2="${sy(hi).toFixed(1)}" stroke="#0d2342" stroke-dasharray="5 4" stroke-width="1.2" opacity="0.55"/>`;
+  const yLo=new Date(lo).getFullYear(), yHi=new Date(hi).getFullYear();
+  let grid="",xlab="",ylab="";
+  for(let y=yLo;y<=yHi+1;y++){const t=new Date(y,0,1).getTime(); if(t<lo||t>hi)continue;
+    const gx=sx(t).toFixed(1), gy=sy(t).toFixed(1);
+    grid+=`<line x1="${gx}" y1="${pt}" x2="${gx}" y2="${pt+ih}" stroke="#eef2f6" stroke-width="1"/><line x1="${pl}" y1="${gy}" x2="${pl+iw}" y2="${gy}" stroke="#eef2f6" stroke-width="1"/>`;
+    xlab+=`<text x="${gx}" y="${H-16}" font-size="9" fill="#8a94a6" text-anchor="middle">${y}</text>`;
+    ylab+=`<text x="${pl-7}" y="${(+gy+3).toFixed(1)}" font-size="9" fill="#8a94a6" text-anchor="end">${y}</text>`;
+  }
+  const pts=rows.map(d=>{const lag=tlLag(d);
+    const tip=`DR-${d.disasterNumber}-${d.state} · ${titleCase(d.title)}\nIncident ${fmtRange(d.begin,d.end)}\nDeclared ${fmtDate(d.declared)}\nLag: ${lag} day${Math.abs(lag)===1?"":"s"} ${lag<0?"before":"after"} incident end`;
+    return `<circle data-dn="${d.disasterNumber}" cx="${sx(tlDayNum(d.end)).toFixed(1)}" cy="${sy(tlDayNum(d.declared)).toFixed(1)}" r="5" fill="${tlColor(lag)}" fill-opacity="0.78" stroke="#fff" stroke-width="0.8" style="cursor:pointer"><title>${tip}</title></circle>`;}).join("");
+  const axes=`<text x="${(pl+iw/2).toFixed(1)}" y="${H-2}" font-size="10" fill="#5a6573" text-anchor="middle" font-weight="700">Incident end date →</text>`+
+    `<text transform="translate(11,${(pt+ih/2).toFixed(1)}) rotate(-90)" font-size="10" fill="#5a6573" text-anchor="middle" font-weight="700">Declaration date →</text>`;
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:#fbfdff;border-radius:8px">${grid}${diag}${pts}${xlab}${ylab}${axes}</svg>`;
+  el("tlLegend").innerHTML=`<span><i style="background:#6a4c93"></i>declared during incident (≤0)</span><span><i style="background:#1a9850"></i>1–30 days</span><span><i style="background:#d4a017"></i>31–60</span><span><i style="background:#e8590c"></i>61–90</span><span><i style="background:#d7191c"></i>90+ days</span><span class="thr-sub" style="margin-left:auto">dashed line = declared same day the incident ended</span>`;
+}
+
+function renderTlHistogram(){
+  const box=el("tlHistogram"); if(!box)return;
+  const lags=tlData().map(tlLag).filter(v=>v!=null);
+  if(!lags.length){box.innerHTML="";return;}
+  const defs=[["≤0",v=>v<=0],["1–7",v=>v>=1&&v<=7],["8–14",v=>v>=8&&v<=14],["15–30",v=>v>=15&&v<=30],["31–60",v=>v>=31&&v<=60],["61–90",v=>v>=61&&v<=90],["91–180",v=>v>=91&&v<=180],["180+",v=>v>180]];
+  const counts=defs.map(d=>[d[0],lags.filter(d[1]).length]);
+  const W=920,H=240,pl=10,pr=10,pt=16,pb=44,iw=W-pl-pr,ih=H-pt-pb,n=counts.length,step=iw/n,bw=step*0.66,mx=Math.max(1,...counts.map(c=>c[1]));
+  const bars=counts.map((c,i)=>{const x=pl+i*step+(step-bw)/2,h=c[1]/mx*ih,y=pt+ih-h,col=i===0?"#6a4c93":"#1f4d8f";
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="2" fill="${col}"><title>${c[0]} days: ${c[1]} disaster${c[1]===1?"":"s"}</title></rect>`+
+      `<text x="${(x+bw/2).toFixed(1)}" y="${(y-4).toFixed(1)}" font-size="10" fill="#3d4551" text-anchor="middle" font-weight="700">${c[1]||""}</text>`+
+      `<text x="${(x+bw/2).toFixed(1)}" y="${H-24}" font-size="10" fill="#5a6573" text-anchor="middle">${c[0]}</text>`;}).join("");
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:#fbfdff;border-radius:8px">${bars}<text x="${pl}" y="${H-6}" font-size="9" fill="#8a94a6">← declared sooner · longer wait →</text></svg>`
+    +`<p class="thr-sub" style="margin-top:6px">Days from incident end to declaration. The <b>≤0</b> bucket = disasters declared on or before the day the incident window closed (declared while still ongoing).</p>`;
+}
+
+function renderTlTrend(){
+  const box=el("tlTrend"); if(!box)return;
+  const byYear={};
+  tlData().forEach(d=>{const y=+d.end.slice(0,4);(byYear[y]=byYear[y]||[]).push(tlLag(d));});
+  const years=Object.keys(byYear).map(Number).sort((a,b)=>a-b);
+  if(!years.length){box.innerHTML="";return;}
+  const data=years.map(y=>[y,tlMedian(byYear[y]),byYear[y].length]);
+  const W=920,H=240,pl=34,pr=12,pt=14,pb=30,iw=W-pl-pr,ih=H-pt-pb,n=data.length,step=iw/n,bw=Math.max(3,step*0.6);
+  const mx=Math.max(1,...data.map(d=>d[1]));
+  const ticks=[0,Math.round(mx/2),mx].map(t=>{const y=(pt+ih-t/mx*ih).toFixed(1);return `<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="#eef2f6"/><text x="${pl-6}" y="${(+y+3).toFixed(1)}" font-size="8.5" fill="#8a94a6" text-anchor="end">${t}</text>`;}).join("");
+  const bars=data.map((d,i)=>{const x=pl+i*step+(step-bw)/2,h=Math.max(0,d[1])/mx*ih,y=pt+ih-h;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="#1f4d8f"><title>${d[0]}: median ${d[1]} days (n=${d[2]})</title></rect>`;}).join("");
+  const xlab=data.map((d,i)=>i%2===0?`<text x="${(pl+i*step+step/2).toFixed(1)}" y="${H-10}" font-size="8.5" fill="#8a94a6" text-anchor="middle">${d[0]}</text>`:"").join("");
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:#fbfdff;border-radius:8px">${ticks}${bars}${xlab}</svg>`
+    +`<p class="thr-sub" style="margin-top:6px">Median lag (days) for disasters whose incident ended that year. Per-year samples are small — read the overall trend, not any single year. A near-zero bar can hide a negative median (declared during the incident); hover for the value.</p>`;
+}
+
+function renderTlBreakdown(){
+  const wrap=el("tlBreakToggle");
+  if(wrap&&!wrap._b){wrap._b=true;wrap.addEventListener("click",e=>{const b=e.target.closest("[data-tlbreak]");if(!b)return;tlBreakBy=b.dataset.tlbreak;wrap.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));renderTlBreakdown();});}
+  const box=el("tlBreakdown"); if(!box)return;
+  const groups={};
+  tlData().forEach(d=>{const k=tlBreakBy==="state"?d.state:(d.incidentType||"Other");(groups[k]=groups[k]||[]).push(tlLag(d));});
+  let arr=Object.entries(groups).map(([k,v])=>[k,tlMedian(v),v.length]).filter(x=>x[1]!=null);
+  arr.sort((a,b)=>b[1]-a[1]);
+  if(!arr.length){box.innerHTML="";return;}
+  const W=920,rowH=27,pt=8,pb=8,pl=tlBreakBy==="state"?80:170,pr=70,H=pt+pb+arr.length*rowH,iw=W-pl-pr;
+  const mx=Math.max(1,...arr.map(x=>Math.abs(x[1])));
+  const bars=arr.map((x,i)=>{const y=pt+i*rowH,w=Math.abs(x[1])/mx*iw;
+    return `<text x="${pl-8}" y="${(y+rowH/2+3).toFixed(1)}" font-size="11" fill="#3d4551" text-anchor="end">${tlGroupLabel(x[0])}</text>`+
+      `<rect x="${pl}" y="${(y+4).toFixed(1)}" width="${w.toFixed(1)}" height="${rowH-10}" rx="2" fill="${tlColor(x[1])}"><title>${tlGroupLabel(x[0])}: median ${x[1]} days · ${x[2]} disaster${x[2]===1?"":"s"}</title></rect>`+
+      `<text x="${(pl+w+6).toFixed(1)}" y="${(y+rowH/2+3).toFixed(1)}" font-size="10.5" fill="#3d4551" font-weight="700">${x[1]}d · n=${x[2]}</text>`;}).join("");
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${bars}</svg>`
+    +`<p class="thr-sub" style="margin-top:6px">Median declaration lag (days from incident end), sorted longest-wait first. n = disasters in group; small n is noisy.</p>`;
+}
+
 function renderAlerts(){
   const a=watchState.alerts;
   el("alertSub").textContent=`${a.reduce((s,x)=>s+x.count,0)} active · Region 5`;
@@ -2202,7 +2336,8 @@ function renderDisasterDetail(dn){
   const c=d.costs||{}; const hz=d.hz||{};
   el("mDr").textContent=`DR-${d.disasterNumber}-${d.state}`;
   el("mTitle").textContent=titleCase(d.title);
-  el("mMeta").innerHTML=`${fmtRange(d.begin,d.end)} &nbsp;·&nbsp; ${d.countyCount} ${d.countyCount===1?"designated county":"designated counties"} &nbsp;·&nbsp; ${progBadges(d)} &nbsp;·&nbsp; ${d.tags.map(t=>`<span class="${tagClass(t)}">${t}</span>`).join(" ")}`;
+  const declMeta=d.declared?` &nbsp;·&nbsp; declared ${fmtDate(d.declared)}${(()=>{const l=tlLag(d);return l==null?"":` (${Math.abs(l)} day${Math.abs(l)===1?"":"s"} ${l<0?"before":"after"} incident end)`;})()}`:"";
+  el("mMeta").innerHTML=`${fmtRange(d.begin,d.end)}${declMeta} &nbsp;·&nbsp; ${d.countyCount} ${d.countyCount===1?"designated county":"designated counties"} &nbsp;·&nbsp; ${progBadges(d)} &nbsp;·&nbsp; ${d.tags.map(t=>`<span class="${tagClass(t)}">${t}</span>`).join(" ")}`;
 
   const exact=v=>`<span class="thr-sub">${fmtMoneyFull(v)}</span>`;
   const paMgmt=Math.max(0,(c.paTotal||0)-(c.paEmergencyAB||0)-(c.paPermanentCG||0));
@@ -2422,7 +2557,7 @@ function buildTimeline(g,peaks,record,live,declSet){
 }
 
 /* ===== nav + shareable hash routing (#view, #geography/MN) ===== */
-const VALID_VIEWS=["history","geography","newsreel","covid","context","watch","estimator"];
+const VALID_VIEWS=["history","timelines","geography","newsreel","covid","context","watch","estimator"];
 function curView(){const b=document.querySelector(".nav button.active");return b?b.dataset.view:"history";}
 function syncHash(){let h=curView();
   if(h==="geography"){ if(geoCountyFocus)h+="/"+geoStateFilter+"/"+geoCountyFocus; else if(geoStateFilter)h+="/"+geoStateFilter; }
@@ -2436,6 +2571,7 @@ function showView(v,noScroll){
   if(v==="covid")renderCovid();
   if(v==="newsreel")renderNewsreel();
   if(v==="history")renderHazTimeline();
+  if(v==="timelines")renderTimelines();
   if(v==="context"){ ctxRenderStates(); ctxRender(); }
   syncHash();
   if(!noScroll)window.scrollTo({top:0,behavior:"smooth"});
