@@ -1526,12 +1526,12 @@ function geoRenderAll(){
 /* ===== MOBILE Geography — a single-column, in-depth sorter/drill-down ===== */
 function isMobileGeo(){return window.matchMedia("(max-width:760px)").matches;}
 let gmLevel="region", gmState=null, gmDisaster=null, gmCounty=null, gmTab="disasters", gmSort="paObligated", gmAsc=false, gmExpanded=false;
-const GM_SORTS=[["count","Disasters"],["paObligated","PA $"],["paProjects","Projects"],["ihpApproved","IHP $"],["az","A–Z"]];
+const GM_SORTS=[["count","Disasters"],["paObligated","PA $"],["paProjects","Projects"],["ihpApproved","IHP $"],["hmgpObligated","HMGP $"],["mitObligated","Mit $"],["az","A–Z"]];
 function gmVal(key,kind,o){ // value of entity o for a sort key
   if(key==="az")return 0;
   if(kind==="state")return o[GEO_KEY[key]]||0;
   if(kind==="county")return o[key]||0;
-  if(kind==="disaster")return key==="count"?1:key==="paObligated"?(o.pa||0):key==="paProjects"?((o.costs||{}).paProjects||0):(o.ihp||0);
+  if(kind==="disaster")return key==="count"?1:key==="paObligated"?(o.pa||0):key==="paProjects"?((o.costs||{}).paProjects||0):key==="hmgpObligated"?((o.costs||{}).hmgp||0):key==="mitObligated"?0:(o.ihp||0);
   if(kind==="appl")return key==="paProjects"?(o.projects||0):(o.pa||0);
   return 0;
 }
@@ -1559,7 +1559,7 @@ function gmRenderHome(box){
       <div class="gm-sub">${totDis} disasters · ${fmtMoney(totPA)} PA obligated · ${fmtMoney(totIHP)} IHP approved · tap a state to drill in</div></div>
     <div class="gm-sech">Sort states by</div>${gmSortChips()}
     <div class="gm-list">${sorted.map(r=>`<div class="gm-row" data-gmstate="${r.s}">
-        <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${r.v.nDisasters} disasters · ${fmtMoney(r.v.paObligated)} PA · ${fmtMoney(r.v.ihpApproved)} IHP</span>
+        <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${r.v.nDisasters} dis · ${fmtMoney(r.v.paObligated)} PA · ${fmtMoney(r.v.ihpApproved)} IHP · ${fmtMoney(r.v.hmgpObligated||0)} HMGP<br>${fmtMoney(r.v.mitObligated||0)} mitigation · ${fmtMoney(r.v.empg||0)} EMPG · ${fmtMoney(r.v.afg||0)} AFG <span class="thr-sub">(non-disaster)</span></span>
           ${gmBar(gmVal(fmtk,"state",r._o),mx,col)}</div>
         <div class="gm-rval">${gmFmt(gmSort,"state",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`;
 }
@@ -1614,13 +1614,14 @@ function gmRenderDisaster(box){
     aHtml=`<div class="gm-sech">${fmtNum(data.length)} applicants — obligated $ (this disaster)</div>
       <div class="gm-list">${shown.map((a,i)=>`<div class="gm-row static"><div class="gm-rk">${i+1}</div><div class="gm-rmain"><b>${a.name}</b><span class="gm-rsub">${fmtNum(a.projects)} projects · ${a.nCounties} counties</span></div><div class="gm-rval">${fmtMoney(a.pa)}</div></div>`).join("")}</div>
       ${data.length>20?`<button class="gm-more" data-gmexpand="1">${gmExpanded?"▲ Show top 20":"▾ Show all "+fmtNum(data.length)+" applicants"}</button>`:""}`;}
-  box.innerHTML=head+mapHtml+`<button class="gm-fulllink" data-dn="${dn}">Full disaster details — costs, hazards, gages ↗</button>`+cHtml+aHtml;
+  box.innerHTML=head+mapHtml+`<button class="gm-fulllink" data-dn="${dn}">Full disaster details — costs, hazards, gages ↗</button>`+cHtml+aHtml+`<div id="geoMABox"></div>`;
+  if(geoDisMACache[dn]==null)fetchDisasterMA(dn); else renderDisasterMA(dn);
 }
 function gmRenderCounty(box){
   const f=gmCounty, o=DECL.counties[f]; if(!o)return gmRenderHome(box);
   const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span> <span data-gmback="state">‹ ${o.state}</span></div>
       <div class="gm-title">${o.name} County, ${o.state}</div>
-      <div class="gm-stat"><span>${o.count} disasters</span><span>${fmtMoney(o.paObligated)} PA</span><span>${fmtMoney(o.ihpApproved||0)} IHP</span><span>${fmtNum(o.nApplicants||0)} applicants</span></div></div>`;
+      <div class="gm-stat"><span>${o.count} disasters</span><span>${fmtMoney(o.paObligated)} PA</span><span>${fmtMoney(o.ihpApproved||0)} IHP</span><span>${fmtMoney(o.hmgpObligated||0)} HMGP</span><span>${fmtMoney(o.mitObligated||0)} mitigation</span></div></div>`;
   const bb=geoCountyBBox(f); const mapHtml=bb?gmMiniMap(new Set([f]),bb,false):"";
   const dis=(o.disasters||[]).slice().sort((a,b)=>(b.pa||0)-(a.pa||0));
   const dHtml=`<div class="gm-sech">${dis.length} disasters here</div><div class="gm-list">${dis.map(d=>`<div class="gm-row" data-gmdisaster="${d.dn}"><div class="gm-rmain"><b>DR-${d.dn} · ${d.it||""}</b><span class="gm-rsub">${(d.date||"").slice(0,7)} · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP</span></div><div class="gm-rval"><span class="gm-go">›</span></div></div>`).join("")}</div>`;
@@ -1628,7 +1629,13 @@ function gmRenderCounty(box){
   const aHtml=apps.length?`<div class="gm-sech">${fmtNum(o.nApplicants||apps.length)} applicants (all-time PA)</div>
     <div class="gm-list">${shown.map((a,i)=>`<div class="gm-row static"><div class="gm-rk">${i+1}</div><div class="gm-rmain"><b>${a.name}</b><span class="gm-rsub">${a.nDisasters} disasters · ${fmtNum(a.projects)} projects</span></div><div class="gm-rval">${fmtMoney(a.pa)}</div></div>`).join("")}</div>
     ${apps.length>20?`<button class="gm-more" data-gmexpand="1">${gmExpanded?"▲ Show top 20":"▾ Show all "+fmtNum(apps.length)+" applicants"}</button>`:""}`:"";
-  box.innerHTML=head+mapHtml+dHtml+aHtml;
+  const hmgp=o.hmgpApplicants||[];
+  const hHtml=hmgp.length?`<div class="gm-sech">${fmtNum(o.nHmgpApplicants||hmgp.length)} HMGP subrecipients · ${fmtMoney(o.hmgpObligated||0)}</div>
+    <div class="gm-list">${hmgp.slice(0,15).map((a,i)=>`<div class="gm-row static"><div class="gm-rk">${i+1}</div><div class="gm-rmain"><b>${a.name}</b><span class="gm-rsub">${a.nDisasters} dis · ${fmtNum(a.projects)} proj</span></div><div class="gm-rval">${fmtMoney(a.hmgp)}</div></div>`).join("")}</div>`:"";
+  const mit=o.mitApplicants||[];
+  const mHtml=mit.length?`<div class="gm-sech">non-disaster mitigation · ${fmtMoney(o.mitObligated||0)}${o.mitByProgram?" · "+Object.keys(o.mitByProgram).join("/"):""}</div>
+    <div class="gm-list">${mit.slice(0,15).map((a,i)=>`<div class="gm-row static"><div class="gm-rk">${i+1}</div><div class="gm-rmain"><b>${a.name}</b></div><div class="gm-rval">${fmtMoney(a.mit)}</div></div>`).join("")}</div>`:"";
+  box.innerHTML=head+mapHtml+dHtml+aHtml+hHtml+mHtml;
 }
 function gmMiniMap(focus,bb,tap){
   if(!COUNTIES.length||!DECL)return ""; if(!MAPPROJ)projectCounties();
