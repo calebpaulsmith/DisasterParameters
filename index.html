@@ -361,6 +361,12 @@ tr.clickable:hover td{background:#eef3f8;}
 .mitchip{font:inherit;font-size:11.5px;font-weight:700;padding:3px 10px;border:1px solid var(--line);background:#fff;color:var(--ink-2);border-radius:999px;cursor:pointer;}
 .mitchip.on{background:#0e7c86;border-color:#0e7c86;color:#fff;}
 .covtog{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer;margin-bottom:12px;}
+.geogrp{display:inline-flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+.geogrp button{font:inherit;font-size:12.5px;font-weight:800;padding:6px 14px;border:0;background:#fff;color:var(--ink-2);cursor:pointer;}
+.geogrp button+button{border-left:1px solid var(--line-2);}
+.geogrp button.active{background:var(--navy);color:#fff;}
+#geoToggle[data-grp="disaster"] button[data-grp="nondis"]{display:none;}
+#geoToggle[data-grp="nondis"] button[data-grp="disaster"]{display:none;}
 .paia{display:inline-flex;align-items:center;gap:7px;margin-bottom:12px;transition:opacity .2s,filter .2s;}
 .paia__lab{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);}
 .paia__sq{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:52px;height:40px;border-radius:10px;border:1.5px solid var(--line);background:#fff;cursor:pointer;overflow:hidden;transition:transform .12s ease,box-shadow .22s ease,border-color .2s,opacity .2s;}
@@ -683,15 +689,18 @@ tr.clickable:hover td{background:#eef3f8;}
   <!-- ============ GEOGRAPHY (state + county rollup: disasters · dollars · projects) ============ -->
   <section class="view" id="view-geography">
     <div class="geobar">
-      <div class="geotoggle" id="geoToggle">
-        <button data-geom="count" class="active">Disasters</button>
-        <button data-geom="paObligated">PA $</button>
-        <button data-geom="paProjects">Projects</button>
-        <button data-geom="ihpApproved">IA $</button>
-        <button data-geom="hmgpObligated">HMGP $</button>
-        <button data-geom="mitObligated" class="ndis" title="Non-disaster hazard-mitigation grants (FMA · PDM · BRIC) — competitive, not tied to a declaration">Mitigation $</button>
-        <button data-geom="empg" class="ndis" title="Emergency Management Performance Grants — state-level preparedness (no county; the map fills each state)">EMPG $</button>
-        <button data-geom="afg" class="ndis" title="Assistance to Firefighters Grants — state-level (no county; the map fills each state)">AFG $</button></div>
+      <div class="geogrp" id="geoGroup">
+        <button data-grp="disaster" class="active">Disaster assistance</button>
+        <button data-grp="nondis">Non-disaster grants</button></div>
+      <div class="geotoggle" id="geoToggle" data-grp="disaster">
+        <button data-geom="count" data-grp="disaster" class="active">Disasters</button>
+        <button data-geom="paObligated" data-grp="disaster">PA $</button>
+        <button data-geom="ihpApproved" data-grp="disaster">IA $</button>
+        <button data-geom="hmgpObligated" data-grp="disaster">HMGP $</button>
+        <button data-geom="paProjects" data-grp="disaster">Projects</button>
+        <button data-geom="mitObligated" data-grp="nondis" class="ndis" title="Non-disaster hazard-mitigation grants (FMA · PDM · BRIC) — competitive, not tied to a declaration">Mitigation $</button>
+        <button data-geom="empg" data-grp="nondis" class="ndis" title="Emergency Management Performance Grants — state-level preparedness (no county; the map fills each state)">EMPG $</button>
+        <button data-geom="afg" data-grp="nondis" class="ndis" title="Assistance to Firefighters Grants — state-level (no county; the map fills each state)">AFG $</button></div>
       <div class="mitchips" id="mitChips" style="display:none"></div>
       <div class="paia" id="paiaToggle" role="group" aria-label="Filter disasters by program">
         <span class="paia__lab">With</span>
@@ -1103,6 +1112,7 @@ let geoMetric="count", geoStateFilter=null, geoCountyFocus=null, geoApplExpanded
 let geoPA=true, geoIA=true, geoHMGP=true;   // PA / IA / HMGP program filter for the Disasters view
 let geoMitProg="ALL";                        // non-disaster mitigation program selector (ALL / FMA / PDM / BRIC …)
 let geoCovid=false;                          // include COVID-19 (statewide) in PA/IHP/HMGP state totals — OFF by default
+let geoGroup="disaster";                     // metric group: "disaster" assistance vs "nondis" (non-disaster grants)
 let geoVB=null, geoAnimRAF=null, geoDidPan=false;   // map viewBox state for animated pan/zoom
 let geoDisasterFocus=null, geoDisApplCache={}, geoDisMACache={};   // disaster-focus + live per-disaster PA-applicant & mission-assignment caches
 const APPL_CAP=15;
@@ -1519,9 +1529,15 @@ function prepTrendHTML(m,s){
     <p class="thr-sub" style="margin-top:4px">Federal awards by year (state-level, non-disaster). Tap a state on the left to re-scope.</p>`;
 }
 function setGeoMetric(m){geoMetric=m;
+  geoGroup=(GEO_STATEONLY[m]||m==="mitObligated")?"nondis":"disaster";
   document.querySelectorAll("#geoToggle button").forEach(b=>b.classList.toggle("active",b.dataset.geom===m));
+  document.querySelectorAll("#geoGroup button").forEach(b=>b.classList.toggle("active",b.dataset.grp===geoGroup));
+  const tg=el("geoToggle"); if(tg)tg.dataset.grp=geoGroup;
+  const pa=el("paiaToggle"); if(pa)pa.style.display=geoGroup==="disaster"?"":"none";
+  const ct=document.querySelector(".covtog"); if(ct)ct.style.display=geoGroup==="disaster"?"":"none";
   syncPaiaUI();syncMitChips();renderGeoStates();renderGeoMap();renderGeoBoard();
   if(GEO_STATEONLY[m]){const b=el("geoPick"); if(b)b.innerHTML=prepTrendHTML(m,geoStateFilter);}}
+function setGeoGroup(g){setGeoMetric(g==="disaster"?"count":"mitObligated");}
 function geoMitPrograms(){const s=new Set(); if(DECL&&DECL.states)Object.values(DECL.states).forEach(st=>Object.keys(st.mitByProgram||{}).forEach(k=>s.add(k))); return [...s];}
 function syncMitChips(){const box=el("mitChips"); if(!box)return;
   if(geoMetric!=="mitObligated"){box.style.display="none";return;}
@@ -2196,6 +2212,7 @@ function wire(){
     const bk=e.target.closest("[data-binkey]"); if(bk){const bd=document.getElementById("bd-"+bk.getAttribute("data-binkey")); if(bd)bd.style.display=bd.style.display==="none"?"block":"none"; return;}
     const fc=e.target.closest("[data-fips]"); if(fc){showCountyAlerts(fc.getAttribute("data-fips"));return;}
     const dcf=e.target.closest("[data-cfips]"); if(dcf){showCountyDecl(dcf.getAttribute("data-cfips"));document.getElementById("declPick").scrollIntoView({behavior:"smooth",block:"nearest"});return;}
+    const gg=e.target.closest("#geoGroup button[data-grp]"); if(gg){setGeoGroup(gg.getAttribute("data-grp"));return;}
     const gm=e.target.closest("#geoToggle button[data-geom]"); if(gm){setGeoMetric(gm.getAttribute("data-geom"));return;}
     const aid=e.target.closest("#paiaToggle [data-aid]"); if(aid){clickAssist(aid.getAttribute("data-aid"));return;}
     const cvt=e.target.closest("#geoCovidTog"); if(cvt){geoCovid=cvt.checked; renderGeoStates();renderGeoMap();renderGeoBoard(); if(geoStateFilter&&!GEO_STATEONLY[geoMetric])showStateGeo(geoStateFilter); return;}
