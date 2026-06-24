@@ -543,6 +543,7 @@ tr.clickable:hover td{background:#eef3f8;}
   <div class="nav__inner">
     <button data-view="history" class="active">&#128467;&#65039; Disaster Ledger</button>
     <button data-view="geography">&#128506;&#65039; Geography</button>
+    <button data-view="newsreel">&#128240; Newsreel</button>
     <button data-view="covid">&#129440; COVID-19</button>
     <button data-view="context">&#128202; Conditions in Context</button>
     <button data-view="watch">&#128680; Disaster Watch</button>
@@ -715,6 +716,12 @@ tr.clickable:hover td{background:#eef3f8;}
   <section class="view" id="view-covid">
     <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>The pandemic, on its own scale.</b> Region&nbsp;5's six <b>COVID-19</b> major disaster declarations (one per state, March&nbsp;2020, <b>statewide</b>). These obligations are roughly <b>7× a state's entire weather PA</b>, so they're shown here separately rather than swamping the ledger, maps, and hazard analyses. PA is <b>obligated</b> (mostly Category B emergency protective measures — testing, PPE, vaccination); IHP is <b>approved</b>. Real OpenFEMA figures &mdash; not endorsed by FEMA.</span></div>
     <div id="covidBody"><div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading COVID-19 figures…</div></div>
+  </section>
+
+  <!-- ============ NEWSREEL (latest obligations, PA + Hazard Mitigation) ============ -->
+  <section class="view" id="view-newsreel">
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>What FEMA just paid out.</b> The most recent and the largest <b>obligations</b> across Region&nbsp;5 for the two programs that publish a per-item obligation date: <b>Public Assistance</b> (infrastructure/emergency work) and <b>Hazard Mitigation</b> (HMGP + FMA/BRIC/PDM). Each is a real OpenFEMA project, tap-through to its disaster where it's in the ledger. <b>COVID-19 is excluded</b> (it has its own view). "Latest" tracks the latest obligation <i>activity</i>, which can include downward adjustments. Real OpenFEMA figures &mdash; <b>not endorsed by FEMA</b>. PA is <b>obligated</b>.</span></div>
+    <div id="newsBody"><div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading latest obligations…</div></div>
   </section>
 
   <!-- ============ CONDITIONS IN CONTEXT (state-first, multi-hazard) ============ -->
@@ -1664,6 +1671,36 @@ function renderCovid(){
       <div class="card__bd">${summary}<div class="covgrid" style="margin-top:16px">${cards}</div>
       <p class="thr-sub" style="margin-top:12px">PA breakdown reconciles: Emergency (A–B) + Permanent (C–G) + Management (Z) = PA obligated. Figures are provisional and reconcile over the life of each project — verify on the FEMA disaster page.</p></div></div>`;
 }
+/* ===== newsreel — latest & biggest obligations (PA + Hazard Mitigation) ===== */
+let NEWS=null;
+function newsRow(r){
+  const inLedger=DATA&&DATA.some(d=>d.disasterNumber===+r.dn);
+  const desc=(r.title||"").trim()||r.category||r.programArea||"Obligation";
+  const who=r.program==="HM"?(r.recipient||r.county||""):(r.county||"");
+  const tag=r.program==="HM"?(r.programArea||"HMA"):(r.category||"PA");
+  const meta=`<b style="color:var(--navy)">DR-${r.dn}</b> · ${r.state}${who?" · "+who:""} · <span class="thr-sub">${r.date}</span>`;
+  const inner=`<span class="dk"><div>${esc(desc)}</div><div style="margin-top:2px">${meta} · <span class="thr-sub">${esc(tag)}</span></div></span><span class="dv">${fmtMoney(r.amount)}${inLedger?" ↗":""}</span>`;
+  return inLedger
+    ? `<div class="declrow clickable" data-dn="${r.dn}">${inner}</div>`
+    : `<a class="declrow" href="https://www.fema.gov/disaster/${r.dn}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${inner}</a>`;
+}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function newsCard(p){
+  const latest=(p.latest||[]).map(newsRow).join("")||`<span class="thr-sub">No recent obligations.</span>`;
+  const biggest=(p.biggest||[]).map(newsRow).join("")||`<span class="thr-sub">None in the last 6 months.</span>`;
+  return `<div class="card"><div class="card__hd"><h2>${p.label}</h2><span class="sub">obligated federal share · Region 5</span></div>
+    <div class="card__bd">
+      <div class="sec-h" style="margin-top:0">Latest obligated</div>${latest}
+      <div class="sec-h" style="margin-top:18px">Biggest in the last 6 months</div>${biggest}
+    </div></div>`;
+}
+function renderNewsreel(){
+  const box=el("newsBody"); if(!box)return;
+  if(!NEWS){box.innerHTML=`<div class="skeleton"><span class="spin"></span> Loading…</div>`;return;}
+  const P=NEWS.programs||{};
+  box.innerHTML=(P.PA?newsCard(P.PA):"")+(P.HM?newsCard(P.HM):"")
+    +`<p class="thr-sub" style="margin-top:12px">${esc(NEWS.note||"")} Generated ${esc(NEWS.generated||"")} from OpenFEMA — figures are provisional and reconcile over the life of each project.</p>`;
+}
 /* ===== one hazard timeline overlaid with declarations (ledger view) ===== */
 let TML=null;
 const TML_SERIES=[{k:"rain",c:"#2171b5",lab:"peak 1-day rain",u:"in"},
@@ -2102,7 +2139,7 @@ function buildTimeline(g,peaks,record,live,declSet){
 }
 
 /* ===== nav + shareable hash routing (#view, #geography/MN) ===== */
-const VALID_VIEWS=["history","geography","covid","context","watch","estimator"];
+const VALID_VIEWS=["history","geography","newsreel","covid","context","watch","estimator"];
 function curView(){const b=document.querySelector(".nav button.active");return b?b.dataset.view:"history";}
 function syncHash(){let h=curView();
   if(h==="geography"){ if(geoCountyFocus)h+="/"+geoStateFilter+"/"+geoCountyFocus; else if(geoStateFilter)h+="/"+geoStateFilter; }
@@ -2114,6 +2151,7 @@ function showView(v,noScroll){
   if(v==="watch")renderDeclMap();
   if(v==="geography")geoRenderAll();
   if(v==="covid")renderCovid();
+  if(v==="newsreel")renderNewsreel();
   if(v==="history")renderHazTimeline();
   if(v==="context"){ ctxRenderStates(); ctxRender(); }
   syncHash();
@@ -2298,6 +2336,7 @@ async function loadData(){
     fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();renderDeclMap();}).catch(()=>{});
     fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
     fetch("data/covid.json").then(r=>r.ok?r.json():null).then(c=>{COVID=c;if(document.getElementById("view-covid").classList.contains("active"))renderCovid();}).catch(()=>{});
+    fetch("data/newsreel.json").then(r=>r.ok?r.json():null).then(nw=>{NEWS=nw;if(document.getElementById("view-newsreel").classList.contains("active"))renderNewsreel();}).catch(()=>{});
     fetch("data/timeline.json").then(r=>r.ok?r.json():null).then(t=>{TML=t;renderHazTimeline();}).catch(()=>{});
     fetch("data/context.json").then(r=>r.ok?r.json():null).then(c=>{CTX=c;if(document.getElementById("view-context").classList.contains("active")){ctxRenderStates();ctxRender();}}).catch(()=>{});
     fetch("data/event_nexus.json").then(r=>r.ok?r.json():null).then(n=>{NEXUS=n;}).catch(()=>{});

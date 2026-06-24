@@ -38,6 +38,8 @@ scripts/build_timeline.py   # OFFLINE: builds data/timeline.json — one regiona
 data/timeline.json          # committed: monthly regional hazard series + per-month disaster list (powers the Ledger hazard timeline)
 scripts/build_covid.py      # OFFLINE: builds data/covid.json — the 6 R5 COVID-19 (Biological) declarations' PA/IHP/projects (needs network)
 data/covid.json             # committed: per-state COVID-19 PA obligated/IHP approved/projects (powers the standalone COVID-19 view; kept OUT of ledger/geography/analyses — ~7× weather PA)
+scripts/build_newsreel.py   # OFFLINE: builds data/newsreel.json — "latest obligations" reel for the 2 programs with a per-item obligation DATE: PA (PublicAssistanceFundedProjectsDetails.lastObligationDate) + Hazard Mitigation (HazardMitigationAssistanceProjects v4.initialObligationDate). R5 only, COVID excluded. Each program: latest N obligated + biggest N in last 6mo. Needs network. (IHP/AFG/EMPG carry no per-item obligation date, so they can't feed this reel.)
+data/newsreel.json          # committed, small: per-program latest+biggest obligations (powers the Newsreel view)
 scripts/enrich.py           # OFFLINE: joins NOAA/USGS hazards onto _disasters_raw.json (NO costs)
 scripts/add_history.py      # OFFLINE: pulls older R5 disasters (FEMA costs + hazards) and merges them in
 scripts/build_gages.py      # OFFLINE: builds gages.json + per-disaster gage lists; ties crests↔declarations
