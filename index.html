@@ -393,6 +393,12 @@ tr.clickable:hover td{background:#eef3f8;}
 .georow .grk{display:inline-block;min-width:20px;color:var(--ink-3);font-weight:700;font-variant-numeric:tabular-nums;}
 .georow .gv{font-weight:800;color:var(--navy);white-space:nowrap;font-variant-numeric:tabular-nums;}
 .georow .gv .thr-sub{font-weight:400;}
+.marow{padding:7px 2px 8px;border-bottom:1px dashed var(--line);}
+.mahd{display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:13px;}
+.mahd b{color:var(--navy);}
+.mahd .mav{font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.mameta{font-size:10.5px;margin-top:1px;}
+.madesc{font-size:11.5px;color:var(--ink-2);margin-top:3px;line-height:1.35;}
 #tmlChart svg{background:#fbfdff;border-radius:8px;}
 .tmlband{cursor:pointer;} .tmlband:hover{fill:rgba(13,35,66,0.06);}
 .betatag{display:inline-block;background:var(--gold);color:#3a2c00;font-size:9.5px;font-weight:800;letter-spacing:.06em;padding:1px 6px;border-radius:9px;vertical-align:1px;margin-left:6px;}
@@ -1295,9 +1301,13 @@ function disasterDetailHTML(dn){
     <p class="thr-sub" style="margin-top:8px">Counties this disaster designated are highlighted on the map — tap any one for its own history. Applicants (left) are this disaster's <b>obligated federal share</b>, live from OpenFEMA.</p>
     <div id="geoMABox"></div>`;
 }
+const MA_ESF={1:"Transportation",2:"Communications",3:"Public Works",4:"Firefighting",5:"Info & Planning",6:"Mass Care",7:"Logistics",8:"Public Health",9:"Search & Rescue",10:"HazMat",11:"Agriculture",12:"Energy",13:"Public Safety & Security",14:"Recovery",15:"External Affairs"};
+const MA_TYPE={FOS:"Federal Ops Support",DFA:"Direct Federal Assistance",TA:"Technical Assistance"};
 function fetchDisasterMA(dn){
   geoDisMACache[dn]="loading"; renderDisasterMA(dn);
-  const ENT="MissionAssignments", sel="agency,fedCostShareAmt,obligationAmount", agg={};
+  const ENT="MissionAssignments";
+  const sel="maId,maAmendNumber,agency,maType,supportFunction,priority,assistanceRequested,fedCostShareAmt,sttCostShareAmt,popStartDate,popEndDate";
+  const byMa={};
   (async()=>{
     try{
       let skip=0;
@@ -1305,25 +1315,35 @@ function fetchDisasterMA(dn){
         const u=`https://www.fema.gov/api/open/v2/${ENT}?$filter=${encodeURIComponent("disasterNumber eq "+dn)}&$select=${sel}&$top=1000&$skip=${skip}&$format=json`;
         const r=await fetch(u); if(!r.ok)throw new Error(r.status);
         const recs=(await r.json())[ENT]||[]; if(!recs.length)break;
-        recs.forEach(x=>{const k=x.agency||"(agency)"; const a=agg[k]||(agg[k]={name:k,amt:0,n:0});
-          a.amt+=+(x.fedCostShareAmt||x.obligationAmount||0); a.n++;});
+        recs.forEach(x=>{const id=x.maId||x.agency||"?";
+          const a=byMa[id]||(byMa[id]={agency:x.agency||"(agency)",maType:x.maType||"",esf:x.supportFunction,priority:x.priority||"",fed:0,stt:0,desc:"",p0:null,p1:null});
+          a.fed+=+(x.fedCostShareAmt||0); a.stt+=+(x.sttCostShareAmt||0);   // net across amendments
+          if((+x.maAmendNumber||0)===0 && x.assistanceRequested) a.desc=x.assistanceRequested;
+          if(x.popStartDate&&(!a.p0||x.popStartDate<a.p0))a.p0=x.popStartDate;
+          if(x.popEndDate&&(!a.p1||x.popEndDate>a.p1))a.p1=x.popEndDate;});
         skip+=recs.length; if(recs.length<1000)break;
       }
-      geoDisMACache[dn]=Object.values(agg).map(a=>({name:a.name,amt:Math.round(a.amt),n:a.n})).sort((x,y)=>y.amt-x.amt);
+      geoDisMACache[dn]=Object.values(byMa).map(a=>({...a,fed:Math.round(a.fed),stt:Math.round(a.stt)})).sort((x,y)=>y.fed-x.fed);
     }catch(e){geoDisMACache[dn]="error";}
     if(geoDisasterFocus===dn)renderDisasterMA(dn);
   })();
 }
 function renderDisasterMA(dn){
   const box=el("geoMABox"); if(!box)return;
-  const data=geoDisMACache[dn];
-  if(data==="loading"||data==null){box.innerHTML=`<div class="declsub" style="margin-top:12px">Federal mission assignments</div><div class="skeleton"><span class="spin"></span> Loading from OpenFEMA…</div>`;return;}
-  if(data==="error"){box.innerHTML=`<div class="declsub" style="margin-top:12px">Federal mission assignments</div><p class="thr-sub">Couldn't load — <a target="_blank" rel="noopener" href="https://www.fema.gov/api/open/v2/MissionAssignments?$filter=${encodeURIComponent("disasterNumber eq "+dn)}&$format=jsona">view on OpenFEMA ↗</a></p>`;return;}
-  if(!data.length){box.innerHTML=`<div class="declsub" style="margin-top:12px">Federal mission assignments</div><p class="thr-sub">None recorded for DR-${dn}.</p>`;return;}
-  const tot=data.reduce((s,x)=>s+x.amt,0);
-  box.innerHTML=`<div class="declsub" style="margin-top:12px">Federal mission assignments · <b>${fmtMoney(tot)}</b> <span class="thr-sub">fed share · ${data.length} agenc${data.length===1?"y":"ies"}</span></div>`
-    +data.slice(0,12).map(a=>`<div class="declrow"><span class="dk">${a.name}</span><span class="dv">${fmtMoney(a.amt)}<span class="thr-sub"> · ${a.n}</span></span></div>`).join("")
-    +`<p class="thr-sub" style="margin-top:6px">Mission assignments are federal-agency taskings (state-level, not county-attributable), live from OpenFEMA.</p>`;
+  const data=geoDisMACache[dn], hd=`<div class="declsub" style="margin-top:12px">Federal mission assignments</div>`;
+  if(data==="loading"||data==null){box.innerHTML=hd+`<div class="skeleton"><span class="spin"></span> Loading from OpenFEMA…</div>`;return;}
+  if(data==="error"){box.innerHTML=hd+`<p class="thr-sub">Couldn't load — <a target="_blank" rel="noopener" href="https://www.fema.gov/api/open/v2/MissionAssignments?$filter=${encodeURIComponent("disasterNumber eq "+dn)}&$format=jsona">view on OpenFEMA ↗</a></p>`;return;}
+  if(!data.length){box.innerHTML=hd+`<p class="thr-sub">None recorded for DR-${dn}.</p>`;return;}
+  const tot=data.reduce((s,x)=>s+x.fed,0), stt=data.reduce((s,x)=>s+x.stt,0), ags=new Set(data.map(x=>x.agency));
+  const dt=s=>s?fmtDate(s.slice(0,10)):"?";
+  box.innerHTML=`<div class="declsub" style="margin-top:12px">Federal mission assignments · <b>${fmtMoney(tot)}</b> <span class="thr-sub">fed share · ${data.length} assignment${data.length>1?"s":""} · ${ags.size} agenc${ags.size===1?"y":"ies"}${stt>0?" · "+fmtMoney(stt)+" state share":""}</span></div>`
+    +data.slice(0,14).map(a=>{const esf=MA_ESF[+a.esf], ty=MA_TYPE[a.maType]||a.maType;
+      const meta=[ty||"MA",esf?`ESF ${a.esf} · ${esf}`:null,a.priority&&a.priority!=="Normal"?a.priority+" priority":null,a.p0?`${dt(a.p0)}–${dt(a.p1)}`:null].filter(Boolean).join(" · ");
+      return `<div class="marow"><div class="mahd"><b>${a.agency}</b><span class="mav">${fmtMoney(a.fed)}</span></div>`
+        +`<div class="thr-sub mameta">${meta}</div>`
+        +(a.desc?`<div class="madesc">${a.desc.replace(/\s+/g," ").trim().slice(0,150).replace(/[<>]/g,"")}</div>`:"")+`</div>`;}).join("")
+    +(data.length>14?`<p class="thr-sub">+${data.length-14} more…</p>`:"")
+    +`<p class="thr-sub" style="margin-top:6px">Federal-agency taskings (state-level, not county-attributable); amounts net amendments, live from OpenFEMA.</p>`;
 }
 function fetchDisasterApplicants(dn){
   geoDisApplCache[dn]="loading"; renderGeoBoard();
