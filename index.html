@@ -354,6 +354,8 @@ tr.clickable:hover td{background:#eef3f8;}
 .geotoggle{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
 .geotoggle button{font:inherit;font-size:12.5px;font-weight:700;padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--ink-2);border-radius:20px;cursor:pointer;}
 .geotoggle button.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+.geotoggle button.ndis{border-style:dashed;border-color:#0e7c86;color:#0b525b;}
+.geotoggle button.ndis.active{background:#0e7c86;border-color:#0e7c86;color:#fff;}
 .paia{display:inline-flex;align-items:center;gap:7px;margin-bottom:12px;transition:opacity .2s,filter .2s;}
 .paia__lab{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);}
 .paia__sq{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:52px;height:40px;border-radius:10px;border:1.5px solid var(--line);background:#fff;cursor:pointer;overflow:hidden;transition:transform .12s ease,box-shadow .22s ease,border-color .2s,opacity .2s;}
@@ -681,7 +683,8 @@ tr.clickable:hover td{background:#eef3f8;}
         <button data-geom="paObligated">PA $</button>
         <button data-geom="paProjects">Projects</button>
         <button data-geom="ihpApproved">IA $</button>
-        <button data-geom="hmgpObligated">HMGP $</button></div>
+        <button data-geom="hmgpObligated">HMGP $</button>
+        <button data-geom="mitObligated" class="ndis" title="Non-disaster hazard-mitigation grants (FMA · PDM · BRIC) — competitive, not tied to a declaration">Mitigation $</button></div>
       <div class="paia" id="paiaToggle" role="group" aria-label="Filter disasters by program">
         <span class="paia__lab">With</span>
         <button class="paia__sq pa on" data-aid="pa" title="Disasters with a PA (Public Assistance) declaration"><span class="paia__k">PA</span><span class="paia__t">Public</span></button>
@@ -1096,22 +1099,25 @@ const GEO_META={count:{label:"disasters",fmt:v=>String(v)},
   paObligated:{label:"PA obligated",fmt:v=>fmtMoney(v)},
   paProjects:{label:"projects",fmt:v=>fmtNum(v)},
   ihpApproved:{label:"IHP approved",fmt:v=>fmtMoney(v)},
-  hmgpObligated:{label:"HMGP obligated",fmt:v=>fmtMoney(v)}};
+  hmgpObligated:{label:"HMGP obligated",fmt:v=>fmtMoney(v)},
+  mitObligated:{label:"non-disaster mitigation",fmt:v=>fmtMoney(v)}};
 function geoColor(m,v){
   if(!v)return"#eef2f7";
   if(m==="count")return v>=8?"#5a189a":v>=6?"#7b2cbf":v>=4?"#9d4edd":v>=2?"#c77dff":"#e0aaff";
   if(m==="paObligated")return v>=30e6?"#0b6e3b":v>=15e6?"#1a9850":v>=5e6?"#52b788":v>=1e6?"#95d5b2":"#d8f3dc";
   if(m==="ihpApproved")return v>=1e8?"#7a0b0b":v>=2.5e7?"#b42318":v>=5e6?"#e8590c":v>=5e5?"#fb8c00":"#ffce6b";
   if(m==="hmgpObligated")return v>=10e6?"#3d2a6e":v>=2e6?"#5a3e8e":v>=5e5?"#7b5fb0":v>=1e5?"#9d8ec9":"#e7e0f2";
+  if(m==="mitObligated")return v>=10e6?"#0b525b":v>=2e6?"#0e7c86":v>=5e5?"#3aa8b0":v>=1e5?"#7fcdd3":"#d7f0f2";
   return v>=300?"#08519c":v>=150?"#2171b5":v>=75?"#4292c6":v>=25?"#6baed6":"#c6dbef";
 }
 const GEO_LEGEND={count:[[0,"0"],[1,"1"],[2,"2–3"],[4,"4–5"],[6,"6–7"],[8,"8+"]],
   paObligated:[[0,"$0"],[1,"<$1M"],[1e6,"1–5M"],[5e6,"5–15M"],[15e6,"15–30M"],[30e6,"$30M+"]],
   paProjects:[[0,"0"],[1,"<25"],[25,"25–74"],[75,"75–149"],[150,"150–299"],[300,"300+"]],
   ihpApproved:[[0,"$0"],[1,"<$500k"],[5e5,"0.5–5M"],[5e6,"5–25M"],[2.5e7,"25–100M"],[1e8,"$100M+"]],
-  hmgpObligated:[[0,"$0"],[1,"<$100k"],[1e5,"100–500k"],[5e5,"0.5–2M"],[2e6,"2–10M"],[1e7,"$10M+"]]};
-const GEO_KEY={count:"nDisasters",paObligated:"paObligated",paProjects:"paProjects",ihpApproved:"ihpApproved",hmgpObligated:"hmgpObligated"};
-const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",ihpApproved:"#e8590c",hmgpObligated:"#6a4c93"};
+  hmgpObligated:[[0,"$0"],[1,"<$100k"],[1e5,"100–500k"],[5e5,"0.5–2M"],[2e6,"2–10M"],[1e7,"$10M+"]],
+  mitObligated:[[0,"$0"],[1,"<$100k"],[1e5,"100–500k"],[5e5,"0.5–2M"],[2e6,"2–10M"],[1e7,"$10M+"]]};
+const GEO_KEY={count:"nDisasters",paObligated:"paObligated",paProjects:"paProjects",ihpApproved:"ihpApproved",hmgpObligated:"hmgpObligated",mitObligated:"mitObligated"};
+const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",ihpApproved:"#e8590c",hmgpObligated:"#6a4c93",mitObligated:"#0e7c86"};
 function geoComputeStatewide(){
   if(!DECL||DECL._sw)return; DECL._sw=true;
   const sum={};
@@ -1384,15 +1390,17 @@ function renderGeoBoard(){
       +(data.length>APPL_CAP?`<div class="georow applmore clickable" data-applexpand="1">${geoApplExpanded?"▲ Show top "+APPL_CAP:"▾ Show all "+fmtNum(data.length)+" applicants"}</div>`:"");
     return;
   }
-  if(geoCountyFocus){                       // county focus → APPLICANTS here (HMGP subrecipients on the HMGP metric)
-    const o=DECL.counties[geoCountyFocus]||{}, isHm=geoMetric==="hmgpObligated";
-    const apps=(isHm?o.hmgpApplicants:o.applicants)||[], shown=geoApplExpanded?apps:apps.slice(0,APPL_CAP), lbl=isHm?"HMGP subrecipients":"PA applicants";
+  if(geoCountyFocus){                       // county focus → grantees here (HMGP / non-disaster mitigation / PA)
+    const o=DECL.counties[geoCountyFocus]||{}, isHm=geoMetric==="hmgpObligated", isMit=geoMetric==="mitObligated";
+    const apps=(isHm?o.hmgpApplicants:isMit?o.mitApplicants:o.applicants)||[], shown=geoApplExpanded?apps:apps.slice(0,APPL_CAP);
+    const lbl=isHm?"HMGP subrecipients":isMit?"mitigation grantees":"PA applicants";
     if(sub)sub.innerHTML=`<span><span class="gbscope">📍 ${o.name} County, ${o.state}</span> <span class="gbtag">· ${apps.length?fmtNum(apps.length)+" "+lbl:lbl}</span></span><span class="geoclear" id="geoBackCounties">← all counties</span>`;
-    box.innerHTML=apps.length?shown.map((a,i)=>isHm
-      ?`<div class="georow"><span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b></span><span class="gv">${fmtMoney(a.hmgp)}<span class="thr-sub"> · ${a.nDisasters} dis · ${fmtNum(a.projects)} proj</span></span></div>`
+    const progLine=isMit&&o.mitByProgram?`<div class="thr-sub" style="padding:4px 4px 7px">${Object.entries(o.mitByProgram).map(([k,v])=>`<b>${k}</b> ${fmtMoney(v)}`).join(" · ")}</div>`:"";
+    box.innerHTML=progLine+(apps.length?shown.map((a,i)=>(isHm||isMit)
+      ?`<div class="georow"><span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b></span><span class="gv">${fmtMoney(isHm?a.hmgp:a.mit)}${isHm?`<span class="thr-sub"> · ${a.nDisasters} dis · ${fmtNum(a.projects)} proj</span>`:""}</span></div>`
       :`<div class="georow clickable" data-gappl="${geoCountyFocus}|${i}"><span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b></span><span class="gv">${fmtMoney(a.pa)}<span class="thr-sub"> · ${a.nDisasters} dis · ${fmtNum(a.projects)} proj</span></span></div>`).join("")
       +(apps.length>APPL_CAP?`<div class="georow applmore clickable" data-applexpand="1">${geoApplExpanded?"▲ Show top "+APPL_CAP:"▾ Show all "+fmtNum(apps.length)+" "+lbl}</div>`:"")
-      :`<p class="thr-sub">No ${isHm?"HMGP subrecipient":"applicant-level PA"} records for this county.</p>`;
+      :`<p class="thr-sub">No ${isHm?"HMGP subrecipient":isMit?"mitigation grantee":"applicant-level PA"} records for this county.</p>`);
     return;
   }
   const m=geoMetric;
@@ -1404,7 +1412,7 @@ function renderGeoBoard(){
     <span class="gr"><span class="grk">${i+1}</span><b>${v.name}</b>, ${v.state}</span>
     <span class="gv">${GEO_META[m].fmt(geoCountyVal(v,m))}<span class="thr-sub"> · ${v.count} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved||0)} IHP · ${fmtNum(v.paProjects)} proj</span></span></div>`).join("");
   if(geoStateFilter){const st=DECL.states[geoStateFilter];
-    const swv={count:0,paObligated:st.paStatewide,paProjects:st.projectsStatewide,ihpApproved:st.ihpStatewide,hmgpObligated:st.hmgpStatewide}[m]||0;
+    const swv={count:0,paObligated:st.paStatewide,paProjects:st.projectsStatewide,ihpApproved:st.ihpStatewide,hmgpObligated:st.hmgpStatewide,mitObligated:st.mitStatewide}[m]||0;
     if(swv)html+=`<div class="georow" style="background:#fff8e6;cursor:default"><span class="gr"><span class="grk">∑</span><b>Statewide</b> <span class="thr-sub">not tied to a county</span></span><span class="gv">${GEO_META[m].fmt(swv)}</span></div>`;
   }
   box.innerHTML=html||`<p class="thr-sub">—</p>`;
