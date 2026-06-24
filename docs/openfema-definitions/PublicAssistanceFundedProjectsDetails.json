@@ -1,0 +1,195 @@
+{
+  "dataset": "PublicAssistanceFundedProjectsDetails",
+  "purpose": "Per-project PA obligated $ + project counts (and lastObligationDate).",
+  "fetched": "2026-06-24",
+  "source": "https://www.fema.gov/api/open/v1/OpenFemaDataSetFields?$filter=openFemaDataSet eq 'PublicAssistanceFundedProjectsDetails'",
+  "fieldCount": 31,
+  "fields": [
+    {
+      "name": "applicantId",
+      "title": "Applicant ID",
+      "type": "text",
+      "description": "Unique Public Assistance applicant identification number"
+    },
+    {
+      "name": "applicationTitle",
+      "title": "Application Title",
+      "type": "text",
+      "description": "Standard, non-unique (free form text) application title"
+    },
+    {
+      "name": "county",
+      "title": "County",
+      "type": "text",
+      "description": "The name of a U.S. county, parish, borough, independent city or other political subdivision specifying the applicant location. Counties may not be available for tribal, territories or applicants lacking specified headquarter locations."
+    },
+    {
+      "name": "countyCode",
+      "title": "County Code",
+      "type": "text",
+      "description": "Unique identifier for a U.S. county; typically, this identifier makes up the last three digits of a five digit Federal Information Processing Standard (FIPS) Code"
+    },
+    {
+      "name": "damageCategory",
+      "title": "Damage Category Description",
+      "type": "text",
+      "description": "Description of the type of work eligible for reimbursement through a Public Assistance grant. For a full listing of each category please go to https://www.fema.gov/assistance/public/program-overview"
+    },
+    {
+      "name": "damageCategoryCode",
+      "title": "Damage Category Code",
+      "type": "text",
+      "description": "Code representing the type of work eligible for reimbursement through a Public Assistance grant; for a full listing of each category please go to https://www.fema.gov/assistance/public/program-overview"
+    },
+    {
+      "name": "damageCategoryDescrip",
+      "title": "Damage Category Description",
+      "type": "text",
+      "description": "Damage category code related to the Damage Category Description"
+    },
+    {
+      "name": "dcc",
+      "title": "Damage Category Code",
+      "type": "text",
+      "description": "Damage category code related to the Damage Category Description"
+    },
+    {
+      "name": "declarationDate",
+      "title": "Declaration Date",
+      "type": "date",
+      "description": "Date the disaster was declared"
+    },
+    {
+      "name": "disasterNumber",
+      "title": "Disaster Number",
+      "type": "smallint",
+      "description": "Sequentially assigned number used to designate an event or incident declared as a disaster. For more information on the disaster process visit https://www.fema.gov/disasters/how-declared"
+    },
+    {
+      "name": "federalShareObligated",
+      "title": "Federal Share Obligated",
+      "type": "decimal(13,2)",
+      "description": "The Public Assistance grant funding available to the grantee (State) in dollars, for sub-grantee's approved Project Worksheets"
+    },
+    {
+      "name": "firstObligationDate",
+      "title": "First Obligation Date",
+      "type": "datetime",
+      "description": "Date the grant was initially obligated"
+    },
+    {
+      "name": "gmApplicantId",
+      "title": "GM Applicant Identifier",
+      "type": "bigint",
+      "description": "The numeric applicant identification number used in GM that represents an applicant in a declaration."
+    },
+    {
+      "name": "gmProjectId",
+      "title": "GM Project Identifier",
+      "type": "bigint",
+      "description": "The numeric project identification number used in GM for individual projects."
+    },
+    {
+      "name": "hash",
+      "title": "Hash",
+      "type": "text",
+      "description": "MD5 Hash of the fields and values of the record"
+    },
+    {
+      "name": "id",
+      "title": "ID",
+      "type": "uuid",
+      "description": "Unique ID assigned to the record"
+    },
+    {
+      "name": "incidentType",
+      "title": "Incident Type",
+      "type": "text",
+      "description": "Type of incident such as fire or flood. The incident type will affect the types of assistance available. For more information on incident types, please visit: https://www.fema.gov"
+    },
+    {
+      "name": "lastObligationDate",
+      "title": "Last Obligation Date",
+      "type": "datetime",
+      "description": "Date the grant was last obligated"
+    },
+    {
+      "name": "lastRefresh",
+      "title": "Last Refresh",
+      "type": "datetimez",
+      "description": "Date the record was last updated in the API data store"
+    },
+    {
+      "name": "mitigationAmount",
+      "title": "Mitigation Amount",
+      "type": "decimal(13,2)",
+      "description": "Public Assistance proposed amount that applies to 406 mitigation. Note: does not capture some HMP proposals in the cost lines. Some negative values may exist and are due to adjustments between mitigation costs and project costs, deobligations within versions, and incorrectly categorized mitigation cost lines."
+    },
+    {
+      "name": "obligatedDate",
+      "title": "Latest Obligation Date",
+      "type": "date",
+      "description": "Most recent date the grant had an obligation"
+    },
+    {
+      "name": "projectAmount",
+      "title": "Project Amount",
+      "type": "decimal(13,2)",
+      "description": "The estimated total cost of the Public Assistance grant project in dollars, without administrative costs. This amount is based on the damage survey."
+    },
+    {
+      "name": "projectProcessStep",
+      "title": "Project Process Step",
+      "type": "text",
+      "description": "The current process location of a project from formulation through closeout including pending stages, discontinuation and obligation."
+    },
+    {
+      "name": "projectSize",
+      "title": "Project Size",
+      "type": "text",
+      "description": "Projects are designated as Large or Small, which can affect a number of variables in case management (processing). Project size is determined by the eligible amount as set in the damage survey"
+    },
+    {
+      "name": "projectStatus",
+      "title": "Project Status",
+      "type": "text",
+      "description": "An active or inactive status of the project"
+    },
+    {
+      "name": "pwNumber",
+      "title": "Project Worksheet Number",
+      "type": "integer",
+      "description": "Sequentially assigned number used to identify a unique project"
+    },
+    {
+      "name": "state",
+      "title": "State",
+      "type": "text",
+      "description": "The name of a U.S. state or territory"
+    },
+    {
+      "name": "stateAbbreviation",
+      "title": "State Abbreviation",
+      "type": "text",
+      "description": "Two-character unique identifier for a U.S. state or territory"
+    },
+    {
+      "name": "stateCode",
+      "title": "State Code",
+      "type": "text",
+      "description": "Two-character unique identifier for a U.S. state or territory"
+    },
+    {
+      "name": "stateNumberCode",
+      "title": "State Number Code",
+      "type": "text",
+      "description": "Unique identifier for a U.S. state or territory; this identifier makes up the first two digits of a five digit Federal Information Processing Standard (FIPS) Code"
+    },
+    {
+      "name": "totalObligated",
+      "title": "Total Obligated",
+      "type": "decimal(13,2)",
+      "description": "The federal share of the Public Assistance grant eligible project amount in dollars, plus grantee (State) and sub-grantee (applicant) administrative costs. The federal share is typically 75% of the total cost of the project"
+    }
+  ]
+}

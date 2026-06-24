@@ -24,3 +24,6 @@ data/_zone_county.json
 # USGS daily-stage history + IHP registration caches (regenerable; build_county_*/augment_stage)
 data/_stage_cache.json
 data/_ihp_cache.json
+
+# IA/IHP declaration-flag cache (regenerable; pulled by scripts/patch_ia_flag.py)
+data/_ia_flag_cache.json

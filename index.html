@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Disaster Data — FEMA Region 5</title>
-<meta name="description" content="Independent tool: estimate likely FEMA PA/IA obligated dollars from measured hazard parameters (NOAA Storm Events + USGS), with a live Region 5 disaster watch and historical timeline." />
+<meta name="description" content="Independent tool: estimate likely FEMA PA (obligated) and IHP (approved) dollars from measured hazard parameters (NOAA Storm Events + USGS), with a live Region 5 disaster watch and historical timeline." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Source+Serif+4:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -612,7 +612,7 @@ tr.clickable:hover td{background:#eef3f8;}
         <div class="headline">
           <div class="stat stat--pa"><span class="stat__spark">&#127970;</span><div class="stat__label">Public Assistance · est. obligated</div><div class="stat__val" id="paVal">—</div><div class="stat__range" id="paRange">&nbsp;</div><div class="stat__foot">Infrastructure &amp; emergency work (75% federal)</div></div>
           <div class="stat stat--ia"><span class="stat__spark">&#127968;</span><div class="stat__label">Individual Assistance · est. IHP</div><div class="stat__val" id="iaVal">—</div><div class="stat__range" id="iaRange">&nbsp;</div><div class="stat__foot">Housing &amp; Other Needs to households</div></div>
-          <div class="stat stat--total"><span class="stat__spark">&#9733;</span><div class="stat__label">Total federal · est. obligated</div><div class="stat__val" id="totVal">—</div><div class="stat__range" id="totRange">&nbsp;</div><div class="stat__foot">PA + IA point estimate</div></div>
+          <div class="stat stat--total"><span class="stat__spark">&#9733;</span><div class="stat__label">Total federal · est. obligated</div><div class="stat__val" id="totVal">—</div><div class="stat__range" id="totRange">&nbsp;</div><div class="stat__foot">PA + IHP point estimate</div></div>
         </div>
         <div class="card"><div class="card__bd likeli">
           <div class="gauge" id="gauge"><div class="gauge__txt"><span class="gauge__num" id="gaugeNum">—</span><span class="gauge__lab">Likelihood</span></div></div>
@@ -625,7 +625,7 @@ tr.clickable:hover td{background:#eef3f8;}
           <div class="card__bd"><div id="analogs"><div class="skeleton"><span class="spin"></span> Loading…</div></div></div></div>
         <div class="card"><div class="card__hd"><h2>How this works</h2></div><div class="card__bd">
           <details class="disc" open><summary>Real data, measured hazards</summary><div class="inner"><ul>
-            <li><b>Obligations (real):</b> PA &amp; IA dollars from <span class="kbd">OpenFEMA</span>, refreshed live.</li>
+            <li><b>Obligations (real):</b> PA &amp; IHP dollars from <span class="kbd">OpenFEMA</span>, refreshed live.</li>
             <li><b>Hazards (measured):</b> peak wind, max hail, and tornado EF come from the <span class="kbd">NOAA Storm Events Database</span>; peak river stage from <span class="kbd">USGS</span> daily values — joined to each disaster by county + incident window. No more proxies.</li>
             <li><b>Matching:</b> your wind / hail / river-stage / tornado inputs are compared to each past event with a Gaussian kernel; rainfall &amp; population scale the magnitude and declaration likelihood.</li>
             <li><b>Honest intervals:</b> disaster cost is skewed and long-tailed — point estimates carry wide ranges.</li>
@@ -695,11 +695,11 @@ tr.clickable:hover td{background:#eef3f8;}
       <div class="card__bd"><div class="tablewrap"><table class="dis" id="ledger">
         <thead><tr>
           <th data-sort="disasterNumber">DR #</th><th data-sort="begin">Incident period</th><th data-sort="state">St</th>
-          <th data-sort="tagstr">Type</th><th data-sort="prog">PA / IA</th>
+          <th data-sort="tagstr">Type</th><th data-sort="prog">PA / IHP</th>
           <th data-sort="wind">Wind</th><th data-sort="hail">Hail</th><th data-sort="stage">Stage</th><th data-sort="rain" title="Total incident rainfall (hover a cell for peak 1-day)">Rain</th><th data-sort="tornadoes" title="Tornado count · peak EF">Tor</th>
           <th data-sort="pa">PA oblig.</th><th data-sort="ihp">IHP appr.</th>
         </tr></thead><tbody id="ledgerBody"></tbody></table></div>
-        <p class="thr-sub" style="margin-top:10px">PA = Public Assistance <b>obligated</b> (federal share). IHP = Individual Assistance <b>approved</b>. Hazards measured from NOAA Storm Events + USGS. Tap any row to see the full breakdown and source links.</p></div></div>
+        <p class="thr-sub" style="margin-top:10px">PA = Public Assistance <b>obligated</b> (federal share). IHP = Individuals &amp; Households Program <b>approved</b> — direct household aid (Housing + Other Needs); it sits under the broader Individual Assistance (IA) authorization. Hazards measured from NOAA Storm Events + USGS. Tap any row to see the full breakdown and source links.</p></div></div>
   </section>
 
   <!-- ============ DISASTER TIMELINES (incident date vs declaration date — how long to get declared) ============ -->
@@ -728,7 +728,7 @@ tr.clickable:hover td{background:#eef3f8;}
       <div class="geotoggle" id="geoToggle" data-grp="disaster">
         <button data-geom="count" data-grp="disaster" class="active">Disasters</button>
         <button data-geom="paObligated" data-grp="disaster">PA $</button>
-        <button data-geom="ihpApproved" data-grp="disaster">IA $</button>
+        <button data-geom="ihpApproved" data-grp="disaster">IHP $</button>
         <button data-geom="hmgpObligated" data-grp="disaster">HMGP $</button>
         <button data-geom="paProjects" data-grp="disaster">Projects</button>
         <button data-geom="mitObligated" data-grp="nondis" class="ndis" title="Non-disaster hazard-mitigation grants (FMA · PDM · BRIC) — competitive, not tied to a declaration">Mitigation $</button>
@@ -738,11 +738,11 @@ tr.clickable:hover td{background:#eef3f8;}
       <div class="paia" id="paiaToggle" role="group" aria-label="Filter disasters by program">
         <span class="paia__lab">With</span>
         <button class="paia__sq pa on" data-aid="pa" title="Disasters with a PA (Public Assistance) declaration"><span class="paia__k">PA</span><span class="paia__t">Public</span></button>
-        <button class="paia__sq ia on" data-aid="ia" title="Disasters with an IA (Individual Assistance) declaration"><span class="paia__k">IA</span><span class="paia__t">Individual</span></button>
+        <button class="paia__sq ia on" data-aid="ia" title="IHP = Individuals &amp; Households Program: direct household aid (Housing + Other Needs Assistance), reported as approved $. Filters to IHP-declared disasters. Per OpenFEMA, IA-authorized = ihProgramDeclared OR iaProgramDeclared."><span class="paia__k">IHP</span><span class="paia__t">Individual</span></button>
         <button class="paia__sq hm on" data-aid="hm" title="Disasters that received HMGP (Hazard Mitigation Grant Program, §404)"><span class="paia__k">HMGP</span><span class="paia__t">Mitigation</span></button>
       </div>
       <label class="covtog" title="Fold the six statewide COVID-19 declarations (≈7× weather PA) into the PA / IHP / HMGP state totals"><input type="checkbox" id="geoCovidTog"> incl. COVID-19</label>
-      <span class="geohint thr-sub">Disasters by place — <b>With PA / IA / HMGP</b> filters to disasters carrying that program (all = every disaster); tap a state or county to drill in.</span>
+      <span class="geohint thr-sub">Disasters by place — <b>With PA / IHP / HMGP</b> filters to disasters carrying that program (all = every disaster); tap a state or county to drill in.</span>
     </div>
     <div class="geodash">
       <aside class="geocol geocol--states"><div class="geoh">By state <span id="geoClear" class="geoclear" style="display:none">show all ✕</span></div><div id="geoStates" class="geoscroll"><div class="skeleton"><span class="spin"></span></div></div></aside>
@@ -796,7 +796,7 @@ tr.clickable:hover td{background:#eef3f8;}
 
 <footer>
   <div class="footer__inner">
-    <div style="max-width:32ch"><h4>Disaster Data</h4><p>Independent, transparent ledger of FEMA PA/IA obligated dollars for FEMA Region 5, built on public open data with measured hazards and live monitoring.</p></div>
+    <div style="max-width:32ch"><h4>Disaster Data</h4><p>Independent, transparent ledger of FEMA PA (obligated) &amp; IHP (approved) dollars for FEMA Region 5, built on public open data with measured hazards and live monitoring.</p></div>
     <div><h4>Data sources</h4><ul>
       <li>OpenFEMA — obligations &amp; declarations</li><li>NOAA Storm Events — wind / hail / tornado</li>
       <li>USGS Water Services — river stage</li><li>NWS api.weather.gov — live alerts</li></ul>
@@ -947,7 +947,7 @@ function primaryTrigger(d){
 function progBadges(d){
   let s="";
   if(d.pa>0||d.paDeclared)s+=`<span class="badge badge--pa">PA</span> `;
-  if(d.ihp>0||d.iaDeclared)s+=`<span class="badge badge--ia">IA</span>`;
+  if(d.ihp>0||d.iaDeclared)s+=`<span class="badge badge--ia" title="Individuals & Households Program declared">IHP</span>`;
   return s||`<span class="thr-sub">—</span>`;
 }
 function renderAnalogs(an){
@@ -958,7 +958,7 @@ function renderAnalogs(an){
         <div class="chips">${d.tags.map(t=>`<span class="${tagClass(t)}">${t}</span>`).join("")}</div>
         <div class="chips">${hzChips(d.hz)}</div></div>
       <div class="analog__right"><div class="analog__sim">${x.sim}% match</div>
-        <div class="analog__dollars">${fmtMoney(d.pa+d.ihp)}<small>${[d.pa>0?"PA "+fmtMoney(d.pa):"",d.ihp>0?"IA "+fmtMoney(d.ihp):""].filter(Boolean).join(" · ")||"—"}</small></div></div></div>`;
+        <div class="analog__dollars">${fmtMoney(d.pa+d.ihp)}<small>${[d.pa>0?"PA "+fmtMoney(d.pa):"",d.ihp>0?"IHP "+fmtMoney(d.ihp):""].filter(Boolean).join(" · ")||"—"}</small></div></div></div>`;
   }).join("");
 }
 
@@ -1149,7 +1149,7 @@ function showCountyDecl(fips){
 }
 /* ===== Geography view: state + county rollup (disasters · dollars · projects) ===== */
 let geoMetric="count", geoStateFilter=null, geoCountyFocus=null, geoApplExpanded=false;
-let geoPA=true, geoIA=true, geoHMGP=true;   // PA / IA / HMGP program filter for the Disasters view
+let geoPA=true, geoIA=true, geoHMGP=true;   // PA / IHP / HMGP program filter for the Disasters view (geoIA = IHP)
 let geoMitProg="ALL";                        // non-disaster mitigation program selector (ALL / FMA / PDM / BRIC …)
 let geoCovid=false;                          // include COVID-19 (statewide) in PA/IHP/HMGP state totals — OFF by default
 /* ===== Geography year-of-obligation timeline + range filter =====
@@ -1220,7 +1220,7 @@ function renderGeoStates(){
     const card=`<div class="statecard ${sel?'sel':''}" data-gstate="${s}">
       <div class="sn">${v.name}<span>${GEO_META[m].fmt(sv)}</span></div>
       <div class="pabar"><span style="width:${Math.round(sv/mx*100)}%;background:${GEO_BAR[m]}"></span></div>
-      <div class="sv">${geoStateVal(v,s,"count")} dis · ${fmtMoney(geoStateVal(v,s,"paObligated"))} PA · ${fmtMoney(geoStateVal(v,s,"ihpApproved"))} IHP · ${fmtMoney(geoStateVal(v,s,"hmgpObligated"))} HMGP${geoCovid?` <span class="thr-sub">incl.&nbsp;COVID</span>`:""} <span class="scexp">${sel?"▲":"▾ disasters"}</span></div></div>`;
+      <div class="sv">${geoFocusLine(k=>geoStateVal(v,s,k),geoStateVal(v,s,"count"))}${geoCovid?` <span class="thr-sub">incl.&nbsp;COVID</span>`:""} <span class="scexp">${sel?"▲":"▾ disasters"}</span></div></div>`;
     if(!sel)return card;
     const ds=DISASTERS.filter(d=>d.state===s).sort((a,b)=>(b.pa||0)-(a.pa||0)||(b.begin||"").localeCompare(a.begin||""));
     const rows=ds.map(d=>`<div class="geodrow${geoDisasterFocus===d.disasterNumber?' active':''}" data-geodis="${d.disasterNumber}">
@@ -1494,10 +1494,11 @@ function renderGeoBoard(){
   let ent=Object.entries(DECL.counties).filter(([,v])=>geoCountyVal(v,m));
   if(geoStateFilter)ent=ent.filter(([,v])=>v.state===geoStateFilter);
   const top=ent.sort((a,b)=>geoCountyVal(b[1],m)-geoCountyVal(a[1],m)).slice(0,geoStateFilter?40:25);
-  if(sub)sub.innerHTML=`<span class="gbscope">${geoStateFilter?DECL.states[geoStateFilter].name:"Region 5 — all states"}</span><span class="gbtag">top counties · ${GEO_META[m].label}${m==="count"&&geoFiltering()?` · with ${[geoPA&&"PA",geoIA&&"IA",geoHMGP&&"HMGP"].filter(Boolean).join("+")}`:""}</span>`;
+  const sp=geoSoleProgram();
+  if(sub)sub.innerHTML=`<span class="gbscope">${geoStateFilter?DECL.states[geoStateFilter].name:"Region 5 — all states"}</span><span class="gbtag">top counties · ${GEO_META[m].label}${m==="count"&&geoFiltering()?` · with ${[geoPA&&"PA",geoIA&&"IHP",geoHMGP&&"HMGP"].filter(Boolean).join("+")}`:""}${sp?` · focus: ${SOLE_LABEL[sp]}`:""}</span>`;
   let html=top.map(([f,v],i)=>`<div class="georow clickable" data-gfips="${f}">
     <span class="gr"><span class="grk">${i+1}</span><b>${v.name}</b>, ${v.state}</span>
-    <span class="gv">${GEO_META[m].fmt(geoCountyVal(v,m))}<span class="thr-sub"> · all-time: ${v.count} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved||0)} IHP · ${fmtMoney(v.hmgpObligated||0)} HMGP</span></span></div>`).join("");
+    <span class="gv">${GEO_META[m].fmt(geoCountyVal(v,m))}<span class="thr-sub"> · ${sp?geoFocusLine(k=>geoCountyVal(v,k),geoCountyVal(v,"count")):`all-time: ${v.count} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved||0)} IHP · ${fmtMoney(v.hmgpObligated||0)} HMGP`}</span></span></div>`).join("");
   if(geoStateFilter){const st=DECL.states[geoStateFilter];
     let swv={count:0,paObligated:st.paStatewide,paProjects:st.projectsStatewide,ihpApproved:st.ihpStatewide,hmgpObligated:st.hmgpStatewide,mitObligated:st.mitStatewide}[m]||0;
     if(geoCovid&&COVID&&COVID.states&&COVID.states[geoStateFilter]){const cv=COVID.states[geoStateFilter]; swv+=m==="paObligated"?(cv.paTotal||0):m==="ihpApproved"?(cv.ihpTotal||0):m==="hmgpObligated"?(cv.hmgp||0):0;}
@@ -1527,7 +1528,15 @@ function countyDetailHTML(o,fips){
   const pa=F?yrSum(o.paByYear,geoYearLo,geoYearHi):(o.paObligated||0), ih=F?yrSum(o.ihpByYear,geoYearLo,geoYearHi):(o.ihpApproved||0), hm=F?yrSum(o.hmgpByYear,geoYearLo,geoYearHi):(o.hmgpObligated||0);
   const list=dis.map(d=>`<div class="declrow clickable" data-dn="${d.dn}"><span class="dk"><b style="color:var(--navy)">DR-${d.dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">${fmtMoney(d.pa)} <span class="thr-sub">DR&nbsp;total</span> ↗</span></div>`).join("");
   const span=F?` <span class="thr-sub">(${geoYearLo}–${geoYearHi})</span>`:` <span class="thr-sub">(all-time)</span>`;
-  return `<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${dis.length}</b> disaster${dis.length===1?"":"s"}${span}<br>PA <b>${fmtMoney(pa)}</b> · IHP <b>${fmtMoney(ih)}</b> · HMGP <b>${fmtMoney(hm)}</b> · <b>${fmtNum(F?yrSum(o.paProjectsByYear,geoYearLo,geoYearHi):o.paProjects)}</b> projects${(!F&&o.nApplicants)?` · <b>${fmtNum(o.nApplicants)}</b> applicants →`:""}</div><div class="declsub">Disasters that designated this county <span class="thr-sub">· $ = that disaster's whole-DR total, not this county's share</span></div>${list}${geoYrCap(true)}`;
+  const proj=F?yrSum(o.paProjectsByYear,geoYearLo,geoYearHi):o.paProjects;
+  const appl=(!F&&o.nApplicants)?` · <b>${fmtNum(o.nApplicants)}</b> applicants →`:"";
+  const sp=geoSoleProgram();
+  let costLine;
+  if(sp==="ihp")      costLine=`<b>IHP ${fmtMoney(ih)}</b>${(!F&&o.iaRegistrations)?` · <b>${fmtNum(o.iaRegistrations)}</b> registrations`:""} <span class="thr-sub">· ${fmtMoney(pa)} PA · ${fmtMoney(hm)} HMGP</span>`;
+  else if(sp==="hmgp")costLine=`<b>HMGP ${fmtMoney(hm)}</b>${(!F&&o.nHmgpApplicants)?` · <b>${fmtNum(o.nHmgpApplicants)}</b> subrecipients`:""} <span class="thr-sub">· ${fmtMoney(pa)} PA · ${fmtMoney(ih)} IHP</span>`;
+  else if(sp==="pa")  costLine=`<b>PA ${fmtMoney(pa)}</b> · <b>${fmtNum(proj)}</b> projects${appl} <span class="thr-sub">· ${fmtMoney(ih)} IHP · ${fmtMoney(hm)} HMGP</span>`;
+  else                costLine=`PA <b>${fmtMoney(pa)}</b> · IHP <b>${fmtMoney(ih)}</b> · HMGP <b>${fmtMoney(hm)}</b> · <b>${fmtNum(proj)}</b> projects${appl}`;
+  return `<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${dis.length}</b> disaster${dis.length===1?"":"s"}${span}<br>${costLine}</div><div class="declsub">Disasters that designated this county <span class="thr-sub">· $ = that disaster's whole-DR total, not this county's share</span></div>${list}${geoYrCap(true)}`;
 }
 function showCountyGeo(fips){            // enter county focus: zoom, applicants board, detail
   const o=(DECL.counties||{})[fips];if(!o)return;
@@ -1557,19 +1566,24 @@ function showStateGeo(s){
   if(GEO_STATEONLY[geoMetric]){box.innerHTML=prepTrendHTML(geoMetric,s);return;}   // state grant → by-year trend
   if(geoMetric==="mitObligated"){box.innerHTML=geoNonDisDetailHTML("mitObligated",st.name,F?yrSum(st.mitByYear,geoYearLo,geoYearHi):st.mitObligated,F?null:st.mitByProgram,null,"")+geoYrCap(false);return;}
   if(geoMetric==="hmgpObligated"){box.innerHTML=geoNonDisDetailHTML("hmgpObligated",st.name,F?yrSum(st.hmgpByYear,geoYearLo,geoYearHi):st.hmgpObligated,null,null,"")+geoYrCap(false);return;}
+  const sp=geoSoleProgram();
   if(F){const nd=DISASTERS.filter(d=>d.state===s&&inYr(d)).length;
     const row2=(k,v)=>`<div class="declrow"><span class="dk">${k}</span><span class="dv">${v}</span></div>`;
+    const yr={pa:row2("PA obligated",fmtMoney(yrSum(st.paByYear,geoYearLo,geoYearHi))),
+      ihp:row2("IHP approved <span class=\"thr-sub\">(proxy yr)</span>",fmtMoney(yrSum(st.ihpByYear,geoYearLo,geoYearHi))),
+      hmgp:row2("HMGP obligated",fmtMoney(yrSum(st.hmgpByYear,geoYearLo,geoYearHi)))};
+    const ord=sp?[sp,...["pa","ihp","hmgp"].filter(x=>x!==sp)]:["pa","ihp","hmgp"];
     box.innerHTML=`<div class="declhd"><b>${st.name}</b> — <b>${nd}</b> disaster${nd===1?"":"s"} <span class="thr-sub">(${geoYearLo}–${geoYearHi})</span></div>`
-      +row2("PA obligated",fmtMoney(yrSum(st.paByYear,geoYearLo,geoYearHi)))
-      +row2("IHP approved <span class=\"thr-sub\">(proxy yr)</span>",fmtMoney(yrSum(st.ihpByYear,geoYearLo,geoYearHi)))
-      +row2("HMGP obligated",fmtMoney(yrSum(st.hmgpByYear,geoYearLo,geoYearHi)))
+      +ord.map(x=>yr[x]).join("")
       +row2("Mitigation (non-disaster)",fmtMoney(yrSum(st.mitByYear,geoYearLo,geoYearHi)))
       +geoYrCap(true); return;}
   const row=(k,v,ind)=>`<div class="declrow"><span class="dk"${ind?' style="padding-left:12px;color:var(--ink-3)"':''}>${k}</span><span class="dv">${v}</span></div>`;
-  box.innerHTML=`<div class="declhd"><b>${st.name}</b> — ${st.nDisasters} declared disasters</div>`+
-    row("PA obligated",fmtMoney(st.paObligated))+row("· counties",fmtMoney(st.countyPA),1)+row("· statewide (not county-allocated)",fmtMoney(st.paStatewide),1)+
-    row("IHP approved",fmtMoney(st.ihpApproved))+row("· statewide",fmtMoney(st.ihpStatewide),1)+
-    row("PA projects",`${fmtNum(st.paProjects)}`)+row("· statewide",fmtNum(st.projectsStatewide),1)+
+  const blkPA=row("PA obligated",fmtMoney(st.paObligated))+row("· counties",fmtMoney(st.countyPA),1)+row("· statewide (not county-allocated)",fmtMoney(st.paStatewide),1);
+  const blkProj=row("PA projects",`${fmtNum(st.paProjects)}`)+row("· statewide",fmtNum(st.projectsStatewide),1);
+  const blkIHP=row("IHP approved",fmtMoney(st.ihpApproved))+row("· statewide",fmtMoney(st.ihpStatewide),1);
+  const blkHMGP=row("HMGP obligated",fmtMoney(st.hmgpObligated||0))+row("· statewide",fmtMoney(st.hmgpStatewide||0),1);
+  const body=sp==="ihp"?blkIHP+blkPA+blkProj+blkHMGP:sp==="hmgp"?blkHMGP+blkPA+blkIHP+blkProj:sp==="pa"?blkPA+blkProj+blkIHP+blkHMGP:blkPA+blkIHP+blkProj;
+  box.innerHTML=`<div class="declhd"><b>${st.name}</b> — ${st.nDisasters} declared disasters</div>`+body+
     (geoCovid&&COVID&&COVID.states&&COVID.states[s]?`<div class="declrow" style="background:#fff3f3"><span class="dk"><b>+ COVID-19</b> · statewide</span><span class="dv">${fmtMoney(COVID.states[s].paTotal||0)} PA · ${fmtMoney(COVID.states[s].ihpTotal||0)} IHP · ${fmtMoney(COVID.states[s].hmgp||0)} HMGP</span></div>`:"")+
     `<p class="thr-sub" style="margin-top:6px">Some FEMA work (management, statewide contracts) isn't assigned to a county, so county figures sum to less than the state total — that remainder is shown as <b>statewide</b>.</p>`;
 }
@@ -1634,12 +1648,13 @@ function syncMitChips(){const box=el("mitChips"); if(!box)return;
   box.style.display="";
   box.innerHTML=`<button class="mitchip ${geoMitProg==="ALL"?"on":""}" data-mitprog="ALL">All</button>`
     +geoMitPrograms().map(p=>`<button class="mitchip ${geoMitProg===p?"on":""}" data-mitprog="${p}">${p}</button>`).join("");}
-/* PA/IA tiles FILTER which disasters are shown in the Disasters (count) view:
-   PA → disasters that carried PA obligations, IA → those with IA approvals, both → all. */
+/* PA/IHP tiles FILTER which disasters are shown in the Disasters (count) view:
+   PA → disasters with PA obligations, IHP → those IHP-declared (var geoIA), both → all.
+   (geoIA holds the IHP filter; iaDeclared = ihProgramDeclared OR iaProgramDeclared per OpenFEMA.) */
 let _geoByDn=null;
 function geoFull(dn){ if(!_geoByDn)_geoByDn=new Map(DISASTERS.map(d=>[d.disasterNumber,d])); return _geoByDn.get(dn); }
 function geoFiltering(){return !(geoPA&&geoIA&&geoHMGP);}
-function geoProgKeep(d){ if(!d)return false;          // PA/IA use the declaration flags; HMGP uses funded $
+function geoProgKeep(d){ if(!d)return false;          // PA/IHP use the declaration flags; HMGP uses funded $
   return (geoPA&&d.paDeclared)||(geoIA&&d.iaDeclared)||(geoHMGP&&(((d.costs&&d.costs.hmgp)||0)>0)); }
 function geoCountyVal(o,m){
   const F=geoYrFiltering();
@@ -1660,6 +1675,25 @@ function geoStateVal(st,s,m){
   if(cov){ if(m==="paObligated")v+=cov.paTotal||0; else if(m==="ihpApproved")v+=cov.ihpTotal||0; else if(m==="hmgpObligated")v+=cov.hmgp||0; }
   return v;
 }
+/* ---- single-program FOCUS: when exactly one chip is on (Disasters/count view), lead every
+       Geography pane with that program's figure instead of the default PA-led line. geoIA=IHP.
+       getVal(metricKey)->number is year/COVID-aware (geoCountyVal / geoStateVal). ---- */
+const SOLE_METRIC={pa:"paObligated",ihp:"ihpApproved",hmgp:"hmgpObligated"};
+const SOLE_LABEL={pa:"PA obligated",ihp:"IHP approved",hmgp:"HMGP obligated"};
+const SOLE_SHORT={pa:"PA",ihp:"IHP",hmgp:"HMGP"};
+function geoSoleProgram(){ if(geoMetric!=="count")return null;
+  const on=[geoPA&&"pa",geoIA&&"ihp",geoHMGP&&"hmgp"].filter(Boolean); return on.length===1?on[0]:null; }
+function geoFocusLine(getVal,count){   // desktop inline text, sole program bolded & first
+  const sp=geoSoleProgram(), cell=x=>`${fmtMoney(getVal(SOLE_METRIC[x]))} ${SOLE_SHORT[x]}`;
+  if(!sp)return `${count} dis · ${cell("pa")} · ${cell("ihp")} · ${cell("hmgp")}`;
+  const others=["pa","ihp","hmgp"].filter(x=>x!==sp).map(cell).join(" · ");
+  return `${count} dis · <b>${SOLE_LABEL[sp]} ${fmtMoney(getVal(SOLE_METRIC[sp]))}</b> · ${others}`;
+}
+function geoFocusSpans(getVal,count){  // mobile gm-stat <span> chips, sole program first
+  const sp=geoSoleProgram(), span=x=>`<span>${fmtMoney(getVal(SOLE_METRIC[x]))} ${SOLE_SHORT[x]}</span>`;
+  const order=sp?[sp,...["pa","ihp","hmgp"].filter(x=>x!==sp)]:["pa","ihp","hmgp"];
+  return `<span>${count} disasters</span>`+order.map(span).join("");
+}
 function clickAssist(which){
   if(which==="pa")geoPA=!geoPA; else if(which==="ia")geoIA=!geoIA; else geoHMGP=!geoHMGP;
   if(!geoPA&&!geoIA&&!geoHMGP){if(which==="pa")geoPA=true;else if(which==="ia")geoIA=true;else geoHMGP=true;}  // keep ≥1
@@ -1671,12 +1705,12 @@ function syncPaiaUI(){const pt=el("paiaToggle"); if(!pt)return;
   pt.classList.toggle("dim",geoMetric!=="count");   // filter only meaningful for the Disasters (count) view
   pt.querySelectorAll(".paia__sq").forEach(b=>{const a=b.dataset.aid; b.classList.toggle("on", a==="pa"?geoPA:a==="ia"?geoIA:geoHMGP);});}
 /* ===== per-view timeline: a single series for the ACTIVE metric + draggable range filter =====
-   Disasters(count) → # declarations by incident year, honoring the PA/IA/HMGP switcher +
+   Disasters(count) → # declarations by incident year, honoring the PA/IHP/HMGP switcher +
    COVID toggle. Dollar/projects metrics → that metric's *ByYear, scope-aware. */
 const GEO_TL_DOLLAR_KEYS=["paByYear","ihpByYear","hmgpByYear","mitByYear"];   // for spanning bounds
 let geoTlBoxId="geoTimeline";          // the container currently rendered (desktop or mobile)
 function geoScopeCountByYear(){         // # disasters by incident year for the active scope + filters
-  const agg={}, F=geoFiltering();       // F = a PA/IA/HMGP toggle is OFF → restrict the set
+  const agg={}, F=geoFiltering();       // F = a PA/IHP/HMGP toggle is OFF → restrict the set
   const add=y=>{ if(y>=1900)agg[y]=(agg[y]||0)+1; };
   if(geoCountyFocus){const o=DECL.counties[geoCountyFocus]||{};
     (o.disasters||[]).forEach(d=>{ if(!F||geoProgKeep(geoFull(d.dn)))add(+String(d.date||"").slice(0,4)); });
@@ -1751,7 +1785,7 @@ function renderGeoTimeline(boxId){
     ${bars}${labs}${sel}${handle(xLo,"lo")}${handle(xHi,"hi")}</svg>`;
   const rng=geoYrFiltering()?`<b>${geoYearLo}–${geoYearHi}</b>`:`<b>all years</b> (${GEO_YR0}–${GEO_YR1})`;
   const wtot=yrSum(map,geoYearLo,geoYearHi);
-  const basis=ser.kind==="count"?"counted by disaster (incident) year — toggle PA/IA/HMGP above to change which declarations are included":
+  const basis=ser.kind==="count"?"counted by disaster (incident) year — toggle PA/IHP/HMGP above to change which declarations are included":
     (ser.proxy?"proxy by disaster (incident) year":(GEO_STATEONLY[geoMetric]?"by grant fiscal year":"by true obligation year — recent years under-count as obligations lag"));
   box.innerHTML=`<div class="gtlhd"><span><b>${ser.label} by year</b> · ${geoScopeLabel()} · ${rng} · <b>${geoTlFmt(ser.kind,wtot)}</b></span>
       <span class="gtlleg"><span class="gtlk"><i style="background:${ser.color}"></i>${ser.label}${ser.proxy?"*":""}</span>${geoYrFiltering()?`<button class="gtlreset" data-tlreset="1">all years ✕</button>`:""}</span></div>
@@ -1811,7 +1845,7 @@ let gmLevel="region", gmState=null, gmDisaster=null, gmCounty=null, gmTab="disas
 const GM_SORTS=[["count","Disasters"],["paObligated","PA $"],["paProjects","Projects"],["ihpApproved","IHP $"],["hmgpObligated","HMGP $"],["mitObligated","Mit $"],["az","A–Z"]];
 function gmVal(key,kind,o){ // value of entity o for a sort key (year-windowed via the shared value fns)
   if(key==="az")return 0;
-  if(kind==="state")return geoStateVal(o,o._ab,key);   // honors year range + PA/IA/HMGP + COVID
+  if(kind==="state")return geoStateVal(o,o._ab,key);   // honors year range + PA/IHP/HMGP + COVID
   if(kind==="county")return geoCountyVal(o,key);        // honors year range
   if(kind==="disaster")return key==="count"?1:key==="paObligated"?(o.pa||0):key==="paProjects"?((o.costs||{}).paProjects||0):key==="hmgpObligated"?((o.costs||{}).hmgp||0):key==="mitObligated"?0:(o.ihp||0);
   if(kind==="appl")return key==="paProjects"?(o.projects||0):(o.pa||0);
@@ -1838,8 +1872,8 @@ function gmInjectTimeline(box){
   const tl=document.createElement("div"); tl.id="gmTimeline"; tl.className="geotl gmtl";
   if(head)head.insertAdjacentElement("afterend",tl); else box.prepend(tl);
   renderGeoTimeline("gmTimeline");
-  if(geoMetric==="count"){   // the Disasters view: expose the PA/IA/HMGP switcher + COVID toggle on mobile too
-    const sw=`<div class="gmpaia">${[["pa","PA",geoPA],["ia","IA",geoIA],["hm","HMGP",geoHMGP]].map(([a,l,on])=>
+  if(geoMetric==="count"){   // the Disasters view: expose the PA/IHP/HMGP switcher + COVID toggle on mobile too
+    const sw=`<div class="gmpaia">${[["pa","PA",geoPA],["ia","IHP",geoIA],["hm","HMGP",geoHMGP]].map(([a,l,on])=>
         `<button class="gmpaia__b${on?" on":""}" data-aid="${a}">${l}</button>`).join("")}
       <button class="gmpaia__b${geoCovid?" on":""}" data-gmcovid="1">COVID-19</button><span class="thr-sub">declared</span></div>`;
     tl.insertAdjacentHTML("beforeend",sw);
@@ -1859,7 +1893,7 @@ function gmRenderHome(box){
       <div class="gm-sub">${pre} · ${totDis} disasters · ${fmtMoney(totPA)} PA obligated · ${fmtMoney(totIHP)} IHP approved · tap a state to drill in</div></div>
     <div class="gm-sech">Sort states by</div>${gmSortChips()}
     <div class="gm-list">${sorted.map(r=>`<div class="gm-row" data-gmstate="${r.s}">
-        <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${pre} · ${geoStateVal(r.v,r.s,"count")} dis · ${fmtMoney(geoStateVal(r.v,r.s,"paObligated"))} PA · ${fmtMoney(geoStateVal(r.v,r.s,"ihpApproved"))} IHP · ${fmtMoney(geoStateVal(r.v,r.s,"hmgpObligated"))} HMGP<br>${fmtMoney(geoStateVal(r.v,r.s,"mitObligated"))} mitigation · ${fmtMoney(geoStateVal(r.v,r.s,"empg"))} EMPG · ${fmtMoney(geoStateVal(r.v,r.s,"afg"))} AFG <span class="thr-sub">(non-disaster)</span></span>
+        <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${pre} · ${geoFocusLine(k=>geoStateVal(r.v,r.s,k),geoStateVal(r.v,r.s,"count"))}<br>${fmtMoney(geoStateVal(r.v,r.s,"mitObligated"))} mitigation · ${fmtMoney(geoStateVal(r.v,r.s,"empg"))} EMPG · ${fmtMoney(geoStateVal(r.v,r.s,"afg"))} AFG <span class="thr-sub">(non-disaster)</span></span>
           ${gmBar(gmVal(fmtk,"state",r._o),mx,col)}</div>
         <div class="gm-rval">${gmFmt(gmSort,"state",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`;
 }
@@ -1869,7 +1903,7 @@ function gmRenderState(box){
   const Fs=geoYrFiltering();
   const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span></div>
       <div class="gm-title">${st.name}</div>
-      <div class="gm-stat"><span>${geoStateVal(st,s,"count")} disasters</span><span>${fmtMoney(geoStateVal(st,s,"paObligated"))} PA</span><span>${fmtMoney(geoStateVal(st,s,"ihpApproved"))} IHP</span><span>${fmtNum(geoStateVal(st,s,"paProjects"))} projects</span>${Fs?`<span class="thr-sub">${geoYearLo}–${geoYearHi}</span>`:""}</div>
+      <div class="gm-stat">${geoSoleProgram()?geoFocusSpans(k=>geoStateVal(st,s,k),geoStateVal(st,s,"count")):`<span>${geoStateVal(st,s,"count")} disasters</span><span>${fmtMoney(geoStateVal(st,s,"paObligated"))} PA</span><span>${fmtMoney(geoStateVal(st,s,"ihpApproved"))} IHP</span>`}<span>${fmtNum(geoStateVal(st,s,"paProjects"))} projects</span>${Fs?`<span class="thr-sub">${geoYearLo}–${geoYearHi}</span>`:""}</div>
       <div class="gm-tabs"><button class="gm-tab${gmTab==="disasters"?" active":""}" data-gmtab="disasters">Disasters</button><button class="gm-tab${gmTab==="counties"?" active":""}" data-gmtab="counties">Counties</button></div></div>`;
   let body="";
   if(gmTab==="counties"){
@@ -1922,7 +1956,7 @@ function gmRenderCounty(box){
   const f=gmCounty, o=DECL.counties[f]; if(!o)return gmRenderHome(box);
   const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span> <span data-gmback="state">‹ ${o.state}</span></div>
       <div class="gm-title">${o.name} County, ${o.state}</div>
-      <div class="gm-stat"><span>${geoCountyVal(o,"count")} disasters</span><span>${fmtMoney(geoCountyVal(o,"paObligated"))} PA</span><span>${fmtMoney(geoCountyVal(o,"ihpApproved"))} IHP</span><span>${fmtMoney(geoCountyVal(o,"hmgpObligated"))} HMGP</span><span>${fmtMoney(geoCountyVal(o,"mitObligated"))} mitigation</span><span class="thr-sub">${geoYrFiltering()?geoYearLo+"–"+geoYearHi:"all-time"}</span></div></div>`;
+      <div class="gm-stat">${geoSoleProgram()?geoFocusSpans(k=>geoCountyVal(o,k),geoCountyVal(o,"count"))+(geoSoleProgram()==="ihp"&&o.iaRegistrations?`<span>${fmtNum(o.iaRegistrations)} regs</span>`:""):`<span>${geoCountyVal(o,"count")} disasters</span><span>${fmtMoney(geoCountyVal(o,"paObligated"))} PA</span><span>${fmtMoney(geoCountyVal(o,"ihpApproved"))} IHP</span><span>${fmtMoney(geoCountyVal(o,"hmgpObligated"))} HMGP</span>`}<span>${fmtMoney(geoCountyVal(o,"mitObligated"))} mitigation</span><span class="thr-sub">${geoYrFiltering()?geoYearLo+"–"+geoYearHi:"all-time"}</span></div></div>`;
   const bb=geoCountyBBox(f); const mapHtml=bb?gmMiniMap(new Set([f]),bb,false):"";
   const dis=(o.disasters||[]).slice().filter(inYr).sort((a,b)=>(b.pa||0)-(a.pa||0));
   const dHtml=`<div class="gm-sech">${dis.length} disasters here${geoYrFiltering()?` in ${geoYearLo}–${geoYearHi}`:""} <span class="thr-sub">· $ = whole-DR total, not this county's share</span></div><div class="gm-list">${dis.map(d=>`<div class="gm-row" data-gmdisaster="${d.dn}"><div class="gm-rmain"><b>DR-${d.dn} · ${d.it||""}</b><span class="gm-rsub">${(d.date||"").slice(0,7)} · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP <span class="thr-sub">DR-wide</span></span></div><div class="gm-rval"><span class="gm-go">›</span></div></div>`).join("")}</div>`;
@@ -1958,7 +1992,7 @@ function renderCovid(){
   const summary=`<div class="ctx-cost" style="margin-top:18px">
     <div class="c"><div class="lab">PA obligated · Region 5</div><div class="big">${fmtMoney(r.paTotal)}</div><div class="thr-sub">6 statewide declarations</div></div>
     <div class="c"><div class="lab">IHP approved · Region 5</div><div class="big">${fmtMoney(r.ihpTotal)}</div><div class="thr-sub">individual assistance</div></div>
-    <div class="c"><div class="lab">PA project worksheets</div><div class="big">${fmtNum(r.paProjects)}</div><div class="thr-sub">${fmtNum(r.iaRegistrations)} IA registrations</div></div></div>`;
+    <div class="c"><div class="lab">PA project worksheets</div><div class="big">${fmtNum(r.paProjects)}</div><div class="thr-sub">${fmtNum(r.iaRegistrations)} IHP registrations</div></div></div>`;
   const sts=Object.entries(COVID.states).sort((a,b)=>b[1].paTotal-a[1].paTotal);
   const cards=sts.map(([s,v])=>`<div class="covcard">
     <div class="covhd"><b>${v.name}</b><span class="thr-sub">DR-${v.dn} · ${v.begin?fmtDate(v.begin):"Mar 2020"}</span></div>
@@ -2364,7 +2398,7 @@ function renderDisasterDetail(dn){
         </div>
       </div>
       <div class="costcard ia">
-        <div class="lab">Individual Assistance · IHP <span style="color:var(--green-dark)">approved</span></div>
+        <div class="lab">Individuals &amp; Households Program (IHP) <span style="color:var(--green-dark)">approved</span></div>
         <div class="big">${fmtMoney(c.ihpTotal||0)}</div>${exact(c.ihpTotal||0)}
         <div class="brk">
           ${iaRows||`<div class="brk-row sub"><span class="k">No IHP approved (PA-only declaration)</span></div>`}

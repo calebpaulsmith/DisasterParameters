@@ -1,0 +1,609 @@
+{
+  "dataset": "IndividualsAndHouseholdsProgramValidRegistrations",
+  "purpose": "Per-registration IHP (HA/ONA) detail used for county IHP rollups.",
+  "fetched": "2026-06-24",
+  "source": "https://www.fema.gov/api/open/v1/OpenFemaDataSetFields?$filter=openFemaDataSet eq 'IndividualsAndHouseholdsProgramValidRegistrations'",
+  "fieldCount": 100,
+  "fields": [
+    {
+      "name": "accessFunctionalNeeds",
+      "title": "Access Functional Needs",
+      "type": "boolean",
+      "description": "Does the applicant require special accommodations?"
+    },
+    {
+      "name": "applicantAge",
+      "title": "Applicant Age",
+      "type": "text",
+      "description": "The age range of the primary applicant. Values are <19, 19-34, 35-49, 50-64, 65+"
+    },
+    {
+      "name": "appliedDate",
+      "title": "Applied Date",
+      "type": "date",
+      "description": "The date the applicant applied for assistance"
+    },
+    {
+      "name": "autoDamage",
+      "title": "Auto Damage",
+      "type": "boolean",
+      "description": "Did the applicant report damages to automobile(s)?"
+    },
+    {
+      "name": "censusGeoid",
+      "title": "Census Geoid",
+      "type": "text",
+      "description": "Numeric code that uniquely identify all administrative/legal and statistical geographic areas for which the Census Bureau tabulates data. In this instance, the Census GeoID is presented at the Census Block Group level.  This is an address-based 12-character code that is the concatenation of fields consisting of the 2-character state FIPS code, the 3-character county FIPS code, the 6-character census tract code, and the 1-character block group code. Please see: https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html"
+    },
+    {
+      "name": "censusYear",
+      "title": "Census Block Year",
+      "type": "smallint",
+      "description": "Census period used to obtain Census Block ID. NOTE: THIS VALUE IS UNAVAILABLE AT THIS TIME."
+    },
+    {
+      "name": "county",
+      "title": "County",
+      "type": "text",
+      "description": "The name of the affected U.S. county, parish, borough, independent city, or other political subdivision of a U.S. state, territory, or tribal government"
+    },
+    {
+      "name": "currentLocation",
+      "title": "Current Location",
+      "type": "text",
+      "description": "Current location type code. C - My Vehicle; CH - Church/House of Worship; D - My Home; E - Place of Employment; F - Family/Friends; H - Hotel/Motel; MHU - FEMA Provided Unit; NH - Homeless; P - Purchased New Home; PRU - New Permanent Rental; R - New Temporary Rental; RVT - RV/Camper; S - Mass Shelter; SR - Secondary Residence; T - Tent; U - Unknown"
+    },
+    {
+      "name": "damagedCity",
+      "title": "City",
+      "type": "text",
+      "description": "City name of location of damaged dwelling. User entered with no data checks to resolve incorrect spellings."
+    },
+    {
+      "name": "damagedStateAbbreviation",
+      "title": "Damaged State Abbreviation",
+      "type": "text",
+      "description": "State abbreviation of location of damaged dwelling"
+    },
+    {
+      "name": "damagedZipCode",
+      "title": "Damaged Zip Code",
+      "type": "text",
+      "description": "Damaged dwelling ZIP Code"
+    },
+    {
+      "name": "declarationDate",
+      "title": "Declaration Date",
+      "type": "date",
+      "description": "Date the disaster was declared"
+    },
+    {
+      "name": "destroyed",
+      "title": "Destroyed",
+      "type": "boolean",
+      "description": "Indicates if the home was destroyed. The home is marked as destroyed when requiring the replacement of the majority of two or more major structural components such as the collapsing of foundation walls, exterior walls or roof assembly; or only the foundation remains after complete removal of the above grade structure; or flood waters reach the roof inundating the majority of the structures living area; or the home is in imminent threat of collapse because of disaster-caused damages. In addition to these factors, mobile homes and or travel trailers are considered destroyed when the frame is visibly bent or twisted and releveling is not possible."
+    },
+    {
+      "name": "disasterNumber",
+      "title": "Disaster Number",
+      "type": "smallint",
+      "description": "Sequentially assigned number used to designate an event or incident declared as a disaster. For more information on the disaster process, https://www.fema.gov/disasters/how-declared"
+    },
+    {
+      "name": "emergencyNeeds",
+      "title": "Emergency Needs",
+      "type": "boolean",
+      "description": "Did the applicant report needs for emergency items?"
+    },
+    {
+      "name": "fipAmount",
+      "title": "FIP Amount",
+      "type": "decimal(12,2)",
+      "description": "The amount of the applicant's Flood Insurance Premium (FIP) that was paid for by FEMA, in U.S. dollars"
+    },
+    {
+      "name": "fips",
+      "title": "FIPS Code",
+      "type": "text",
+      "description": "Federal Information Processing Series (FIPS) are numeric codes assigned to US states and counties. US states are identified by a 2-digit number, while US counties are identified by a 3-digit number."
+    },
+    {
+      "name": "floodDamage",
+      "title": "Flood Damage",
+      "type": "boolean",
+      "description": "Was flood damage recorded?"
+    },
+    {
+      "name": "floodDamageAmount",
+      "title": "Flood Damage Amount",
+      "type": "decimal(12,2)",
+      "description": "FEMA-determined amount of damage to real and personal property due to flood damage, in U.S. dollars"
+    },
+    {
+      "name": "floodInsurance",
+      "title": "Flood Insurance",
+      "type": "boolean",
+      "description": "Does the applicant have flood insurance?"
+    },
+    {
+      "name": "foodNeed",
+      "title": "Food Need",
+      "type": "boolean",
+      "description": "Did the applicant report a need for food?"
+    },
+    {
+      "name": "foundationDamage",
+      "title": "Foundation Damage",
+      "type": "boolean",
+      "description": "FEMA-verified foundation damage?"
+    },
+    {
+      "name": "foundationDamageAmount",
+      "title": "Foundation Damage Amount",
+      "type": "decimal(12,2)",
+      "description": "Amount of damage reported to the foundation of the damage dwelling, in U.S. dollars"
+    },
+    {
+      "name": "grossIncome",
+      "title": "Gross Income",
+      "type": "text",
+      "description": "Self-reported gross income range in U.S. dollars. Values can be <$15,000, $15,000-$30,000, $30,001-$60,000, $60,001-$120,000, $120,001-$175,000, >$175,000"
+    },
+    {
+      "name": "haAmount",
+      "title": "HA Amount",
+      "type": "decimal(12,2)",
+      "description": "Total amount awarded for Housing Assistance under IHP"
+    },
+    {
+      "name": "haEligible",
+      "title": "HA Eligible",
+      "type": "boolean",
+      "description": "Was the applicant eligible for the Housing Assistance program? NOTE: Does not include applicants licensed into Direct Housing that did not receive an HA award"
+    },
+    {
+      "name": "haMax",
+      "title": "HA Max",
+      "type": "boolean",
+      "description": "For disasters declared after August 1, 2017, did the applicant receive the maximum HA grant from FEMA?"
+    },
+    {
+      "name": "haReferral",
+      "title": "HA Referred",
+      "type": "boolean",
+      "description": "Was the applicant referred to the Housing Assistance program?"
+    },
+    {
+      "name": "haStatus",
+      "title": "HA Status",
+      "type": "text",
+      "description": "The most recent Housing Assistance decision. Clarifications to values can be found in the codes table."
+    },
+    {
+      "name": "habitabilityRepairsRequired",
+      "title": "Habitability Repairs Required",
+      "type": "boolean",
+      "description": "Are repairs required to make the dwelling habitable?"
+    },
+    {
+      "name": "highWaterLocation",
+      "title": "High Water Location",
+      "type": "text",
+      "description": "Location of the high-water mark affected the damaged dwelling. A - Attic; B - Basement; N - Crawlspace; 1 - First Floor; O - Other; S - Over Access Road; R - Over Roof; 2 - Second Floor; 3 - Third Floor"
+    },
+    {
+      "name": "homeDamage",
+      "title": "Home Damage",
+      "type": "boolean",
+      "description": "Did the applicant report home damage?"
+    },
+    {
+      "name": "homeOwnersInsurance",
+      "title": "Homeowners Insurance",
+      "type": "boolean",
+      "description": "Does the applicant have Homeowner's Insurance?"
+    },
+    {
+      "name": "householdComposition",
+      "title": "Household Composition",
+      "type": "text",
+      "description": "Number of individuals living in the household at time of disaster. Values are 1, 2, 3, 4, 5, >5"
+    },
+    {
+      "name": "id",
+      "title": "ID",
+      "type": "bigint",
+      "description": "Unique ID assigned to the record"
+    },
+    {
+      "name": "ihpAmount",
+      "title": "Total Approved IHP Amount",
+      "type": "decimal(12,2)",
+      "description": "Total financial IHP award for Housing Assistance (HA) and/or Other Needs Assistance (ONA), in U.S. dollars"
+    },
+    {
+      "name": "ihpEligible",
+      "title": "IHP Eligible",
+      "type": "boolean",
+      "description": "Was the applicant eligible for the Individual Housing Program (IHP)? NOTE: Applicants that received an HA and/or ONA award"
+    },
+    {
+      "name": "ihpMax",
+      "title": "IHP Max",
+      "type": "boolean",
+      "description": "For disasters declared prior to August 1, 2017, did the applicant receive the maximum IHP grant from FEMA?"
+    },
+    {
+      "name": "ihpReferral",
+      "title": "IHP Referred",
+      "type": "boolean",
+      "description": "IHP referral status NOTE: Does not include applicants referred to TSA only"
+    },
+    {
+      "name": "incidentTypeCode",
+      "title": "Incident Type Code",
+      "type": "text",
+      "description": "A code that represents the disaster incident type:\n0 - Not applicable; 1 - Explosion; 2 - Straight-Line Winds; 3 - Tidal Wave; 4 - Tropical Storm; 5 - Winter Storm; 8 - Tropical Depression; A - Tsunami; B - Biological; C - Coastal Storm; D - Drought; E - Earthquake; F - Flood; G - Freezing; H - Hurricane; I - Terrorist; J - Typhoon; K - Dam/Levee Break; L - Chemical; M - Mud/Landslide; N - Nuclear; O - Severe Ice Storm; P - Fishing Losses; Q - Crop Losses; R - Fire; S - Snowstorm; T - Tornado; U - Civil Unrest; V - Volcanic Eruption; W - Severe Storm; X - Toxic Substances; Y - Human Cause; Z - Other"
+    },
+    {
+      "name": "ineligibleInsurance",
+      "title": "Ineligible Insurance",
+      "type": "boolean",
+      "description": "Flag indicating insurance ineligibility. Null means there is no reported value for the field."
+    },
+    {
+      "name": "ineligibleReason",
+      "title": "Ineligible Reason",
+      "type": "text",
+      "description": "A code representing a high-level reason for ineligibility. See https://www.fema.gov/assistance/individual/program/eligibility for more information on eligibility requirements.\n1 - Applicant does not have disaster eligible damages or needs; 2 - Applicant has insurance; 3 - Applicant did not respond to FEMA outreach or voluntarily withdrew application; 4 - Applicant needs to submit documentation; 5 - Duplicate application; 6 - Flood zone related reason; 7 - Other; 8 - Pending; 9 - Other non-identified eligibility code"
+    },
+    {
+      "name": "inspnIssued",
+      "title": "Inspection Issued",
+      "type": "boolean",
+      "description": "Has a FEMA inspection been issued to determine damage amount?"
+    },
+    {
+      "name": "inspnReturned",
+      "title": "Inspection Returned",
+      "type": "boolean",
+      "description": "Has a FEMA issued inspection been performed to determine damage amount?"
+    },
+    {
+      "name": "insufficientDamage",
+      "title": "Insufficient Damage",
+      "type": "boolean",
+      "description": "Flag indicating insufficient damage. Null means there is no reported value for the field."
+    },
+    {
+      "name": "lastRefresh",
+      "title": "Last Refresh",
+      "type": "datetimez",
+      "description": "Date the record was last updated in the API data store"
+    },
+    {
+      "name": "occupants19to64",
+      "title": "Occupants 19 to 64",
+      "type": "text",
+      "description": "The total number of occupants between 19 and 64 years old in the household at time of disaster"
+    },
+    {
+      "name": "occupants2to5",
+      "title": "Occupants 2 to 5",
+      "type": "text",
+      "description": "The total number of occupants between two and five years old in the household at time of disaster"
+    },
+    {
+      "name": "occupants65andOver",
+      "title": "Occupants 65 and Older",
+      "type": "text",
+      "description": "The total number of occupants 65 years old and over in the household at time of disaster"
+    },
+    {
+      "name": "occupants6to18",
+      "title": "Occupants 6 to 18",
+      "type": "text",
+      "description": "The total number of occupants between 6 and 18 years old in the household at time of disaster"
+    },
+    {
+      "name": "occupantsUnderTwo",
+      "title": "Occupants Under Two",
+      "type": "text",
+      "description": "The total number of occupants under the age of two in the household at time of disaster"
+    },
+    {
+      "name": "onaAmount",
+      "title": "ONA Amount",
+      "type": "decimal(8,2)",
+      "description": "Total dollar amount awarded for Other Needs Assistance (ONA) from the Individual and Households Program (IHP)"
+    },
+    {
+      "name": "onaDentalAssistAmount",
+      "title": "ONA Dental Assistance Amount",
+      "type": "decimal(8,2)",
+      "description": "ONA Dental Assistance Amount"
+    },
+    {
+      "name": "onaDentalAssistEligible",
+      "title": "ONA Dental Assistance Eligible",
+      "type": "boolean",
+      "description": "ONA Dental Assistance Eligible"
+    },
+    {
+      "name": "onaEligible",
+      "title": "ONA Eligible",
+      "type": "boolean",
+      "description": "Was the applicant eligible for the Other Needs Assistance (ONA) program?"
+    },
+    {
+      "name": "onaFuneralAssistAmount",
+      "title": "ONA Funeral Assistance Amount",
+      "type": "decimal(8,2)",
+      "description": "ONA Funeral Assistance Amount"
+    },
+    {
+      "name": "onaFuneralAssistEligible",
+      "title": "ONA Funeral Assistance Eligible",
+      "type": "boolean",
+      "description": "ONA Funeral Assistance Eligible"
+    },
+    {
+      "name": "onaMax",
+      "title": "ONA Max",
+      "type": "boolean",
+      "description": "For disasters declared after August 1, 2017, did the applicant receive the maximum ONA grant from FEMA?"
+    },
+    {
+      "name": "onaMedicalAssistAmount",
+      "title": "ONA Medical Assistance Amount",
+      "type": "decimal(8,2)",
+      "description": "ONA Medical Assistance Amount"
+    },
+    {
+      "name": "onaMedicalAssistEligible",
+      "title": "ONA Medical Assistance Eligible",
+      "type": "boolean",
+      "description": "ONA Medical Assistance Eligible"
+    },
+    {
+      "name": "onaMovingAssistAmount",
+      "title": "ONA Moving/Storage Amount",
+      "type": "decimal(8,2)",
+      "description": "ONA Moving/Storage Amount"
+    },
+    {
+      "name": "onaMovingAssistEligible",
+      "title": "ONA Moving/Storage Eligible",
+      "type": "boolean",
+      "description": "ONA Moving/Storage Eligible"
+    },
+    {
+      "name": "onaOtherAssistAmount",
+      "title": "ONA Other Amount",
+      "type": "decimal(8,2)",
+      "description": "ONA Other Amount"
+    },
+    {
+      "name": "onaOtherAssistEligible",
+      "title": "ONA Other Eligible",
+      "type": "boolean",
+      "description": "ONA Other Eligible"
+    },
+    {
+      "name": "onaReferral",
+      "title": "ONA Referred",
+      "type": "boolean",
+      "description": "Was the applicant referred to the Other Needs Assistance (ONA) program?"
+    },
+    {
+      "name": "ownRent",
+      "title": "Own or Rent",
+      "type": "text",
+      "description": "Is the applicant the Owner or a Renter of the damaged dwelling? O - Owner; R - Renter; null - Unknown"
+    },
+    {
+      "name": "personalPropertyAmount",
+      "title": "Personal Property Amount",
+      "type": "decimal(12,2)",
+      "description": "Amount of ONA awarded for Personal Property Assistance in U.S. dollars"
+    },
+    {
+      "name": "personalPropertyEligible",
+      "title": "Personal Property Eligible",
+      "type": "boolean",
+      "description": "Was the applicant eligible for ONA/Personal Property Assistance?"
+    },
+    {
+      "name": "ppfvl",
+      "title": "PPFVL",
+      "type": "decimal(12,2)",
+      "description": "FEMA-determined value of disaster-caused damage to personal property components, including appliances, furniture, etc.  Note:  IHP does not address land damage."
+    },
+    {
+      "name": "primaryResidence",
+      "title": "Primary Residence",
+      "type": "boolean",
+      "description": "Is the applicant's damaged dwelling his/her primary residence?"
+    },
+    {
+      "name": "registrationMethod",
+      "title": "Registration Method",
+      "type": "text",
+      "description": "Method used by applicant when registering for FEMA assistance: Null - Unknown; C - Call Center; D - DSAT; I - Internet; M - Mobile"
+    },
+    {
+      "name": "rentalAssistanceAmount",
+      "title": "Rental Assistance Amount",
+      "type": "decimal(8,2)",
+      "description": "Amount of Rental Assistance awarded in U.S. dollars. It falls under the umbrella of \"housing assistance\" and may be provided to eligible owners and renters."
+    },
+    {
+      "name": "rentalAssistanceEligible",
+      "title": "Rental Assistance Eligible",
+      "type": "boolean",
+      "description": "Was the applicant eligible for Rental Assistance?"
+    },
+    {
+      "name": "rentalAssistanceEndDate",
+      "title": "Rental Assistance End Date",
+      "type": "date",
+      "description": "Final Month applicant received Rental Assistance"
+    },
+    {
+      "name": "rentalResourceCity",
+      "title": "Rental Resource City",
+      "type": "text",
+      "description": "Rental Resource City"
+    },
+    {
+      "name": "rentalResourceStateAbbrev",
+      "title": "Rental Resource State Abbreviation",
+      "type": "text",
+      "description": "Rental Resource State Abbreviation"
+    },
+    {
+      "name": "rentalResourceZipCode",
+      "title": "Rental Resource Zip Code",
+      "type": "text",
+      "description": "Rental Resource Zip Code"
+    },
+    {
+      "name": "renterDamageLevel",
+      "title": "Renter Damage Level",
+      "type": "text",
+      "description": "FEMA-determined level of damage to a dwelling occupied by a renter.  5530 - Moderate Damage; 5531 - Substantial Damage; 5532 - Major Damage; 5533 - Destroyed"
+    },
+    {
+      "name": "repairAmount",
+      "title": "Repair Amount",
+      "type": "decimal(12,2)",
+      "description": "Amount of Repair Assistance awarded in U.S. dollars"
+    },
+    {
+      "name": "repairAssistanceEligible",
+      "title": "Repair Assistance Eligible",
+      "type": "boolean",
+      "description": "Was the applicant eligible for Home Repair Assistance?"
+    },
+    {
+      "name": "replacementAmount",
+      "title": "Replacement Amount",
+      "type": "decimal(12,2)",
+      "description": "Amount of Replacement Assistance awarded in U.S. dollars"
+    },
+    {
+      "name": "replacementAssistanceEligible",
+      "title": "Replacement Assistance Eligible",
+      "type": "boolean",
+      "description": "Was the applicant eligible for Home Replacement Assistance?"
+    },
+    {
+      "name": "reportedDamage",
+      "title": "Reported Damage",
+      "type": "boolean",
+      "description": "Flag indicating that there was reported damage."
+    },
+    {
+      "name": "residenceType",
+      "title": "Residence Type",
+      "type": "text",
+      "description": "Damaged Dwelling Residence Type (e.g., single-family home, apartment). A - Apartment; B - Boat; C - Condo; H - House/Duplex; M - Mobile Home; N - Non-Traditional; O - Other; TH - Townhouse; T - Travel Trailer; ALF - Assisted Living Facility; MIL - Military Housing; CD - College Dorm; CF - Correctional Facility"
+    },
+    {
+      "name": "roofDamage",
+      "title": "Roof Damage",
+      "type": "boolean",
+      "description": "Has the damage dwelling's roof been damaged?"
+    },
+    {
+      "name": "roofDamageAmount",
+      "title": "Roof Damage Amount",
+      "type": "decimal(12,2)",
+      "description": "Amount of damage reported to the damaged dwelling's roof, in U.S. dollars"
+    },
+    {
+      "name": "rpfvl",
+      "title": "RPFVL",
+      "type": "decimal(12,2)",
+      "description": "FEMA-determined value of disaster-caused damage to real property components, including floors, walls, access roads and bridges, electrical, plumbing, HVAC, etc.  Note:  IHP does not address land damage."
+    },
+    {
+      "name": "sbaApproved",
+      "title": "SBA Approved",
+      "type": "boolean",
+      "description": "Is applicant approved for a Small Business Administration loan? Approval does not equate to acceptance of the loan as one can be approved, but not accept."
+    },
+    {
+      "name": "selfAssessmentInformation",
+      "title": "Self Assessment Information",
+      "type": "text",
+      "description": "Self-assessment information. 1 - I had minor damage but I am able to live in my home.; 2 - I had damage to my home that requires a lot of repairs. I may not be able to live in my home.; 3 - I had damage to my home that requires major repairs. I am not able to live in my home.; 4 - My home was completely destroyed.; 5 - Unknown.; NR - No Response"
+    },
+    {
+      "name": "shelterNeed",
+      "title": "Shelter Need",
+      "type": "boolean",
+      "description": "Did the applicant report a need for shelter?"
+    },
+    {
+      "name": "transientAccommodAmount",
+      "title": "HA Transient Accommodations  Amount",
+      "type": "decimal(10,2)",
+      "description": "Transient Accommodations Amount"
+    },
+    {
+      "name": "transientAccommodEligible",
+      "title": "HA Transient Accommodations  Eligible",
+      "type": "boolean",
+      "description": "Transient Accommodations Eligible"
+    },
+    {
+      "name": "tsaCheckedIn",
+      "title": "TSA Checked In",
+      "type": "boolean",
+      "description": "Did the applicant check in to a TSA property?"
+    },
+    {
+      "name": "tsaEligible",
+      "title": "TSA Eligible",
+      "type": "boolean",
+      "description": "Was applicant eligible for Transitional Sheltering Assistance (TSA)?"
+    },
+    {
+      "name": "unmetNeedPp",
+      "title": "Unmet Need Personal Property Amount",
+      "type": "decimal(12,2)",
+      "description": "FEMA Total Personal Property Verified Loss by an inspector minus FEMA Total Personal Property Award if any"
+    },
+    {
+      "name": "unmetNeedRp",
+      "title": "Unmet Need Real Property Amount",
+      "type": "decimal(12,2)",
+      "description": "FEMA Total Real Property Verified Loss by an inspector minus FEMA Total Real Property Award if any"
+    },
+    {
+      "name": "utilitiesOut",
+      "title": "Utilities Out",
+      "type": "boolean",
+      "description": "Did the applicant report utilities were out of service?"
+    },
+    {
+      "name": "verifiedOccupancy",
+      "title": "Verified Occupancy",
+      "type": "boolean",
+      "description": "Flag indicating that the occupancy level is verified."
+    },
+    {
+      "name": "verifiedOwnership",
+      "title": "Verified Ownership",
+      "type": "boolean",
+      "description": "Flag indicating that the ownership status is verified. Null means there is no reported value for the field."
+    },
+    {
+      "name": "waterLevel",
+      "title": "Water Level",
+      "type": "integer",
+      "description": "Total depth of water affected the damaged dwelling, in inches"
+    }
+  ]
+}

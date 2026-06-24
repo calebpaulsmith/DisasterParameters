@@ -45,11 +45,16 @@ type tags, PA/IA, and measured wind / hail / stage / tornado.
 
 | Layer | Source | How |
 |---|---|---|
-| **Obligations** (PA / IA $) | OpenFEMA `FemaWebDisasterSummaries`, `DisasterDeclarationsSummaries v2` | Baked + refreshed **live** in-browser |
+| **Obligations** (PA obligated / IHP approved $) | OpenFEMA `FemaWebDisasterSummaries`, `DisasterDeclarationsSummaries v2` | Baked + refreshed **live** in-browser |
 | **Hazards** (wind, hail, tornado EF) | **NOAA Storm Events Database** | Joined **offline** by county FIPS + incident window |
 | **River stage** (peak ft) | **USGS Water Services** (daily values) | Joined **offline** per disaster's counties |
 | **Live alerts** | **NWS** `api.weather.gov` | Fetched **live** in-browser |
 | **Live gages** | **USGS** instantaneous values | Fetched **live** in-browser |
+
+**Terminology:** PA is *obligated*, IHP is *approved*, and **IA (Individual Assistance) is the
+umbrella, IHP (Individuals & Households Program) is the program with public dollars** — see
+[`docs/fema-assistance-glossary.md`](docs/fema-assistance-glossary.md) (with committed OpenFEMA
+field dictionaries in [`docs/openfema-definitions/`](docs/openfema-definitions/)).
 
 The hazard metrics are **measured observations, not proxies.** Because NOAA
 Storm Events has no live browser API, the historical hazard join is done offline
