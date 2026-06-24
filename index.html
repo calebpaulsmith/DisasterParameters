@@ -702,18 +702,18 @@ tr.clickable:hover td{background:#eef3f8;}
         <p class="thr-sub" style="margin-top:10px">PA = Public Assistance <b>obligated</b> (federal share). IHP = Individuals &amp; Households Program <b>approved</b> — direct household aid (Housing + Other Needs); it sits under the broader Individual Assistance (IA) authorization. Hazards measured from NOAA Storm Events + USGS. Tap any row to see the full breakdown and source links.</p></div></div>
   </section>
 
-  <!-- ============ DISASTER TIMELINES (incident date vs declaration date — how long to get declared) ============ -->
+  <!-- ============ DISASTER TIMELINES (how long disasters take to get declared) ============ -->
   <section class="view" id="view-timelines">
-    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>How long until it's official?</b> Every Region&nbsp;5 disaster plotted by <b>when the incident ended</b> (horizontal) against <b>when FEMA declared it</b> (vertical). The dashed line marks "declared the day the incident ended" — the higher a point sits above it, the longer the wait. Points <i>below</i> the line were declared <b>while the disaster was still ongoing</b>. Declaration lag = declaration date &minus; incident end date. Real OpenFEMA declaration dates &mdash; <b>not endorsed by FEMA</b>.</span></div>
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>How long until it's official?</b> These views track <b>declaration lag</b> — the time from when a disaster's <b>incident period ends</b> to when FEMA issues the <b>federal declaration</b>. The headline question: is that wait getting <b>longer</b> over time? Lag is signed — a negative value means FEMA declared <i>while the disaster was still ongoing</i>. Real OpenFEMA declaration dates &mdash; <b>not endorsed by FEMA</b>.</span></div>
     <div id="tlHeadlines" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px"></div>
-    <div class="card"><div class="card__hd"><h2>&#9201;&#65039; Incident end vs. declaration date</h2><span class="sub">each dot is a disaster · tap for sourced detail</span></div>
-      <div class="card__bd">
-        <div id="tlScatter"><div class="skeleton"><span class="spin"></span> Loading timelines…</div></div>
-        <div id="tlLegend" class="maplegend"></div></div></div>
+    <div class="card"><div class="card__hd"><h2>&#128200; Are declarations getting slower?</h2><span class="sub">average lag per year · volume-weighted trend</span></div>
+      <div class="card__bd"><div id="tlTrend"><div class="skeleton"><span class="spin"></span> Loading timelines…</div></div></div></div>
+    <div class="card"><div class="card__hd"><h2>&#9201;&#65039; Declaration lag over time</h2><span class="sub">each dot is a disaster · tap for sourced detail</span></div>
+      <div class="card__bd"><div id="tlLagTime"></div><div id="tlLegend" class="maplegend"></div></div></div>
+    <div class="card"><div class="card__hd"><h2>&#9203; How long do most take?</h2><span class="sub">share of disasters declared within N days</span></div>
+      <div class="card__bd"><div id="tlCumulative"></div></div></div>
     <div class="card"><div class="card__hd"><h2>&#128202; Declaration lag distribution</h2><span class="sub">days from incident end to declaration</span></div>
       <div class="card__bd"><div id="tlHistogram"></div></div></div>
-    <div class="card"><div class="card__hd"><h2>&#128200; Are declarations getting faster?</h2><span class="sub">median lag by incident year</span></div>
-      <div class="card__bd"><div id="tlTrend"></div></div></div>
     <div class="card"><div class="card__hd"><h2>Median lag by group</h2>
         <div class="geogrp" id="tlBreakToggle" style="margin-bottom:0"><button data-tlbreak="state" class="active">By state</button><button data-tlbreak="type">By incident type</button></div></div>
       <div class="card__bd"><div id="tlBreakdown"></div></div></div>
@@ -2118,7 +2118,11 @@ function tlColor(lag){
   return "#d7191c";
 }
 function tlGroupLabel(k){return TL_STATES[k]||titleCase(k);}
-function renderTimelines(){renderTlHeadlines();renderTlScatter();renderTlHistogram();renderTlTrend();renderTlBreakdown();}
+function tlDecYear(s){const d=new Date(s+"T00:00:00"),y=d.getFullYear(),a=new Date(y,0,1),b=new Date(y+1,0,1);return y+(d-a)/(b-a);}
+function tlDecYearMs(ms){const d=new Date(ms),y=d.getFullYear(),a=new Date(y,0,1),b=new Date(y+1,0,1);return y+(d-a)/(b-a);}
+function tlRegress(pts){const n=pts.length;if(n<2)return null;let sx=0,sy=0,sxx=0,sxy=0;pts.forEach(p=>{sx+=p.x;sy+=p.y;sxx+=p.x*p.x;sxy+=p.x*p.y;});const den=n*sxx-sx*sx;if(!den)return null;const slope=(n*sxy-sx*sy)/den;return{slope,intercept:(sy-slope*sx)/n};}
+function tlNiceStep(x){if(!(x>0))return 1;const p=Math.pow(10,Math.floor(Math.log10(x))),f=x/p;return (f<=1?1:f<=2?2:f<=5?5:10)*p;}
+function renderTimelines(){renderTlHeadlines();renderTlTrend();renderTlLagTime();renderTlCumulative();renderTlHistogram();renderTlBreakdown();}
 
 function renderTlHeadlines(){
   const box=el("tlHeadlines"); if(!box)return;
@@ -2136,31 +2140,55 @@ function renderTlHeadlines(){
     card("Declared during incident",`${during}`,`before the incident window closed`);
 }
 
-function renderTlScatter(){
-  const box=el("tlScatter"); if(!box)return;
+function renderTlLagTime(){
+  const box=el("tlLagTime"); if(!box)return;
   const rows=tlData();
   if(!rows.length){box.innerHTML='<p class="thr-sub">No declaration dates available.</p>';el("tlLegend").innerHTML="";return;}
-  const xs=rows.map(d=>tlDayNum(d.end)), ys=rows.map(d=>tlDayNum(d.declared));
-  const lo=Math.min(...xs,...ys), hi=Math.max(...xs,...ys);
-  const W=920,H=520,pl=44,pr=16,pt=16,pb=42,iw=W-pl-pr,ih=H-pt-pb;
-  const sx=t=>pl+(hi>lo?(t-lo)/(hi-lo):0.5)*iw;
-  const sy=t=>pt+ih-(hi>lo?(t-lo)/(hi-lo):0.5)*ih;
-  const diag=`<line x1="${sx(lo).toFixed(1)}" y1="${sy(lo).toFixed(1)}" x2="${sx(hi).toFixed(1)}" y2="${sy(hi).toFixed(1)}" stroke="#0d2342" stroke-dasharray="5 4" stroke-width="1.2" opacity="0.55"/>`;
-  const yLo=new Date(lo).getFullYear(), yHi=new Date(hi).getFullYear();
-  let grid="",xlab="",ylab="";
-  for(let y=yLo;y<=yHi+1;y++){const t=new Date(y,0,1).getTime(); if(t<lo||t>hi)continue;
-    const gx=sx(t).toFixed(1), gy=sy(t).toFixed(1);
-    grid+=`<line x1="${gx}" y1="${pt}" x2="${gx}" y2="${pt+ih}" stroke="#eef2f6" stroke-width="1"/><line x1="${pl}" y1="${gy}" x2="${pl+iw}" y2="${gy}" stroke="#eef2f6" stroke-width="1"/>`;
-    xlab+=`<text x="${gx}" y="${H-16}" font-size="9" fill="#8a94a6" text-anchor="middle">${y}</text>`;
-    ylab+=`<text x="${pl-7}" y="${(+gy+3).toFixed(1)}" font-size="9" fill="#8a94a6" text-anchor="end">${y}</text>`;
-  }
-  const pts=rows.map(d=>{const lag=tlLag(d);
-    const tip=`DR-${d.disasterNumber}-${d.state} · ${titleCase(d.title)}\nIncident ${fmtRange(d.begin,d.end)}\nDeclared ${fmtDate(d.declared)}\nLag: ${lag} day${Math.abs(lag)===1?"":"s"} ${lag<0?"before":"after"} incident end`;
-    return `<circle data-dn="${d.disasterNumber}" cx="${sx(tlDayNum(d.end)).toFixed(1)}" cy="${sy(tlDayNum(d.declared)).toFixed(1)}" r="5" fill="${tlColor(lag)}" fill-opacity="0.78" stroke="#fff" stroke-width="0.8" style="cursor:pointer"><title>${tip}</title></circle>`;}).join("");
-  const axes=`<text x="${(pl+iw/2).toFixed(1)}" y="${H-2}" font-size="10" fill="#5a6573" text-anchor="middle" font-weight="700">Incident end date →</text>`+
-    `<text transform="translate(11,${(pt+ih/2).toFixed(1)}) rotate(-90)" font-size="10" fill="#5a6573" text-anchor="middle" font-weight="700">Declaration date →</text>`;
-  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:#fbfdff;border-radius:8px">${grid}${diag}${pts}${xlab}${ylab}${axes}</svg>`;
-  el("tlLegend").innerHTML=`<span><i style="background:#6a4c93"></i>declared during incident (≤0)</span><span><i style="background:#1a9850"></i>1–30 days</span><span><i style="background:#d4a017"></i>31–60</span><span><i style="background:#e8590c"></i>61–90</span><span><i style="background:#d7191c"></i>90+ days</span><span class="thr-sub" style="margin-left:auto">dashed line = declared same day the incident ended</span>`;
+  const xs=rows.map(d=>tlDayNum(d.end)), ls=rows.map(tlLag);
+  const xLo=Math.min(...xs), xHi=Math.max(...xs);
+  let vMin=Math.min(0,...ls), vMax=Math.max(0,...ls); const pad=(vMax-vMin)*0.08||5; vMin-=pad; vMax+=pad;
+  const W=920,H=380,pl=42,pr=14,pt=16,pb=40,iw=W-pl-pr,ih=H-pt-pb;
+  const sx=t=>pl+(xHi>xLo?(t-xLo)/(xHi-xLo):0.5)*iw;
+  const sy=v=>pt+ih-(v-vMin)/(vMax-vMin)*ih;
+  let grid="";
+  const tstep=tlNiceStep((vMax-vMin)/5);
+  for(let t=Math.ceil(vMin/tstep)*tstep;t<=vMax;t+=tstep){const gy=sy(t),z=Math.round(t)===0;
+    grid+=`<line x1="${pl}" y1="${gy.toFixed(1)}" x2="${pl+iw}" y2="${gy.toFixed(1)}" stroke="${z?"#cbd5e1":"#eef2f6"}" stroke-width="${z?1.2:1}"/><text x="${pl-6}" y="${(gy+3).toFixed(1)}" font-size="9" fill="#8a94a6" text-anchor="end">${Math.round(t)}</text>`;}
+  const yLo=new Date(xLo).getFullYear(), yHi=new Date(xHi).getFullYear(); let xlab="";
+  for(let y=yLo;y<=yHi+1;y++){const t=new Date(y,0,1).getTime(); if(t<xLo||t>xHi)continue; const gx=sx(t);
+    grid+=`<line x1="${gx.toFixed(1)}" y1="${pt}" x2="${gx.toFixed(1)}" y2="${pt+ih}" stroke="#f2f5f8"/>`;
+    xlab+=`<text x="${gx.toFixed(1)}" y="${H-14}" font-size="8.5" fill="#8a94a6" text-anchor="middle">${y}</text>`;}
+  const reg=tlRegress(rows.map(d=>({x:tlDecYear(d.end),y:tlLag(d)})));
+  let trend="";
+  if(reg){const y1=reg.slope*tlDecYearMs(xLo)+reg.intercept, y2=reg.slope*tlDecYearMs(xHi)+reg.intercept;
+    trend=`<line x1="${sx(xLo).toFixed(1)}" y1="${sy(y1).toFixed(1)}" x2="${sx(xHi).toFixed(1)}" y2="${sy(y2).toFixed(1)}" stroke="#0d2342" stroke-width="2.2" stroke-dasharray="7 4" opacity="0.85"/>`;}
+  const pts=rows.map(d=>{const l=tlLag(d);
+    const tip=`DR-${d.disasterNumber}-${d.state} · ${titleCase(d.title)}\nIncident ${fmtRange(d.begin,d.end)}\nDeclared ${fmtDate(d.declared)}\nLag: ${l} day${Math.abs(l)===1?"":"s"} ${l<0?"before":"after"} incident end`;
+    return `<circle data-dn="${d.disasterNumber}" cx="${sx(tlDayNum(d.end)).toFixed(1)}" cy="${sy(l).toFixed(1)}" r="4.5" fill="${tlColor(l)}" fill-opacity="0.8" stroke="#fff" stroke-width="0.8" style="cursor:pointer"><title>${tip}</title></circle>`;}).join("");
+  const ylab=`<text transform="translate(11,${(pt+ih/2).toFixed(1)}) rotate(-90)" font-size="10" fill="#5a6573" text-anchor="middle" font-weight="700">lag (days) →</text>`;
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:#fbfdff;border-radius:8px">${grid}${trend}${pts}${xlab}${ylab}</svg>`;
+  el("tlLegend").innerHTML=`<span><i style="background:#6a4c93"></i>declared during incident (≤0)</span><span><i style="background:#1a9850"></i>1–30 days</span><span><i style="background:#d4a017"></i>31–60</span><span><i style="background:#e8590c"></i>61–90</span><span><i style="background:#d7191c"></i>90+ days</span><span class="thr-sub" style="margin-left:auto">zero line = declared the day the incident ended · dashed = trend</span>`;
+}
+
+function renderTlCumulative(){
+  const box=el("tlCumulative"); if(!box)return;
+  const lags=tlData().map(tlLag).filter(v=>v!=null).sort((a,b)=>a-b);
+  if(!lags.length){box.innerHTML="";return;}
+  const n=lags.length, lo=Math.min(0,lags[0]), hi=lags[n-1];
+  const W=920,H=300,pl=40,pr=14,pt=16,pb=40,iw=W-pl-pr,ih=H-pt-pb;
+  const sx=d=>pl+(hi>lo?(d-lo)/(hi-lo):0.5)*iw, sy=p=>pt+ih-p*ih;
+  let grid="";[0,.25,.5,.75,1].forEach(p=>{const gy=sy(p);grid+=`<line x1="${pl}" y1="${gy.toFixed(1)}" x2="${pl+iw}" y2="${gy.toFixed(1)}" stroke="#eef2f6"/><text x="${pl-6}" y="${(gy+3).toFixed(1)}" font-size="9" fill="#8a94a6" text-anchor="end">${p*100}%</text>`;});
+  let xlab="";const tstep=tlNiceStep((hi-lo)/6);
+  for(let t=Math.ceil(lo/tstep)*tstep;t<=hi;t+=tstep){const gx=sx(t),z=Math.round(t)===0;
+    grid+=`<line x1="${gx.toFixed(1)}" y1="${pt}" x2="${gx.toFixed(1)}" y2="${pt+ih}" stroke="${z?"#cbd5e1":"#f2f5f8"}" stroke-width="${z?1.2:1}"/>`;
+    xlab+=`<text x="${gx.toFixed(1)}" y="${H-14}" font-size="8.5" fill="#8a94a6" text-anchor="middle">${Math.round(t)}</text>`;}
+  let dpath=`M ${sx(lo).toFixed(1)} ${sy(0).toFixed(1)}`;
+  lags.forEach((v,i)=>{dpath+=` L ${sx(v).toFixed(1)} ${sy(i/n).toFixed(1)} L ${sx(v).toFixed(1)} ${sy((i+1)/n).toFixed(1)}`;});
+  dpath+=` L ${sx(hi).toFixed(1)} ${sy(1).toFixed(1)}`;
+  const med=tlMedian(lags), p90=lags[Math.min(n-1,Math.ceil(0.9*n)-1)];
+  const mk=(d,p,col,lab)=>`<line x1="${pl}" y1="${sy(p).toFixed(1)}" x2="${sx(d).toFixed(1)}" y2="${sy(p).toFixed(1)}" stroke="${col}" stroke-dasharray="3 3"/><line x1="${sx(d).toFixed(1)}" y1="${sy(p).toFixed(1)}" x2="${sx(d).toFixed(1)}" y2="${(pt+ih).toFixed(1)}" stroke="${col}" stroke-dasharray="3 3"/><circle cx="${sx(d).toFixed(1)}" cy="${sy(p).toFixed(1)}" r="3.5" fill="${col}"/><text x="${(sx(d)+6).toFixed(1)}" y="${(sy(p)-5).toFixed(1)}" font-size="9.5" fill="${col}" font-weight="700">${lab}</text>`;
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:#fbfdff;border-radius:8px">${grid}<path d="${dpath}" fill="none" stroke="#1f4d8f" stroke-width="2"/>${mk(med,0.5,"#1a7a3e",`50% by ${med}d`)}${mk(p90,0.9,"#b5651d",`90% by ${p90}d`)}${xlab}<text x="${(pl+iw/2).toFixed(1)}" y="${H-2}" font-size="9" fill="#8a94a6" text-anchor="middle">days from incident end to declaration →</text></svg>`
+    +`<p class="thr-sub" style="margin-top:6px">Read it as “X% of disasters were declared within N days of the incident ending.” Half were declared within <b>${med} days</b>, 90% within <b>${p90} days</b>. The curve left of the <b>0</b> line is disasters declared while the incident was still ongoing.</p>`;
 }
 
 function renderTlHistogram(){
@@ -2180,19 +2208,42 @@ function renderTlHistogram(){
 
 function renderTlTrend(){
   const box=el("tlTrend"); if(!box)return;
+  const rows=tlData(); if(!rows.length){box.innerHTML='<p class="thr-sub">No declaration dates available.</p>';return;}
   const byYear={};
-  tlData().forEach(d=>{const y=+d.end.slice(0,4);(byYear[y]=byYear[y]||[]).push(tlLag(d));});
+  rows.forEach(d=>{const y=+d.end.slice(0,4);(byYear[y]=byYear[y]||[]).push(tlLag(d));});
   const years=Object.keys(byYear).map(Number).sort((a,b)=>a-b);
-  if(!years.length){box.innerHTML="";return;}
-  const data=years.map(y=>[y,tlMedian(byYear[y]),byYear[y].length]);
-  const W=920,H=240,pl=34,pr=12,pt=14,pb=30,iw=W-pl-pr,ih=H-pt-pb,n=data.length,step=iw/n,bw=Math.max(3,step*0.6);
-  const mx=Math.max(1,...data.map(d=>d[1]));
-  const ticks=[0,Math.round(mx/2),mx].map(t=>{const y=(pt+ih-t/mx*ih).toFixed(1);return `<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="#eef2f6"/><text x="${pl-6}" y="${(+y+3).toFixed(1)}" font-size="8.5" fill="#8a94a6" text-anchor="end">${t}</text>`;}).join("");
-  const bars=data.map((d,i)=>{const x=pl+i*step+(step-bw)/2,h=Math.max(0,d[1])/mx*ih,y=pt+ih-h;
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="#1f4d8f"><title>${d[0]}: median ${d[1]} days (n=${d[2]})</title></rect>`;}).join("");
-  const xlab=data.map((d,i)=>i%2===0?`<text x="${(pl+i*step+step/2).toFixed(1)}" y="${H-10}" font-size="8.5" fill="#8a94a6" text-anchor="middle">${d[0]}</text>`:"").join("");
-  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:#fbfdff;border-radius:8px">${ticks}${bars}${xlab}</svg>`
-    +`<p class="thr-sub" style="margin-top:6px">Median lag (days) for disasters whose incident ended that year. Per-year samples are small — read the overall trend, not any single year. A near-zero bar can hide a negative median (declared during the incident); hover for the value.</p>`;
+  const yLo=years[0], yHi=years[years.length-1];
+  const data=[]; for(let y=yLo;y<=yHi;y++){const a=byYear[y];
+    data.push({y, n:a?a.length:0, mean:a?Math.round(a.reduce((s,v)=>s+v,0)/a.length):null, sum:a?a.reduce((s,v)=>s+v,0):0});}
+  // volume-weighted trend: linear fit across EVERY disaster (busy years pull harder), not yearly averages
+  const reg=tlRegress(rows.map(d=>({x:tlDecYear(d.end),y:tlLag(d)})));
+  const means=data.filter(d=>d.mean!=null).map(d=>d.mean);
+  const dLo=yLo,dHi=yHi+1;
+  const tEnds=reg?[reg.slope*dLo+reg.intercept, reg.slope*dHi+reg.intercept]:[];
+  let vMin=Math.min(0,...means,...tEnds), vMax=Math.max(0,...means,...tEnds);
+  const padv=(vMax-vMin)*0.12||10; vMin-=padv; vMax+=padv;
+  const W=920,H=340,pl=44,pr=14,pt=18,pb=56,iw=W-pl-pr,ih=H-pt-pb;
+  const xOf=yr=>pl+(yr-dLo)/(dHi-dLo)*iw, yOf=v=>pt+ih-(v-vMin)/(vMax-vMin)*ih;
+  const slot=iw/(dHi-dLo), bw=Math.max(4,slot*0.6);
+  let grid="";const tstep=tlNiceStep((vMax-vMin)/5);
+  for(let t=Math.ceil(vMin/tstep)*tstep;t<=vMax;t+=tstep){const gy=yOf(t),z=Math.round(t)===0;
+    grid+=`<line x1="${pl}" y1="${gy.toFixed(1)}" x2="${pl+iw}" y2="${gy.toFixed(1)}" stroke="${z?"#cbd5e1":"#eef2f6"}" stroke-width="${z?1.2:1}"/><text x="${pl-6}" y="${(gy+3).toFixed(1)}" font-size="9" fill="#8a94a6" text-anchor="end">${Math.round(t)}</text>`;}
+  let bars="",counts="",xlab="";
+  data.forEach(d=>{const cx=xOf(d.y+0.5);
+    xlab+=`<text x="${cx.toFixed(1)}" y="${H-32}" font-size="8.5" fill="#8a94a6" text-anchor="middle">'${String(d.y).slice(2)}</text>`;
+    counts+=`<text x="${cx.toFixed(1)}" y="${H-19}" font-size="8.5" fill="${d.n?"#5a6573":"#c2c9d2"}" text-anchor="middle" font-weight="${d.n?"700":"400"}">${d.n}</text>`;
+    if(d.mean!=null){const yA=yOf(Math.max(0,d.mean)), yB=yOf(Math.min(0,d.mean));
+      bars+=`<rect x="${(cx-bw/2).toFixed(1)}" y="${yA.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0.6,yB-yA).toFixed(1)}" rx="1.5" fill="${tlColor(d.mean)}" opacity="0.85"><title>${d.y}: mean lag ${d.mean} days · ${d.n} disaster${d.n===1?"":"s"} · total ${d.sum} day-lag</title></rect>`;}});
+  let trend="",verdict="";
+  if(reg){const x1=xOf(dLo),x2=xOf(dHi),y1=yOf(reg.slope*dLo+reg.intercept),y2=yOf(reg.slope*dHi+reg.intercept);
+    trend=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#0d2342" stroke-width="2.6" stroke-dasharray="7 4"/>`;
+    const perYr=Math.round(reg.slope*10)/10, dir=perYr>0?"slower":perYr<0?"faster":"flat";
+    verdict=`<b>Trend: ${perYr>0?"+":""}${perYr} days/year — declarations are getting ${dir}.</b>`;}
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:#fbfdff;border-radius:8px">${grid}${bars}${trend}${xlab}${counts}`
+    +`<text transform="translate(11,${(pt+ih/2).toFixed(1)}) rotate(-90)" font-size="10" fill="#5a6573" text-anchor="middle" font-weight="700">avg lag (days) →</text>`
+    +`<text x="${(pl+iw/2).toFixed(1)}" y="${H-4}" font-size="9" fill="#8a94a6" text-anchor="middle">incident year · small number = disasters declared that year</text></svg>`
+    +`<div class="maplegend"><span>${verdict}</span></div>`
+    +`<p class="thr-sub" style="margin-top:6px"><b>Lag = days from the incident-period end to the federal declaration date.</b> Each bar is the <b>average</b> lag for disasters whose incident ended that year; the number beneath each year is <b>how many disasters</b> were declared. The dashed <b>trendline is volume-weighted</b> — fit across every individual disaster, so heavy years pull it more (it tracks total declaration-lag time, not an unweighted year-to-year average). A bar below the zero line means FEMA typically declared <i>before</i> that year's incidents closed.</p>`;
 }
 
 function renderTlBreakdown(){
