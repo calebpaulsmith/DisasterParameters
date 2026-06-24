@@ -1592,7 +1592,7 @@ function gmVal(key,kind,o){ // value of entity o for a sort key
   if(kind==="appl")return key==="paProjects"?(o.projects||0):(o.pa||0);
   return 0;
 }
-function gmFmt(key,kind,o){const v=gmVal(key==="az"?"paObligated":key,kind,o);return (GEO_META[key]||GEO_META.paObligated).fmt(v);}
+function gmFmt(key,kind,o){if(key==="az")return "";const v=gmVal(key,kind,o);return (GEO_META[key]||GEO_META.paObligated).fmt(v);}
 function gmSortChips(){return `<div class="gm-sortbar">${GM_SORTS.map(([k,l])=>`<button class="gm-chip${gmSort===k?" active":""}" data-gmsort="${k}">${l}${gmSort===k&&k!=="az"?(gmAsc?" ▲":" ▼"):""}${gmSort===k&&k==="az"?(gmAsc?" ▲":" ▼"):""}</button>`).join("")}</div>`;}
 function gmSortRows(rows,kind){const az=gmSort==="az";
   return rows.slice().sort((a,b)=>az?(gmAsc?b._n.localeCompare(a._n):a._n.localeCompare(b._n)):(gmAsc?gmVal(gmSort,kind,a._o)-gmVal(gmSort,kind,b._o):gmVal(gmSort,kind,b._o)-gmVal(gmSort,kind,a._o)));}
