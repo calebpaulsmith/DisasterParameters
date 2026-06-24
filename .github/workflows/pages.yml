@@ -35,6 +35,14 @@ jobs:
         with:
           enablement: true
 
+      # Refresh the "latest obligations" reel from OpenFEMA at deploy time.
+      # Network-only + fast; if OpenFEMA is unreachable, keep the committed
+      # snapshot so a hiccup never breaks the deploy.
+      - name: Refresh newsreel (best-effort)
+        run: |
+          python3 scripts/build_newsreel.py \
+            || echo "newsreel refresh failed — keeping committed data/newsreel.json"
+
       # Stamp the deployed commit + date into the page footer
       - name: Stamp build info
         run: |
