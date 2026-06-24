@@ -24,3 +24,10 @@ data/_zone_county.json
 # USGS daily-stage history + IHP registration caches (regenerable; build_county_*/augment_stage)
 data/_stage_cache.json
 data/_ihp_cache.json
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
