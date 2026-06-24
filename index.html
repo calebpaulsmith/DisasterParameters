@@ -360,6 +360,7 @@ tr.clickable:hover td{background:#eef3f8;}
 .mitchips::before{content:"program:";font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);align-self:center;margin-right:2px;}
 .mitchip{font:inherit;font-size:11.5px;font-weight:700;padding:3px 10px;border:1px solid var(--line);background:#fff;color:var(--ink-2);border-radius:999px;cursor:pointer;}
 .mitchip.on{background:#0e7c86;border-color:#0e7c86;color:#fff;}
+.covtog{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer;margin-bottom:12px;}
 .paia{display:inline-flex;align-items:center;gap:7px;margin-bottom:12px;transition:opacity .2s,filter .2s;}
 .paia__lab{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);}
 .paia__sq{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:52px;height:40px;border-radius:10px;border:1.5px solid var(--line);background:#fff;cursor:pointer;overflow:hidden;transition:transform .12s ease,box-shadow .22s ease,border-color .2s,opacity .2s;}
@@ -698,6 +699,7 @@ tr.clickable:hover td{background:#eef3f8;}
         <button class="paia__sq ia on" data-aid="ia" title="Disasters with an IA (Individual Assistance) declaration"><span class="paia__k">IA</span><span class="paia__t">Individual</span></button>
         <button class="paia__sq hm on" data-aid="hm" title="Disasters that received HMGP (Hazard Mitigation Grant Program, §404)"><span class="paia__k">HMGP</span><span class="paia__t">Mitigation</span></button>
       </div>
+      <label class="covtog" title="Fold the six statewide COVID-19 declarations (≈7× weather PA) into the PA / IHP / HMGP state totals"><input type="checkbox" id="geoCovidTog"> incl. COVID-19</label>
       <span class="geohint thr-sub">Disasters by place — <b>With PA / IA / HMGP</b> filters to disasters carrying that program (all = every disaster); tap a state or county to drill in.</span>
     </div>
     <div class="geodash">
@@ -1100,6 +1102,7 @@ function showCountyDecl(fips){
 let geoMetric="count", geoStateFilter=null, geoCountyFocus=null, geoApplExpanded=false;
 let geoPA=true, geoIA=true, geoHMGP=true;   // PA / IA / HMGP program filter for the Disasters view
 let geoMitProg="ALL";                        // non-disaster mitigation program selector (ALL / FMA / PDM / BRIC …)
+let geoCovid=false;                          // include COVID-19 (statewide) in PA/IHP/HMGP state totals — OFF by default
 let geoVB=null, geoAnimRAF=null, geoDidPan=false;   // map viewBox state for animated pan/zoom
 let geoDisasterFocus=null, geoDisApplCache={}, geoDisMACache={};   // disaster-focus + live per-disaster PA-applicant & mission-assignment caches
 const APPL_CAP=15;
@@ -1433,7 +1436,8 @@ function renderGeoBoard(){
     <span class="gr"><span class="grk">${i+1}</span><b>${v.name}</b>, ${v.state}</span>
     <span class="gv">${GEO_META[m].fmt(geoCountyVal(v,m))}<span class="thr-sub"> · ${v.count} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved||0)} IHP · ${fmtNum(v.paProjects)} proj</span></span></div>`).join("");
   if(geoStateFilter){const st=DECL.states[geoStateFilter];
-    const swv={count:0,paObligated:st.paStatewide,paProjects:st.projectsStatewide,ihpApproved:st.ihpStatewide,hmgpObligated:st.hmgpStatewide,mitObligated:st.mitStatewide}[m]||0;
+    let swv={count:0,paObligated:st.paStatewide,paProjects:st.projectsStatewide,ihpApproved:st.ihpStatewide,hmgpObligated:st.hmgpStatewide,mitObligated:st.mitStatewide}[m]||0;
+    if(geoCovid&&COVID&&COVID.states&&COVID.states[geoStateFilter]){const cv=COVID.states[geoStateFilter]; swv+=m==="paObligated"?(cv.paTotal||0):m==="ihpApproved"?(cv.ihpTotal||0):m==="hmgpObligated"?(cv.hmgp||0):0;}
     if(swv)html+=`<div class="georow" style="background:#fff8e6;cursor:default"><span class="gr"><span class="grk">∑</span><b>Statewide</b> <span class="thr-sub">not tied to a county</span></span><span class="gv">${GEO_META[m].fmt(swv)}</span></div>`;
   }
   box.innerHTML=html||`<p class="thr-sub">—</p>`;
@@ -1472,6 +1476,7 @@ function showStateGeo(s){
     row("PA obligated",fmtMoney(st.paObligated))+row("· counties",fmtMoney(st.countyPA),1)+row("· statewide (not county-allocated)",fmtMoney(st.paStatewide),1)+
     row("IHP approved",fmtMoney(st.ihpApproved))+row("· statewide",fmtMoney(st.ihpStatewide),1)+
     row("PA projects",`${fmtNum(st.paProjects)}`)+row("· statewide",fmtNum(st.projectsStatewide),1)+
+    (geoCovid&&COVID&&COVID.states&&COVID.states[s]?`<div class="declrow" style="background:#fff3f3"><span class="dk"><b>+ COVID-19</b> · statewide</span><span class="dv">${fmtMoney(COVID.states[s].paTotal||0)} PA · ${fmtMoney(COVID.states[s].ihpTotal||0)} IHP · ${fmtMoney(COVID.states[s].hmgp||0)} HMGP</span></div>`:"")+
     `<p class="thr-sub" style="margin-top:6px">Some FEMA work (management, statewide contracts) isn't assigned to a county, so county figures sum to less than the state total — that remainder is shown as <b>statewide</b>.</p>`;
 }
 function geoSelectState(s){
@@ -1537,10 +1542,13 @@ function geoCountyVal(o,m){
   return o[m]||0;
 }
 function geoStateVal(st,s,m){
-  if(m==="count"){ if(!geoFiltering())return st.nDisasters||0; return DISASTERS.filter(d=>d.state===s&&geoProgKeep(d)).length; }
+  const cov=(geoCovid&&COVID&&COVID.states)?COVID.states[s]:null;   // COVID is statewide → folds into state totals only
+  if(m==="count"){ let n=!geoFiltering()?(st.nDisasters||0):DISASTERS.filter(d=>d.state===s&&geoProgKeep(d)).length; if(cov)n+=1; return n; }
   if(GEO_STATEONLY[m])return st[m]||0;
   if(m==="mitObligated")return geoMitProg==="ALL"?(st.mitObligated||0):((st.mitByProgram||{})[geoMitProg]||0);
-  return st[GEO_KEY[m]]||0;
+  let v=st[GEO_KEY[m]]||0;
+  if(cov){ if(m==="paObligated")v+=cov.paTotal||0; else if(m==="ihpApproved")v+=cov.ihpTotal||0; else if(m==="hmgpObligated")v+=cov.hmgp||0; }
+  return v;
 }
 function clickAssist(which){
   if(which==="pa")geoPA=!geoPA; else if(which==="ia")geoIA=!geoIA; else geoHMGP=!geoHMGP;
@@ -1673,7 +1681,7 @@ function gmRenderCounty(box){
 function gmMiniMap(focus,bb,tap){
   if(!COUNTIES.length||!DECL)return ""; if(!MAPPROJ)projectCounties();
   const m=geoMetric,dc=DECL.counties;
-  const paths=COUNTIES.map(c=>{const o=dc[c.f],v=o?(o[m]||0):0; const hi=focus?focus.has(c.f):true;
+  const paths=COUNTIES.map(c=>{const o=dc[c.f],v=o?geoCountyVal(o,m):0; const hi=focus?focus.has(c.f):true;
     return `<path d="${cpath(c)}" fill="${geoColor(m,v)}" stroke="${hi?'#0d2342':'#fff'}" stroke-width="${hi?0.8:0.3}"${tap&&hi&&o?` class="hotc" data-gmcounty="${c.f}"`:""}${hi?"":' opacity="0.14"'}><title>${c.n}, ${c.s}</title></path>`;}).join("");
   return `<div class="gmmap"><svg viewBox="${vbStr(bb)}" preserveAspectRatio="xMidYMid meet">${paths}</svg></div>`;
 }
@@ -2190,6 +2198,7 @@ function wire(){
     const dcf=e.target.closest("[data-cfips]"); if(dcf){showCountyDecl(dcf.getAttribute("data-cfips"));document.getElementById("declPick").scrollIntoView({behavior:"smooth",block:"nearest"});return;}
     const gm=e.target.closest("#geoToggle button[data-geom]"); if(gm){setGeoMetric(gm.getAttribute("data-geom"));return;}
     const aid=e.target.closest("#paiaToggle [data-aid]"); if(aid){clickAssist(aid.getAttribute("data-aid"));return;}
+    const cvt=e.target.closest("#geoCovidTog"); if(cvt){geoCovid=cvt.checked; renderGeoStates();renderGeoMap();renderGeoBoard(); if(geoStateFilter&&!GEO_STATEONLY[geoMetric])showStateGeo(geoStateFilter); return;}
     const mp=e.target.closest("#mitChips [data-mitprog]"); if(mp){geoMitProg=mp.getAttribute("data-mitprog");syncMitChips();renderGeoStates();renderGeoMap();renderGeoBoard();return;}
     const gbc=e.target.closest("#geoBackCounties"); if(gbc){geoExitCounty();return;}
     const gbd=e.target.closest("#geoBackDisaster"); if(gbd){geoExitDisaster();return;}
