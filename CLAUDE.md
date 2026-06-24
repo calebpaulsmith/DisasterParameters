@@ -44,6 +44,7 @@ data/newsreel.json          # committed, small: per-program latest+biggest oblig
 scripts/enrich.py           # OFFLINE: joins NOAA/USGS hazards onto _disasters_raw.json (NO costs)
 scripts/add_history.py      # OFFLINE: pulls older R5 disasters (FEMA costs + hazards) and merges them in
 scripts/build_gages.py      # OFFLINE: builds gages.json + per-disaster gage lists; ties crests↔declarations
+scripts/build_declared.py   # OFFLINE, ADDITIVE: adds `declared` (original declaration date) to each disasters.json record from OpenFEMA DisasterDeclarationsSummaries (earliest declarationDate per disasterNumber). Touches ONLY `declared` — leaves costs/gages/hz alone. Powers the "Disaster Timelines" view (incident-end vs declaration-date scatter + lag stats). Needs network.
 # --- state-incident declaration & cost model (see analysis/state-declaration-model.md) ---
 scripts/build_panel.py      # OFFLINE: county×episode panel (now also ingests Z-type flood/winter via NWS zone→county xwalk)
 scripts/build_precip.py …   # OFFLINE additive enrichers: build_precip, build_snow, augment_ari, augment_stage, augment_exposure
@@ -78,6 +79,11 @@ fail to load data. Local dev: `python3 -m http.server 8000`.
 - Identity/meta: `disasterNumber, state, title, incidentType, begin, end, fy,
   paDeclared, iaDeclared, countyCount, tags[]` (Flooding/Tornado/Wind/Hail/
   Snow-Ice/Storms/Dam-Levee), `eventTypes[]`, `reportedDamage`.
+- `declared`: original federal declaration date (`YYYY-MM-DD`), from
+  `scripts/build_declared.py`. Declaration lag (powering the Disaster Timelines
+  view) is computed in-browser as `declared − end` in days, and is **signed** —
+  a negative value means FEMA declared while the incident was still ongoing
+  (declaration commonly precedes the incident-window end). Don't clamp it.
 - `hz` (measured hazards): `windMph, hailIn, torEF, peakStageFt, rainIn`
   (total incident rainfall, peak county), `rainMeanIn`, `rainDailyMaxIn`
   (highest single-day rainfall), `rainStations` (ACIS stations used),
@@ -97,6 +103,7 @@ only reads the committed JSON and makes a few live calls (NWS, USGS).
 | Layer | Source | Where |
 |---|---|---|
 | Declarations, counties, dates | OpenFEMA `DisasterDeclarationsSummaries v2` | offline → `_disasters_raw.json` |
+| **Declaration date** (`declared`) | OpenFEMA `DisasterDeclarationsSummaries v2` (`declarationDate`, earliest per disaster) | offline → `declared` |
 | **PA obligated / IHP approved + breakdown** | OpenFEMA `FemaWebDisasterSummaries` (+ `PublicAssistanceFundedProjectsDetails` for project counts) | offline → `costs` |
 | Wind / hail / tornado, type tags, reported damage | **NOAA Storm Events** bulk CSV (county FIPS + incident-window join) | offline → `hz` |
 | Peak river stage | **USGS Water Services** daily values | offline → `hz.peakStageFt` |
