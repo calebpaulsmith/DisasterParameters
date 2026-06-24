@@ -1167,7 +1167,7 @@ function renderGeoStates(){
     const card=`<div class="statecard ${sel?'sel':''}" data-gstate="${s}">
       <div class="sn">${v.name}<span>${GEO_META[m].fmt(sv)}</span></div>
       <div class="pabar"><span style="width:${Math.round(sv/mx*100)}%;background:${GEO_BAR[m]}"></span></div>
-      <div class="sv">${v.nDisasters} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved)} IHP · ${fmtMoney(v.hmgpObligated||0)} HMGP <span class="scexp">${sel?"▲":"▾ disasters"}</span></div></div>`;
+      <div class="sv">${geoStateVal(v,s,"count")} dis · ${fmtMoney(geoStateVal(v,s,"paObligated"))} PA · ${fmtMoney(geoStateVal(v,s,"ihpApproved"))} IHP · ${fmtMoney(geoStateVal(v,s,"hmgpObligated"))} HMGP${geoCovid?` <span class="thr-sub">incl.&nbsp;COVID</span>`:""} <span class="scexp">${sel?"▲":"▾ disasters"}</span></div></div>`;
     if(!sel)return card;
     const ds=DISASTERS.filter(d=>d.state===s).sort((a,b)=>(b.pa||0)-(a.pa||0)||(b.begin||"").localeCompare(a.begin||""));
     const rows=ds.map(d=>`<div class="geodrow${geoDisasterFocus===d.disasterNumber?' active':''}" data-geodis="${d.disasterNumber}">
@@ -1444,7 +1444,7 @@ function renderGeoBoard(){
   if(sub)sub.innerHTML=`<span class="gbscope">${geoStateFilter?DECL.states[geoStateFilter].name:"Region 5 — all states"}</span><span class="gbtag">top counties · ${GEO_META[m].label}${m==="count"&&geoFiltering()?` · with ${[geoPA&&"PA",geoIA&&"IA",geoHMGP&&"HMGP"].filter(Boolean).join("+")}`:""}</span>`;
   let html=top.map(([f,v],i)=>`<div class="georow clickable" data-gfips="${f}">
     <span class="gr"><span class="grk">${i+1}</span><b>${v.name}</b>, ${v.state}</span>
-    <span class="gv">${GEO_META[m].fmt(geoCountyVal(v,m))}<span class="thr-sub"> · ${v.count} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved||0)} IHP · ${fmtNum(v.paProjects)} proj</span></span></div>`).join("");
+    <span class="gv">${GEO_META[m].fmt(geoCountyVal(v,m))}<span class="thr-sub"> · all-time: ${v.count} dis · ${fmtMoney(v.paObligated)} PA · ${fmtMoney(v.ihpApproved||0)} IHP · ${fmtMoney(v.hmgpObligated||0)} HMGP</span></span></div>`).join("");
   if(geoStateFilter){const st=DECL.states[geoStateFilter];
     let swv={count:0,paObligated:st.paStatewide,paProjects:st.projectsStatewide,ihpApproved:st.ihpStatewide,hmgpObligated:st.hmgpStatewide,mitObligated:st.mitStatewide}[m]||0;
     if(geoCovid&&COVID&&COVID.states&&COVID.states[geoStateFilter]){const cv=COVID.states[geoStateFilter]; swv+=m==="paObligated"?(cv.paTotal||0):m==="ihpApproved"?(cv.ihpTotal||0):m==="hmgpObligated"?(cv.hmgp||0):0;}
@@ -1453,8 +1453,8 @@ function renderGeoBoard(){
   box.innerHTML=html||`<p class="thr-sub">—</p>`;
 }
 function countyDetailHTML(o,fips){
-  const list=o.disasters.map(d=>`<div class="declrow clickable" data-dn="${d.dn}"><span class="dk"><b style="color:var(--navy)">DR-${d.dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">${fmtMoney(d.pa)} PA ↗</span></div>`).join("");
-  return `<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${o.count}</b> disaster${o.count>1?"s":""}<br>PA <b>${fmtMoney(o.paObligated)}</b> · IHP <b>${fmtMoney(o.ihpApproved||0)}</b> · <b>${fmtNum(o.paProjects)}</b> projects${o.nApplicants?` · <b>${fmtNum(o.nApplicants)}</b> applicants →`:""}</div>${list}`;
+  const list=o.disasters.map(d=>`<div class="declrow clickable" data-dn="${d.dn}"><span class="dk"><b style="color:var(--navy)">DR-${d.dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">${fmtMoney(d.pa)} <span class="thr-sub">DR&nbsp;total</span> ↗</span></div>`).join("");
+  return `<div class="declhd"><b>${o.name} County, ${o.state}</b> — <b>${o.count}</b> disaster${o.count>1?"s":""} <span class="thr-sub">(all-time)</span><br>PA <b>${fmtMoney(o.paObligated)}</b> · IHP <b>${fmtMoney(o.ihpApproved||0)}</b> · HMGP <b>${fmtMoney(o.hmgpObligated||0)}</b> · <b>${fmtNum(o.paProjects)}</b> projects${o.nApplicants?` · <b>${fmtNum(o.nApplicants)}</b> applicants →`:""}</div><div class="declsub">Disasters that designated this county <span class="thr-sub">· $ = that disaster's whole-DR total, not this county's share</span></div>${list}`;
 }
 function showCountyGeo(fips){            // enter county focus: zoom, applicants board, detail
   const o=(DECL.counties||{})[fips];if(!o)return;
@@ -1616,7 +1616,7 @@ function gmRenderHome(box){
       <div class="gm-sub">${totDis} disasters · ${fmtMoney(totPA)} PA obligated · ${fmtMoney(totIHP)} IHP approved · tap a state to drill in</div></div>
     <div class="gm-sech">Sort states by</div>${gmSortChips()}
     <div class="gm-list">${sorted.map(r=>`<div class="gm-row" data-gmstate="${r.s}">
-        <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${r.v.nDisasters} dis · ${fmtMoney(r.v.paObligated)} PA · ${fmtMoney(r.v.ihpApproved)} IHP · ${fmtMoney(r.v.hmgpObligated||0)} HMGP<br>${fmtMoney(r.v.mitObligated||0)} mitigation · ${fmtMoney(r.v.empg||0)} EMPG · ${fmtMoney(r.v.afg||0)} AFG <span class="thr-sub">(non-disaster)</span></span>
+        <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">all-time · ${r.v.nDisasters} dis · ${fmtMoney(r.v.paObligated)} PA · ${fmtMoney(r.v.ihpApproved)} IHP · ${fmtMoney(r.v.hmgpObligated||0)} HMGP<br>${fmtMoney(r.v.mitObligated||0)} mitigation · ${fmtMoney(r.v.empg||0)} EMPG · ${fmtMoney(r.v.afg||0)} AFG <span class="thr-sub">(non-disaster)</span></span>
           ${gmBar(gmVal(fmtk,"state",r._o),mx,col)}</div>
         <div class="gm-rval">${gmFmt(gmSort,"state",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`;
 }
@@ -1656,11 +1656,11 @@ function gmRenderDisaster(box){
   const mapHtml=bb?gmMiniMap(fHi,bb,true):"";
   // declared counties (sortable, tappable)
   const fmtk=gmSort==="az"?"paObligated":gmSort, colc=GEO_BAR[gmSort]||GEO_BAR.paObligated;
-  const crows=[...fset].filter(f=>DECL.counties[f]).map(f=>{const v=DECL.counties[f];const dd=(v.disasters||[]).find(x=>x.dn===dn)||{};return {_n:v.name,_o:v,f,v,dpa:dd.pa||0,dihp:dd.ihp||0};});
+  const crows=[...fset].filter(f=>DECL.counties[f]).map(f=>{const v=DECL.counties[f];return {_n:v.name,_o:v,f,v};});
   const csorted=gmSortRows(crows,"county"); const cmx=Math.max(...csorted.map(r=>gmVal(fmtk,"county",r._o)),1);
-  const cHtml=csorted.length?`<div class="gm-sech">${csorted.length} declared counties — sort by</div>${gmSortChips()}
+  const cHtml=csorted.length?`<div class="gm-sech">${csorted.length} counties DR-${dn} designated — each county's <b>all-time</b> totals (sort by ${(GM_SORTS.find(x=>x[0]===gmSort)||["","this list"])[1]})</div>${gmSortChips()}
     <div class="gm-list">${csorted.map(r=>`<div class="gm-row" data-gmcounty="${r.f}">
-      <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">this disaster: ${fmtMoney(r.dpa)} PA · ${fmtMoney(r.dihp)} IHP</span>${gmBar(gmVal(fmtk,"county",r._o),cmx,colc)}</div>
+      <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">all-time: ${r.v.count} dis · ${fmtMoney(r.v.paObligated)} PA · ${fmtMoney(r.v.ihpApproved||0)} IHP</span>${gmBar(gmVal(fmtk,"county",r._o),cmx,colc)}</div>
       <div class="gm-rval">${gmFmt(gmSort,"county",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`:"";
   // live applicants for this disaster
   const data=geoDisApplCache[dn]; let aHtml;
@@ -1678,10 +1678,10 @@ function gmRenderCounty(box){
   const f=gmCounty, o=DECL.counties[f]; if(!o)return gmRenderHome(box);
   const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span> <span data-gmback="state">‹ ${o.state}</span></div>
       <div class="gm-title">${o.name} County, ${o.state}</div>
-      <div class="gm-stat"><span>${o.count} disasters</span><span>${fmtMoney(o.paObligated)} PA</span><span>${fmtMoney(o.ihpApproved||0)} IHP</span><span>${fmtMoney(o.hmgpObligated||0)} HMGP</span><span>${fmtMoney(o.mitObligated||0)} mitigation</span></div></div>`;
+      <div class="gm-stat"><span>${o.count} disasters</span><span>${fmtMoney(o.paObligated)} PA</span><span>${fmtMoney(o.ihpApproved||0)} IHP</span><span>${fmtMoney(o.hmgpObligated||0)} HMGP</span><span>${fmtMoney(o.mitObligated||0)} mitigation</span><span class="thr-sub">all-time</span></div></div>`;
   const bb=geoCountyBBox(f); const mapHtml=bb?gmMiniMap(new Set([f]),bb,false):"";
   const dis=(o.disasters||[]).slice().sort((a,b)=>(b.pa||0)-(a.pa||0));
-  const dHtml=`<div class="gm-sech">${dis.length} disasters here</div><div class="gm-list">${dis.map(d=>`<div class="gm-row" data-gmdisaster="${d.dn}"><div class="gm-rmain"><b>DR-${d.dn} · ${d.it||""}</b><span class="gm-rsub">${(d.date||"").slice(0,7)} · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP</span></div><div class="gm-rval"><span class="gm-go">›</span></div></div>`).join("")}</div>`;
+  const dHtml=`<div class="gm-sech">${dis.length} disasters here <span class="thr-sub">· $ = whole-DR total, not this county's share</span></div><div class="gm-list">${dis.map(d=>`<div class="gm-row" data-gmdisaster="${d.dn}"><div class="gm-rmain"><b>DR-${d.dn} · ${d.it||""}</b><span class="gm-rsub">${(d.date||"").slice(0,7)} · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP <span class="thr-sub">DR-wide</span></span></div><div class="gm-rval"><span class="gm-go">›</span></div></div>`).join("")}</div>`;
   const apps=o.applicants||[], shown=gmExpanded?apps:apps.slice(0,20);
   const aHtml=apps.length?`<div class="gm-sech">${fmtNum(o.nApplicants||apps.length)} applicants (all-time PA)</div>
     <div class="gm-list">${shown.map((a,i)=>`<div class="gm-row static"><div class="gm-rk">${i+1}</div><div class="gm-rmain"><b>${a.name}</b><span class="gm-rsub">${a.nDisasters} disasters · ${fmtNum(a.projects)} projects</span></div><div class="gm-rval">${fmtMoney(a.pa)}</div></div>`).join("")}</div>
