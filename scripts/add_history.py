@@ -30,7 +30,7 @@ def get(url, tries=4):
 def pull_declarations():
     """R5 DR disasters in [START_FY,END_FY] -> dict dn -> raw disaster (with counties)."""
     base = "https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries"
-    sel = "disasterNumber,state,declarationType,declarationTitle,incidentType,incidentBeginDate,incidentEndDate,fyDeclared,ihProgramDeclared,paProgramDeclared,fipsStateCode,fipsCountyCode,designatedArea"
+    sel = "disasterNumber,state,declarationType,declarationTitle,incidentType,incidentBeginDate,incidentEndDate,fyDeclared,ihProgramDeclared,iaProgramDeclared,paProgramDeclared,fipsStateCode,fipsCountyCode,designatedArea"
     out = {}
     for st in R5:
         skip = 0
@@ -49,9 +49,14 @@ def pull_declarations():
                         disasterNumber=dn, state=r["state"], title=r["declarationTitle"],
                         incidentType=r["incidentType"], begin=r["incidentBeginDate"][:10],
                         end=(r.get("incidentEndDate") or r["incidentBeginDate"])[:10],
-                        fy=r["fyDeclared"], iaDeclared=bool(r.get("ihProgramDeclared")),
+                        fy=r["fyDeclared"], iaDeclared=False, iaProgramDeclared=False,
                         paDeclared=bool(r.get("paProgramDeclared")),
                         stateFips=r["fipsStateCode"], counties={})
+                # IA-authorized = ihProgramDeclared OR iaProgramDeclared (per OpenFEMA);
+                # OR-accumulate across rows. iaProgramDeclared retained for provenance.
+                ia_prog = bool(r.get("iaProgramDeclared"))
+                o["iaDeclared"] = o["iaDeclared"] or bool(r.get("ihProgramDeclared")) or ia_prog
+                o["iaProgramDeclared"] = o["iaProgramDeclared"] or ia_prog
                 cc = r.get("fipsCountyCode")
                 if cc and cc != "000":
                     o["counties"][cc] = (r.get("designatedArea") or "").replace(" (County)", "")
@@ -99,7 +104,8 @@ def enrich_record(d, by_state, costs):
     rec = dict(
         disasterNumber=d["disasterNumber"], state=d["state"], title=d["title"],
         incidentType=d["incidentType"], begin=d["begin"], end=d["end"], fy=d["fy"],
-        paDeclared=d["paDeclared"], iaDeclared=d["iaDeclared"], countyCount=len(counties),
+        paDeclared=d["paDeclared"], iaDeclared=d["iaDeclared"],
+        iaProgramDeclared=d.get("iaProgramDeclared", False), countyCount=len(counties),
         tags=tags, reportedDamage=round(sum(e["dmg"] for e in use)),
         hz=dict(windMph=round(max(winds) * enrich.KT2MPH) if winds else 0,
                 hailIn=round(max(hails), 2) if hails else 0, torEF=max(efs) if efs else None,

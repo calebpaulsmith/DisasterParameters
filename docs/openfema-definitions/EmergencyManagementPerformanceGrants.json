@@ -1,0 +1,63 @@
+{
+  "dataset": "EmergencyManagementPerformanceGrants",
+  "purpose": "EMPG non-disaster preparedness grants (state-level).",
+  "fetched": "2026-06-24",
+  "source": "https://www.fema.gov/api/open/v1/OpenFemaDataSetFields?$filter=openFemaDataSet eq 'EmergencyManagementPerformanceGrants'",
+  "fieldCount": 9,
+  "fields": [
+    {
+      "name": "fundingAmount",
+      "title": "Funding Amount",
+      "type": "decimal(12,2)",
+      "description": "Funding amount reported in U.S. dollars"
+    },
+    {
+      "name": "id",
+      "title": "ID",
+      "type": "uuid",
+      "description": "Unique ID assigned to the record"
+    },
+    {
+      "name": "legalAgencyName",
+      "title": "Legal Agency Name",
+      "type": "text",
+      "description": "The subgrantee's legal agency name"
+    },
+    {
+      "name": "nameOfProgram",
+      "title": "Name of Program",
+      "type": "text",
+      "description": "Name of Program funded"
+    },
+    {
+      "name": "projectEndDate",
+      "title": "Project End Date",
+      "type": "date",
+      "description": "End date of the project"
+    },
+    {
+      "name": "projectStartDate",
+      "title": "Project Start Date",
+      "type": "date",
+      "description": "Begin date of the project"
+    },
+    {
+      "name": "projectType",
+      "title": "Project Type",
+      "type": "text",
+      "description": "General description of project"
+    },
+    {
+      "name": "reportingPeriod",
+      "title": "Reporting Period",
+      "type": "text",
+      "description": "FEMA's reporting cycle based on the grant award period for a specific fiscal year"
+    },
+    {
+      "name": "state",
+      "title": "State",
+      "type": "text",
+      "description": "Entity approved for a grant"
+    }
+  ]
+}

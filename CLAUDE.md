@@ -111,6 +111,16 @@ few PA totals against the granular PA Funded Projects worksheets before shipping
 
 ## Domain facts that MUST stay correct (an expert user checks these)
 
+> **Terminology reference:** `docs/fema-assistance-glossary.md` is the canonical glossary
+> (IA vs IHP vs HA/ONA vs PA vs HMGP, accounting stages, declaration flags, field→source map).
+> Official OpenFEMA field dictionaries are committed under `docs/openfema-definitions/`
+> (regenerate with `scripts/fetch_openfema_dictionaries.py`). Read it before touching $ labels.
+
+- **IA ≠ IHP.** **IA** (Individual Assistance) is the umbrella *authorization*; **IHP**
+  (Individuals & Households Program) is the only IA program with public per-disaster dollars
+  (`ihpTotal` = HA + ONA). The UI labels the program **IHP**. Per OpenFEMA, "IA-authorized" =
+  `ihProgramDeclared OR iaProgramDeclared`; we store `iaDeclared` as that OR (Region 5 = 34,
+  reconciles with `ihpTotal>0`) plus `iaProgramDeclared` (8) for provenance.
 - **PA is "obligated"; IHP is "approved."** Different accounting stages — never
   conflate or relabel them.
 - **PA breakdown must reconcile:** `paEmergencyAB + paPermanentCG + Category Z

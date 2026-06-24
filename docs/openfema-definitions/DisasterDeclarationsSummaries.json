@@ -1,0 +1,177 @@
+{
+  "dataset": "DisasterDeclarationsSummaries",
+  "purpose": "Declarations, counties, dates, and the program-declared flags (pa/ia/ih/hm).",
+  "fetched": "2026-06-24",
+  "source": "https://www.fema.gov/api/open/v1/OpenFemaDataSetFields?$filter=openFemaDataSet eq 'DisasterDeclarationsSummaries'",
+  "fieldCount": 28,
+  "fields": [
+    {
+      "name": "declarationDate",
+      "title": "Declaration Date",
+      "type": "date",
+      "description": "Date the disaster was declared"
+    },
+    {
+      "name": "declarationRequestNumber",
+      "title": "Declaration Request Number",
+      "type": "text",
+      "description": "Number assigned to the declaration request"
+    },
+    {
+      "name": "declarationTitle",
+      "title": "Declaration Title",
+      "type": "text",
+      "description": "Title for the disaster"
+    },
+    {
+      "name": "declarationType",
+      "title": "Declaration Type",
+      "type": "text",
+      "description": "Two character code that defines if this is a major disaster, fire management, or emergency declaration. For more information on the disaster process, please visit https://www.fema.gov/disasters/how-declared"
+    },
+    {
+      "name": "designatedArea",
+      "title": "Designated Area",
+      "type": "text",
+      "description": "The name or phrase describing the geographic area that was included in the declaration"
+    },
+    {
+      "name": "designatedIncidentTypes",
+      "title": "Declared Incident types",
+      "type": "text",
+      "description": "A comma-separated list of incident types designated for the disaster. The primary incident type is described in the incidentType field. Codes are: 0: Not applicable; 1: Explosion; 2: Straight-Line Winds; 3: Tidal Wave; 4: Tropical Storm; 5: Winter Storm; 8: Tropical Depression; A: Tsunami; B: Biological; C: Coastal Storm; D: Drought; E: Earthquake; F: Flood; G: Freezing; H: Hurricane; I: Terrorist; J: Typhoon; K: Dam/Levee Break; L: Chemical; M: Mud/Landslide; N: Nuclear; O: Severe Ice Storm; P: Fishing Losses; Q: Crop Losses; R: Fire; S: Snowstorm; T: Tornado; U: Civil Unrest; V: Volcanic Eruption; W: Severe Storm; X: Toxic Substances; Y: Human Cause; Z: Other"
+    },
+    {
+      "name": "disasterCloseoutDate",
+      "title": "Disaster Closeout Date",
+      "type": "date",
+      "description": "Date all financial transactions for all programs are completed"
+    },
+    {
+      "name": "disasterNumber",
+      "title": "Disaster Number",
+      "type": "smallint",
+      "description": "Sequentially assigned number used to designate an event or incident declared as a disaster.  For more information on the disaster process, please visit https://www.fema.gov/disasters/how-declared"
+    },
+    {
+      "name": "femaDeclarationString",
+      "title": "FEMA Declaration String",
+      "type": "text",
+      "description": "Agency standard method for uniquely identifying Stafford Act declarations - Concatenation of declaration type, disaster number and state code. Ex: DR-4393-NC"
+    },
+    {
+      "name": "fipsCountyCode",
+      "title": "FIPS County Code",
+      "type": "text",
+      "description": "FIPS three-digit numeric code used to identify counties and county equivalents in the United States, the District of Columbia, US territories, outlying areas of the US and freely associated states. Please note that Indian Reservations are not counties and thus will not have a FIPS county code, please utilize the placeCode field instead. If the designation is made for the entire state, this value will be 000 as multiple (all) counties cannot be entered."
+    },
+    {
+      "name": "fipsStateCode",
+      "title": "FIPS State Code",
+      "type": "text",
+      "description": "FIPS two-digit numeric code used to identify the United States, the District of Columbia, US territories, outlying areas of the US and freely associated states"
+    },
+    {
+      "name": "fyDeclared",
+      "title": "FY Declared",
+      "type": "smallint",
+      "description": "Fiscal year in which the disaster was declared"
+    },
+    {
+      "name": "hash",
+      "title": "Hash",
+      "type": "text",
+      "description": "MD5 Hash of the fields and values of the record"
+    },
+    {
+      "name": "hmProgramDeclared",
+      "title": "HM Program Declared",
+      "type": "boolean",
+      "description": "Denotes whether the Hazard Mitigation program was declared for this disaster. For more information on the program, please visit https://www.fema.gov/grants/mitigation/hazard-mitigation"
+    },
+    {
+      "name": "iaProgramDeclared",
+      "title": "IA Program Declared",
+      "type": "boolean",
+      "description": "Denotes whether the Individual Assistance program was declared for this disaster. For more information on the program, please visit https://www.fema.gov/assistance/individual/program. To determine which FEMA events have been authorized to receive Individual Assistance, use both ihProgramDeclared and iaProgramDeclared. For more information see https://www.fema.gov/about/openfema/faq"
+    },
+    {
+      "name": "id",
+      "title": "ID",
+      "type": "uuid",
+      "description": "Unique ID assigned to the record"
+    },
+    {
+      "name": "ihProgramDeclared",
+      "title": "IH Program Declared",
+      "type": "boolean",
+      "description": "Denotes whether the Individuals and Households program was declared for this disaster. For more information on the program, please visit https://www.fema.gov/assistance/individual/program. To determine which FEMA events have been authorized to receive Individual Assistance, use both ihProgramDeclared and iaProgramDeclared. For more information see https://www.fema.gov/about/openfema/faq"
+    },
+    {
+      "name": "incidentBeginDate",
+      "title": "Incident Begin Date",
+      "type": "date",
+      "description": "Date the incident itself began"
+    },
+    {
+      "name": "incidentEndDate",
+      "title": "Incident End Date",
+      "type": "date",
+      "description": "Date the incident itself ended"
+    },
+    {
+      "name": "incidentId",
+      "title": "Incident Identifier",
+      "type": "text",
+      "description": "Unique identifier for an incident. Incidents are events that may or may not become declared disasters."
+    },
+    {
+      "name": "incidentType",
+      "title": "Incident Type",
+      "type": "text",
+      "description": "The primary or official type of incident such as fire or flood. Secondary incident types may have been designated. See the designatedIncidentTypes field. For more information on incident types, please visit https://www.fema.gov/disasters/how-declared."
+    },
+    {
+      "name": "lastIAFilingDate",
+      "title": "Last IA Filing Date",
+      "type": "date",
+      "description": "Last date when IA requests can be filed. Data available after 1998 only. The date only applies if IA has been approved for the disaster."
+    },
+    {
+      "name": "lastRefresh",
+      "title": "Last Refresh",
+      "type": "datetimez",
+      "description": "Date the record was last updated in the API data store"
+    },
+    {
+      "name": "paProgramDeclared",
+      "title": "PA Program Declared",
+      "type": "boolean",
+      "description": "Denotes whether the Public Assistance program was declared for this disaster. For more information on the program, please visit https://www.fema.gov/assistance/public/program-overview"
+    },
+    {
+      "name": "placeCode",
+      "title": "Place Code",
+      "type": "text",
+      "description": "A unique code system FEMA uses internally to recognize locations that takes the numbers '99' + the 3-digit county FIPS code. There are some declared locations that dont have recognized FIPS county codes in which case we assigned a unique identifier"
+    },
+    {
+      "name": "region",
+      "title": "Region",
+      "type": "smallint",
+      "description": "Number (1-10) used to represent the FEMA region where the disaster occurred."
+    },
+    {
+      "name": "state",
+      "title": "State",
+      "type": "text",
+      "description": "The name or phrase describing the U.S. state, district, or territory"
+    },
+    {
+      "name": "tribalRequest",
+      "title": "Tribal Request",
+      "type": "boolean",
+      "description": "Denotes that a declaration request was submitted directly to the President, independently of a state, by a Tribal Nation."
+    }
+  ]
+}

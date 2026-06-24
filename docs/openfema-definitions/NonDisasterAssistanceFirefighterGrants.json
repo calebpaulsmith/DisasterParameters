@@ -1,0 +1,63 @@
+{
+  "dataset": "NonDisasterAssistanceFirefighterGrants",
+  "purpose": "AFG non-disaster firefighter grants (with recipient fire departments).",
+  "fetched": "2026-06-24",
+  "source": "https://www.fema.gov/api/open/v1/OpenFemaDataSetFields?$filter=openFemaDataSet eq 'NonDisasterAssistanceFirefighterGrants'",
+  "fieldCount": 9,
+  "fields": [
+    {
+      "name": "awardAmount",
+      "title": "Award Amount",
+      "type": "decimal(12,2)",
+      "description": "The amount of allocated funds that are obligated to an awardee. While this is synonymous to 'Obligated Amount', Award Amount is the agreed upon term for use in R&IM reports. Note: Funds can be de-obligated so this amount is not final until award is closed. Therefore, in reports, terms such as 'Initial Award Amount' and 'Current Award Amount' can and should be used where necessary"
+    },
+    {
+      "name": "awardNumber",
+      "title": "Award Number",
+      "type": "text",
+      "description": "The agreed upon term for the number assigned to each individual award within the grant program and fiscal year. Each award number is unique to that year and recipient. This is sometimes referred to as 'Contract Number', 'Purchase Order Number', or 'Obligation Number'"
+    },
+    {
+      "name": "fiscalYear",
+      "title": "Fiscal Year",
+      "type": "smallint",
+      "description": "Represents the government budget fiscal year, which is from October 1st - September 30th. Note: Some grant programs are budgeted for a fiscal year and spent in another ' i.e. multi-year funded awards place money from current fiscal year appending a prior award number"
+    },
+    {
+      "name": "id",
+      "title": "ID",
+      "type": "uuid",
+      "description": "Unique ID assigned to the record"
+    },
+    {
+      "name": "programAbbreviation",
+      "title": "Program Abbreviation",
+      "type": "text",
+      "description": "Abbreviation for Program Name. NOTE: FIELD NOT AVAILABLE AT THIS TIME."
+    },
+    {
+      "name": "programName",
+      "title": "Program Name",
+      "type": "text",
+      "description": "The program name and fiscal year in which the money was appropriated. Name of the grant program from grants.gov and set in the funding notification announcement. This term is also referred to in other sources as 'Solicitation' or 'Grant Title'"
+    },
+    {
+      "name": "region",
+      "title": "Region",
+      "type": "smallint",
+      "description": "Vendor States are assigned to a geographic regions. There are 58 US states and territories and each is assigned to 1 of 10 regions. Regions are 1-5 are rolled up to Eastern and 6-10 are Western"
+    },
+    {
+      "name": "vendorName",
+      "title": "Vendor Name",
+      "type": "text",
+      "description": "This term refers to the award recipient, as documented in IFMIS. This field is also known as 'Awardee', 'Grantee', 'Recipient' or 'Project' (the latter only in ARRA Reporting)"
+    },
+    {
+      "name": "vendorState",
+      "title": "Vendor State",
+      "type": "text",
+      "description": "The state in which the awardee is located. This is also referred to as 'Vendor State Code'"
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "dataset": "FemaWebDisasterSummaries",
+  "purpose": "PA obligated + Cat A-B/C-G, HMGP, IHP approved + HA/ONA, IA registrations.",
+  "fetched": "2026-06-24",
+  "source": "https://www.fema.gov/api/open/v1/OpenFemaDataSetFields?$filter=openFemaDataSet eq 'FemaWebDisasterSummaries'",
+  "fieldCount": 14,
+  "fields": [
+    {
+      "name": "disasterNumber",
+      "title": "Disaster Number",
+      "type": "smallint",
+      "description": "Sequentially assigned number used to designate an event or incident declared as a disaster.  For more information on the disaster process, https://www.fema.gov/disasters/how-declared"
+    },
+    {
+      "name": "hash",
+      "title": "hash",
+      "type": "text",
+      "description": "MD5 hash of fields and values of the record"
+    },
+    {
+      "name": "iaLoadDate",
+      "title": "IA Load Date",
+      "type": "date",
+      "description": "The date the Individual Assistance (IA) data was updated by NEMIS"
+    },
+    {
+      "name": "id",
+      "title": "ID",
+      "type": "uuid",
+      "description": "Unique ID assigned to the record"
+    },
+    {
+      "name": "lastRefresh",
+      "title": "Last Refresh",
+      "type": "datetimez",
+      "description": "Date the record was last updated in the API data store"
+    },
+    {
+      "name": "paLoadDate",
+      "title": "PA Load Date",
+      "type": "date",
+      "description": "The date the Public Assistance (PA) data was updated by NEMIS"
+    },
+    {
+      "name": "totalAmountHaApproved",
+      "title": "Total Amount HA Approved",
+      "type": "decimal(12,2)",
+      "description": "The total amount approved for Housing Assistance (HA) from the Individual and Households Program (IHP) in dollars. To learn more about the programs within IHP, please read the IHP Unified Guidance: https://www.fema.gov/sites/default/files/2020-05/IHP_Unified_Guidance_FINAL_09272016_0.pdf"
+    },
+    {
+      "name": "totalAmountIhpApproved",
+      "title": "Total Amount IHP Approved",
+      "type": "decimal(12,2)",
+      "description": "The total amount approved for the Individual and Households Program (IHP) in dollars. To learn more about the programs within IHP, please read the IHP Unified Guidance: https://www.fema.gov/sites/default/files/2020-05/IHP_Unified_Guidance_FINAL_09272016_0.pdf"
+    },
+    {
+      "name": "totalAmountOnaApproved",
+      "title": "Total Amount ONA Approved",
+      "type": "decimal(12,2)",
+      "description": "The total amount approved for Other Needs Assistance (ONA) from the Individual and Households Program (IHP) in dollars. To learn more about the programs within IHP, please read the IHP Unified Guidance: https://www.fema.gov/sites/default/files/2020-05/IHP_Unified_Guidance_FINAL_09272016_0.pdf"
+    },
+    {
+      "name": "totalNumberIaApproved",
+      "title": "Total Number IA Approved",
+      "type": "decimal(12,2)",
+      "description": "The number of disaster assistance applications that were approved for Individual Assistance (IA)"
+    },
+    {
+      "name": "totalObligatedAmountCatAb",
+      "title": "Total Obligated Amount Category A and B",
+      "type": "decimal(12,2)",
+      "description": "The Public Assistance grant funding available in dollars to the grantee (State), for sub-grantee approved Project Worksheets in categories A and B, or Emergency Work. Category A: Debris removal; Category B: Emergency protective measures. To learn more about FEMA categories of work, visit: https://www.fema.gov/assistance/public/program-overview"
+    },
+    {
+      "name": "totalObligatedAmountCatC2g",
+      "title": "Total Obligated Amount Category C to G",
+      "type": "decimal(12,2)",
+      "description": "The Public Assistance grant funding available in dollars to the grantee (State), for sub-grantee approved Project Worksheets in categories C through G, or Permanent Work. Category C: Roads and bridges; Category D: Water control facilities; Category E: Public buildings and contents; Category F: Public utilities; Category G: Parks, recreational, and other facilities. To learn more about FEMA categories of work, visit: https://www.fema.gov/assistance/public/program-overview"
+    },
+    {
+      "name": "totalObligatedAmountHmgp",
+      "title": "Total Obligated Amount HMGP",
+      "type": "decimal(12,2)",
+      "description": "Total amount obligated under the Hazard Mitigation Grant Program in dollars. The total amount obligated represents the amount obligated for Regular Project Costs, Planning Costs, Initiative Project Costs, Recipient Management Costs, Recipient Admin Costs and Subrecipient Admin Costs. To learn more about HMGP, visit: https://www.fema.gov/grants/mitigation"
+    },
+    {
+      "name": "totalObligatedAmountPa",
+      "title": "Total Obligated Amount PA",
+      "type": "decimal(12,2)",
+      "description": "The Public Assistance grant funding available in dollars to the grantee (State), for sub-grantee approved Project Worksheets"
+    }
+  ]
+}

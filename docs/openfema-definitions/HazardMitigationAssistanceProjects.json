@@ -1,0 +1,207 @@
+{
+  "dataset": "HazardMitigationAssistanceProjects",
+  "purpose": "HMGP (\u00a7404) + non-disaster HMA project obligations (initialObligationDate).",
+  "fetched": "2026-06-24",
+  "source": "https://www.fema.gov/api/open/v1/OpenFemaDataSetFields?$filter=openFemaDataSet eq 'HazardMitigationAssistanceProjects'",
+  "fieldCount": 33,
+  "fields": [
+    {
+      "name": "benefitCostRatio",
+      "title": "Benefit Cost Ratio",
+      "type": "decimal(14,2)",
+      "description": "The Benefit-Cost Ratio (BCR) is a numerical expression of the cost-effectiveness of a project. The BCR is derived from a project's total net benefits divided by its total project cost. Composite BCRs of 1.0 or greater have more benefits than costs, and are therefore cost-effective."
+    },
+    {
+      "name": "costSharePercentage",
+      "title": "Cost Share Percentage",
+      "type": "decimal(14,2)",
+      "description": "Proposed percentage of the project cost to be covered by FEMA."
+    },
+    {
+      "name": "county",
+      "title": "County",
+      "type": "text",
+      "description": "Full name of the primary county (e.g., Broward) associated with the project. Note, projects can be associated with more than one county (see the Project Counties field) and are often reported as Statewide (e.g., 000 represents Statewide)"
+    },
+    {
+      "name": "countyCode",
+      "title": "County Code",
+      "type": "text",
+      "description": "FIPS code uniquely identifying the primary county (e.g., 011 represents Broward County) associated with the project. Note, projects can be associated with more than one county (see the Project Counties field) and are often reported as Statewide (e.g., 000 represents Statewide)"
+    },
+    {
+      "name": "dataSource",
+      "title": "Data Source",
+      "type": "text",
+      "description": "Indicates which source system provided the data (e.g., eGrants, FMA, HMGP, HMGP-Historical)"
+    },
+    {
+      "name": "dateApproved",
+      "title": "Date Approved",
+      "type": "date",
+      "description": "Date the project was approved by FEMA. For HMGP projects, this date is based on the Regional Directors signature date for the latest amendment that was approved."
+    },
+    {
+      "name": "dateClosed",
+      "title": "Date Closed",
+      "type": "date",
+      "description": "Date the project was closed by FEMA."
+    },
+    {
+      "name": "dateInitiallyApproved",
+      "title": "Date Initially Approved",
+      "type": "date",
+      "description": "Date the project was initially approved by FEMA. For HMGP projects, this date is based on the Regional Directors signature date for the first amendment that was approved."
+    },
+    {
+      "name": "disasterNumber",
+      "title": "Disaster Number",
+      "type": "smallint",
+      "description": "Sequentially assigned number used to designate an event or incident declared as a disaster. Note, some older non-disaster projects will report a disaster number due to the system of record used at the time. For more information on the disaster process, please visit https://www.fema.gov/disasters/how-declared"
+    },
+    {
+      "name": "federalShareObligated",
+      "title": "Federal Share Obligated",
+      "type": "decimal(14,2)",
+      "description": "Federal share obligated for eligible project activities. For HMGP this field does not include Admin Costs or Management Costs obligated with the project."
+    },
+    {
+      "name": "id",
+      "title": "ID",
+      "type": "uuid",
+      "description": "Unique ID assigned to the record"
+    },
+    {
+      "name": "initialObligationAmount",
+      "title": "Initial Obligation Amount",
+      "type": "decimal(14,2)",
+      "description": "Initial obligation amount"
+    },
+    {
+      "name": "initialObligationDate",
+      "title": "Initial Obligation Date",
+      "type": "date",
+      "description": "Date when funds were initally obligated."
+    },
+    {
+      "name": "netValueBenefits",
+      "title": "Net Value Benefits",
+      "type": "decimal(14,2)",
+      "description": "Net present value of benefits from the Benefit-Cost Analysis that represents the amount of benefits that will occur for the life of the project."
+    },
+    {
+      "name": "numberOfFinalProperties",
+      "title": "Number of Final Properties",
+      "type": "smallint",
+      "description": "Actual number of properties mitigated by the project as provided by project closeout activities."
+    },
+    {
+      "name": "numberOfProperties",
+      "title": "Number of Properties",
+      "type": "smallint",
+      "description": "Proposed number of properties to be mitigated by the project. Note, a zero values means the project does not apply mitigation directly to structures."
+    },
+    {
+      "name": "programArea",
+      "title": "Program Area",
+      "type": "text",
+      "description": "Hazard Mitigation Assistance grant program areas such as BRIC - Building Resilient Infrastructure and Communities grant program, FMA - Flood Mitigation Assistance grant program, HMGP - Hazard Mitigation Grant Program, LPDM - Legislative Pre-disaster Mitigation grant program, PDM - Pre-disaster Mitigation grant program, RFC - Repetitive Flood Claims grant program, SRL - Severe Repetitive Loss grant program"
+    },
+    {
+      "name": "programFy",
+      "title": "Program FY",
+      "type": "smallint",
+      "description": "The fiscal year the disaster declaration date for disaster programs; the fiscal year from the Project Identifier for non-disaster programs (e.g., 2005 from PDMC-PJ-04-AL-2005-001)"
+    },
+    {
+      "name": "projectAmount",
+      "title": "Project Amount",
+      "type": "decimal(14,2)",
+      "description": "Total cost of the project as submitted in the project subapplication."
+    },
+    {
+      "name": "projectCounties",
+      "title": "Project Counties",
+      "type": "text",
+      "description": "County, or Counties, associated with the project.  When a project involves more than one county, a semicolon-delimited list of counties is displayed"
+    },
+    {
+      "name": "projectIdentifier",
+      "title": "Project Identifier",
+      "type": "text",
+      "description": "Single-value that uniquely identifies the project. Disaster-based projects use the convention of DR-disaster number-project number-suffix (e.g., DR-1761-0001-M) while non-disaster projects use the unique project number (e.g., FMA-PJ-10-WA-2017-006)"
+    },
+    {
+      "name": "projectType",
+      "title": "Project Type",
+      "type": "text",
+      "description": "Project, or activity, type(s) for the project. When a project involves more than one type/activity, a semicolon-delimited list of types/activities is displayed"
+    },
+    {
+      "name": "recipient",
+      "title": "Recipient",
+      "type": "text",
+      "description": "Name of the recipient (previously referred to as grantee) to which the grant is awarded. The recipient is accountable for the use of the funds provided by FEMA and is responsible for disbursing those funds to the subrecipient"
+    },
+    {
+      "name": "recipientAdminCostAmt",
+      "title": "Recipient Administrative Costs Obligated",
+      "type": "decimal(14,2)",
+      "description": "Amount obligated for eligible recipient (previously referred to Grantee Administrative Activities). Recipient Administrative Costs only apply to disasters prior to November 13, 2007"
+    },
+    {
+      "name": "recipientTribalIndicator",
+      "title": "Recipient Tribal Indicator",
+      "type": "boolean",
+      "description": "Indicates if the recipient (or formally referred to as grantee) is Tribal."
+    },
+    {
+      "name": "region",
+      "title": "Region",
+      "type": "smallint",
+      "description": "Number (1-10) used to represent the Region associated with the project"
+    },
+    {
+      "name": "srmcObligatedAmt",
+      "title": "Subrecipient Management Costs Obligated",
+      "type": "decimal(14,2)",
+      "description": "Amount obligated for eligible subrecipient management costs activities. Subrecipient Management Costs only apply to disasters declared on or after August 1, 2017."
+    },
+    {
+      "name": "state",
+      "title": "State",
+      "type": "text",
+      "description": "Full name of the State (e.g., Virginia) associated with the project"
+    },
+    {
+      "name": "stateNumberCode",
+      "title": "State Number Code",
+      "type": "text",
+      "description": "FIPS code corresponding to the State (e.g., 51 represents Virginia/VA) associated with the project"
+    },
+    {
+      "name": "status",
+      "title": "Status",
+      "type": "text",
+      "description": "Current status of the project. The following options for status are: \nApproved: Refers to HMGP projects that have been approved for award by FEMA and for which funds have been obligated\nAwarded: Refers to PDM and FMA projects from before FY2004 that have been approved for award by FEMA and for which funds have been obligated\nObligated: Refers to PDM and FMA projects from FY2004 onward and FY19 BRIC projects that have been approved for award by FEMA and for which funds have been obligated\nCompleted: Refers to FMA projects from FY2003 and earlier that were approved for award and fiscally reconciled at the end of the performance period\nClosed: Refers to all HMGP and PDM projects and FMA projects from FY2004 onward that were approved for award and fiscally reconciled at the end of the performance period.\nVoid: Represents grants that were nullified.\nPending: Represents grants that are still under review and do not have a final decision.\nRevision Requested: Represents grants that upon review, the reviewers requested additional information from the (sub)applicant before making the final decision.\nWithdrawn: Represents applications that have been withdrawn by the subapplicant for various reasons.\nPlease note that there might be projects in these categories that do not meet these definitions."
+    },
+    {
+      "name": "subrecipient",
+      "title": "Subrecipient",
+      "type": "text",
+      "description": "Name of the subrecipient (previously referred to as subrecipient) involved in the project"
+    },
+    {
+      "name": "subrecipientAdminCostAmt",
+      "title": "Subrecipient Administrative Costs Obligated",
+      "type": "bigint",
+      "description": "Amount obligated for eligible subrecipient administrative activities (previously referred to as Federal Share Subgrantee Admin Amount). Subrecipient Administrative Costs only apply to disasters prior to November 13, 2007."
+    },
+    {
+      "name": "subrecipientTribalIndicator",
+      "title": "Subrecipient Tribal Indicator",
+      "type": "boolean",
+      "description": "Indicates if the subrecipient (previously referred to as subgrantee) is Tribal"
+    }
+  ]
+}
