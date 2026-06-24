@@ -1195,7 +1195,7 @@ function renderGeoMap(){
     const sel=useD?inD:(cf?c.f===cf:(gf&&c.s===gf)), dim=useD?!inD:(cf?c.f!==cf:(gf&&c.s!==gf));
     const tip=o?`${c.n}, ${c.s} — ${GEO_META[m].fmt(v)} ${GEO_META[m].label}`:`${c.n}, ${c.s} — none`;
     const cls=(o&&v?"hotc":"")+(csel?" cselect":"")+(useD&&inD?" dsel":"");
-    return `<path d="${cpath(c)}" fill="${geoColor(m,v)}" stroke="${sel?'#0d2342':'#fff'}" stroke-width="${sel?0.9:0.4}"${cls.trim()?` class="${cls.trim()}"`:""}${o&&v?` data-gfips="${c.f}"`:""}${dim?' opacity="0.18"':''}><title>${tip.replace(/"/g,"&quot;")}</title></path>`;}).join("");
+    return `<path d="${cpath(c)}" fill="${geoColor(m,v)}" stroke="${sel?'#0d2342':'#fff'}" stroke-width="${sel?0.9:0.4}"${cls.trim()?` class="${cls.trim()}"`:""}${o&&v&&!GEO_STATEONLY[m]?` data-gfips="${c.f}"`:""}${dim?' opacity="0.18"':''}><title>${tip.replace(/"/g,"&quot;")}</title></path>`;}).join("");
   box.innerHTML=`<svg viewBox="${vbStr(geoVB)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;background:#f7f9fc;border-radius:8px;cursor:grab;touch-action:none">${paths}<g class="geolabels"></g></svg>
     <div class="maphint thr-sub">drag to pan · pinch or scroll to zoom</div>
     <div class="maplegend" style="margin-top:6px"><span>${GEO_META[m].label}:</span>${GEO_LEGEND[m].map(p=>`<span><i style="background:${geoColor(m,p[0])}"></i>${p[1]}</span>`).join("")}</div>`;
@@ -1418,11 +1418,10 @@ function renderGeoBoard(){
       :`<p class="thr-sub">No ${isHm?"HMGP subrecipient":isMit?"mitigation grantee":"applicant-level PA"} records for this county.</p>`);
     return;
   }
-  if(GEO_STATEONLY[geoMetric]){             // state-level metric (EMPG/AFG) → rank states, not counties
-    const mm=geoMetric, ent=Object.entries(DECL.states).sort((a,b)=>geoStateVal(b[1],b[0],mm)-geoStateVal(a[1],a[0],mm));
-    if(sub)sub.innerHTML=`<span class="gbscope">Region 5 — by state</span><span class="gbtag">${GEO_META[mm].label}</span>`;
-    box.innerHTML=ent.map(([s,v],i)=>`<div class="georow clickable" data-gstate="${s}"><span class="gr"><span class="grk">${i+1}</span><b>${v.name}</b></span><span class="gv">${GEO_META[mm].fmt(geoStateVal(v,s,mm))}${mm==="afg"&&v.nAfg?`<span class="thr-sub"> · ${fmtNum(v.nAfg)} awards</span>`:""}</span></div>`).join("")
-      +`<p class="thr-sub" style="margin-top:6px">State-level grants (no county detail) — the map fills each state. Non-disaster.</p>`;
+  if(GEO_STATEONLY[geoMetric]){             // state-level grant (EMPG/AFG) → real sub-unit: recipients / project types
+    const pb=prepBoardHTML(geoMetric,geoStateFilter);
+    if(sub)sub.innerHTML=`<span class="gbscope">${pb.tag}</span><span class="gbtag">${GEO_META[geoMetric].label}</span>`;
+    box.innerHTML=pb.html||`<p class="thr-sub">—</p>`;
     return;
   }
   const m=geoMetric;
@@ -1462,11 +1461,12 @@ function geoExitCounty(){
   const s=geoCountyFocus?(DECL.counties[geoCountyFocus]||{}).state:geoStateFilter;
   geoCountyFocus=null; geoStateFilter=s||null;
   renderGeoStates();renderGeoMap();renderGeoBoard();geoFocus(true);
-  if(geoStateFilter)showStateGeo(geoStateFilter); else el("geoPick").innerHTML=`<span class="thr-sub">Tap a county or state for its disasters &amp; dollars.</span>`;
+  if(geoStateFilter)showStateGeo(geoStateFilter); else el("geoPick").innerHTML=GEO_STATEONLY[geoMetric]?prepTrendHTML(geoMetric,null):`<span class="thr-sub">Tap a county or state for its disasters &amp; dollars.</span>`;
   syncHash();
 }
 function showStateGeo(s){
   const st=(DECL.states||{})[s],box=el("geoPick");if(!st||!box)return; geoComputeStatewide();
+  if(GEO_STATEONLY[geoMetric]){box.innerHTML=prepTrendHTML(geoMetric,s);return;}   // state grant → by-year trend
   const row=(k,v,ind)=>`<div class="declrow"><span class="dk"${ind?' style="padding-left:12px;color:var(--ink-3)"':''}>${k}</span><span class="dv">${v}</span></div>`;
   box.innerHTML=`<div class="declhd"><b>${st.name}</b> — ${st.nDisasters} declared disasters</div>`+
     row("PA obligated",fmtMoney(st.paObligated))+row("· counties",fmtMoney(st.countyPA),1)+row("· statewide (not county-allocated)",fmtMoney(st.paStatewide),1)+
@@ -1478,12 +1478,45 @@ function geoSelectState(s){
   geoCountyFocus=null;
   geoStateFilter=(geoStateFilter===s)?null:s; geoDisasterFocus=null;
   renderGeoStates();renderGeoMap();renderGeoBoard();geoFocus(true);
-  if(geoStateFilter)showStateGeo(geoStateFilter); else el("geoPick").innerHTML=`<span class="thr-sub">Tap a county or state for its disasters &amp; dollars.</span>`;
+  if(geoStateFilter)showStateGeo(geoStateFilter); else el("geoPick").innerHTML=GEO_STATEONLY[geoMetric]?prepTrendHTML(geoMetric,null):`<span class="thr-sub">Tap a county or state for its disasters &amp; dollars.</span>`;
   syncHash();
+}
+/* ===== state-level grant presentation (EMPG/AFG): sub-unit board + by-year trend ===== */
+function prepBoardHTML(m,s){
+  if(m==="afg"){
+    let list;
+    if(s){list=(DECL.states[s].afgVendors||[]).slice(0,APPL_CAP);}
+    else{const all=[]; Object.values(DECL.states).forEach(st=>(st.afgVendors||[]).forEach(v=>all.push(v))); all.sort((a,b)=>b.afg-a.afg); list=all.slice(0,APPL_CAP);}
+    return {tag:(s?DECL.states[s].name:"Region 5")+" · fire-dept recipients",
+      html:list.map((a,i)=>`<div class="georow"><span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b></span><span class="gv">${fmtMoney(a.afg)}</span></div>`).join("")};
+  }
+  let agg={};
+  if(s)agg=DECL.states[s].empgByType||{};
+  else Object.values(DECL.states).forEach(st=>Object.entries(st.empgByType||{}).forEach(([k,v])=>agg[k]=(agg[k]||0)+v));
+  const ent=Object.entries(agg).sort((a,b)=>b[1]-a[1]).slice(0,APPL_CAP);
+  return {tag:(s?DECL.states[s].name:"Region 5")+" · EMPG by project type",
+    html:ent.map(([k,v],i)=>`<div class="georow"><span class="gr"><span class="grk">${i+1}</span><b>${k}</b></span><span class="gv">${fmtMoney(v)}</span></div>`).join("")};
+}
+function prepByYear(m,s){const key=m+"ByYear"; let agg={};
+  if(s)agg=DECL.states[s][key]||{};
+  else Object.values(DECL.states).forEach(st=>Object.entries(st[key]||{}).forEach(([y,v])=>agg[y]=(agg[y]||0)+v));
+  return Object.entries(agg).map(([y,v])=>[+y,v]).filter(p=>p[0]).sort((a,b)=>a[0]-b[0]);}
+function prepTrendHTML(m,s){
+  const data=prepByYear(m,s);
+  if(!data.length)return `<div class="declhd"><b>${s?DECL.states[s].name:"Region 5"}</b> · ${GEO_META[m].label}</div><p class="thr-sub">No yearly data.</p>`;
+  const tot=data.reduce((a,b)=>a+b[1],0), mx=Math.max(...data.map(d=>d[1]))||1;
+  const W=320,H=120,pl=4,pr=4,pt=6,pb=16,iw=W-pl-pr,ih=H-pt-pb, n=data.length, step=iw/n, bw=Math.max(2,step*0.7), col=GEO_BAR[m];
+  const bars=data.map((d,i)=>{const x=pl+i*step+(step-bw)/2,h=d[1]/mx*ih,y=pt+ih-h;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" fill="${col}"><title>${d[0]}: ${fmtMoney(d[1])}</title></rect>`;}).join("");
+  const yax=data.length>1?`<text x="${pl}" y="${H-4}" font-size="8" fill="#8a94a6">${data[0][0]}</text><text x="${W-pr}" y="${H-4}" font-size="8" fill="#8a94a6" text-anchor="end">${data[data.length-1][0]}</text>`:"";
+  return `<div class="declhd"><b>${s?DECL.states[s].name:"Region 5"}</b> · ${GEO_META[m].label}<br><span class="thr-sub">${fmtMoney(tot)} all-time · ${data[0][0]}–${data[data.length-1][0]}</span></div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:#fbfdff;border-radius:8px">${bars}${yax}</svg>
+    <p class="thr-sub" style="margin-top:4px">Federal awards by year (state-level, non-disaster). Tap a state on the left to re-scope.</p>`;
 }
 function setGeoMetric(m){geoMetric=m;
   document.querySelectorAll("#geoToggle button").forEach(b=>b.classList.toggle("active",b.dataset.geom===m));
-  syncPaiaUI();syncMitChips();renderGeoStates();renderGeoMap();renderGeoBoard();}
+  syncPaiaUI();syncMitChips();renderGeoStates();renderGeoMap();renderGeoBoard();
+  if(GEO_STATEONLY[m]){const b=el("geoPick"); if(b)b.innerHTML=prepTrendHTML(m,geoStateFilter);}}
 function geoMitPrograms(){const s=new Set(); if(DECL&&DECL.states)Object.values(DECL.states).forEach(st=>Object.keys(st.mitByProgram||{}).forEach(k=>s.add(k))); return [...s];}
 function syncMitChips(){const box=el("mitChips"); if(!box)return;
   if(geoMetric!=="mitObligated"){box.style.display="none";return;}
