@@ -2185,16 +2185,16 @@ function tlDecYear(s){const d=new Date(s+"T00:00:00"),y=d.getFullYear(),a=new Da
 function tlDecYearMs(ms){const d=new Date(ms),y=d.getFullYear(),a=new Date(y,0,1),b=new Date(y+1,0,1);return y+(d-a)/(b-a);}
 function tlRegress(pts){const n=pts.length;if(n<2)return null;let sx=0,sy=0,sxx=0,sxy=0;pts.forEach(p=>{sx+=p.x;sy+=p.y;sxx+=p.x*p.x;sxy+=p.x*p.y;});const den=n*sxx-sx*sx;if(!den)return null;const slope=(n*sxy-sx*sy)/den;return{slope,intercept:(sy-slope*sx)/n};}
 function tlNiceStep(x){if(!(x>0))return 1;const p=Math.pow(10,Math.floor(Math.log10(x))),f=x/p;return (f<=1?1:f<=2?2:f<=5?5:10)*p;}
-function tlRenderPickList(box,title,rows){
+function tlRenderPickList(box,title,rows,showYear){
   if(!box)return;
   rows=rows.slice().filter(d=>tlLag(d)!=null).sort((a,b)=>tlLag(b)-tlLag(a));
   if(!rows.length){box.innerHTML=`<div class="declhd"><b>${title}</b> — none</div>`;return;}
-  const items=rows.map(d=>{const l=tlLag(d);
-    return `<div class="declrow clickable" data-dn="${d.disasterNumber}"><span class="dk"><b style="color:var(--navy)">DR-${d.disasterNumber}</b> · ${d.state} · ${titleCase(d.title)}</span><span class="dv">${l} day${Math.abs(l)===1?"":"s"} ↗</span></div>`;}).join("");
+  const items=rows.map(d=>{const l=tlLag(d);const yr=showYear?` · ${d.begin.slice(0,4)}`:"";
+    return `<div class="declrow clickable" data-dn="${d.disasterNumber}"><span class="dk"><b style="color:var(--navy)">DR-${d.disasterNumber}</b>${yr} · ${d.state} · ${titleCase(d.title)}</span><span class="dv">${l} day${Math.abs(l)===1?"":"s"} ↗</span></div>`;}).join("");
   box.innerHTML=`<div class="declhd"><b>${title}</b> — ${rows.length} disaster${rows.length===1?"":"s"} · tap any for its detail</div>${items}`;
 }
 function tlShowYear(y){const box=el("tlTrendPick"); if(!box)return; tlRenderPickList(box,`${y} — disasters declared`,tlData().filter(d=>+d.end.slice(0,4)===y)); box.scrollIntoView({behavior:"smooth",block:"nearest"});}
-function tlShowBucket(i){const box=el("tlHistPick"),b=TL_BUCKETS[i]; if(!box||!b)return; tlRenderPickList(box,`Lag ${b.lab} days`,tlData().filter(d=>{const l=tlLag(d);return l!=null&&b.f(l);})); box.scrollIntoView({behavior:"smooth",block:"nearest"});}
+function tlShowBucket(i){const box=el("tlHistPick"),b=TL_BUCKETS[i]; if(!box||!b)return; tlRenderPickList(box,`Lag ${b.lab} days`,tlData().filter(d=>{const l=tlLag(d);return l!=null&&b.f(l);}),true); box.scrollIntoView({behavior:"smooth",block:"nearest"});}
 function renderTimelines(){
   tlSyncScopeUI();
   renderTlHeadlines();renderTlTrend();renderTlLagTime();renderTlCumulative();renderTlHistogram();renderTlBreakdown();
