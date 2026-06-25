@@ -286,6 +286,57 @@ details.disc .inner li{margin-bottom:5px;}
 .sheet__x{margin-left:auto;background:rgba(255,255,255,.14);border:0;color:#fff;font-size:20px;width:34px;height:34px;border-radius:8px;cursor:pointer;flex:none;}
 .sheet__x:hover{background:rgba(255,255,255,.26);}
 .sheet__bd{padding:20px 22px 24px;}
+/* ===== Draft Report ===== */
+.nav__report{margin-left:auto;background:var(--gold,#ffbe2e);color:#0d2342;border:0;font-weight:800;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.nav__report:hover{filter:brightness(1.06);}
+@media(max-width:760px){.nav__report{margin-left:0;width:100%;justify-content:center;margin-top:6px;}}
+.sheet--report{max-width:920px;}
+.rep-build{padding:18px 22px;border-bottom:1px solid var(--line);}
+.rep-build h3{margin:0 0 4px;font-size:15px;}
+.rep-build .thr-sub{margin:0 0 12px;}
+.rep-filters{background:#f4f7fb;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:12px 0;font-size:12.5px;}
+.rep-filters b{color:var(--ink-2,#1b2733);}
+.rep-filters .chip{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:20px;padding:2px 10px;margin:3px 4px 0 0;font-size:12px;}
+.rep-list{display:flex;flex-direction:column;gap:2px;margin:6px 0 0;}
+.rep-item{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:8px;cursor:pointer;}
+.rep-item:hover{background:#f4f7fb;}
+.rep-item input{margin-top:3px;flex:none;width:16px;height:16px;cursor:pointer;}
+.rep-item .lbl{font-weight:600;font-size:13.5px;}
+.rep-item .kind{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;}
+.rep-cfg{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0 0;font-size:12.5px;}
+.rep-cfg select,.rep-cfg input[type=text]{padding:5px 8px;border:1px solid var(--line);border-radius:7px;font:inherit;font-size:12.5px;}
+.rep-cfg .llm-extra{display:none;gap:8px;align-items:center;}
+.rep-cfg.llm-on .llm-extra{display:flex;flex-wrap:wrap;}
+.rep-actions{display:flex;flex-wrap:wrap;gap:8px;padding:14px 22px;border-top:1px solid var(--line);background:#fafbfd;align-items:center;}
+.rep-actions .spacer{flex:1;}
+.rep-msg{font-size:12px;color:var(--ink-3);}
+/* the assembled, printable document */
+#reportDoc{padding:26px 30px;}
+#reportDoc .rd-head{border-bottom:3px solid var(--navy,#0d2342);padding-bottom:14px;margin-bottom:8px;}
+#reportDoc .rd-title{font-size:24px;font-weight:900;color:var(--navy,#0d2342);outline:none;}
+#reportDoc .rd-title:focus,#reportDoc .rd-narr:focus{box-shadow:inset 0 0 0 2px #9fc0e6;border-radius:4px;}
+#reportDoc .rd-sub{font-size:12.5px;color:var(--ink-3);margin-top:4px;}
+#reportDoc .rd-filters{font-size:12px;color:var(--ink-2,#1b2733);margin-top:10px;}
+#reportDoc .rd-section{margin:22px 0;}
+#reportDoc .rd-section > h3{font-size:16px;margin:0 0 8px;color:var(--navy,#0d2342);}
+#reportDoc .rd-narr{font-size:13.5px;line-height:1.55;color:#1b2733;outline:none;min-height:1.4em;padding:2px 0;}
+#reportDoc .rd-narr[data-empty="1"]::before{content:attr(data-ph);color:#9aa6b4;}
+#reportDoc .rd-fig{margin:12px 0;border:1px solid var(--line);border-radius:8px;padding:12px;overflow:hidden;background:#fff;}
+#reportDoc .rd-fig table{font-size:11px;width:100%;}
+#reportDoc .rd-foot{border-top:1px solid var(--line);margin-top:24px;padding-top:12px;font-size:11px;color:var(--ink-3);}
+#reportDoc.empty-doc{color:var(--ink-3);font-size:13px;}
+@media print{
+  @page{margin:14mm;}
+  body.printing > *:not(#reportModal){display:none !important;}
+  body.printing #reportModal{display:block !important;position:static;inset:auto;background:#fff;padding:0;overflow:visible;}
+  body.printing #reportModal .sheet{box-shadow:none;max-width:100%;width:100%;border-radius:0;}
+  body.printing #reportModal .sheet__hd,
+  body.printing .rep-build,
+  body.printing .rep-actions{display:none !important;}
+  body.printing #reportDoc{padding:0;}
+  body.printing .rd-section{page-break-inside:avoid;}
+  body.printing .rd-narr[contenteditable]{border:0 !important;box-shadow:none !important;}
+}
 .sec-h{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px;display:flex;align-items:center;gap:8px;}
 .sec-h .src{margin-left:auto;font-weight:600;letter-spacing:0;text-transform:none;font-size:11px;}
 .costgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
@@ -618,6 +669,7 @@ tr.clickable:hover td{background:#eef3f8;}
     <button data-view="watch">&#128680; Disaster Watch</button>
     <button data-view="estimator">&#128202; Estimate (beta)</button>
     <div class="navwatch"><span class="threatdot" id="navThreat"></span><span id="navThreatTxt">watch: —</span></div>
+    <button class="nav__report" id="reportBtn" title="Draft a sourced report from what you're viewing">&#128196; Draft report</button>
     </div>
   </div>
 </nav>
@@ -858,6 +910,57 @@ tr.clickable:hover td{background:#eef3f8;}
       <button class="sheet__x" id="mClose" aria-label="Close">&times;</button>
     </div>
     <div class="sheet__bd" id="mBody"></div>
+  </div>
+</div>
+
+<!-- ============ DRAFT REPORT MODAL ============ -->
+<div class="modal" id="reportModal" role="dialog" aria-modal="true" aria-label="Draft report">
+  <div class="sheet sheet--report" id="reportSheet">
+    <div class="sheet__hd">
+      <div>
+        <div class="dr">&#128196; Draft report</div>
+        <div class="ti" id="repHdSub">Pick what to include, edit the narrative, then print to PDF.</div>
+      </div>
+      <button class="sheet__x" id="repBack" aria-label="Back to picker" style="display:none;font-size:16px">&#8592;</button>
+      <button class="sheet__x" id="repClose" aria-label="Close">&times;</button>
+    </div>
+
+    <!-- STEP 1: build -->
+    <div class="rep-build" id="repBuild">
+      <h3 id="repViewTitle">This view</h3>
+      <p class="thr-sub">Everything below comes from <b>what you're currently looking at</b>. The applied filters are captured automatically and stated in the report. Numbers are computed by the app from its sourced data — the optional draft language only narrates them.</p>
+      <div class="rep-filters" id="repFilters"></div>
+      <div class="rep-list" id="repList"></div>
+      <div class="rep-cfg" id="repCfg">
+        <label>Draft language:
+          <select id="repProvider">
+            <option value="template">Templated (offline, from data)</option>
+            <option value="ollama">Local Ollama</option>
+            <option value="cowork">Cowork / API (coming soon)</option>
+            <option value="none">None — I'll write it</option>
+          </select>
+        </label>
+        <span class="llm-extra">
+          <input type="text" id="repOllamaUrl" placeholder="http://localhost:11434" size="22">
+          <input type="text" id="repOllamaModel" placeholder="llama3.1" size="12">
+        </span>
+      </div>
+    </div>
+
+    <!-- STEP 2: the assembled, printable document -->
+    <div id="reportDoc" style="display:none"></div>
+
+    <div class="rep-actions" id="repActions">
+      <button class="btn btn--primary" id="repBuildBtn" style="width:auto">&#9998; Build draft</button>
+      <span class="rep-build-only" style="display:contents">
+        <button class="btn btn--ghost" id="repCsv" style="width:auto">&#11015; CSV</button>
+        <button class="btn btn--ghost" id="repJson" style="width:auto">&#11015; JSON</button>
+        <button class="btn btn--ghost" id="repPbi" style="width:auto" title="Power Query (M) script that live-connects Power BI to this site's data">&#11015; Power BI query</button>
+      </span>
+      <button class="btn btn--primary" id="repPrint" style="width:auto;display:none">&#128424;&#65039; Print / Save as PDF</button>
+      <span class="spacer"></span>
+      <span class="rep-msg" id="repMsg"></span>
+    </div>
   </div>
 </div>
 
@@ -3234,6 +3337,251 @@ function ctxRender(){
 }
 function ctxSetState(s){ctxState=s;ctxRenderStates();ctxRender();}
 
+/* ============================================================================
+   DRAFT REPORT — capture what the user is viewing, draft a sourced report,
+   print to PDF, or export the data. Numbers are computed by the app; the
+   optional draft language only narrates them (provider-pluggable: templated
+   today, local Ollama / Cowork later). Keeps the app's traceability guarantee.
+   ============================================================================ */
+const repEsc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+function repGetPath(o,p){return p.split(".").reduce((a,k)=>a==null?a:a[k],o);}
+
+/* which renderable elements each view can contribute */
+const REPORT_VIEWS={
+  history:{title:"Disaster Ledger",els:[
+    {key:"season",label:"Seasonality — declarations by month",kind:"chart",sel:"#timeline"},
+    {key:"haztml",label:"Hazard timeline vs. declarations",kind:"chart",sel:"#tmlChart"},
+    {key:"ledger",label:"Region 5 disaster ledger (table)",kind:"table",sel:"#ledger"}]},
+  timelines:{title:"Disaster Timelines (declaration lag)",els:[
+    {key:"tlhead",label:"Headline lag statistics",kind:"stats",sel:"#tlHeadlines"},
+    {key:"tltrend",label:"Are declarations getting slower? (trend)",kind:"chart",sel:"#tlTrend"},
+    {key:"tllag",label:"Every disaster on a timeline",kind:"chart",sel:"#tlLagTime"},
+    {key:"tlcum",label:"Share declared within N days",kind:"chart",sel:"#tlCumulative"},
+    {key:"tlhist",label:"Declaration-lag distribution",kind:"chart",sel:"#tlHistogram"},
+    {key:"tlbreak",label:"Median lag by group",kind:"chart",sel:"#tlBreakdown"}]},
+  geography:{title:"Geography",els:[
+    {key:"geostates",label:"By-state ranking",kind:"list",sel:"#geoStates"},
+    {key:"geomap",label:"County choropleth map",kind:"chart",sel:"#geoMap"},
+    {key:"geoboard",label:"Top counties / detail board",kind:"list",sel:"#geoBoard"},
+    {key:"geotl",label:"Obligations-by-year timeline",kind:"chart",sel:"#geoTimeline"}]},
+  newsreel:{title:"Newsreel — latest obligations",els:[
+    {key:"news",label:"Latest & biggest obligations",kind:"list",sel:"#newsBody"}]},
+  covid:{title:"COVID-19 declarations",els:[
+    {key:"covid",label:"COVID-19 PA / IHP by state",kind:"list",sel:"#covidBody"}]},
+  context:{title:"Conditions in Context",els:[
+    {key:"ctx",label:"What separates declared from not (AUC panels)",kind:"chart",sel:"#ctxBody"}]},
+  watch:{title:"Disaster Watch (live snapshot)",els:[
+    {key:"nowcast",label:"Right now — live conditions",kind:"list",sel:"#nowcast"},
+    {key:"alertmap",label:"Live alerts by county",kind:"chart",sel:"#alertMap"},
+    {key:"declmap",label:"Declaration history by county",kind:"chart",sel:"#declMap"},
+    {key:"keygages",label:"Key gages — level vs flood stage",kind:"list",sel:"#keygages"}]},
+  estimator:{title:"Estimate (beta)",els:[
+    {key:"esthead",label:"Estimated obligations (headline)",kind:"stats",sel:".results .headline"},
+    {key:"estthr",label:"Funding thresholds triggered",kind:"list",sel:"#thr"},
+    {key:"estanalog",label:"Closest analog disasters",kind:"list",sel:"#analogs"}]}
+};
+
+function repLedgerSet(){return DATA.filter(d=>(typeFilter==="All"||(d.tags||[]).includes(typeFilter))&&(monthFilter==null||new Date(d.begin+"T00:00:00").getMonth()===monthFilter));}
+function repPresent(sel){const n=document.querySelector(sel);if(!n)return false;if(n.querySelector(".skeleton"))return false;return n.innerHTML.trim().length>0;}
+
+/* filters applied, per view — drives the "Filters applied" block in the report */
+function repFilterChips(view){
+  const f=[];
+  if(view==="history"){
+    f.push(["Hazard type",typeFilter]);
+    if(monthFilter!=null)f.push(["Month",MONTHS[monthFilter]]);
+    f.push(["Sorted by",sortKey+" "+(sortDir<0?"↓":"↑")]);
+    if(el("groupState")&&el("groupState").checked)f.push(["Grouping","by state"]);
+  }else if(view==="timelines"){
+    f.push(["Scope",TL_SCOPE==="national"?"National (all states)":"Region 5"]);
+    f.push(["Breakdown",tlBreakBy==="type"?"by incident type":"by state"]);
+  }else if(view==="geography"){
+    f.push(["Map metric",(GEO_META[geoMetric]||{}).label||geoMetric]);
+    const progs=[geoPA?"PA":null,geoIA?"IHP":null,geoHMGP?"HMGP":null].filter(Boolean).join(" + ");
+    if(geoMetric==="count")f.push(["Program filter",progs||"—"]);
+    if(geoStateFilter)f.push(["State",STATE_NAME[geoStateFilter]||geoStateFilter]);
+    if(geoCountyFocus&&typeof DECL!=="undefined"&&DECL&&DECL.counties&&DECL.counties[geoCountyFocus])f.push(["County",DECL.counties[geoCountyFocus].name]);
+    if(geoMetric==="mitObligated"&&geoMitProg!=="ALL")f.push(["Mitigation program",geoMitProg]);
+    f.push(["COVID-19",geoCovid?"included":"excluded"]);
+    if(typeof geoYearLo!=="undefined"&&(geoYearLo!==GEO_YR0||geoYearHi!==GEO_YR1))f.push(["Years",geoYearLo+"–"+geoYearHi]);
+  }else if(view==="context"){
+    f.push(["Scope",ctxState==="ALL"?"All Region 5":(STATE_NAME[ctxState]||ctxState)]);
+  }else if(view==="estimator"){
+    f.push(["Scenario",el("incident").value+" · "+(STATE_NAME[el("state").value]||el("state").value)+" · pop "+fmtNum(+el("popNum").value||0)]);
+  }
+  f.push(["Coverage","FEMA Region 5 — IL · IN · MI · MN · OH · WI"]);
+  if(!geoCovidIncludedView(view))f.push(["Note","COVID-19 declarations excluded unless stated (≈7× weather PA)"]);
+  return f;
+}
+function geoCovidIncludedView(view){return view==="covid"||(view==="geography"&&geoCovid);}
+
+/* per-element narrative — computed from real data; generic fallback is always safe */
+const REPORT_NARR={
+  ledger:()=>{const s=repLedgerSet();const pa=s.reduce((a,d)=>a+(d.pa||0),0),ihp=s.reduce((a,d)=>a+(d.ihp||0),0);
+    const top=s.slice().sort((a,b)=>(b.pa||0)-(a.pa||0))[0];
+    return `This ledger view covers ${s.length} FEMA Region 5 disaster${s.length===1?"":"s"}${typeFilter!=="All"?" tagged "+typeFilter:""}${monthFilter!=null?" with incident periods beginning in "+MONTHS[monthFilter]:""}. Across them, FEMA obligated ${fmtMoney(pa)} in Public Assistance and approved ${fmtMoney(ihp)} in Individuals & Households Program aid.`+(top?` The single largest PA obligation is DR-${top.disasterNumber} (${titleCase(top.title||"")}) at ${fmtMoney(top.pa)}.`:"")+` PA is reported as obligated and IHP as approved — distinct accounting stages that should not be conflated.`;},
+  season:()=>{const s=repLedgerSet();const c=new Array(12).fill(0);s.forEach(d=>c[new Date(d.begin+"T00:00:00").getMonth()]++);const pk=c.indexOf(Math.max(...c));
+    return `Region 5 declarations cluster seasonally. Of the ${s.length} disaster${s.length===1?"":"s"} shown, the most begin in ${MONTHS[pk]}. The chart counts each declaration by the month its incident period began.`;},
+  geomap:()=>{const meta=GEO_META[geoMetric]||{};const progs=[geoPA?"PA":null,geoIA?"IHP":null,geoHMGP?"HMGP":null].filter(Boolean).join(" + ");
+    return `This map ranks Region 5 by ${meta.label||geoMetric}${geoStateFilter?", focused on "+(STATE_NAME[geoStateFilter]||geoStateFilter):" across all six states"}.`+(geoMetric==="count"?` Program filter: ${progs||"all"}.`:"")+` COVID-19 declarations are ${geoCovid?"included":"excluded"}. Darker shading marks higher ${meta.label||geoMetric}; the live tool has tap-through detail and source links for every county.`;},
+  geostates:()=>REPORT_NARR.geomap(),
+  esthead:()=>{const paV=el("paVal").textContent,iaV=el("iaVal").textContent;
+    return `Scenario estimate for a ${el("incident").value} affecting roughly ${fmtNum(+el("popNum").value||0)} people in ${STATE_NAME[el("state").value]||el("state").value}: about ${paV} in Public Assistance and ${iaV} in IHP. This is a population-scaled comparables heuristic, not a forecast — treat it as an order-of-magnitude read only.`;}
+};
+function repNarr(view,e){try{const fn=REPORT_NARR[e.key];if(fn)return fn();}catch(err){}
+  return `${e.label} for FEMA Region 5. Figures are computed by the tool from OpenFEMA (obligations & declarations), NOAA Storm Events (wind/hail/tornado) and USGS (river stage); PA is reported as obligated and IHP as approved. See the live tool for tap-through detail and source links.`;}
+
+/* ----- open / reset the builder ----- */
+function repOpen(){
+  const view=curView();const reg=REPORT_VIEWS[view]||{title:view,els:[]};
+  el("repViewTitle").textContent="View: "+reg.title;
+  const chips=repFilterChips(view);
+  el("repFilters").innerHTML="<b>Filters applied</b> "+chips.map(c=>`<span class="chip"><b>${repEsc(c[0])}:</b> ${repEsc(c[1])}</span>`).join("");
+  const items=reg.els.filter(e=>repPresent(e.sel));
+  el("repList").innerHTML=items.length
+    ? items.map(e=>`<label class="rep-item"><input type="checkbox" value="${e.key}" checked><span><span class="lbl">${repEsc(e.label)}</span> <span class="kind">${e.kind}</span></span></label>`).join("")
+    : `<p class="thr-sub" style="padding:8px 4px">Nothing renderable to capture here yet — make sure this view's charts and tables have loaded, then reopen.</p>`;
+  el("repBuildBtn").disabled=!items.length;
+  // reset to step 1
+  el("repBuild").style.display="";el("reportDoc").style.display="none";el("reportDoc").innerHTML="";
+  el("repBuildBtn").style.display="";document.querySelectorAll(".rep-build-only").forEach(x=>x.style.display="contents");
+  el("repPrint").style.display="none";el("repBack").style.display="none";el("repMsg").textContent="";
+  repSyncProvider();
+  el("reportModal").classList.add("open");
+}
+function repClose(){el("reportModal").classList.remove("open");}
+function repToStep1(){el("repBuild").style.display="";el("reportDoc").style.display="none";
+  el("repBuildBtn").style.display="";document.querySelectorAll(".rep-build-only").forEach(x=>x.style.display="contents");
+  el("repPrint").style.display="none";el("repBack").style.display="none";}
+
+/* ----- assemble the printable document ----- */
+function repBuildDraft(){
+  const view=curView();const reg=REPORT_VIEWS[view]||{els:[]};
+  const picked=new Set([...document.querySelectorAll("#repList input:checked")].map(i=>i.value));
+  const els=reg.els.filter(e=>picked.has(e.key)&&repPresent(e.sel));
+  const chips=repFilterChips(view);
+  const now=new Date();
+  const sha=(el("buildSha")||{}).textContent||"";
+  let h=`<div class="rd-head">
+    <div class="rd-title" contenteditable="true">${repEsc(reg.title)} — Region 5 report</div>
+    <div class="rd-sub">FEMA Public Assistance (obligated) & IHP (approved), upper-Midwest Region 5 · Generated ${now.toLocaleString()}</div>
+    <div class="rd-filters"><b>Filters applied:</b> ${chips.map(c=>repEsc(c[0])+": "+repEsc(c[1])).join(" &nbsp;·&nbsp; ")}</div>
+  </div>`;
+  h+=`<div class="rd-section"><div class="rd-narr" contenteditable="true" data-ph="Executive summary…">${repEsc("Executive summary: "+(REPORT_NARR.ledger&&view==="history"?REPORT_NARR.ledger():"This report summarizes "+reg.title+" for FEMA Region 5 on the filters stated above."))}</div></div>`;
+  els.forEach(e=>{
+    const src=document.querySelector(e.sel);
+    const fig=src?src.cloneNode(true):null;
+    if(fig){fig.querySelectorAll(".skeleton").forEach(x=>x.remove());fig.removeAttribute("id");}
+    const narr=repNarr(view,e);
+    h+=`<div class="rd-section">
+      <h3>${repEsc(e.label)}</h3>
+      <div class="rd-narr" contenteditable="true" data-key="${e.key}" data-ph="Add commentary…">${repEsc(narr)}</div>
+      <div class="rd-fig">${fig?fig.outerHTML:""}</div>
+    </div>`;
+  });
+  h+=`<div class="rd-foot">Sources: OpenFEMA API (obligations, declarations) · NOAA Storm Events (wind/hail/tornado) · USGS Water Services (river stage) · NWS api.weather.gov (live alerts). <b>Not endorsed by FEMA, NOAA, NWS or USGS</b> — built on their public open data. PA figures are obligated; IHP figures are approved; obligations lag and reconcile over years. Build ${repEsc(sha)}.</div>`;
+  const doc=el("reportDoc");
+  doc.innerHTML=h;doc.className=els.length?"":"empty-doc";
+  // step 2 UI
+  el("repBuild").style.display="none";doc.style.display="";
+  el("repBuildBtn").style.display="none";document.querySelectorAll(".rep-build-only").forEach(x=>x.style.display="none");
+  el("repPrint").style.display="";el("repBack").style.display="";el("repMsg").textContent="";
+  el("reportSheet").scrollTop=0;
+  repWireEditable();
+  // optional LLM polish — replaces template prose in place, never the numbers
+  const prov=el("repProvider").value;
+  if(prov==="ollama"||prov==="cowork")repPolishWithLLM(prov,view,els);
+}
+function repWireEditable(){
+  document.querySelectorAll("#reportDoc .rd-narr").forEach(n=>{
+    const upd=()=>n.setAttribute("data-empty",n.textContent.trim()?"0":"1");upd();n.addEventListener("input",upd);
+  });
+}
+
+/* ----- pluggable draft-language provider (seam for Ollama / Cowork) ----- */
+function repSyncProvider(){
+  const sel=el("repProvider");const saved=localStorage.getItem("repProvider");if(saved&&!sel.dataset.init){sel.value=saved;}
+  sel.dataset.init="1";
+  el("repCfg").classList.toggle("llm-on",sel.value==="ollama");
+  el("repOllamaUrl").value=localStorage.getItem("repOllamaUrl")||"http://localhost:11434";
+  el("repOllamaModel").value=localStorage.getItem("repOllamaModel")||"llama3.1";
+}
+async function repLLMRewrite(provider,topic,facts){
+  if(provider==="ollama"){
+    const url=(el("repOllamaUrl").value||"http://localhost:11434").replace(/\/+$/,"");
+    const model=el("repOllamaModel").value||"llama3.1";
+    const prompt=`You are drafting one tight paragraph (2-3 sentences) for an executive disaster-funding report. Use ONLY the facts given; do NOT invent or alter any numbers, names, or dates. Plain prose, no headings.\nTopic: ${topic}\nFacts: ${facts}`;
+    const r=await fetch(url+"/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model,prompt,stream:false})});
+    if(!r.ok)throw new Error("ollama "+r.status);
+    const j=await r.json();return (j.response||"").trim();
+  }
+  throw new Error(provider+" provider not yet connected");
+}
+async function repPolishWithLLM(provider,view,els){
+  const nodes=[...document.querySelectorAll("#reportDoc .rd-narr[data-key]")];
+  el("repMsg").textContent="Drafting language via "+provider+"…";
+  let ok=0,fail=0;
+  for(const n of nodes){
+    const e=els.find(x=>x.key===n.getAttribute("data-key"));if(!e)continue;
+    const facts=n.textContent.trim();
+    try{const out=await repLLMRewrite(provider,e.label,facts);if(out){n.textContent=out;n.setAttribute("data-empty","0");ok++;}}
+    catch(err){fail++;}
+  }
+  el("repMsg").textContent=fail&&!ok?`Could not reach ${provider} — kept the templated draft.`:fail?`Drafted ${ok}; ${fail} kept templated.`:`Drafted ${ok} section${ok===1?"":"s"} via ${provider}.`;
+}
+
+/* ----- print to PDF ----- */
+function repPrint(){document.body.classList.add("printing");window.print();}
+window.addEventListener("afterprint",()=>document.body.classList.remove("printing"));
+
+/* ----- data export: CSV · JSON · Power BI (Power Query) ----- */
+const REP_COLS=[["disasterNumber","DR #"],["state","State"],["title","Title"],["incidentType","Incident type"],
+  ["begin","Begin"],["end","End"],["fy","FY"],["declared","Declared"],["paDeclared","PA declared"],["iaDeclared","IA authorized"],
+  ["countyCount","Counties"],["pa","PA obligated $"],["ihp","IHP approved $"],
+  ["hz.windMph","Peak wind mph"],["hz.hailIn","Max hail in"],["hz.peakStageFt","Peak stage ft"],["hz.rainIn","Storm rain in"],["hz.torEF","Max EF"],["hz.tornadoes","Tornadoes"]];
+function repExportRows(){return curView()==="history"?repLedgerSet():DATA;}
+function repDownload(name,text,mime){const b=new Blob([text],{type:mime||"text/plain;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);}
+function repCsvCell(v){if(v==null)v="";v=String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function repExportCSV(){const rows=repExportRows();const lines=[REP_COLS.map(c=>repCsvCell(c[1])).join(",")];
+  rows.forEach(d=>lines.push(REP_COLS.map(c=>repCsvCell(repGetPath(d,c[0]))).join(",")));
+  repDownload("region5-disasters.csv","﻿"+lines.join("\r\n"),"text/csv;charset=utf-8");
+  el("repMsg").textContent=rows.length+" rows → CSV";}
+function repExportJSON(){const rows=repExportRows();
+  const payload={generated:new Date().toISOString(),view:curView(),filters:repFilterChips(curView()).map(c=>({label:c[0],value:c[1]})),count:rows.length,disasters:rows};
+  repDownload("region5-disasters.json",JSON.stringify(payload,null,2),"application/json");
+  el("repMsg").textContent=rows.length+" rows → JSON";}
+function repExportPBI(){
+  const base=location.protocol==="file:"?"https://calebpaulsmith.github.io/DisasterParameters/":new URL(".",location.href).href;
+  const url=base+"data/disasters.json";
+  const m=`// Power Query (M) for Power BI — Home ▸ Transform data ▸ New Source ▸ Blank Query ▸ Advanced Editor, paste this.\n`+
+`// Live-connects to the published Disaster Data JSON; press Refresh in Power BI to pull the latest figures.\n`+
+`// Region 5 (IL, IN, MI, MN, OH, WI). PA = obligated, IHP = approved. Filter in Power BI as needed.\n`+
+`let\n`+
+`    Source = Json.Document(Web.Contents("${url}")),\n`+
+`    ToTable = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),\n`+
+`    Expand = Table.ExpandRecordColumn(ToTable, "Column1", {"disasterNumber","state","title","incidentType","begin","end","fy","declared","paDeclared","iaDeclared","countyCount","pa","ihp","hz","costs"}),\n`+
+`    Hz = Table.ExpandRecordColumn(Expand, "hz", {"windMph","hailIn","peakStageFt","rainIn","torEF","tornadoes"}, {"windMph","hailIn","peakStageFt","rainIn","torEF","tornadoes"}),\n`+
+`    Costs = Table.ExpandRecordColumn(Hz, "costs", {"paTotal","paEmergencyAB","paPermanentCG","paProjects","hmgp","ihpTotal","ihpHousing","ihpOna","iaRegistrations"}, {"paTotal","paEmergencyAB","paPermanentCG","paProjects","hmgp","ihpTotal","ihpHousing","ihpOna","iaRegistrations"})\n`+
+`in\n    Costs`;
+  repDownload("region5-disasters.pq",m,"text/plain;charset=utf-8");
+  el("repMsg").textContent="Power Query script downloaded — paste into Power BI's Advanced Editor.";}
+
+function repWire(){
+  el("reportBtn").addEventListener("click",repOpen);
+  el("repClose").addEventListener("click",repClose);
+  el("repBack").addEventListener("click",repToStep1);
+  el("reportModal").addEventListener("click",e=>{if(e.target===el("reportModal"))repClose();});
+  el("repBuildBtn").addEventListener("click",repBuildDraft);
+  el("repPrint").addEventListener("click",repPrint);
+  el("repCsv").addEventListener("click",repExportCSV);
+  el("repJson").addEventListener("click",repExportJSON);
+  el("repPbi").addEventListener("click",repExportPBI);
+  el("repProvider").addEventListener("change",e=>{localStorage.setItem("repProvider",e.target.value);repSyncProvider();});
+  el("repOllamaUrl").addEventListener("change",e=>localStorage.setItem("repOllamaUrl",e.target.value));
+  el("repOllamaModel").addEventListener("change",e=>localStorage.setItem("repOllamaModel",e.target.value));
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&el("reportModal").classList.contains("open"))repClose();});
+}
+
 /* ===== boot ===== */
 async function loadData(){
   setSource("warn","Loading sourced dataset…");
@@ -3256,7 +3604,7 @@ async function loadData(){
     el("ledgerBody").innerHTML=`<tr><td colspan="11" style="padding:18px;color:var(--red)">Dataset failed to load. This page must be served over http(s) (the GitHub Pages URL), not opened as a local file.</td></tr>`;
     return;
   }
-  wire();buildPresets();render();buildFilters();renderTimeline();renderLedger();
+  wire();repWire();buildPresets();render();buildFilters();renderTimeline();renderLedger();
   routeFromHash();              // deep-link aware; facts-first by default
   loadWatch();
   setInterval(loadWatch,5*60*1000);
