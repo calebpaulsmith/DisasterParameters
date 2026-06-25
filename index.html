@@ -379,8 +379,19 @@ tr.clickable:hover td{background:#eef3f8;}
 .geogrp button{font:inherit;font-size:12.5px;font-weight:800;padding:6px 14px;border:0;background:#fff;color:var(--ink-2);cursor:pointer;}
 .geogrp button+button{border-left:1px solid var(--line-2);}
 .geogrp button.active{background:var(--navy);color:#fff;}
-#geoToggle[data-grp="disaster"] button[data-grp="nondis"]{display:none;}
-#geoToggle[data-grp="nondis"] button[data-grp="disaster"]{display:none;}
+#geoToggle[data-grp="disaster"] button:not([data-grp="disaster"]){display:none;}
+#geoToggle[data-grp="nondis"] button:not([data-grp="nondis"]){display:none;}
+#geoToggle[data-grp="recent"] button:not([data-grp="recent"]){display:none;}
+#geoToggle button.rec.active{background:#0d6efd;}
+.recentbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.recentbar__lab{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);}
+.recchips{display:inline-flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;}
+.recchips button{font:inherit;font-size:12px;font-weight:700;padding:5px 11px;border:0;border-left:1px solid var(--line-2);background:#fff;color:var(--ink-2);cursor:pointer;}
+.recchips button:first-child{border-left:0;}
+.recchips button.on{background:#0d6efd;color:#fff;}
+.recentas{font-size:11.5px;color:var(--ink-light);}
+.recentas b{color:var(--navy);}
+.recentas .live{color:#0a7d33;font-weight:800;}
 .paia{display:inline-flex;align-items:center;gap:7px;margin-bottom:12px;transition:opacity .2s,filter .2s;}
 .paia__lab{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);}
 .paia__sq{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:52px;height:40px;border-radius:10px;border:1.5px solid var(--line);background:#fff;cursor:pointer;overflow:hidden;transition:transform .12s ease,box-shadow .22s ease,border-color .2s,opacity .2s;}
@@ -761,7 +772,8 @@ tr.clickable:hover td{background:#eef3f8;}
     <div class="geobar">
       <div class="geogrp" id="geoGroup">
         <button data-grp="disaster" class="active">Disaster assistance</button>
-        <button data-grp="nondis">Non-disaster grants</button></div>
+        <button data-grp="nondis">Non-disaster grants</button>
+        <button data-grp="recent" title="Most recent PA / Hazard Mitigation obligations — fetched live (last 7–90 days) or from a daily snapshot (1 year)">Recent activity</button></div>
       <div class="geotoggle" id="geoToggle" data-grp="disaster">
         <button data-geom="count" data-grp="disaster" class="active">Disasters</button>
         <button data-geom="paObligated" data-grp="disaster">PA $</button>
@@ -770,8 +782,14 @@ tr.clickable:hover td{background:#eef3f8;}
         <button data-geom="paProjects" data-grp="disaster">Projects</button>
         <button data-geom="mitObligated" data-grp="nondis" class="ndis" title="Non-disaster hazard-mitigation grants (FMA · PDM · BRIC) — competitive, not tied to a declaration">Mitigation $</button>
         <button data-geom="empg" data-grp="nondis" class="ndis" title="Emergency Management Performance Grants — state-level preparedness (no county; the map fills each state)">EMPG $</button>
-        <button data-geom="afg" data-grp="nondis" class="ndis" title="Assistance to Firefighters Grants — state-level (no county; the map fills each state)">AFG $</button></div>
+        <button data-geom="afg" data-grp="nondis" class="ndis" title="Assistance to Firefighters Grants — state-level (no county; the map fills each state)">AFG $</button>
+        <button data-geom="recentPA" data-grp="recent" class="rec" title="PA obligations in the selected recent window (lastObligationDate)">Recent PA $</button>
+        <button data-geom="recentHM" data-grp="recent" class="rec" title="Hazard Mitigation obligations in the selected recent window (initialObligationDate)">Recent HM $</button></div>
       <div class="mitchips" id="mitChips" style="display:none"></div>
+      <div class="recentbar" id="recentBar" style="display:none">
+        <span class="recentbar__lab">Window</span>
+        <div class="recchips" id="recentChips"></div>
+        <span class="recentas" id="recentAsOf"></span></div>
       <div class="paia" id="paiaToggle" role="group" aria-label="Filter disasters by program">
         <span class="paia__lab">With</span>
         <button class="paia__sq pa on" data-aid="pa" title="Disasters with a PA (Public Assistance) declaration"><span class="paia__k">PA</span><span class="paia__t">Public</span></button>
@@ -1237,7 +1255,9 @@ const GEO_META={count:{label:"disasters",fmt:v=>String(v)},
   hmgpObligated:{label:"HMGP obligated",fmt:v=>fmtMoney(v)},
   mitObligated:{label:"non-disaster mitigation",fmt:v=>fmtMoney(v)},
   empg:{label:"EMPG · preparedness (state)",fmt:v=>fmtMoney(v)},
-  afg:{label:"AFG · firefighter (state)",fmt:v=>fmtMoney(v)}};
+  afg:{label:"AFG · firefighter (state)",fmt:v=>fmtMoney(v)},
+  recentPA:{label:"recent PA obligated",fmt:v=>fmtMoney(v)},
+  recentHM:{label:"recent HM obligated",fmt:v=>fmtMoney(v)}};
 function geoColor(m,v){
   if(!v)return"#eef2f7";
   if(m==="count")return v>=8?"#5a189a":v>=6?"#7b2cbf":v>=4?"#9d4edd":v>=2?"#c77dff":"#e0aaff";
@@ -1247,6 +1267,8 @@ function geoColor(m,v){
   if(m==="mitObligated")return v>=10e6?"#0b525b":v>=2e6?"#0e7c86":v>=5e5?"#3aa8b0":v>=1e5?"#7fcdd3":"#d7f0f2";
   if(m==="empg")return v>=90e6?"#7a5901":v>=70e6?"#a87a02":v>=50e6?"#d4a017":v>=30e6?"#e8c468":"#f6e3a8";
   if(m==="afg")return v>=2e9?"#7a0b0b":v>=1.5e9?"#b42318":v>=1e9?"#e8590c":v>=7e8?"#fb8c00":"#ffd9a0";
+  if(m==="recentPA")return v>=2e6?"#0b6e3b":v>=5e5?"#1a9850":v>=1e5?"#52b788":v>=1e4?"#95d5b2":"#d8f3dc";
+  if(m==="recentHM")return v>=1e6?"#3d2a6e":v>=2.5e5?"#5a3e8e":v>=5e4?"#7b5fb0":v>=1e4?"#9d8ec9":"#e7e0f2";
   return v>=300?"#08519c":v>=150?"#2171b5":v>=75?"#4292c6":v>=25?"#6baed6":"#c6dbef";
 }
 const GEO_LEGEND={count:[[0,"0"],[1,"1"],[2,"2–3"],[4,"4–5"],[6,"6–7"],[8,"8+"]],
@@ -1256,10 +1278,116 @@ const GEO_LEGEND={count:[[0,"0"],[1,"1"],[2,"2–3"],[4,"4–5"],[6,"6–7"],[8,
   hmgpObligated:[[0,"$0"],[1,"<$100k"],[1e5,"100–500k"],[5e5,"0.5–2M"],[2e6,"2–10M"],[1e7,"$10M+"]],
   mitObligated:[[0,"$0"],[1,"<$100k"],[1e5,"100–500k"],[5e5,"0.5–2M"],[2e6,"2–10M"],[1e7,"$10M+"]],
   empg:[[0,"$0"],[1,"<$50M"],[50e6,"50–70M"],[70e6,"70–90M"],[90e6,"$90M+"]],
-  afg:[[0,"$0"],[1,"<$700M"],[7e8,"0.7–1B"],[1e9,"1–1.5B"],[1.5e9,"1.5–2B"],[2e9,"$2B+"]]};
+  afg:[[0,"$0"],[1,"<$700M"],[7e8,"0.7–1B"],[1e9,"1–1.5B"],[1.5e9,"1.5–2B"],[2e9,"$2B+"]],
+  recentPA:[[0,"$0"],[1,"<$10k"],[1e4,"10–100k"],[1e5,"0.1–0.5M"],[5e5,"0.5–2M"],[2e6,"$2M+"]],
+  recentHM:[[0,"$0"],[1,"<$10k"],[1e4,"10–50k"],[5e4,"50–250k"],[2.5e5,"0.25–1M"],[1e6,"$1M+"]]};
 const GEO_KEY={count:"nDisasters",paObligated:"paObligated",paProjects:"paProjects",ihpApproved:"ihpApproved",hmgpObligated:"hmgpObligated",mitObligated:"mitObligated",empg:"empg",afg:"afg"};
-const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",ihpApproved:"#e8590c",hmgpObligated:"#6a4c93",mitObligated:"#0e7c86",empg:"#d4a017",afg:"#e8590c"};
+const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",ihpApproved:"#e8590c",hmgpObligated:"#6a4c93",mitObligated:"#0e7c86",empg:"#d4a017",afg:"#e8590c",recentPA:"#1a9850",recentHM:"#6a4c93"};
 const GEO_STATEONLY={empg:1,afg:1};   // state-level metrics: fill the map by state, rank states in the board
+/* ===== Recent activity (live) — last 7/30/60/90 d fetched live from OpenFEMA; 1 yr from
+   the daily-refreshed data/recent.json (a single live national pull truncates at the
+   10,000-row cap). Only PA (lastObligationDate) + Hazard Mitigation (initialObligationDate)
+   carry a per-item obligation date. National date-windowed query → filter Region 5 client-side
+   (the date column is indexed; a server-side state filter is not, hence the 15–25s scan we avoid). */
+const RECENT_WORKER_URL="";            // optional Cloudflare worker serving recent.json; "" = committed file
+const RECENT_WINDOWS=[7,30,60,90,365];
+const RECENT_LIVE_MAX=90;              // windows ≤ this fetch live; 365 uses the baked snapshot
+const R5_SET={IL:1,IN:1,MI:1,MN:1,OH:1,WI:1};
+const HM_ABBR={Illinois:"IL",Indiana:"IN",Michigan:"MI",Minnesota:"MN",Ohio:"OH",Wisconsin:"WI"};
+const FIPS2AB_R={"17":"IL","18":"IN","26":"MI","27":"MN","39":"OH","55":"WI"};
+const RECENT_COVID={4489:1,4494:1,4507:1,4515:1,4520:1,4531:1};
+let recentWindow=30, RECENT=null, RECENT_LOADING=false, RECENT_LIVE={}, _recBucketCache={};
+function recentProg(m){return m==="recentHM"?"hm":"pa";}
+function isRecentMetric(m){return m==="recentPA"||m==="recentHM";}
+function recentUseBaked(){return recentWindow>RECENT_LIVE_MAX;}
+function recentLabel(w){return w>=365?"1 year":w+" days";}
+function recentCutoffDate(w){return new Date(Date.now()-w*864e5).toISOString().slice(0,10);}
+function recentCutoffIso(w){return recentCutoffDate(w)+"T00:00:00.000Z";}
+function recentFips(sc,cc){sc=String(sc==null?"":sc).padStart(2,"0");
+  if(cc==null||String(cc).trim()===""||String(cc)==="000")return null; return sc+String(cc).padStart(3,"0");}
+function mapRecentRecs(prog,recs){    // OpenFEMA rows → lean R5 records (same shape as recent.json)
+  const out=[];
+  for(const r of recs){
+    if(prog==="pa"){
+      if(!R5_SET[r.stateAbbreviation]||RECENT_COVID[r.disasterNumber])continue;
+      const amt=Math.round(+r.federalShareObligated||0);
+      out.push({f:recentFips(r.stateNumberCode,r.countyCode),s:r.stateAbbreviation,dn:r.disasterNumber,
+        amt,date:(r.lastObligationDate||"").slice(0,10),cat:r.damageCategoryDescrip,cty:r.county});
+    }else{
+      let ab=HM_ABBR[r.state]||FIPS2AB_R[String(r.stateNumberCode==null?"":r.stateNumberCode).padStart(2,"0")];
+      if(!R5_SET[ab]||RECENT_COVID[r.disasterNumber])continue;
+      const amt=Math.round(+r.federalShareObligated||0); if(!amt)continue;
+      const sub=(r.subrecipient||"").trim();
+      out.push({f:sub.toLowerCase()==="statewide"?null:recentFips(r.stateNumberCode,r.countyCode),s:ab,
+        dn:r.disasterNumber,amt,date:(r.initialObligationDate||"").slice(0,10),prog:r.programArea,cty:r.county,sub:sub||null});
+    }
+  }
+  return out;
+}
+function loadRecentBaked(cb){          // committed snapshot (or worker), loaded once; powers 1-yr + fallback
+  if(RECENT){cb&&cb();return;}
+  if(RECENT_LOADING){return;} RECENT_LOADING=true;
+  const url=RECENT_WORKER_URL||"data/recent.json";
+  const done=j=>{RECENT=j||{pa:[],hm:[],asOf:{}};RECENT_LOADING=false;cb&&cb();};
+  fetch(url).then(r=>r.ok?r.json():null).then(j=>{
+    if(!j&&RECENT_WORKER_URL){return fetch("data/recent.json").then(r=>r.ok?r.json():null).then(done);}
+    done(j);
+  }).catch(()=>{ if(RECENT_WORKER_URL){fetch("data/recent.json").then(r=>r.ok?r.json():null).then(done).catch(()=>done(null));}else done(null); });
+}
+function fetchRecentLive(prog,win,cb){ // national date-windowed pull → filter R5; 6h client cache
+  const key=prog+":"+win, c=RECENT_LIVE[key];
+  if(c&&c!=="loading"&&!c.error&&(Date.now()-c.t<6*36e5)){cb&&cb();return;}
+  if(c==="loading"){return;} RECENT_LIVE[key]="loading";
+  const ctrl=("AbortController"in window)?new AbortController():null;   // 12s cap → fall back to the daily snapshot
+  const timer=setTimeout(()=>{try{ctrl&&ctrl.abort();}catch(_){}},12000);
+  const cut=recentCutoffIso(win); let url;
+  if(prog==="pa")url="https://www.fema.gov/api/open/v2/PublicAssistanceFundedProjectsDetails?$filter="
+    +encodeURIComponent("lastObligationDate ge '"+cut+"'")+"&$orderby="+encodeURIComponent("lastObligationDate desc")
+    +"&$select="+encodeURIComponent("disasterNumber,stateAbbreviation,stateNumberCode,countyCode,county,damageCategoryDescrip,federalShareObligated,lastObligationDate")+"&$top=10000&$format=json";
+  else url="https://www.fema.gov/api/open/v4/HazardMitigationAssistanceProjects?$filter="
+    +encodeURIComponent("initialObligationDate ne null and initialObligationDate ge '"+cut+"'")+"&$orderby="+encodeURIComponent("initialObligationDate desc")
+    +"&$select="+encodeURIComponent("disasterNumber,state,stateNumberCode,countyCode,county,programArea,subrecipient,federalShareObligated,initialObligationDate")+"&$top=10000&$format=json";
+  fetch(url,ctrl?{signal:ctrl.signal}:undefined).then(r=>r.ok?r.json():null).then(j=>{clearTimeout(timer);
+    const recs=(j&&(j.PublicAssistanceFundedProjectsDetails||j.HazardMitigationAssistanceProjects))||[];
+    // a full 10k page means the national window overflowed the cap → trust the baked snapshot instead
+    const truncated=recs.length>=10000;
+    RECENT_LIVE[key]={t:Date.now(),rows:truncated?null:mapRecentRecs(prog,recs),live:!truncated,truncated};
+    if(truncated)loadRecentBaked(cb); else cb&&cb();
+  }).catch(()=>{clearTimeout(timer);RECENT_LIVE[key]={t:Date.now(),rows:null,error:1};loadRecentBaked(cb);});
+}
+function recentEnsure(cb){             // make sure the data the active window needs is in hand
+  const prog=recentProg(geoMetric);
+  loadRecentBaked();                   // always warm the fallback in the background
+  if(recentUseBaked())loadRecentBaked(cb); else fetchRecentLive(prog,recentWindow,cb);
+}
+function recentSource(prog){           // {rows,live,loading,fellback,asOf} for the active window
+  if(recentUseBaked()){
+    if(!RECENT)return{loading:true};
+    return{rows:RECENT[prog]||[],live:false,asOf:(RECENT.asOf||{})[prog==="pa"?"PA":"HM"]};
+  }
+  const c=RECENT_LIVE[prog+":"+recentWindow];
+  if(!c||c==="loading")return{loading:true};
+  if(c.rows==null){                    // live failed/truncated → baked fallback
+    if(!RECENT)return{loading:true};
+    return{rows:RECENT[prog]||[],live:false,fellback:true,asOf:(RECENT.asOf||{})[prog==="pa"?"PA":"HM"]};
+  }
+  return{rows:c.rows,live:true};
+}
+function recentBuckets(prog){          // {byFips,byState,total,count,newest,live,...} for the window
+  const win=recentWindow, src=recentSource(prog);
+  const stamp=src.loading?"L":(src.live?("v"+((RECENT_LIVE[prog+":"+win]||{}).t||0)):("b"+((RECENT&&RECENT.generatedAt)||"")));
+  const key=prog+"|"+win+"|"+stamp;
+  if(_recBucketCache.key===key)return _recBucketCache.val;
+  const res={byFips:{},byState:{},total:0,count:0,newest:"",live:src.live,fellback:src.fellback,loading:!!src.loading,asOf:src.asOf};
+  if(!src.loading){const cut=recentCutoffDate(win);
+    (src.rows||[]).forEach(r=>{ if(!r.date||r.date<cut)return;
+      res.byState[r.s]=(res.byState[r.s]||0)+r.amt;
+      if(r.f)res.byFips[r.f]=(res.byFips[r.f]||0)+r.amt;
+      res.total+=r.amt; res.count++; if(r.date>res.newest)res.newest=r.date; });}
+  _recBucketCache={key,val:res}; return res;
+}
+function recentDaysAgo(prog){const b=recentBuckets(prog); const d=b.newest||b.asOf; if(!d)return null;
+  return Math.max(0,Math.round((Date.now()-new Date(d+"T00:00:00Z").getTime())/864e5));}
 function geoComputeStatewide(){
   if(!DECL||DECL._sw)return; DECL._sw=true;
   const sum={};
@@ -1577,12 +1705,31 @@ function geoNonDisDetailHTML(m,scopeName,total,prog,nApp,appLabel){
 }
 function geoPickDefault(){   // region-scope detail pane, matched to the active metric
   const m=geoMetric;
+  if(isRecentMetric(m))return recentScopeDetailHTML("region",null);
   if(GEO_STATEONLY[m])return prepTrendHTML(m,null);
   if((m==="mitObligated"||m==="hmgpObligated")&&DECL&&DECL.states){let tot=0,prog={}; Object.values(DECL.states).forEach(st=>{tot+=m==="mitObligated"?(st.mitObligated||0):(st.hmgpObligated||0); if(m==="mitObligated")Object.entries(st.mitByProgram||{}).forEach(([k,v])=>prog[k]=(prog[k]||0)+v);}); return geoNonDisDetailHTML(m,"Region 5",tot,prog,0,"");}
   return `<span class="thr-sub">Tap a county or state for its disasters &amp; dollars.</span>`;
 }
 function geoYrCap(proxy){return geoYrFiltering()?`<p class="thr-sub" style="margin-top:6px">Showing <b>${geoYearLo}–${geoYearHi}</b> only — summed over obligations in that span${proxy?"; IHP is a proxy by disaster (incident) year":""}. <span class="mchip clickable" data-tlreset="1">all years ✕</span></p>`:"";}
+function recentScopeDetailHTML(kind,key){
+  const prog=recentProg(geoMetric), b=recentBuckets(prog), src=recentSource(prog);
+  if(b.loading||src.loading)return `<div class="skeleton"><span class="spin"></span> Loading recent ${prog==="pa"?"PA":"Hazard Mitigation"} obligations…</div>`;
+  const cut=recentCutoffDate(recentWindow); let rows=(src.rows||[]).filter(r=>r.date>=cut);
+  let scopeName="Region 5";
+  if(kind==="county"){const o=DECL.counties[key]||{}; scopeName=`${o.name} County, ${o.state}`; rows=rows.filter(r=>r.f===key);}
+  else if(kind==="state"){scopeName=(DECL.states[key]||{}).name||key; rows=rows.filter(r=>r.s===key);}
+  if(geoDisasterFocus)rows=rows.filter(r=>r.dn===geoDisasterFocus);
+  rows.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.amt-a.amt);
+  const total=rows.reduce((s,r)=>s+r.amt,0), cap=14, shown=rows.slice(0,cap), win=recentLabel(recentWindow);
+  const tag=b.fellback?' <span class="thr-sub">· daily snapshot</span>':(b.live?' <span class="thr-sub">· live</span>':recentUseBaked()?' <span class="thr-sub">· daily snapshot</span>':"");
+  const list=shown.map(r=>`<div class="declrow${r.dn?" clickable":""}"${r.dn?` data-dn="${r.dn}"`:""}><span class="dk"><b style="color:var(--navy)">${fmtDate(r.date)}</b> · ${prog==="pa"?(r.cat||"PA"):(r.prog||"HM")}${(kind!=="county"&&r.cty)?` · ${r.cty}`:""}</span><span class="dv">${fmtMoney(r.amt)}${r.dn?` <span class="thr-sub">DR-${r.dn}</span> ↗`:""}</span></div>`).join("");
+  return `<div class="declhd"><b>${scopeName}</b> — recent ${prog==="pa"?"PA":"Hazard Mitigation"} obligations${tag}<br>Last <b>${win}</b>: <b>${fmtMoney(total)}</b> across <b>${rows.length}</b> obligation${rows.length===1?"":"s"}${geoDisasterFocus?` <span class="thr-sub">· DR-${geoDisasterFocus} only</span>`:""}</div>`
+    +`<div class="declsub">Latest obligation activity</div>${list||'<p class="thr-sub">No obligation activity in this window.</p>'}`
+    +(rows.length>cap?`<p class="thr-sub" style="margin-top:6px">+${fmtNum(rows.length-cap)} more in window</p>`:"")
+    +`<p class="thr-sub" style="margin-top:6px">${prog==="pa"?"PA is obligated":"Hazard Mitigation is obligated"}; “recent” = latest obligation <i>activity</i> (includes downward adjustments), not new declarations. Region 5, COVID-19 excluded.</p>`;
+}
 function countyDetailHTML(o,fips){
+  if(isRecentMetric(geoMetric))return recentScopeDetailHTML("county",fips);
   const F=geoYrFiltering();
   if(geoMetric==="mitObligated")return geoNonDisDetailHTML("mitObligated",`${o.name} County, ${o.state}`,F?yrSum(o.mitByYear,geoYearLo,geoYearHi):o.mitObligated,F?null:o.mitByProgram,o.nMitApplicants,"grantees")+geoYrCap(false);
   if(geoMetric==="hmgpObligated")return geoNonDisDetailHTML("hmgpObligated",`${o.name} County, ${o.state}`,F?yrSum(o.hmgpByYear,geoYearLo,geoYearHi):o.hmgpObligated,null,o.nHmgpApplicants,"subrecipients")+geoYrCap(false);
@@ -1625,6 +1772,7 @@ function geoExitCounty(){
 function showStateGeo(s){
   const st=(DECL.states||{})[s],box=el("geoPick");if(!st||!box)return; geoComputeStatewide();
   const F=geoYrFiltering();
+  if(isRecentMetric(geoMetric)){box.innerHTML=recentScopeDetailHTML("state",s);return;}
   if(GEO_STATEONLY[geoMetric]){box.innerHTML=prepTrendHTML(geoMetric,s);return;}   // state grant → by-year trend
   if(geoMetric==="mitObligated"){box.innerHTML=geoNonDisDetailHTML("mitObligated",st.name,F?yrSum(st.mitByYear,geoYearLo,geoYearHi):st.mitObligated,F?null:st.mitByProgram,null,"")+geoYrCap(false);return;}
   if(geoMetric==="hmgpObligated"){box.innerHTML=geoNonDisDetailHTML("hmgpObligated",st.name,F?yrSum(st.hmgpByYear,geoYearLo,geoYearHi):st.hmgpObligated,null,null,"")+geoYrCap(false);return;}
@@ -1689,21 +1837,45 @@ function prepTrendHTML(m,s){
     <p class="thr-sub" style="margin-top:4px">Federal awards by year (state-level, non-disaster). Tap a state on the left to re-scope.</p>`;
 }
 function setGeoMetric(m){geoMetric=m;
-  geoGroup=(GEO_STATEONLY[m]||m==="mitObligated")?"nondis":"disaster";
+  const rec=isRecentMetric(m);
+  geoGroup=rec?"recent":(GEO_STATEONLY[m]||m==="mitObligated")?"nondis":"disaster";
   geoSetYearBounds();   // span the active metric's data; keeps any selected range clamped in-bounds
   document.querySelectorAll("#geoToggle button").forEach(b=>b.classList.toggle("active",b.dataset.geom===m));
   document.querySelectorAll("#geoGroup button").forEach(b=>b.classList.toggle("active",b.dataset.grp===geoGroup));
   const tg=el("geoToggle"); if(tg)tg.dataset.grp=geoGroup;
   const pa=el("paiaToggle"); if(pa)pa.style.display=geoGroup==="disaster"?"":"none";
   const ct=document.querySelector(".covtog"); if(ct)ct.style.display=geoGroup==="disaster"?"":"none";
-  syncPaiaUI();syncMitChips();renderGeoStates();renderGeoMap();renderGeoBoard();renderGeoTimeline();
+  const rb=el("recentBar"); if(rb)rb.style.display=rec?"":"none";
+  if(rec)recentEnsure(geoRecentRerender);
+  syncRecentChips();syncPaiaUI();syncMitChips();renderGeoStates();renderGeoMap();renderGeoBoard();renderGeoTimeline();
   const b=el("geoPick");
   if(b&&!geoDisasterFocus){
     if(geoCountyFocus&&DECL&&DECL.counties[geoCountyFocus])b.innerHTML=countyDetailHTML(DECL.counties[geoCountyFocus],geoCountyFocus);
     else if(geoStateFilter)showStateGeo(geoStateFilter);
     else b.innerHTML=geoPickDefault();
   }}
-function setGeoGroup(g){setGeoMetric(g==="disaster"?"count":"mitObligated");}
+function setGeoGroup(g){setGeoMetric(g==="recent"?"recentPA":g==="disaster"?"count":"mitObligated");}
+function setRecentWindow(w){recentWindow=w; _recBucketCache={}; syncRecentChips();
+  recentEnsure(geoRecentRerender); geoRecentRerender();}
+function syncRecentChips(){const bar=el("recentBar"); if(!bar)return;
+  const on=isRecentMetric(geoMetric); bar.style.display=on?"":"none"; if(!on)return;
+  const chips=el("recentChips");
+  if(chips)chips.innerHTML=RECENT_WINDOWS.map(w=>`<button class="${w===recentWindow?"on":""}" data-recwin="${w}">${w>=365?"1 yr":w+"d"}</button>`).join("");
+  const as=el("recentAsOf"); if(!as)return;
+  const prog=recentProg(geoMetric), b=recentBuckets(prog);
+  if(b.loading){as.innerHTML=`<span class="spin"></span> loading live obligations…`;return;}
+  const days=recentDaysAgo(prog), lblP=prog==="pa"?"PA":"HM";
+  const ago=days==null?"":`Last ${lblP} obligation <b>${days===0?"today":days===1?"1 day ago":days+" days ago"}</b>`;
+  const tag=recentUseBaked()?`<span class="thr-sub">daily snapshot</span>`:(b.fellback?`<span class="thr-sub">daily snapshot (live unavailable)</span>`:`<span class="live">● live</span>`);
+  as.innerHTML=`${ago} · ${b.count} obligation${b.count===1?"":"s"} in last ${recentLabel(recentWindow)} · ${tag}`;}
+function geoRecentRerender(){ if(!isRecentMetric(geoMetric))return; _recBucketCache={};
+  syncRecentChips();renderGeoStates();renderGeoMap();renderGeoBoard();renderGeoTimeline();
+  const b=el("geoPick");
+  if(b&&!geoDisasterFocus){
+    if(geoCountyFocus&&DECL&&DECL.counties[geoCountyFocus])b.innerHTML=countyDetailHTML(DECL.counties[geoCountyFocus],geoCountyFocus);
+    else if(geoStateFilter)showStateGeo(geoStateFilter);
+    else b.innerHTML=geoPickDefault();
+  }}
 function geoMitPrograms(){const s=new Set(); if(DECL&&DECL.states)Object.values(DECL.states).forEach(st=>Object.keys(st.mitByProgram||{}).forEach(k=>s.add(k))); return [...s];}
 function syncMitChips(){const box=el("mitChips"); if(!box)return;
   if(geoMetric!=="mitObligated"){box.style.display="none";return;}
@@ -1720,6 +1892,7 @@ function geoProgKeep(d){ if(!d)return false;          // PA/IHP use the declarat
   return (geoPA&&d.paDeclared)||(geoIA&&isIHP(d))||(geoHMGP&&(((d.costs&&d.costs.hmgp)||0)>0)); }
 function geoCountyVal(o,m){
   const F=geoYrFiltering();
+  if(isRecentMetric(m))return recentBuckets(recentProg(m)).byFips[o.fips]||0;
   if(m==="count"){ if(!geoFiltering()&&!F)return o.count||0; return (o.disasters||[]).filter(d=>geoProgKeep(geoFull(d.dn))&&inYr(d)).length; }
   if(GEO_STATEONLY[m]){const st=DECL.states[o.state]; if(!st)return 0; return F?yrSum(st[GEO_YEARKEY[m]],geoYearLo,geoYearHi):(st[m]||0);}   // fill county by its state's value
   if(m==="mitObligated"){ if(F)return yrSum(o.mitByYear,geoYearLo,geoYearHi); return geoMitProg==="ALL"?(o.mitObligated||0):((o.mitByProgram||{})[geoMitProg]||0); }  // per-program mit isn't year-sliced (v1) → year filter sums all programs
@@ -1728,6 +1901,7 @@ function geoCountyVal(o,m){
 }
 function geoStateVal(st,s,m){
   const F=geoYrFiltering();
+  if(isRecentMetric(m))return recentBuckets(recentProg(m)).byState[s]||0;
   const cov=(geoCovid&&COVID&&COVID.states&&!F)?COVID.states[s]:null;   // COVID is statewide & undated → only when NOT year-filtering
   if(m==="count"){ let n=(!geoFiltering()&&!F)?(st.nDisasters||0):DISASTERS.filter(d=>d.state===s&&geoProgKeep(d)&&inYr(d)).length;
     if(geoCovid&&COVID&&COVID.states&&COVID.states[s]&&(!F||(geoYearLo<=2020&&geoYearHi>=2020)))n+=1; return n; }   // COVID = incident year 2020
@@ -1822,6 +1996,8 @@ function geoScopeLabel(){
 function geoTlSvg(){const b=el(geoTlBoxId);return b?b.querySelector("svg"):null;}
 function renderGeoTimeline(boxId){
   boxId=boxId||"geoTimeline"; const box=el(boxId); if(!box||!DECL)return; geoTlBoxId=boxId;
+  if(isRecentMetric(geoMetric)){box.innerHTML="";box.style.display="none";return;}   // window chips replace the year timeline
+  box.style.display="";
   const ser=geoTlSeries(), map=ser.map;
   const lo=Math.round(geoTlDomLo), hi=Math.round(geoTlDomHi); const years=[]; for(let y=lo;y<=hi;y++)years.push(y);
   // when a range is selected, scale to the in-range max so focused bars use the full height (context bars clamp)
@@ -2862,6 +3038,7 @@ function wire(){
     const dcf=e.target.closest("[data-cfips]"); if(dcf){showCountyDecl(dcf.getAttribute("data-cfips"));document.getElementById("declPick").scrollIntoView({behavior:"smooth",block:"nearest"});return;}
     const gg=e.target.closest("#geoGroup button[data-grp]"); if(gg){setGeoGroup(gg.getAttribute("data-grp"));return;}
     const gm=e.target.closest("#geoToggle button[data-geom]"); if(gm){setGeoMetric(gm.getAttribute("data-geom"));return;}
+    const rw=e.target.closest("#recentChips [data-recwin]"); if(rw){setRecentWindow(+rw.getAttribute("data-recwin"));return;}
     const tly=e.target.closest("[data-tlyear]"); if(tly){const y=+tly.getAttribute("data-tlyear"); geoTlSetRange(y,y); return;}
     const tlr=e.target.closest("[data-tlreset]"); if(tlr){geoTlSetRange(GEO_YR0,GEO_YR1); return;}
     const aid=e.target.closest("[data-aid]"); if(aid){clickAssist(aid.getAttribute("data-aid"));return;}   // desktop #paiaToggle + mobile .gmpaia
@@ -3016,7 +3193,7 @@ async function loadData(){
     ]);
     DISASTERS=dj;GAGES=gj;DATA=DISASTERS.slice();
     fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();renderDeclMap();}).catch(()=>{});
-    fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;geoSetYearBounds();renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
+    fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;if(d&&d.counties)for(const f in d.counties)d.counties[f].fips=f;geoSetYearBounds();renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
     fetch("data/covid.json").then(r=>r.ok?r.json():null).then(c=>{COVID=c;if(document.getElementById("view-covid").classList.contains("active"))renderCovid();}).catch(()=>{});
     fetch("data/newsreel.json").then(r=>r.ok?r.json():null).then(nw=>{NEWS=nw;if(document.getElementById("view-newsreel").classList.contains("active"))renderNewsreel();}).catch(()=>{});
     fetch("data/timeline.json").then(r=>r.ok?r.json():null).then(t=>{TML=t;renderHazTimeline();}).catch(()=>{});

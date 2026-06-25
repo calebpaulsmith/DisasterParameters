@@ -43,6 +43,15 @@ jobs:
           python3 scripts/build_newsreel.py \
             || echo "newsreel refresh failed — keeping committed data/newsreel.json"
 
+      # Refresh the Geography "Recent activity" baked fallback (1-yr window + live
+      # fallback). The live short windows (7–90d) fetch from OpenFEMA in-browser;
+      # this only keeps the committed snapshot current. A Cloudflare worker
+      # (cloudflare/) can refresh the same payload daily between deploys.
+      - name: Refresh recent obligations (best-effort)
+        run: |
+          python3 scripts/build_county_recent.py \
+            || echo "recent refresh failed — keeping committed data/recent.json"
+
       # Stamp the deployed commit + date into the page footer
       - name: Stamp build info
         run: |
