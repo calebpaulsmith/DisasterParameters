@@ -159,11 +159,18 @@ count.)
 Source: [Assistance for Housing and Other Needs](https://www.fema.gov/assistance/individual/housing) ·
 [IHP Unified Guidance (PDF)](https://www.fema.gov/sites/default/files/2020-05/IHP_Unified_Guidance_FINAL_09272016_0.pdf).
 
-**Availability caveat for this app:** the HA/ONA split is only carried **per disaster** (in
-`data/disasters.json` `costs.ihpHousing`/`ihpOna`, shown in the Ledger detail modal). It is
-**not** aggregated geographically — county/state objects in `data/county_declarations.json`
-carry only `ihpApproved` (and `iaRegistrations` at county level), so the Geography views lead
-with **IHP approved**, not an HA/ONA breakdown.
+**Availability for this app:** the HA/ONA split is carried **per disaster** (in
+`data/disasters.json` `costs.ihpHousing`/`ihpOna`, shown in the Ledger detail modal) **and
+geographically** in `data/county_declarations.json`: counties carry
+`ihpApproved`/`ihpHousing`/`ihpOna`/`iaRegistrations`, and states carry the same set
+(`ihpApproved` plus `ihpHousing`/`ihpOna`/`iaRegistrations`). **Source caveat:** county figures
+come from the registrant-level `IndividualsAndHouseholdsProgramValidRegistrations` pull while
+**state** figures come from the ledger (`FemaWebDisasterSummaries`) — two different datasets, so
+county sums do **not** reconcile exactly to the state total. Every registrant dollar is accounted
+for in `county_declarations.json` → `ihpAudit` (per-state `inSet`/`undeclared`/`unmatched`/
+`residual` + `flags`); see `scripts/build_county_ihp.py`. Money landing in non-declared counties
+or unresolvable county names (e.g. tribal/reservation areas) is **flagged there, never silently
+dropped**.
 
 ---
 
