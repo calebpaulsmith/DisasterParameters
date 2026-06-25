@@ -34,11 +34,31 @@ TYPEWORD=("city","county","township","town","village","borough")
 
 def is_marked(n): return bool(MARK.search(n))
 
-# Curated merges for "(DO NOT USE)" entries that can't be matched deterministically but are
-# confirmed the same entity by inspection. (county, state, exact marked name) -> canonical target.
+# Curated merges that aren't deterministic but are confirmed the same entity by inspection
+# (and word-order / typo near-duplicates). (county, state, exact source name) -> canonical target
+# name (must be an existing applicant entry in that county). EXCLUDES genuinely-distinct lookalikes
+# like "Forest Park" vs "Park Forest". See the REVIEW report for entries deliberately left alone.
 MANUAL={
+  # confirmed "(DO NOT USE)"/defunct records folded into their real entity
   ("St. Louis","MN","(DO NOT USE) DULUTH"):"Duluth, City of",
   ("Meigs","OH","DO NOT USE - MEIGS COUNTY ENGINEER (2)"):"Meigs County Engineer (Meigs County Highway Department)",
+  ("Houston","MN","DO NOT USE - HOUSTON COUNTY DEPT OF TRANSPORTATION /"):"HOUSTON (COUNTY) / HIGHWAY DEPARTMENT",
+  ("Blue Earth","MN","(DO NOT USE) BLUE EARTH COUNTY/ HIGHWAY DEPARTMENT"):"Blue Earth County / Public Works",
+  ("Jackson","MN","JACKSON (COUNTY) / PUBLIC WORKS (DO NOT USE)"):"Jackson County Highway",
+  ("Jackson","MN","JACKSON (COUNTY) DO NOT USE"):"Jackson County Highway",
+  ("Big Stone","MN","DO NOT USE - Big Stone County"):"Big Stone County / Highway Department",
+  ("Yellow Medicine","MN","DO NOT USE (YELLOW MEDICINE (COUNTY) / DITCH DEPARTMENT)"):"Yellow Medicine County / Drainage",
+  ("Stearns","MN","DO NOT USE ROCORI AREA SUPERINTENDENT OFC"):"Rocori Independent School District #750",
+  ("Kenosha","WI","DO NOT USE - KENOSHA COUNTY DIVISION OF HIGHWAYS"):"Kenosha County",
+  ("Sauk","WI","DO NOT USE - LA VALLE TELEPHONE COOPERATIVE"):"LaValle Telephone Cooperative, Inc.",
+  # non-marked word-order / typo / repeated-segment near-duplicates (same entity)
+  ("St. Louis","MN","St. Louis County / Public Work Department"):"ST. LOUIS (COUNTY) / PUBLIC WORKS DEPARTMENT",
+  ("Steele","MN","OWATONNA / OWATONNA PUBLIC UTILITIES / OWATONNA PUBLIC UTILITIES"):"Owatonna Public Utilities",
+  ("Perry","IN","TOWN OF TROY/UTILITIES"):"Town of Troy/Troy Utilities",
+  ("Winnebago","WI","Winnebago County Housing Authority (Oshkosh / Winnebago County Housing Authority)"):"Oshkosh / Winnebago County Housing Authority",
+  ("Sangamon","IL","AUBURN, CITY OF"):"City of Auburn (Auburn, City of)",
+  ("Aitkin","MN","HILL CITY"):"HILL CITY CITY OF",
+  ("White","IN","MONON, TOWN OF"):"Town of Monon (Monon, Town of)",
 }
 
 def normalize(n):
@@ -92,13 +112,18 @@ def main():
         for k,mem in groups.items():
             if len(mem)==1: new.append(mem[0]); continue
             merged_groups+=1
-            canon=canonical(mem)
+            forced=[MANUAL[(o["name"],o["state"],m["name"])] for m in mem
+                    if (o["name"],o["state"],m["name"]) in MANUAL]
+            canon=forced[0] if forced else canonical(mem)   # curated target wins over heuristic
             dns=sorted(set(d for m in mem for d in (m.get("dns") or [])))
             new.append({"name":canon,
                         "pa":sum(m.get("pa",0) for m in mem),
                         "projects":sum(m.get("projects",0) for m in mem),
                         "nDisasters":len(dns) or max(m.get("nDisasters",0) for m in mem),
-                        "dns":dns})
+                        "dns":dns,
+                        # provenance: every source record folded in (name + PA $). OpenFEMA per-applicant
+                        # numeric IDs aren't carried in this dataset, so name+pa are the identifiers.
+                        "merged":[{"name":m["name"],"pa":m.get("pa",0)} for m in sorted(mem,key=lambda x:-x.get("pa",0))]})
             merges.append((o["name"],o["state"],canon,[m["name"] for m in mem]))
         # REVIEW: marked entries that stayed singletons (no exact sibling)
         kept_norm={normalize(x["name"]) for x in new}
