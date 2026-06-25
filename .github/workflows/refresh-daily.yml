@@ -1,0 +1,64 @@
+name: Refresh daily data
+
+# Rebuilds the small, daily-cadence OpenFEMA snapshots and commits them to main when
+# they change. The commit triggers pages.yml, which redeploys the site with fresh data.
+# Matched to OpenFEMA's own cadence: PA / Hazard Mitigation reload daily (accrualPeriodicity
+# R/P1D), so a daily refresh is the right frequency — more often would re-fetch identical data.
+#
+# Scope (intentionally the FAST, self-contained, additive builders only):
+#   - data/recent.json    (build_county_recent.py)   — Geography "Recent activity" baked source
+#   - data/newsreel.json  (build_newsreel.py)         — Newsreel reel
+#   - data/manifest.json  (build_manifest.py)         — per-file freshness stamp
+# The heavier county_declarations.json pipeline (map/ihp/hmgp/mitigation/prep/byyear) and the
+# MONTHLY NFIP rollup are deliberately NOT run here — see docs/refresh-architecture.md for the
+# weekly/monthly workflows that own those.
+
+on:
+  schedule:
+    - cron: "17 10 * * *"   # daily 10:17 UTC (off-peak, off the :00 mark); OpenFEMA reloads overnight
+  workflow_dispatch:         # allow manual runs from the Actions tab
+
+permissions:
+  contents: write            # commit refreshed data back to main
+
+concurrency:
+  group: refresh-daily
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Each builder is best-effort: an OpenFEMA hiccup keeps the committed snapshot rather
+      # than failing the run. They are additive/idempotent, so a partial day is safe.
+      - name: Rebuild recent obligations
+        run: python3 scripts/build_county_recent.py || echo "recent refresh failed — keeping committed snapshot"
+
+      - name: Rebuild newsreel
+        run: python3 scripts/build_newsreel.py || echo "newsreel refresh failed — keeping committed snapshot"
+
+      - name: Rebuild freshness manifest
+        run: python3 scripts/build_manifest.py
+
+      - name: Commit on change
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/recent.json data/newsreel.json data/manifest.json
+          if git diff --cached --quiet; then
+            echo "No data changes today — nothing to commit."
+          else
+            git commit -m "Daily data refresh (recent + newsreel + manifest)"
+            git push origin main
+            echo "Pushed refreshed data — pages.yml will redeploy."
+          fi

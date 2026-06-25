@@ -870,7 +870,7 @@ tr.clickable:hover td{background:#eef3f8;}
       <span class="pill" style="margin-top:10px"><span class="dot" id="srcDot"></span><span id="srcLabel">Loading…</span></span></div>
     <div><h4>Use responsibly</h4><ul><li>Not for eligibility / rights determinations</li><li>Estimates &amp; live thresholds are illustrative</li><li>Verify against FEMA PDAs &amp; NWS/USGS official data</li></ul></div>
     <p class="footer__disclaimer">This product uses FEMA's OpenFEMA API, NOAA, NWS, and USGS public data, but is not endorsed by any of them. River flood-stage thresholds are approximate; gage data is provisional and subject to revision.
-      <br>Build <a id="buildLink" href="https://github.com/calebpaulsmith/DisasterParameters" target="_blank" rel="noopener"><code id="buildSha">__BUILD_SHA__</code></a></p>
+      <br>Build <a id="buildLink" href="https://github.com/calebpaulsmith/DisasterParameters" target="_blank" rel="noopener"><code id="buildSha">__BUILD_SHA__</code></a><span id="dataFresh"></span></p>
   </div>
 </footer>
 
@@ -3245,6 +3245,12 @@ async function loadData(){
     DISASTERS=dj;GAGES=gj;DATA=DISASTERS.slice();
     fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();renderDeclMap();}).catch(()=>{});
     fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;if(d&&d.counties)for(const f in d.counties)d.counties[f].fips=f;geoSetYearBounds();renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
+    // freshness stamp (footer): per-file "data as of" from data/manifest.json (built by build_manifest.py)
+    fetch("data/manifest.json").then(r=>r.ok?r.json():null).then(mf=>{const el2=el("dataFresh"); if(!el2||!mf||!mf.files)return;
+      const f=mf.files, pick=n=>(f[n]&&(f[n].dataAsOf||"")).slice(0,10);
+      const rec=pick("recent.json"), roll=pick("county_declarations.json");
+      const parts=[]; if(rec)parts.push(`obligations as of ${rec}`); if(roll)parts.push(`rollups ${roll}`);
+      if(parts.length)el2.innerHTML=` &middot; Data: ${parts.join(" &middot; ")}`;}).catch(()=>{});
     fetch("data/covid.json").then(r=>r.ok?r.json():null).then(c=>{COVID=c;if(document.getElementById("view-covid").classList.contains("active"))renderCovid();}).catch(()=>{});
     fetch("data/newsreel.json").then(r=>r.ok?r.json():null).then(nw=>{NEWS=nw;if(document.getElementById("view-newsreel").classList.contains("active"))renderNewsreel();}).catch(()=>{});
     fetch("data/timeline.json").then(r=>r.ok?r.json():null).then(t=>{TML=t;renderHazTimeline();}).catch(()=>{});
