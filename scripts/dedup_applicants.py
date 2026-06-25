@@ -141,6 +141,29 @@ def main():
         o["applicants"]=new; o["nApplicants"]=len(new)
         n_after+=len(new)
 
+    # --- also dedup each state's statewide (no-county) PA applicant list (same rules, no MANUAL) ---
+    for st,sd in cd.get("states",{}).items():
+        ap=sd.get("paStatewideApplicants") or []
+        if not ap: continue
+        n_before+=len(ap)
+        groups=collections.defaultdict(list)
+        for a in ap: groups[normalize(a["name"])].append(a)
+        new=[]
+        for k,mem in groups.items():
+            if len(mem)==1: new.append(mem[0]); continue
+            merged_groups+=1
+            canon=canonical(mem)
+            dns=sorted(set(d for m in mem for d in (m.get("dns") or [])))
+            new.append({"name":canon,"pa":sum(m.get("pa",0) for m in mem),
+                        "projects":sum(m.get("projects",0) for m in mem),
+                        "nDisasters":len(dns) or max(m.get("nDisasters",0) for m in mem),
+                        "dns":dns,
+                        "merged":[{"name":m["name"],"pa":m.get("pa",0)} for m in sorted(mem,key=lambda x:-x.get("pa",0))]})
+            merges.append((f"{st} · statewide","",canon,[m["name"] for m in mem]))
+        new.sort(key=lambda x:-x.get("pa",0))
+        sd["paStatewideApplicants"]=new
+        n_after+=len(new)
+
     print(f"{'APPLY' if apply else 'DRY-RUN'} · applicant entries {n_before} -> {n_after} "
           f"({n_before-n_after} merged away across {merged_groups} groups)")
     print(f"\n=== SAFE MERGES ({len(merges)}) — canonical  <=  [variants] ===")

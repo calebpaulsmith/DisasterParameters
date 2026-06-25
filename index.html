@@ -1533,7 +1533,9 @@ function geoComputeStatewide(){
     a.appl+=v.nApplicants||0;a.subs+=v.nHmgpApplicants||0;});
   Object.entries(DECL.states).forEach(([s,st])=>{const a=sum[s]||{pa:0,proj:0,ihp:0,appl:0,subs:0};
     st._ab=s;   // stash the abbreviation so mobile gmVal can call geoStateVal(o,o._ab,…)
-    st._paAppl=a.appl;st._hmgpSubs=a.subs;   // county-summed counts for the PA-applicants / HMGP-subrecipients map measures
+    const _sw=st.paStatewideApplicants||[];   // no-county PA applicants (state agencies) recovered from Summaries
+    st._paApplCounty=a.appl; st._paApplSW=_sw.length; st._paApplSWamt=_sw.reduce((t,x)=>t+(x.pa||0),0);
+    st._paAppl=a.appl+_sw.length;st._hmgpSubs=a.subs;   // _paAppl = county applicants + statewide (no-county) applicants
     st.countyPA=a.pa;st.countyProjects=a.proj;st.countyIHP=a.ihp;
     st.paStatewide=Math.max(0,st.paObligated-a.pa);
     st.projectsStatewide=Math.max(0,st.paProjects-a.proj);
@@ -1931,8 +1933,13 @@ function showStateGeo(s){
   const blkProj=row("PA projects",`${fmtNum(st.paProjects)}`)+row("· statewide",fmtNum(st.projectsStatewide),1);
   const blkIHP=row("IHP approved",fmtMoney(st.ihpApproved))+row("· Housing (HA)",fmtMoney(st.ihpHousing||0),1)+row("· Other Needs (ONA)",fmtMoney(st.ihpOna||0),1)+row("· statewide",fmtMoney(st.ihpStatewide),1)+row("· IA registrations",fmtNum(st.iaRegistrations||0),1);
   const blkHMGP=row("HMGP obligated",fmtMoney(st.hmgpObligated||0))+row("· statewide",fmtMoney(st.hmgpStatewide||0),1);
-  const body=sp==="ihp"?blkIHP+blkPA+blkProj+blkHMGP:sp==="hmgp"?blkHMGP+blkPA+blkIHP+blkProj:sp==="pa"?blkPA+blkProj+blkIHP+blkHMGP:blkPA+blkIHP+blkProj;
-  box.innerHTML=`<div class="declhd"><b>${st.name}</b> — ${st.nDisasters} declared disasters</div>`+body+
+  const swA=st.paStatewideApplicants||[];
+  const blkAppl=row("PA applicants",fmtNum((st._paApplCounty||0)+swA.length))+row("· in counties",fmtNum(st._paApplCounty||0),1)+row("· statewide / no county",`${fmtNum(swA.length)} · ${fmtMoney(st._paApplSWamt||0)}`,1);
+  const swList=(sp==="pa"&&swA.length)?`<div class="declsub" style="margin-top:6px">Statewide / no-county PA applicants <span class="thr-sub">· state agencies, not tied to a county (recovered — were previously uncounted)</span></div>`
+      +swA.slice(0,APPL_CAP).map(a=>`<div class="declrow"><span class="dk">${a.name}${mergedTag(a)}</span><span class="dv">${fmtMoney(a.pa)}</span></div>`).join("")
+      +(swA.length>APPL_CAP?`<div class="thr-sub" style="padding:4px">+ ${fmtNum(swA.length-APPL_CAP)} more · ${fmtMoney(st._paApplSWamt||0)} total statewide</div>`:""):"";
+  const body=sp==="ihp"?blkIHP+blkPA+blkProj+blkHMGP:sp==="hmgp"?blkHMGP+blkPA+blkIHP+blkProj:sp==="pa"?blkPA+blkProj+blkAppl+blkIHP+blkHMGP:blkPA+blkIHP+blkProj;
+  box.innerHTML=`<div class="declhd"><b>${st.name}</b> — ${st.nDisasters} declared disasters</div>`+body+swList+
     (geoCovid&&COVID&&COVID.states&&COVID.states[s]?`<div class="declrow" style="background:#fff3f3"><span class="dk"><b>+ COVID-19</b> · statewide</span><span class="dv">${fmtMoney(COVID.states[s].paTotal||0)} PA · ${fmtMoney(COVID.states[s].ihpTotal||0)} IHP · ${fmtMoney(COVID.states[s].hmgp||0)} HMGP</span></div>`:"")+
     `<p class="thr-sub" style="margin-top:6px">Some FEMA work (management, statewide contracts) isn't assigned to a county, so county figures sum to less than the state total — that remainder is shown as <b>statewide</b>.</p>`;
 }

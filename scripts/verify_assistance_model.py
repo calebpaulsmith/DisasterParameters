@@ -127,6 +127,43 @@ def check_geo_reconciliation():
           f"(undeclared/unmatched/ledger-gap) — informational, see ihpAudit")
 
 
+def check_pa_applicants():
+    """PA-applicant conservation (data/county_declarations.json -> paApplicantAudit).
+
+    Every applicant row (PublicAssistanceFundedProjectsSummaries) must be bucketed, not dropped:
+    per state  inCounty + statewide + undeclared + unmatched == totalSummaries  (rounding only).
+    Also: the sum of each state's county applicants + its paStatewideApplicants reconciles to the
+    audit's inCounty/statewide. The cross-dataset gap vs the ledger is reported, not asserted.
+    """
+    path = os.path.join(DATA, "county_declarations.json")
+    if not os.path.exists(path):
+        return
+    cd = json.load(open(path))
+    audit = cd.get("paApplicantAudit")
+    if not audit:
+        fails.append("county_declarations.json has no paApplicantAudit (run build_county_applicants.py)"); return
+    counties, states = cd.get("counties", {}), cd.get("states", {})
+    bad = []
+    for st in states:
+        A = audit.get(st)
+        if not A:
+            bad.append(f"{st}: missing paApplicantAudit entry"); continue
+        if abs((A["inCounty"] + A["statewide"] + A["undeclared"] + A["unmatched"]) - A["totalSummaries"]) > 5:
+            bad.append(f"{st}: inCounty+statewide+undeclared+unmatched != totalSummaries")
+        # county applicant $ for this state should match audit.inCounty (post-dedup, $ conserved)
+        csum = sum(a.get("pa", 0) for f, c in counties.items() if c.get("state") == st for a in (c.get("applicants") or []))
+        if abs(csum - A["inCounty"]) > max(50, len(counties)):
+            bad.append(f"{st}: county applicant $ {csum} != audit inCounty {A['inCounty']}")
+        swsum = sum(a.get("pa", 0) for a in (states[st].get("paStatewideApplicants") or []))
+        if abs(swsum - A["statewide"]) > 50:
+            bad.append(f"{st}: paStatewideApplicants $ {swsum} != audit statewide {A['statewide']}")
+    if bad:
+        fails.append("PA-applicant conservation:\n    " + "\n    ".join(bad))
+    flagged = [st for st in states if audit.get(st, {}).get("flags")]
+    print(f"  [pa-appl] paApplicantAudit conserves every row: {'OK' if not bad else 'FAIL'} · "
+          f"{len(flagged)} state(s) with out-of-region/cross-dataset flags (informational)")
+
+
 PROHIBITED = ["IA dollars", "IA obligated", "PA/IA obligated", "IA/IHP obligated", "IA/IHP dollars"]
 # a line is allowed (explanatory) if it negates / contrasts rather than labels
 ALLOW = ["no separable", "not available", "unavailable", "there is no", "no public",
@@ -176,6 +213,7 @@ def main():
     print("Verifying IA/IHP assistance model…")
     check_data()
     check_geo_reconciliation()
+    check_pa_applicants()
     check_labels()
     check_fixtures()
     if fails:
