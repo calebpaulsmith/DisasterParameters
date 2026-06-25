@@ -434,6 +434,7 @@ tr.clickable:hover td{background:#eef3f8;}
 .betatag{display:inline-block;background:var(--gold);color:#3a2c00;font-size:9.5px;font-weight:800;letter-spacing:.06em;padding:1px 6px;border-radius:9px;vertical-align:1px;margin-left:6px;}
 .geobar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
 .geohint{flex:1;min-width:220px;}
+.mtag{display:inline-block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#6b3fa0;background:#f3eefb;border:1px solid #ddccf2;border-radius:6px;padding:1px 5px;margin-left:6px;vertical-align:middle;cursor:help;}
 .geodash{display:grid;grid-template-columns:200px 1fr 390px;gap:12px;height:calc(100vh - 400px);min-height:380px;}
 .geotl{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:7px 12px 9px;user-select:none;}
 .geotl .gtlhd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-bottom:2px;}
@@ -1245,6 +1246,9 @@ let geoProgram="overview";                    // program-first selector: overvie
 let geoVB=null, geoAnimRAF=null, geoDidPan=false;   // map viewBox state for animated pan/zoom
 let geoDisasterFocus=null, geoDisApplCache={}, geoDisMACache={};   // disaster-focus + live per-disaster PA-applicant & mission-assignment caches
 const APPL_CAP=15;
+function mergedTag(a){ if(!a||!a.merged||!a.merged.length)return "";
+  const src=a.merged.map(m=>`${m.name} (${fmtMoney(m.pa)})`).join("  +  ").replace(/"/g,"&quot;");
+  return ` <span class="mtag" title="Deduped — combined ${a.merged.length} OpenFEMA applicant records: ${src}">merged ${a.merged.length}</span>`; }
 const GEO_META={count:{label:"disasters",fmt:v=>String(v)},
   paObligated:{label:"PA obligated",fmt:v=>fmtMoney(v)},
   paProjects:{label:"projects",fmt:v=>fmtNum(v)},
@@ -1573,7 +1577,7 @@ function renderGeoBoard(){
     const progLine=isMit&&o.mitByProgram?`<div class="thr-sub" style="padding:4px 4px 7px">${Object.entries(o.mitByProgram).map(([k,v])=>`<b>${k}</b> ${fmtMoney(v)}`).join(" · ")}</div>`:"";
     box.innerHTML=progLine+(apps.length?shown.map((a,i)=>(isHm||isMit)
       ?`<div class="georow"><span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b></span><span class="gv">${fmtMoney(isHm?a.hmgp:a.mit)}${isHm?`<span class="thr-sub"> · ${a.nDisasters} dis · ${fmtNum(a.projects)} proj</span>`:""}</span></div>`
-      :`<div class="georow clickable" data-gappl="${geoCountyFocus}|${i}"><span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b></span><span class="gv">${fmtMoney(a.pa)}<span class="thr-sub"> · ${a.nDisasters} dis · ${fmtNum(a.projects)} proj</span></span></div>`).join("")
+      :`<div class="georow clickable" data-gappl="${geoCountyFocus}|${i}"><span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b>${mergedTag(a)}</span><span class="gv">${fmtMoney(a.pa)}<span class="thr-sub"> · ${a.nDisasters} dis · ${fmtNum(a.projects)} proj</span></span></div>`).join("")
       +(apps.length>APPL_CAP?`<div class="georow applmore clickable" data-applexpand="1">${geoApplExpanded?"▲ Show top "+APPL_CAP:"▾ Show all "+fmtNum(apps.length)+" "+lbl}</div>`:"")
       :`<p class="thr-sub">No ${isHm?"HMGP subrecipient":isMit?"mitigation grantee":"applicant-level PA"} records for this county.</p>`);
     return;
