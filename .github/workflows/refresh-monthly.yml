@@ -1,0 +1,57 @@
+name: Refresh monthly data (NFIP)
+
+# Rebuilds the MONTHLY-cadence snapshots and commits them to main when they change.
+# Matched to OpenFEMA's cadence: NFIP claims/policies reload monthly (accrualPeriodicity
+# R/P1M), so refreshing more often than monthly would re-fetch identical data.
+#
+# Scope:
+#   - data/nfip.json      (build_county_nfip.py)  — Region 5 county×year NFIP claims rollup
+#   - data/manifest.json  (build_manifest.py)     — refresh the freshness stamp
+#
+# See docs/refresh-architecture.md. Phase 2 (claim-level NFIP drill-down on Cloudflare
+# R2/D1) is a separate, funded layer — not built here.
+
+on:
+  schedule:
+    - cron: "37 11 5 * *"   # 5th of each month, 11:37 UTC (NFIP reloads early-month; off the :00 mark)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-monthly
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Rebuild NFIP rollup
+        run: python3 scripts/build_county_nfip.py || echo "NFIP refresh failed — keeping committed snapshot"
+
+      - name: Rebuild freshness manifest
+        run: python3 scripts/build_manifest.py
+
+      - name: Commit on change
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/nfip.json data/manifest.json
+          if git diff --cached --quiet; then
+            echo "No NFIP changes this month — nothing to commit."
+          else
+            git commit -m "Monthly data refresh (NFIP rollup + manifest)"
+            git push origin main
+            echo "Pushed refreshed NFIP data — pages.yml will redeploy."
+          fi

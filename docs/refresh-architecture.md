@@ -42,7 +42,8 @@ Tier 1  SMALL + DAILY          recent.json, newsreel.json, manifest.json
 Tier 1b SMALL + DAILY (heavy)  disasters.json, county_declarations.json (+ byYear/ihp/hmgp/mit/prep)
                                → weekly workflow (multi-step, slow, audited)                            [PLANNED]
 Tier 2  FRESH FEED             recent.json → Cloudflare Worker Cron → KV (served CORS)                  [worker shipped, opt-in]
-Tier 3  BIG + MONTHLY          NFIP rollup (Pages) + NFIP claim-level (Cloudflare R2/D1)                [PLANNED]
+Tier 3  BIG + MONTHLY          NFIP county×year claims rollup (Pages)                                  [SHIPPED]
+                               NFIP claim-level drill-down (Cloudflare R2/D1)                          [PLANNED, Phase 2]
 ```
 
 ### Tier 1 — daily (shipped)
@@ -69,17 +70,24 @@ without waiting for a commit. Default `""` = committed file.
 NFIP is why "scheduled refresh for all data" needs real architecture: it's **monthly** and
 **huge**. Do it in two phases.
 
-### Phase 1 — county×year rollup on Pages (the right first step)
-Offline `scripts/build_county_nfip.py` pulls the Region 5 subset of
-`FimaNfipRedactedClaims` (+ `FimaNfipPolicies` counts), aggregates to **county × year**, and
-commits a small JSON (like `county_declarations.json`). Fields per county/year:
-- claims **count**, **total paid** (building + contents + ICC), average paid
-- **policies in force**, total **coverage** in force
-- a small **claims-by-flood-zone** summary (inside vs outside the SFHA)
+### Phase 1 — county×year rollup on Pages (SHIPPED)
+`scripts/build_county_nfip.py` → `data/nfip.json` (~340 KB). Pulls the Region 5 subset of
+**`FimaNfipClaims` v2** (the public redacted claims dataset; `FimaNfipRedactedClaims` 404s —
+`FimaNfipClaims` is already redacted) per state, aggregates to **county × year**. Per
+county/state: claims **count**, **total paid** (building + contents + ICC, with the split),
+**claims/paid by `yearOfLoss`**, and an **SFHA in/out** summary (from `ratedFloodZone`). The
+first build: 137k R5 claims, 512 counties, **$1.71B paid**, 1978–2026, outside-SFHA paid share
+18–32% (tracks the ~25–30% national figure). Refreshed **monthly** via
+`.github/workflows/refresh-monthly.yml`.
 
-Refresh **monthly** via `refresh-monthly.yml`. This powers an NFIP choropleth + a Geography
-"Flood insurance" program lens and ledger cross-reference — all on Pages, tiny, traceable.
-**This is enough for the maps and most executive questions.**
+**Not in Phase 1: policies-in-force / coverage $.** `FimaNfipPolicies` is 73.6M rows and a
+`propertyState` filter full-scans it (times out); even the R5 subset is millions of rows — it
+belongs in the Phase 2 Cloudflare-backed layer, not a committed Pages file.
+
+**Next step (not yet done):** surface `nfip.json` as a Geography **"Flood insurance"** program
+lens (NFIP $ / claims / outside-SFHA measures). The data merges onto `DECL.counties`/`states`
+by FIPS so it slots into the existing program-first machinery; claims-only counties (no FEMA
+declaration) get a minimal synthetic county entry so the map still colors them.
 
 ### Phase 2 — claim-level drill-down (Cloudflare R2/D1)
 What you specifically asked: *what does claim-level give me that a rollup doesn't?* A lot — but
