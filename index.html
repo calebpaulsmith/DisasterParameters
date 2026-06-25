@@ -3143,11 +3143,14 @@ function curView(){const b=document.querySelector(".nav button.active");return b
 function syncHash(){let h=curView();
   if(h==="geography"){ if(geoCountyFocus)h+="/"+geoStateFilter+"/"+geoCountyFocus; else if(geoStateFilter)h+="/"+geoStateFilter; }
   if((location.hash||"").replace(/^#/,"")!==h) history.replaceState(null,"","#"+h);}
+let navOpenScrollY=0;
+function navIsOpen(){const ni=document.querySelector(".nav__inner");return!!(ni&&ni.classList.contains("open"));}
+function closeNav(){const ni=document.querySelector(".nav__inner");if(ni){ni.classList.remove("open");const nt=el("navToggle");if(nt)nt.setAttribute("aria-expanded","false");}}
 function showView(v,noScroll){
   document.querySelectorAll(".nav button[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
   const ab=document.querySelector(".nav button[data-view='"+v+"']"),tl=el("navToggleLabel");
   if(ab&&tl)tl.textContent=ab.textContent.trim();
-  const ni=document.querySelector(".nav__inner");if(ni){ni.classList.remove("open");const nt=el("navToggle");if(nt)nt.setAttribute("aria-expanded","false");}
+  closeNav();
   document.querySelectorAll(".view").forEach(s=>s.classList.toggle("active",s.id==="view-"+v));
   if(v==="watch"&&!watchState.ready)loadWatch();
   if(v==="watch")renderDeclMap();
@@ -3175,7 +3178,10 @@ window.addEventListener("hashchange",routeFromHash);
 function wire(){
   el("bannerToggle").addEventListener("click",e=>{const d=el("bannerDetail"),o=d.classList.toggle("open");e.target.innerHTML=(o?"Hide ":"Here's how you know ")+"▾";});
   document.querySelectorAll(".nav button[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
-  el("navToggle").addEventListener("click",()=>{const ni=document.querySelector(".nav__inner"),o=ni.classList.toggle("open");el("navToggle").setAttribute("aria-expanded",o?"true":"false");});
+  el("navToggle").addEventListener("click",()=>{const ni=document.querySelector(".nav__inner"),o=ni.classList.toggle("open");el("navToggle").setAttribute("aria-expanded",o?"true":"false");navOpenScrollY=window.scrollY;});
+  // Mobile: auto-hide the open menu once the user scrolls the content a bit, or starts interacting elsewhere on the page.
+  window.addEventListener("scroll",()=>{if(navIsOpen()&&Math.abs(window.scrollY-navOpenScrollY)>18)closeNav();},{passive:true});
+  document.addEventListener("pointerdown",e=>{if(navIsOpen()&&!e.target.closest(".nav"))closeNav();},true);
   ["wind","hail","flood","rain"].forEach(k=>{const s=el(k);s.addEventListener("input",()=>{selectedDisaster=null;el("preset").value="";syncSlider(s);render();});syncSlider(s);});
   ["state","incident","popNum","tornado"].forEach(k=>el(k).addEventListener("input",()=>{if(k!=="state"){selectedDisaster=null;el("preset").value="";}render();}));
   el("preset").addEventListener("change",e=>applyPreset(e.target.value));
