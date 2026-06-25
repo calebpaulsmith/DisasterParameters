@@ -30,7 +30,7 @@ def get(url, tries=4):
 def pull_declarations():
     """R5 DR disasters in [START_FY,END_FY] -> dict dn -> raw disaster (with counties)."""
     base = "https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries"
-    sel = "disasterNumber,state,declarationType,declarationTitle,incidentType,incidentBeginDate,incidentEndDate,fyDeclared,ihProgramDeclared,iaProgramDeclared,paProgramDeclared,fipsStateCode,fipsCountyCode,designatedArea"
+    sel = "disasterNumber,state,declarationType,declarationTitle,incidentType,incidentBeginDate,incidentEndDate,fyDeclared,ihProgramDeclared,iaProgramDeclared,paProgramDeclared,hmProgramDeclared,fipsStateCode,fipsCountyCode,designatedArea"
     out = {}
     for st in R5:
         skip = 0
@@ -49,14 +49,18 @@ def pull_declarations():
                         disasterNumber=dn, state=r["state"], title=r["declarationTitle"],
                         incidentType=r["incidentType"], begin=r["incidentBeginDate"][:10],
                         end=(r.get("incidentEndDate") or r["incidentBeginDate"])[:10],
-                        fy=r["fyDeclared"], iaDeclared=False, iaProgramDeclared=False,
-                        paDeclared=bool(r.get("paProgramDeclared")),
+                        fy=r["fyDeclared"], paDeclared=False, iaDeclared=False,
+                        ihpDeclared=False, iaProgramDeclared=False, hmProgramDeclared=False,
                         stateFips=r["fipsStateCode"], counties={})
-                # IA-authorized = ihProgramDeclared OR iaProgramDeclared (per OpenFEMA);
-                # OR-accumulate across rows. iaProgramDeclared retained for provenance.
-                ia_prog = bool(r.get("iaProgramDeclared"))
-                o["iaDeclared"] = o["iaDeclared"] or bool(r.get("ihProgramDeclared")) or ia_prog
-                o["iaProgramDeclared"] = o["iaProgramDeclared"] or ia_prog
+                # Raw OpenFEMA flags, OR-accumulated across rows. iaDeclared = iaAuthorized =
+                # ihProgramDeclared OR iaProgramDeclared (per OpenFEMA). ihpDeclared (modern IHP)
+                # and iaProgramDeclared (legacy IA) kept distinct; iaProgramDeclared is not a $ field.
+                ih = bool(r.get("ihProgramDeclared")); ia = bool(r.get("iaProgramDeclared"))
+                o["paDeclared"] = o["paDeclared"] or bool(r.get("paProgramDeclared"))
+                o["hmProgramDeclared"] = o["hmProgramDeclared"] or bool(r.get("hmProgramDeclared"))
+                o["ihpDeclared"] = o["ihpDeclared"] or ih
+                o["iaProgramDeclared"] = o["iaProgramDeclared"] or ia
+                o["iaDeclared"] = o["iaDeclared"] or ih or ia
                 cc = r.get("fipsCountyCode")
                 if cc and cc != "000":
                     o["counties"][cc] = (r.get("designatedArea") or "").replace(" (County)", "")
@@ -105,7 +109,8 @@ def enrich_record(d, by_state, costs):
         disasterNumber=d["disasterNumber"], state=d["state"], title=d["title"],
         incidentType=d["incidentType"], begin=d["begin"], end=d["end"], fy=d["fy"],
         paDeclared=d["paDeclared"], iaDeclared=d["iaDeclared"],
-        iaProgramDeclared=d.get("iaProgramDeclared", False), countyCount=len(counties),
+        ihpDeclared=d.get("ihpDeclared", False), iaProgramDeclared=d.get("iaProgramDeclared", False),
+        hmProgramDeclared=d.get("hmProgramDeclared", False), countyCount=len(counties),
         tags=tags, reportedDamage=round(sum(e["dmg"] for e in use)),
         hz=dict(windMph=round(max(winds) * enrich.KT2MPH) if winds else 0,
                 hailIn=round(max(hails), 2) if hails else 0, torEF=max(efs) if efs else None,

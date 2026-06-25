@@ -10,8 +10,9 @@ script does, by re-pulling OpenFEMA DisasterDeclarationsSummaries for the R5 sta
 
 Output schema (one object per disaster, matching what add_history.py writes):
   disasterNumber, state, title, incidentType, begin, end, fy,
-  iaDeclared (= ihProgramDeclared OR iaProgramDeclared), iaProgramDeclared (provenance),
-  paDeclared, stateFips, counties {3-digit FIPS: area name}
+  paDeclared, iaDeclared (= iaAuthorized = ihProgramDeclared OR iaProgramDeclared),
+  ihpDeclared (raw IH = modern IHP), iaProgramDeclared (raw legacy IA), hmProgramDeclared (raw HM),
+  stateFips, counties {3-digit FIPS: area name}
 
 Run from repo root:  python3 scripts/build_raw.py
 Network-only (OpenFEMA, CORS/public). Re-pull is idempotent.
@@ -33,7 +34,7 @@ def pull():
     base="https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries"
     sel=("disasterNumber,state,declarationType,declarationTitle,incidentType,"
          "incidentBeginDate,incidentEndDate,fyDeclared,ihProgramDeclared,iaProgramDeclared,"
-         "paProgramDeclared,fipsStateCode,fipsCountyCode,designatedArea")
+         "paProgramDeclared,hmProgramDeclared,fipsStateCode,fipsCountyCode,designatedArea")
     out={}
     for st in R5:
         skip=0
@@ -50,14 +51,19 @@ def pull():
                         disasterNumber=dn, state=r["state"], title=r["declarationTitle"],
                         incidentType=r["incidentType"], begin=r["incidentBeginDate"][:10],
                         end=(r.get("incidentEndDate") or r["incidentBeginDate"])[:10],
-                        fy=r["fyDeclared"], iaDeclared=False, iaProgramDeclared=False,
-                        paDeclared=bool(r.get("paProgramDeclared")),
+                        fy=r["fyDeclared"], paDeclared=False, iaDeclared=False,
+                        ihpDeclared=False, iaProgramDeclared=False, hmProgramDeclared=False,
                         stateFips=r["fipsStateCode"], counties={})
-                # IA-authorized = ihProgramDeclared OR iaProgramDeclared (per OpenFEMA);
-                # OR-accumulate across the disaster's county rows. iaProgramDeclared kept for provenance.
-                ia_prog=bool(r.get("iaProgramDeclared"))
-                o["iaDeclared"]=o["iaDeclared"] or bool(r.get("ihProgramDeclared")) or ia_prog
-                o["iaProgramDeclared"]=o["iaProgramDeclared"] or ia_prog
+                # Raw OpenFEMA flags, OR-accumulated across the disaster's county rows.
+                # iaDeclared = iaAuthorized = ihProgramDeclared OR iaProgramDeclared (per OpenFEMA).
+                # ihpDeclared (modern IHP program) and iaProgramDeclared (legacy IA) kept distinct;
+                # iaProgramDeclared is NOT a dollar field. IHP $ = approved HA+ONA (from costs).
+                ih=bool(r.get("ihProgramDeclared")); ia=bool(r.get("iaProgramDeclared"))
+                o["paDeclared"]=o["paDeclared"] or bool(r.get("paProgramDeclared"))
+                o["hmProgramDeclared"]=o["hmProgramDeclared"] or bool(r.get("hmProgramDeclared"))
+                o["ihpDeclared"]=o["ihpDeclared"] or ih
+                o["iaProgramDeclared"]=o["iaProgramDeclared"] or ia
+                o["iaDeclared"]=o["iaDeclared"] or ih or ia
                 cc=r.get("fipsCountyCode")
                 if cc and cc!="000":
                     o["counties"][cc]=(r.get("designatedArea") or "").replace(" (County)","")

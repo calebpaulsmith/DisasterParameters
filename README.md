@@ -52,9 +52,11 @@ type tags, PA/IA, and measured wind / hail / stage / tornado.
 | **Live gages** | **USGS** instantaneous values | Fetched **live** in-browser |
 
 **Terminology:** PA is *obligated*, IHP is *approved*, and **IA (Individual Assistance) is the
-umbrella, IHP (Individuals & Households Program) is the program with public dollars** — see
-[`docs/fema-assistance-glossary.md`](docs/fema-assistance-glossary.md) (with committed OpenFEMA
-field dictionaries in [`docs/openfema-definitions/`](docs/openfema-definitions/)).
+umbrella, IHP (Individuals & Households Program) is the program with public dollars**
+(IHP approved = Housing Assistance + Other Needs Assistance). Legacy `iaProgramDeclared`-only
+declarations predate the modern IHP data series and are shown as *legacy IA*, never *$0 IHP* —
+see [`docs/fema-assistance-glossary.md`](docs/fema-assistance-glossary.md) (with committed
+OpenFEMA field dictionaries in [`docs/openfema-definitions/`](docs/openfema-definitions/)).
 
 The hazard metrics are **measured observations, not proxies.** Because NOAA
 Storm Events has no live browser API, the historical hazard join is done offline

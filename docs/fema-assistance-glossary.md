@@ -104,6 +104,45 @@ So: **IA-authorized = `ihProgramDeclared` OR `iaProgramDeclared`.**
 > `ihProgramDeclared OR iaProgramDeclared`, with `iaProgramDeclared` kept as a provenance field.
 > See `scripts/patch_ia_flag.py`.
 
+### Legacy IA-only declarations (pre-IHP) — and why they're not "$0 IHP"
+A declaration flagged with **only** the legacy `iaProgramDeclared` (no `ihProgramDeclared`)
+generally **predates the modern IHP program** and carries **no comparable IHP dollar series**
+(`totalAmountIhpApproved` is null) — predecessor individual aid (e.g. the former Individual &
+Family Grant program) is not recorded in the modern field. Evidence (live OpenFEMA):
+
+- **Region 5:** 152 such IA-only declarations, **all FY1953–2002**; none in the current
+  FY2008+ ledger.
+- **National:** ~1,199, all **≤FY2007**, dropping off a cliff after FY2002 (IHP was created by
+  the Disaster Mitigation Act of 2000, effective ~2003).
+- **Rare anomaly:** a few records have `iaProgramDeclared=true`, `ihProgramDeclared=false`, *and*
+  positive IHP dollars (e.g. **DR-1582**, American Samoa, Typhoon Olaf, FY2005 — a
+  historical/territorial transition). Real dollars are preserved and shown; the flag mismatch is
+  surfaced in analyst metadata, not hidden.
+
+Therefore the UI keys "IHP" off **`ihpDeclared`** (the modern program), **not** the
+`iaDeclared` OR — so a legacy/IA-only record is shown as **Legacy Individual Assistance
+(not available)**, never as **$0 IHP**.
+
+> **Current-data note:** in the FY2008+ Region 5 ledger every IA-authorized disaster is *also*
+> IHP-declared with positive IHP $, so `iaDeclared`, `ihpDeclared`, and `ihpTotal>0` all = 34.
+> That reconciliation is an **observed property of the current data, not a universal rule** — it
+> breaks for legacy/pre-IHP records, which is exactly what the guard handles.
+
+#### Survivor-assistance display states
+`survivorState(d)` (in `index.html`, mirrored in `scripts/verify_assistance_model.py`) maps each
+disaster to one of:
+
+| State | Condition | Card shows |
+|---|---|---|
+| `IHP_WITH_AWARDS` | `ihpDeclared` & IHP `$>0` | IHP approved + HA/ONA + registrations |
+| `IHP_NO_AWARDS` | `ihpDeclared` & IHP `$=0` | "IHP authorized · no approved assistance reported" (not $0) |
+| `IA_ONLY` | `iaProgramDeclared` & not `ihpDeclared` & IHP `$=0` | "Legacy Individual Assistance · Not available" + era note |
+| `IA_ONLY_ANOMALY` | `iaProgramDeclared` & not `ihpDeclared` & IHP `$>0` | real IHP $ + a source-flag note |
+| `NONE` | no IA/IHP authorization | compact "no IA/IHP authorization recorded" |
+
+(`isIHP(d)` = the first, second, and fourth states — i.e. show an IHP money section. The ledger
+"IHP" badge fires only on `isIHP`; otherwise a muted **IA** badge marks legacy authorization.)
+
 ---
 
 ## 4. Inside IHP: HA vs. ONA
