@@ -83,9 +83,12 @@ fail to load data. Local dev: `python3 -m http.server 8000`.
   Snow-Ice/Storms/Dam-Levee), `eventTypes[]`, `reportedDamage`.
 - `declared`: original federal declaration date (`YYYY-MM-DD`), from
   `scripts/build_declared.py`. Declaration lag (powering the Disaster Timelines
-  view) is computed in-browser as `declared − end` in days, and is **signed** —
-  a negative value means FEMA declared while the incident was still ongoing
-  (declaration commonly precedes the incident-window end). Don't clamp it.
+  view) is computed in-browser as `declared − begin` in days — "how long FEMA
+  took to declare after the disaster started." Measuring from the incident
+  **start** (not end) keeps the comparison fair across short storms and
+  long-running events (wildfire seasons, volcanic eruptions, prolonged
+  flooding); from-end produced large misleading negatives for long incidents.
+  Begin-based lag is essentially always ≥ 0.
 - `hz` (measured hazards): `windMph, hailIn, torEF, peakStageFt, rainIn`
   (total incident rainfall, peak county), `rainMeanIn`, `rainDailyMaxIn`
   (highest single-day rainfall), `rainStations` (ACIS stations used),
