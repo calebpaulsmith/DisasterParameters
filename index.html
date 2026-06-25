@@ -1387,7 +1387,9 @@ function inYr(rec){if(!geoYrFiltering())return true;const y=+String(rec.date||re
 let geoGroup="disaster";                     // metric group: "disaster" assistance vs "nondis" (non-disaster grants) — derived from geoProgram
 let geoProgram="overview";                    // program-first selector: overview | pa | ia | hmgp | nondis
 let geoVB=null, geoAnimRAF=null, geoDidPan=false;   // map viewBox state for animated pan/zoom
-let geoDisasterFocus=null, geoDisApplCache={}, geoDisMACache={};   // disaster-focus + live per-disaster PA-applicant & mission-assignment caches
+let geoDisasterFocus=null, geoDisApplCache={}, geoDisCountyCache={}, geoDisMACache={};   // disaster-focus + live per-disaster PA-applicant, per-COUNTY, & mission-assignment caches
+// normalize a county name for matching the live Summaries `county` field (e.g. "STEARNS (COUNTY)") to DECL.counties[f].name — mirrors scripts/build_county_applicants.py norm()
+function geoNormCounty(s){return (s||"").toLowerCase().replace(/\(county\)/g,"").replace(/county/g,"").replace(/\./g,"").replace(/'/g,"").replace(/ /g,"").replace(/-/g,"").trim();}
 const APPL_CAP=15;
 function mergedTag(a){ if(!a||!a.merged||!a.merged.length)return "";
   const src=a.merged.map(m=>`${m.name} (${fmtMoney(m.pa)})`).join("  +  ").replace(/"/g,"&quot;");
@@ -1794,10 +1796,10 @@ function renderDisasterMA(dn){
     +`<p class="thr-sub" style="margin-top:6px">Federal-agency taskings (state-level, not county-attributable); amounts net amendments, live from OpenFEMA.</p>`;
 }
 function fetchDisasterApplicants(dn){
-  geoDisApplCache[dn]="loading"; renderGeoBoard();
+  geoDisApplCache[dn]="loading"; geoDisCountyCache[dn]="loading"; renderGeoBoard();
   const ENT="PublicAssistanceFundedProjectsSummaries";
   const sel="applicantName,county,federalObligatedAmount,numberOfProjects";
-  const agg={};
+  const agg={}, cagg={};   // by applicant, and by county (THIS disaster's per-county obligations)
   (async()=>{
     try{
       let skip=0;
@@ -1806,12 +1808,15 @@ function fetchDisasterApplicants(dn){
         const r=await fetch(u); if(!r.ok)throw new Error(r.status);
         const recs=(await r.json())[ENT]||[]; if(!recs.length)break;
         recs.forEach(x=>{const k=x.applicantName||"(unnamed)"; const a=agg[k]||(agg[k]={name:k,pa:0,projects:0,counties:new Set()});
-          a.pa+=+(x.federalObligatedAmount||0); a.projects+=+(x.numberOfProjects||0); if(x.county)a.counties.add(x.county);});
+          const pa=+(x.federalObligatedAmount||0), proj=+(x.numberOfProjects||0);
+          a.pa+=pa; a.projects+=proj; if(x.county)a.counties.add(x.county);
+          if(x.county){const ck=geoNormCounty(x.county); if(ck){const c=cagg[ck]||(cagg[ck]={pa:0,projects:0,applicants:0}); c.pa+=pa; c.projects+=proj; c.applicants+=1;}}});
         skip+=recs.length; if(recs.length<1000)break;
       }
       const list=Object.values(agg).map(a=>({name:a.name,pa:Math.round(a.pa),projects:a.projects,nCounties:a.counties.size})).sort((x,y)=>y.pa-x.pa);
-      geoDisApplCache[dn]=list;
-    }catch(e){geoDisApplCache[dn]="error";}
+      for(const ck in cagg)cagg[ck].pa=Math.round(cagg[ck].pa);
+      geoDisApplCache[dn]=list; geoDisCountyCache[dn]=cagg;
+    }catch(e){geoDisApplCache[dn]="error"; geoDisCountyCache[dn]="error";}
     if(geoDisasterFocus===dn)renderGeoBoard();
     if(isMobileGeo()&&gmLevel==="disaster"&&gmDisaster===dn)renderGeoMobile();
   })();
@@ -2399,14 +2404,33 @@ function gmRenderDisaster(box){
   const fHi=fset.size?fset:new Set(COUNTIES.filter(c=>c.s===d.state).map(c=>c.f));
   const bb=geoMultiBBox(fset)||geoStateBBox(d.state);
   const mapHtml=bb?gmMiniMap(fHi,bb,true):"";
-  // declared counties (sortable, tappable)
-  const fmtk=gmSort==="az"?"paObligated":gmSort, colc=GEO_BAR[gmSort]||GEO_BAR.paObligated;
-  const crows=[...fset].filter(f=>DECL.counties[f]).map(f=>{const v=DECL.counties[f];return {_n:v.name,_o:v,f,v};});
-  const csorted=gmSortRows(crows,"county"); const cmx=Math.max(...csorted.map(r=>gmVal(fmtk,"county",r._o)),1);
-  const cHtml=csorted.length?`<div class="gm-sech">${csorted.length} counties DR-${dn} designated — each county's <b>all-time</b> totals (sort by ${(GM_SORTS.find(x=>x[0]===gmSort)||["","this list"])[1]})</div>${gmSortChips()}
-    <div class="gm-list">${csorted.map(r=>`<div class="gm-row" data-gmcounty="${r.f}">
-      <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">all-time: ${r.v.count} dis · ${fmtMoney(r.v.paObligated)} PA · ${fmtMoney(r.v.ihpApproved||0)} IHP</span>${gmBar(gmVal(fmtk,"county",r._o),cmx,colc)}</div>
-      <div class="gm-rval">${gmFmt(gmSort,"county",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`:"";
+  // declared counties (sortable, tappable) — scoped to THIS disaster's obligations (live), not all-time
+  if(geoDisApplCache[dn]==null)fetchDisasterApplicants(dn);   // also fills geoDisCountyCache[dn]
+  const colc=GEO_BAR[gmSort]||GEO_BAR.paObligated;
+  const dcc=geoDisCountyCache[dn], dccReady=dcc&&typeof dcc==="object";
+  // which per-disaster county figure the active sort chip maps to (only PA $/projects/applicants exist per-disaster-per-county)
+  const dKey=gmSort==="paProjects"?"projects":gmSort==="paApplicants"?"applicants":"pa";
+  const cval=v=>dccReady?(dcc[geoNormCounty(v.name)]||{pa:0,projects:0,applicants:0}):null;
+  const crows=[...fset].filter(f=>DECL.counties[f]).map(f=>{const v=DECL.counties[f];return {_n:v.name,_o:v,f,v,c:cval(v)};});
+  const csorted=dccReady
+    ? crows.slice().sort((a,b)=>gmSort==="az"?(gmAsc?b._n.localeCompare(a._n):a._n.localeCompare(b._n)):(gmAsc?a.c[dKey]-b.c[dKey]:b.c[dKey]-a.c[dKey]))
+    : gmSortRows(crows,"county");
+  const cmx=dccReady?Math.max(...csorted.map(r=>r.c[dKey]),1):Math.max(...csorted.map(r=>gmVal(gmSort==="az"?"paObligated":gmSort,"county",r._o)),1);
+  const cNote=dccReady?`each county's <b>DR-${dn}</b> obligated PA (live)`
+    :geoDisCountyCache[dn]==="error"?`each county's <b>all-time</b> totals (per-disaster breakdown unavailable)`
+    :`loading each county's DR-${dn} obligations…`;
+  // only PA $/projects/applicants exist per-disaster-per-county; other chips fall back to PA, so label the chip we actually used
+  const dSortLabel=!dccReady?((GM_SORTS.find(x=>x[0]===gmSort)||["","this list"])[1])
+    :gmSort==="az"?"A–Z":dKey==="projects"?"Projects":dKey==="applicants"?"Applicants":"PA $";
+  const cHtml=csorted.length?`<div class="gm-sech">${csorted.length} counties DR-${dn} designated — ${cNote} (sort by ${dSortLabel})</div>${gmSortChips()}
+    <div class="gm-list">${csorted.map(r=>{
+      const sub=dccReady?`${fmtMoney(r.c.pa)} PA · ${fmtNum(r.c.projects)} proj · ${fmtNum(r.c.applicants)} appl <span class="thr-sub">this disaster</span>`
+        :`all-time: ${r.v.count} dis · ${fmtMoney(r.v.paObligated)} PA · ${fmtMoney(r.v.ihpApproved||0)} IHP`;
+      const barv=dccReady?r.c[dKey]:gmVal(gmSort==="az"?"paObligated":gmSort,"county",r._o);
+      const val=dccReady?(dKey==="projects"?fmtNum(r.c.projects):dKey==="applicants"?fmtNum(r.c.applicants):fmtMoney(r.c.pa)):gmFmt(gmSort,"county",r._o);
+      return `<div class="gm-row" data-gmcounty="${r.f}">
+      <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${sub}</span>${gmBar(barv,cmx,colc)}</div>
+      <div class="gm-rval">${val}<span class="gm-go">›</span></div></div>`;}).join("")}</div>`:"";
   // live applicants for this disaster
   const data=geoDisApplCache[dn]; let aHtml;
   if(data==="loading"||data==null){aHtml=`<div class="gm-sech">Applicants (obligated federal share)</div><div class="skeleton"><span class="spin"></span> Loading from OpenFEMA…</div>`; if(data==null)fetchDisasterApplicants(dn);}
