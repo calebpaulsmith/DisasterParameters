@@ -436,6 +436,7 @@ tr.clickable:hover td{background:#eef3f8;}
 #geoToggle[data-prog="hmgp"] button:not([data-prog="hmgp"]),
 #geoToggle[data-prog="nondis"] button:not([data-prog="nondis"]),
 #geoToggle[data-prog="recent"] button:not([data-prog="recent"]){display:none;}
+#geoToggle[data-prog="nfip"] button:not([data-prog="nfip"]){display:none;}
 #geoToggle button.rec.active{background:#0d6efd;}
 .recentbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
 .recentbar__lab{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);}
@@ -832,7 +833,8 @@ tr.clickable:hover td{background:#eef3f8;}
         <button data-prog="ia" title="Individual Assistance — to households (IHP dollars: HA + ONA; plus registrations)">IA</button>
         <button data-prog="hmgp" title="Hazard Mitigation Grant Program (§404, post-disaster)">HMGP</button>
         <button data-prog="nondis" title="Non-disaster grants — mitigation (FMA/PDM/BRIC) + preparedness (EMPG/AFG)">Non-disaster</button>
-        <button data-prog="recent" title="Most recent PA / Hazard Mitigation obligations — fetched live (last 7–90 days) or from a daily snapshot (1 year)">Recent</button></div>
+        <button data-prog="recent" title="Most recent PA / Hazard Mitigation obligations — fetched live (last 7–90 days) or from a daily snapshot (1 year)">Recent</button>
+        <button data-prog="nfip" title="National Flood Insurance Program — paid flood-insurance claims (FimaNfipClaims), county×year, since 1978">Flood insurance</button></div>
       <div class="geotoggle" id="geoToggle" data-prog="overview">
         <button data-geom="count" data-prog="overview" class="active">Disasters</button>
         <button data-geom="paObligated" data-prog="pa">Obligations $</button>
@@ -848,7 +850,10 @@ tr.clickable:hover td{background:#eef3f8;}
         <button data-geom="empg" data-prog="nondis" class="ndis" title="Emergency Management Performance Grants — state-level preparedness (no county; the map fills each state)">EMPG $</button>
         <button data-geom="afg" data-prog="nondis" class="ndis" title="Assistance to Firefighters Grants — state-level (no county; the map fills each state)">AFG $</button>
         <button data-geom="recentPA" data-prog="recent" class="rec" title="PA obligations in the selected recent window (lastObligationDate)">Recent PA $</button>
-        <button data-geom="recentHM" data-prog="recent" class="rec" title="Hazard Mitigation obligations in the selected recent window (initialObligationDate)">Recent HM $</button></div>
+        <button data-geom="recentHM" data-prog="recent" class="rec" title="Hazard Mitigation obligations in the selected recent window (initialObligationDate)">Recent HM $</button>
+        <button data-geom="nfipPaid" data-prog="nfip" title="Total NFIP flood-insurance claims paid (building + contents + ICC), since 1978">Paid $</button>
+        <button data-geom="nfipClaims" data-prog="nfip" title="Number of paid NFIP flood-insurance claims">Claims</button>
+        <button data-geom="nfipOutPaid" data-prog="nfip" title="NFIP claims paid OUTSIDE the Special Flood Hazard Area (flood zones B/C/X) — flood loss beyond the mapped high-risk zone">Outside SFHA $</button></div>
       <div class="mitchips" id="mitChips" style="display:none"></div>
       <div class="recentbar" id="recentBar" style="display:none">
         <span class="recentbar__lab">Window</span>
@@ -1321,7 +1326,24 @@ function showCountyAlerts(fips){
     +sec("Declaration history")+dHtml;
 }
 /* ===== historical declaration-frequency choropleth (R5 counties) ===== */
-let DECL=null;
+let DECL=null, NFIP=null;
+/* Merge the committed NFIP claims rollup (data/nfip.json) onto DECL by county FIPS so the
+   "Flood insurance" program lens reuses the standard metric machinery (GEO_KEY/GEO_YEARKEY).
+   Counties with NFIP claims but no FEMA declaration get a minimal synthetic entry so the map
+   still colors them. Idempotent; runs once both files are in hand. */
+function applyNfip(){
+  if(!DECL||!NFIP||DECL._nfip)return; DECL._nfip=true;
+  const C=DECL.counties||{}, S=DECL.states||{};
+  const set=(o,n)=>{o.nfipPaid=n.paid||0;o.nfipClaims=n.claims||0;
+    o.nfipOutPaid=(n.sfha&&n.sfha.out&&n.sfha.out.paid)||0;
+    o.nfipPaidByYear=n.paidByYear||{};o.nfipClaimsByYear=n.claimsByYear||{};
+    o.nfipSfha=n.sfha||null;o.nfipPaidBuilding=n.paidBuilding||0;o.nfipPaidContents=n.paidContents||0;o.nfipPaidIcc=n.paidIcc||0;};
+  for(const fips in (NFIP.counties||{})){const n=NFIP.counties[fips];
+    let o=C[fips]; if(!o){o=C[fips]={name:n.name||fips,state:n.state,fips:fips,count:0,disasters:[]};}
+    set(o,n);}
+  for(const st in (NFIP.states||{})){const o=S[st]; if(o)set(o,NFIP.states[st]);}
+  DECL._sw=false;   // recompute statewide rollups to include any synthetic NFIP-only counties
+}
 function declColor(n){return n>=8?"#5a189a":n>=6?"#7b2cbf":n>=4?"#9d4edd":n>=2?"#c77dff":n>=1?"#e0aaff":"#eef2f7";}
 function renderDeclMap(){
   const box=el("declMap");if(!box)return;
@@ -1355,10 +1377,10 @@ let GEO_YR0=2007, GEO_YR1=2026;              // full data span (set from DECL on
 let geoYearLo=GEO_YR0, geoYearHi=GEO_YR1;    // selected range (inclusive)
 let geoTlDomLo=GEO_YR0, geoTlDomHi=GEO_YR1;  // visible (animated) domain — expands/contracts toward the selection
 let geoTlAnim=null;
-const GEO_YEARKEY={paObligated:"paByYear",paProjects:"paProjectsByYear",ihpApproved:"ihpByYear",hmgpObligated:"hmgpByYear",mitObligated:"mitByYear",empg:"empgByYear",afg:"afgByYear"};
+const GEO_YEARKEY={paObligated:"paByYear",paProjects:"paProjectsByYear",ihpApproved:"ihpByYear",hmgpObligated:"hmgpByYear",mitObligated:"mitByYear",empg:"empgByYear",afg:"afgByYear",nfipPaid:"nfipPaidByYear",nfipClaims:"nfipClaimsByYear"};
 // Measures with no year series of their own (HA/ONA/registrations/applicants/subrecipients): the timeline
 // falls back to the program's representative $-by-year series, clearly relabeled as such.
-const GEO_YEARFALLBACK={paApplicants:"paObligated",ihpHousing:"ihpApproved",ihpOna:"ihpApproved",iaRegistrations:"ihpApproved",hmgpSubs:"hmgpObligated"};
+const GEO_YEARFALLBACK={paApplicants:"paObligated",ihpHousing:"ihpApproved",ihpOna:"ihpApproved",iaRegistrations:"ihpApproved",hmgpSubs:"hmgpObligated",nfipOutPaid:"nfipPaid"};
 function geoYrFiltering(){return geoYearLo>GEO_YR0||geoYearHi<GEO_YR1;}
 function yrSum(map,lo,hi){if(!map)return 0;let s=0;for(const y in map){const n=+y;if(n>=lo&&n<=hi)s+=map[y];}return s;}
 function inYr(rec){if(!geoYrFiltering())return true;const y=+String(rec.date||rec.begin||"").slice(0,4);return y>=geoYearLo&&y<=geoYearHi;}
@@ -1384,7 +1406,10 @@ const GEO_META={count:{label:"disasters",fmt:v=>String(v)},
   empg:{label:"EMPG · preparedness (state)",fmt:v=>fmtMoney(v)},
   afg:{label:"AFG · firefighter (state)",fmt:v=>fmtMoney(v)},
   recentPA:{label:"recent PA obligated",fmt:v=>fmtMoney(v)},
-  recentHM:{label:"recent HM obligated",fmt:v=>fmtMoney(v)}};
+  recentHM:{label:"recent HM obligated",fmt:v=>fmtMoney(v)},
+  nfipPaid:{label:"NFIP claims paid",fmt:v=>fmtMoney(v)},
+  nfipClaims:{label:"NFIP claims",fmt:v=>fmtNum(v)},
+  nfipOutPaid:{label:"NFIP paid outside SFHA",fmt:v=>fmtMoney(v)}};
 function geoColor(m,v){
   if(!v)return"#eef2f7";
   if(m==="count")return v>=8?"#5a189a":v>=6?"#7b2cbf":v>=4?"#9d4edd":v>=2?"#c77dff":"#e0aaff";
@@ -1398,6 +1423,8 @@ function geoColor(m,v){
   if(m==="afg")return v>=2e9?"#7a0b0b":v>=1.5e9?"#b42318":v>=1e9?"#e8590c":v>=7e8?"#fb8c00":"#ffd9a0";
   if(m==="recentPA")return v>=2e6?"#0b6e3b":v>=5e5?"#1a9850":v>=1e5?"#52b788":v>=1e4?"#95d5b2":"#d8f3dc";
   if(m==="recentHM")return v>=1e6?"#3d2a6e":v>=2.5e5?"#5a3e8e":v>=5e4?"#7b5fb0":v>=1e4?"#9d8ec9":"#e7e0f2";
+  if(m==="nfipPaid"||m==="nfipOutPaid")return v>=5e7?"#084081":v>=1e7?"#0868ac":v>=2e6?"#2b8cbe":v>=2.5e5?"#4eb3d3":v>=1?"#a8ddb5":"#eef2f7";
+  if(m==="nfipClaims")return v>=5e3?"#084081":v>=1e3?"#0868ac":v>=250?"#2b8cbe":v>=50?"#4eb3d3":v>=1?"#a8ddb5":"#eef2f7";
   return v>=300?"#08519c":v>=150?"#2171b5":v>=75?"#4292c6":v>=25?"#6baed6":"#c6dbef";
 }
 const GEO_LEGEND={count:[[0,"0"],[1,"1"],[2,"2–3"],[4,"4–5"],[6,"6–7"],[8,"8+"]],
@@ -1414,13 +1441,16 @@ const GEO_LEGEND={count:[[0,"0"],[1,"1"],[2,"2–3"],[4,"4–5"],[6,"6–7"],[8,
   empg:[[0,"$0"],[1,"<$50M"],[50e6,"50–70M"],[70e6,"70–90M"],[90e6,"$90M+"]],
   afg:[[0,"$0"],[1,"<$700M"],[7e8,"0.7–1B"],[1e9,"1–1.5B"],[1.5e9,"1.5–2B"],[2e9,"$2B+"]],
   recentPA:[[0,"$0"],[1,"<$10k"],[1e4,"10–100k"],[1e5,"0.1–0.5M"],[5e5,"0.5–2M"],[2e6,"$2M+"]],
-  recentHM:[[0,"$0"],[1,"<$10k"],[1e4,"10–50k"],[5e4,"50–250k"],[2.5e5,"0.25–1M"],[1e6,"$1M+"]]};
-const GEO_KEY={count:"nDisasters",paObligated:"paObligated",paProjects:"paProjects",paApplicants:"_paAppl",ihpApproved:"ihpApproved",ihpHousing:"ihpHousing",ihpOna:"ihpOna",iaRegistrations:"iaRegistrations",hmgpObligated:"hmgpObligated",hmgpSubs:"_hmgpSubs",mitObligated:"mitObligated",empg:"empg",afg:"afg"};
-const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",paApplicants:"#4292c6",ihpApproved:"#e8590c",ihpHousing:"#fb8c00",ihpOna:"#d4621a",iaRegistrations:"#2b8cbe",hmgpObligated:"#6a4c93",hmgpSubs:"#7b5fb0",mitObligated:"#0e7c86",empg:"#d4a017",afg:"#e8590c",recentPA:"#1a9850",recentHM:"#6a4c93"};
+  recentHM:[[0,"$0"],[1,"<$10k"],[1e4,"10–50k"],[5e4,"50–250k"],[2.5e5,"0.25–1M"],[1e6,"$1M+"]],
+  nfipPaid:[[0,"$0"],[1,"<$250k"],[2.5e5,"0.25–2M"],[2e6,"2–10M"],[1e7,"10–50M"],[5e7,"$50M+"]],
+  nfipOutPaid:[[0,"$0"],[1,"<$250k"],[2.5e5,"0.25–2M"],[2e6,"2–10M"],[1e7,"10–50M"],[5e7,"$50M+"]],
+  nfipClaims:[[0,"0"],[1,"<50"],[50,"50–249"],[250,"250–999"],[1e3,"1–5k"],[5e3,"5k+"]]};
+const GEO_KEY={count:"nDisasters",paObligated:"paObligated",paProjects:"paProjects",paApplicants:"_paAppl",ihpApproved:"ihpApproved",ihpHousing:"ihpHousing",ihpOna:"ihpOna",iaRegistrations:"iaRegistrations",hmgpObligated:"hmgpObligated",hmgpSubs:"_hmgpSubs",mitObligated:"mitObligated",empg:"empg",afg:"afg",nfipPaid:"nfipPaid",nfipClaims:"nfipClaims",nfipOutPaid:"nfipOutPaid"};
+const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",paApplicants:"#4292c6",ihpApproved:"#e8590c",ihpHousing:"#fb8c00",ihpOna:"#d4621a",iaRegistrations:"#2b8cbe",hmgpObligated:"#6a4c93",hmgpSubs:"#7b5fb0",mitObligated:"#0e7c86",empg:"#d4a017",afg:"#e8590c",recentPA:"#1a9850",recentHM:"#6a4c93",nfipPaid:"#0868ac",nfipClaims:"#2b8cbe",nfipOutPaid:"#0868ac"};
 const GEO_STATEONLY={empg:1,afg:1};   // state-level metrics: fill the map by state, rank states in the board
 // program-first selector: each measure belongs to one program; each program has a default measure
-const GEO_MEASURE_PROG={count:"overview",paObligated:"pa",paProjects:"pa",paApplicants:"pa",ihpApproved:"ia",ihpHousing:"ia",ihpOna:"ia",iaRegistrations:"ia",hmgpObligated:"hmgp",hmgpSubs:"hmgp",mitObligated:"nondis",empg:"nondis",afg:"nondis",recentPA:"recent",recentHM:"recent"};
-const GEO_PROG_DEFAULT={overview:"count",pa:"paObligated",ia:"ihpApproved",hmgp:"hmgpObligated",nondis:"mitObligated",recent:"recentPA"};
+const GEO_MEASURE_PROG={count:"overview",paObligated:"pa",paProjects:"pa",paApplicants:"pa",ihpApproved:"ia",ihpHousing:"ia",ihpOna:"ia",iaRegistrations:"ia",hmgpObligated:"hmgp",hmgpSubs:"hmgp",mitObligated:"nondis",empg:"nondis",afg:"nondis",recentPA:"recent",recentHM:"recent",nfipPaid:"nfip",nfipClaims:"nfip",nfipOutPaid:"nfip"};
+const GEO_PROG_DEFAULT={overview:"count",pa:"paObligated",ia:"ihpApproved",hmgp:"hmgpObligated",nondis:"mitObligated",recent:"recentPA",nfip:"nfipPaid"};
 /* ===== Recent activity (live) — last 7/30/60/90 d fetched live from OpenFEMA; 1 yr from
    the daily-refreshed data/recent.json (a single live national pull truncates at the
    10,000-row cap). Only PA (lastObligationDate) + Hazard Mitigation (initialObligationDate)
@@ -1842,9 +1872,40 @@ function geoNonDisDetailHTML(m,scopeName,total,prog,nApp,appLabel){
     +(m==="mitObligated"?`<div class="declsub">By program (FMA · PDM · BRIC …)</div>${geoMitProgRows(prog)}`:"")
     +`<p class="thr-sub" style="margin-top:6px">${m==="mitObligated"?"Competitive / non-disaster hazard-mitigation grants.":"Post-disaster hazard mitigation."} ${appLabel?appLabel.charAt(0).toUpperCase()+appLabel.slice(1)+" are listed above.":""}</p>`;
 }
+function isNfipMetric(m){return m==="nfipPaid"||m==="nfipClaims"||m==="nfipOutPaid";}
+function nfipDetailHTML(scopeName,o){
+  const F=geoYrFiltering();
+  const paid=F?yrSum(o.nfipPaidByYear,geoYearLo,geoYearHi):(o.nfipPaid||0);
+  const claims=F?yrSum(o.nfipClaimsByYear,geoYearLo,geoYearHi):(o.nfipClaims||0);
+  const s=o.nfipSfha||{}, sin=s.in||{claims:0,paid:0}, sout=s.out||{claims:0,paid:0}, unk=s.unk||{claims:0,paid:0};
+  const tot=(sin.paid||0)+(sout.paid||0)+(unk.paid||0);
+  const outPct=tot?Math.round(100*(sout.paid||0)/tot):0;
+  const split=(!F&&(o.nfipPaidBuilding||o.nfipPaidContents))
+    ? `<div class="declsub">Paid by coverage</div>
+       <div class="declrow"><span class="dk">Building</span><span class="dv">${fmtMoney(o.nfipPaidBuilding||0)}</span></div>
+       <div class="declrow"><span class="dk">Contents</span><span class="dv">${fmtMoney(o.nfipPaidContents||0)}</span></div>
+       <div class="declrow"><span class="dk">Increased Cost of Compliance</span><span class="dv">${fmtMoney(o.nfipPaidIcc||0)}</span></div>` : "";
+  const zoneBlock = (!F&&tot)
+    ? `<div class="declsub">By flood zone (where the loss was rated)</div>
+       <div class="declrow"><span class="dk">Inside SFHA (high-risk A/V zones)</span><span class="dv">${fmtMoney(sin.paid||0)} · ${fmtNum(sin.claims||0)} claims</span></div>
+       <div class="declrow"><span class="dk"><b>Outside SFHA</b> (B/C/X zones)</span><span class="dv"><b>${fmtMoney(sout.paid||0)}</b> · ${fmtNum(sout.claims||0)} claims</span></div>
+       ${(unk.claims)?`<div class="declrow"><span class="dk">Zone unknown</span><span class="dv">${fmtMoney(unk.paid||0)} · ${fmtNum(unk.claims||0)} claims</span></div>`:""}
+       <p class="thr-sub" style="margin-top:4px"><b>${outPct}%</b> of paid claims fell <b>outside</b> the mapped high-risk zone.</p>` : "";
+  return `<div class="declhd"><b>${scopeName}</b> — NFIP flood-insurance claims${F?` <span class="thr-sub">(${geoYearLo}–${geoYearHi})</span>`:""}<br>`
+    +`Paid <b>${fmtMoney(paid)}</b> across <b>${fmtNum(claims)}</b> claim${claims===1?"":"s"}</div>`
+    +split+zoneBlock
+    +geoYrCap(false)
+    +`<p class="thr-sub" style="margin-top:6px">NFIP claims paid since 1978 (FimaNfipClaims). Cumulative insured flood losses — distinct from FEMA disaster assistance. Real OpenFEMA figures — not endorsed by FEMA.</p>`;
+}
 function geoPickDefault(){   // region-scope detail pane, matched to the active metric
   const m=geoMetric;
   if(isRecentMetric(m))return recentScopeDetailHTML("region",null);
+  if(isNfipMetric(m)&&DECL){let tot={nfipPaid:0,nfipClaims:0,nfipPaidByYear:{},nfipClaimsByYear:{},nfipSfha:{in:{claims:0,paid:0},out:{claims:0,paid:0},unk:{claims:0,paid:0}},nfipPaidBuilding:0,nfipPaidContents:0,nfipPaidIcc:0};
+    Object.values(DECL.states).forEach(st=>{tot.nfipPaid+=st.nfipPaid||0;tot.nfipClaims+=st.nfipClaims||0;tot.nfipPaidBuilding+=st.nfipPaidBuilding||0;tot.nfipPaidContents+=st.nfipPaidContents||0;tot.nfipPaidIcc+=st.nfipPaidIcc||0;
+      for(const y in (st.nfipPaidByYear||{}))tot.nfipPaidByYear[y]=(tot.nfipPaidByYear[y]||0)+st.nfipPaidByYear[y];
+      for(const y in (st.nfipClaimsByYear||{}))tot.nfipClaimsByYear[y]=(tot.nfipClaimsByYear[y]||0)+st.nfipClaimsByYear[y];
+      const s=st.nfipSfha||{}; ["in","out","unk"].forEach(k=>{if(s[k]){tot.nfipSfha[k].claims+=s[k].claims||0;tot.nfipSfha[k].paid+=s[k].paid||0;}});});
+    return nfipDetailHTML("Region 5",tot);}
   if(GEO_STATEONLY[m])return prepTrendHTML(m,null);
   if((m==="mitObligated"||m==="hmgpObligated")&&DECL&&DECL.states){let tot=0,prog={}; Object.values(DECL.states).forEach(st=>{tot+=m==="mitObligated"?(st.mitObligated||0):(st.hmgpObligated||0); if(m==="mitObligated")Object.entries(st.mitByProgram||{}).forEach(([k,v])=>prog[k]=(prog[k]||0)+v);}); return geoNonDisDetailHTML(m,"Region 5",tot,prog,0,"");}
   return `<span class="thr-sub">Tap a county or state for its disasters &amp; dollars.</span>`;
@@ -1869,6 +1930,7 @@ function recentScopeDetailHTML(kind,key){
 }
 function countyDetailHTML(o,fips){
   if(isRecentMetric(geoMetric))return recentScopeDetailHTML("county",fips);
+  if(isNfipMetric(geoMetric))return nfipDetailHTML(`${o.name} County, ${o.state}`,o);
   const F=geoYrFiltering();
   if(geoMetric==="mitObligated")return geoNonDisDetailHTML("mitObligated",`${o.name} County, ${o.state}`,F?yrSum(o.mitByYear,geoYearLo,geoYearHi):o.mitObligated,F?null:o.mitByProgram,o.nMitApplicants,"grantees")+geoYrCap(false);
   if(geoMetric==="hmgpObligated")return geoNonDisDetailHTML("hmgpObligated",`${o.name} County, ${o.state}`,F?yrSum(o.hmgpByYear,geoYearLo,geoYearHi):o.hmgpObligated,null,o.nHmgpApplicants,"subrecipients")+geoYrCap(false);
@@ -1912,6 +1974,7 @@ function showStateGeo(s){
   const st=(DECL.states||{})[s],box=el("geoPick");if(!st||!box)return; geoComputeStatewide();
   const F=geoYrFiltering();
   if(isRecentMetric(geoMetric)){box.innerHTML=recentScopeDetailHTML("state",s);return;}
+  if(isNfipMetric(geoMetric)){box.innerHTML=nfipDetailHTML(st.name,st);return;}
   if(GEO_STATEONLY[geoMetric]){box.innerHTML=prepTrendHTML(geoMetric,s);return;}   // state grant → by-year trend
   if(geoMetric==="mitObligated"){box.innerHTML=geoNonDisDetailHTML("mitObligated",st.name,F?yrSum(st.mitByYear,geoYearLo,geoYearHi):st.mitObligated,F?null:st.mitByProgram,null,"")+geoYrCap(false);return;}
   if(geoMetric==="hmgpObligated"){box.innerHTML=geoNonDisDetailHTML("hmgpObligated",st.name,F?yrSum(st.hmgpByYear,geoYearLo,geoYearHi):st.hmgpObligated,null,null,"")+geoYrCap(false);return;}
@@ -1976,9 +2039,9 @@ function prepTrendHTML(m,s){
     <p class="thr-sub" style="margin-top:4px">Federal awards by year (state-level, non-disaster). Tap a state on the left to re-scope.</p>`;
 }
 function setGeoMetric(m){geoMetric=m;
-  const rec=isRecentMetric(m);
-  geoProgram=rec?"recent":(GEO_MEASURE_PROG[m]||"overview");
-  geoGroup=(geoProgram==="nondis")?"nondis":(rec?"recent":"disaster");   // derived; kept for downstream readers
+  const rec=isRecentMetric(m), nfip=isNfipMetric(m);
+  geoProgram=rec?"recent":nfip?"nfip":(GEO_MEASURE_PROG[m]||"overview");
+  geoGroup=(geoProgram==="nondis")?"nondis":(rec||nfip)?geoProgram:"disaster";   // derived; covtog only on disaster-side programs
   geoSetYearBounds();   // span the active metric's data; keeps any selected range clamped in-bounds
   document.querySelectorAll("#geoToggle button").forEach(b=>b.classList.toggle("active",b.dataset.geom===m));
   document.querySelectorAll("#geoProgRow button").forEach(b=>b.classList.toggle("active",b.dataset.prog===geoProgram));
@@ -2116,14 +2179,14 @@ function geoTlSeries(){
   const em=fb||m;
   return {map:geoMetricByYear(m),
           label:(m==="count"?"Disasters declared":GEO_META[em].label)+(fb?" <span class=\"thr-sub\">(selected measure not year-bucketed)</span>":""),
-          color:GEO_BAR[em]||"#0d2342", kind:(m==="count"?"count":(em==="paProjects"?"projects":"money")),
+          color:GEO_BAR[em]||"#0d2342", kind:(m==="count"?"count":(em==="paProjects"||em==="nfipClaims"?"projects":"money")),
           proxy:(em==="ihpApproved")};
 }
 function geoTlFmt(kind,v){return kind==="money"?fmtMoney(v):fmtNum(v);}
 function geoSetYearBounds(){            // full span for the ACTIVE metric (region-wide, scope-independent)
   if(!DECL||!DECL.states)return; let lo=9999,hi=0; const ext=y=>{if(y>=1900){if(y<lo)lo=y;if(y>hi)hi=y;}};
   if(geoMetric==="count"){ DISASTERS.forEach(d=>ext(+String(d.begin||"").slice(0,4))); if(geoCovid)ext(2020); }
-  else { const yk=GEO_YEARKEY[geoMetric]; const keys=yk?[yk]:GEO_TL_DOLLAR_KEYS;
+  else { const yk=GEO_YEARKEY[geoMetric]||GEO_YEARKEY[GEO_YEARFALLBACK[geoMetric]]; const keys=yk?[yk]:GEO_TL_DOLLAR_KEYS;
     Object.values(DECL.states).forEach(st=>keys.forEach(k=>{for(const y in (st[k]||{}))ext(+y);})); }
   if(hi>=lo){const wasFull=geoYearLo<=GEO_YR0&&geoYearHi>=GEO_YR1; GEO_YR0=lo;GEO_YR1=hi;
     if(wasFull){geoYearLo=lo;geoYearHi=hi;} else {geoYearLo=Math.max(lo,Math.min(hi,geoYearLo));geoYearHi=Math.max(lo,Math.min(hi,geoYearHi));}
@@ -3598,7 +3661,8 @@ async function loadData(){
     ]);
     DISASTERS=dj;GAGES=gj;DATA=DISASTERS.slice();
     fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();renderDeclMap();}).catch(()=>{});
-    fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;if(d&&d.counties)for(const f in d.counties)d.counties[f].fips=f;geoSetYearBounds();renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
+    fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;if(d&&d.counties)for(const f in d.counties)d.counties[f].fips=f;applyNfip();geoSetYearBounds();renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
+    fetch("data/nfip.json").then(r=>r.ok?r.json():null).then(n=>{NFIP=n;applyNfip();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
     // freshness stamp (footer): per-file "data as of" from data/manifest.json (built by build_manifest.py)
     fetch("data/manifest.json").then(r=>r.ok?r.json():null).then(mf=>{const el2=el("dataFresh"); if(!el2||!mf||!mf.files)return;
       const f=mf.files, pick=n=>(f[n]&&(f[n].dataAsOf||"")).slice(0,10);
