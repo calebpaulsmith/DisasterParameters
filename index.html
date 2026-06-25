@@ -3468,8 +3468,10 @@ function repFilterChips(view){
     f.push(["Map metric",(GEO_META[geoMetric]||{}).label||geoMetric]);
     const progs=[geoPA?"PA":null,geoIA?"IHP":null,geoHMGP?"HMGP":null].filter(Boolean).join(" + ");
     if(geoMetric==="count")f.push(["Program filter",progs||"—"]);
+    if(geoDisasterFocus){const d=disasterMeta(geoDisasterFocus);f.push(["Disaster","DR-"+geoDisasterFocus+(d&&d.title?" · "+titleCase(d.title).slice(0,42):"")]);}
     if(geoStateFilter)f.push(["State",STATE_NAME[geoStateFilter]||geoStateFilter]);
     if(geoCountyFocus&&typeof DECL!=="undefined"&&DECL&&DECL.counties&&DECL.counties[geoCountyFocus])f.push(["County",DECL.counties[geoCountyFocus].name]);
+    if((geoMetric==="recentPA"||geoMetric==="recentHM")&&typeof recentWindow!=="undefined")f.push(["Recent window","last "+recentLabel(recentWindow)]);
     if(geoMetric==="mitObligated"&&geoMitProg!=="ALL")f.push(["Mitigation program",geoMitProg]);
     f.push(["COVID-19",geoCovid?"included":"excluded"]);
     if(typeof geoYearLo!=="undefined"&&(geoYearLo!==GEO_YR0||geoYearHi!==GEO_YR1))f.push(["Years",geoYearLo+"–"+geoYearHi]);
@@ -3500,6 +3502,75 @@ const REPORT_NARR={
 function repNarr(view,e){try{const fn=REPORT_NARR[e.key];if(fn)return fn();}catch(err){}
   return `${e.label} for FEMA Region 5. Figures are computed by the tool from OpenFEMA (obligations & declarations), NOAA Storm Events (wind/hail/tornado) and USGS (river stage); PA is reported as obligated and IHP as approved. See the live tool for tap-through detail and source links.`;}
 
+/* ----- scope resolution: turn the live on-screen filters into a concrete data slice ----- */
+function repScope(){
+  const view=curView();
+  const s={view,disasters:[],place:{level:"region",name:"Region 5"},disaster:null,time:{kind:"all",label:"all years"},metric:(typeof geoMetric!=="undefined"?geoMetric:null),recent:null};
+  if(view==="history"){
+    s.disasters=repLedgerSet();
+    if(typeof monthFilter!=="undefined"&&monthFilter!=null)s.time={kind:"month",label:MONTHS[monthFilter]};
+    if(typeFilter&&typeFilter!=="All")s.place={level:"region",name:"Region 5",hazard:typeFilter};
+  }else if(view==="geography"){
+    if(geoDisasterFocus){const d=disasterMeta(geoDisasterFocus);s.disaster=geoDisasterFocus;s.disasters=d&&d.disasterNumber?[d]:[];
+      if(d&&d.state)s.place={level:"state",name:STATE_NAME[d.state]||d.state,code:d.state};
+    }else{
+      let set;
+      if(geoCountyFocus&&typeof DECL!=="undefined"&&DECL&&DECL.counties[geoCountyFocus]){
+        const o=DECL.counties[geoCountyFocus];s.place={level:"county",name:o.name+" County, "+o.state,code:geoCountyFocus};
+        set=(o.disasters||[]).map(x=>disasterMeta(x.dn)).filter(d=>d&&d.disasterNumber);
+      }else if(geoStateFilter){s.place={level:"state",name:STATE_NAME[geoStateFilter]||geoStateFilter,code:geoStateFilter};set=DATA.filter(d=>d.state===geoStateFilter);}
+      else set=DATA.slice();
+      if(typeof geoYearLo!=="undefined"&&(geoYearLo!==GEO_YR0||geoYearHi!==GEO_YR1)){
+        set=set.filter(d=>{const y=+String(d.begin||"").slice(0,4);return y>=geoYearLo&&y<=geoYearHi;});
+        s.time={kind:"year-range",label:geoYearLo+"–"+geoYearHi,lo:geoYearLo,hi:geoYearHi};
+      }
+      if(geoMetric==="count"){set=set.filter(d=>(geoPA&&(d.paDeclared||(d.pa||0)>0))||(geoIA&&(d.ihp||0)>0)||(geoHMGP&&((d.costs||{}).hmgp||0)>0));}
+      s.disasters=set;
+    }
+    if(geoMetric==="recentPA"||geoMetric==="recentHM"){s.recent=geoMetric==="recentPA"?"pa":"hm";s.time={kind:"recent",label:"last "+recentLabel(recentWindow),days:recentWindow};}
+  }else{
+    s.disasters=DATA.slice();
+  }
+  return s;
+}
+function repHazSentence(d){const h=d.hz||{};const b=[];
+  if(h.peakStageFt)b.push("river crested at "+h.peakStageFt+" ft");
+  if(h.windMph)b.push("peak winds "+Math.round(h.windMph)+" mph");
+  if(h.rainIn)b.push(h.rainIn+" in rainfall");
+  if(h.hailIn)b.push(h.hailIn+" in hail");
+  if(h.tornadoes)b.push(h.tornadoes+" tornado"+(h.tornadoes>1?"es":"")+(h.torEF!=null?" (max EF"+h.torEF+")":""));
+  return b.length?("Measured hazards: "+b.slice(0,3).join(", ")+"."):"";}
+function repScopeTitle(scope){
+  if(scope.disaster){const d=disasterMeta(scope.disaster);return `DR-${scope.disaster} — ${titleCase(d.title||d.incidentType||"")}`;}
+  const t=scope.time.kind!=="all"?(" · "+scope.time.label):"";
+  return `${scope.place.name}${scope.place.hazard?" · "+scope.place.hazard:""}${t}`;
+}
+function repScopeNarrative(scope){
+  const ds=scope.disasters||[];const place=scope.place.name;
+  if(scope.recent){const b=recentBuckets(scope.recent);const prog=scope.recent==="pa"?"Public Assistance":"Hazard Mitigation";
+    return `In the ${scope.time.label}, FEMA posted ${fmtMoney(b.total||0)} across ${fmtNum(b.count||0)} ${prog} obligation${b.count===1?"":"s"} in ${place}${b.newest?" (most recent "+fmtDate(b.newest)+")":""}. Recent windows track obligation activity (which can include downward adjustments); ${prog} is one of the only layers publishing a per-item obligation date.`;}
+  const tt=scope.time.kind==="all"?"":scope.time.kind==="month"?(", incident periods beginning in "+scope.time.label):(", "+scope.time.label);
+  if(!ds.length)return `No disasters match the current filters (${place}${tt}). Widen the place or time window to populate the report.`;
+  if(ds.length===1){const d=ds[0],c=d.costs||{};const haz=repHazSentence(d);
+    return `DR-${d.disasterNumber}, ${titleCase(d.title||d.incidentType||"")}, affected ${STATE_NAME[d.state]||d.state} over ${fmtRange(d.begin,d.end)} across ${d.countyCount||"—"} designated count${d.countyCount===1?"y":"ies"}. FEMA obligated ${fmtMoney(d.pa||0)} in Public Assistance${c.paProjects?" across "+fmtNum(c.paProjects)+" projects":""}${(d.ihp||0)>0?`, approved ${fmtMoney(d.ihp)} in IHP household aid`:""}${(c.hmgp||0)>0?`, and committed ${fmtMoney(c.hmgp)} in HMGP mitigation`:""}.${haz?" "+haz:""} PA is obligated and IHP approved — distinct accounting stages.`;}
+  const pa=ds.reduce((a,d)=>a+(d.pa||0),0),ihp=ds.reduce((a,d)=>a+(d.ihp||0),0),hm=ds.reduce((a,d)=>a+((d.costs||{}).hmgp||0),0);
+  const top=ds.slice().sort((a,b)=>(b.pa||0)-(a.pa||0)).slice(0,3).filter(d=>(d.pa||0)>0);
+  const yrs=ds.map(d=>+String(d.begin||"").slice(0,4)).filter(Boolean);const span=yrs.length?(Math.min(...yrs)+"–"+Math.max(...yrs)):"";
+  return `${place}${tt}: ${ds.length} FEMA disaster${ds.length===1?"":"s"}${span&&scope.time.kind!=="year-range"?" ("+span+")":""}. Combined, FEMA obligated ${fmtMoney(pa)} in Public Assistance and approved ${fmtMoney(ihp)} in IHP${hm?`, plus ${fmtMoney(hm)} in HMGP mitigation`:""}. `+(top.length?`Largest by PA: ${top.map(d=>"DR-"+d.disasterNumber+" ("+fmtMoney(d.pa)+")").join(", ")}. `:"")+`PA is obligated, IHP approved — different accounting stages that should not be conflated.`;
+}
+function repScopeCostTable(d){const c=d.costs||{};const z=Math.max(0,(c.paTotal||0)-(c.paEmergencyAB||0)-(c.paPermanentCG||0));
+  const td="padding:3px 7px;border-bottom:1px solid #eef2f7;font-size:12px";
+  const row=(k,v,bold)=>`<tr><td style="${td}${bold?';font-weight:800':''}">${k}</td><td style="${td};text-align:right${bold?';font-weight:800':''}">${v}</td></tr>`;
+  return `<table style="width:100%;border-collapse:collapse"><tbody>`+
+    row("PA — Emergency work (Cat A–B)",fmtMoneyFull(c.paEmergencyAB||0))+
+    row("PA — Permanent work (Cat C–G)",fmtMoneyFull(c.paPermanentCG||0))+
+    row("PA — Management (Cat Z, remainder)",fmtMoneyFull(z))+
+    row("PA obligated total"+(c.paProjects?" · "+fmtNum(c.paProjects)+" projects":""),fmtMoneyFull(c.paTotal||d.pa||0),1)+
+    ((c.ihpTotal||d.ihp)?row("IHP — Housing Assistance (HA)",fmtMoneyFull(c.ihpHousing||0))+row("IHP — Other Needs (ONA)",fmtMoneyFull(c.ihpOna||0))+row("IHP approved total"+(c.iaRegistrations?" · "+fmtNum(c.iaRegistrations)+" IA registrations":""),fmtMoneyFull(c.ihpTotal||d.ihp||0),1):"")+
+    ((c.hmgp||0)>0?row("HMGP mitigation (§404)",fmtMoneyFull(c.hmgp),1):"")+
+    `</tbody></table>`;
+}
+
 /* ----- open / reset the builder ----- */
 function repOpen(){
   const view=curView();const reg=REPORT_VIEWS[view]||{title:view,els:[]};
@@ -3529,14 +3600,22 @@ function repBuildDraft(){
   const picked=new Set([...document.querySelectorAll("#repList input:checked")].map(i=>i.value));
   const els=reg.els.filter(e=>picked.has(e.key)&&repPresent(e.sel));
   const chips=repFilterChips(view);
+  const scope=repScope();
   const now=new Date();
   const sha=(el("buildSha")||{}).textContent||"";
+  const docTitle=`${repScopeTitle(scope)} — FEMA Region 5 report`;
   let h=`<div class="rd-head">
-    <div class="rd-title" contenteditable="true">${repEsc(reg.title)} — Region 5 report</div>
-    <div class="rd-sub">FEMA Public Assistance (obligated) & IHP (approved), upper-Midwest Region 5 · Generated ${now.toLocaleString()}</div>
+    <div class="rd-title" contenteditable="true">${repEsc(docTitle)}</div>
+    <div class="rd-sub">FEMA Public Assistance (obligated) & IHP (approved), upper-Midwest Region 5 · ${repEsc(reg.title)} view · Generated ${now.toLocaleString()}</div>
     <div class="rd-filters"><b>Filters applied:</b> ${chips.map(c=>repEsc(c[0])+": "+repEsc(c[1])).join(" &nbsp;·&nbsp; ")}</div>
   </div>`;
-  h+=`<div class="rd-section"><div class="rd-narr" contenteditable="true" data-ph="Executive summary…">${repEsc("Executive summary: "+(REPORT_NARR.ledger&&view==="history"?REPORT_NARR.ledger():"This report summarizes "+reg.title+" for FEMA Region 5 on the filters stated above."))}</div></div>`;
+  h+=`<div class="rd-section"><div class="rd-narr" contenteditable="true" data-ph="Executive summary…">${repEsc("Executive summary. "+repScopeNarrative(scope))}</div></div>`;
+  // single-disaster deep dive: a sourced cost breakdown, reconciled
+  if(scope.disasters.length===1&&!scope.recent){
+    h+=`<div class="rd-section"><h3>Sourced cost breakdown — DR-${scope.disasters[0].disasterNumber}</h3>
+      <div class="rd-narr" contenteditable="true" data-key="costtable" data-ph="Add commentary…">PA reconciles as Emergency (A–B) + Permanent (C–G) + Management (Z) = obligated total; IHP reconciles as Housing + Other Needs = approved total. Figures from OpenFEMA, refreshed live.</div>
+      <div class="rd-fig">${repScopeCostTable(scope.disasters[0])}</div></div>`;
+  }
   els.forEach(e=>{
     const src=document.querySelector(e.sel);
     const fig=src?src.cloneNode(true):null;
@@ -3608,7 +3687,7 @@ const REP_COLS=[["disasterNumber","DR #"],["state","State"],["title","Title"],["
   ["begin","Begin"],["end","End"],["fy","FY"],["declared","Declared"],["paDeclared","PA declared"],["iaDeclared","IA authorized"],
   ["countyCount","Counties"],["pa","PA obligated $"],["ihp","IHP approved $"],
   ["hz.windMph","Peak wind mph"],["hz.hailIn","Max hail in"],["hz.peakStageFt","Peak stage ft"],["hz.rainIn","Storm rain in"],["hz.torEF","Max EF"],["hz.tornadoes","Tornadoes"]];
-function repExportRows(){return curView()==="history"?repLedgerSet():DATA;}
+function repExportRows(){const s=repScope();return (s.disasters&&s.disasters.length)?s.disasters:(curView()==="history"?repLedgerSet():DATA);}
 function repDownload(name,text,mime){const b=new Blob([text],{type:mime||"text/plain;charset=utf-8"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);}
 function repCsvCell(v){if(v==null)v="";v=String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
 function repExportCSV(){const rows=repExportRows();const lines=[REP_COLS.map(c=>repCsvCell(c[1])).join(",")];
