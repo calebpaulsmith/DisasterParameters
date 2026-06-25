@@ -84,10 +84,13 @@ first build: 137k R5 claims, 512 counties, **$1.71B paid**, 1978–2026, outside
 `propertyState` filter full-scans it (times out); even the R5 subset is millions of rows — it
 belongs in the Phase 2 Cloudflare-backed layer, not a committed Pages file.
 
-**Next step (not yet done):** surface `nfip.json` as a Geography **"Flood insurance"** program
-lens (NFIP $ / claims / outside-SFHA measures). The data merges onto `DECL.counties`/`states`
-by FIPS so it slots into the existing program-first machinery; claims-only counties (no FEMA
-declaration) get a minimal synthetic county entry so the map still colors them.
+**Surfaced (SHIPPED):** the Geography **"Flood insurance"** program lens — measures
+`nfipPaid` / `nfipClaims` / `nfipOutPaid` (paid outside the SFHA). `applyNfip()` merges
+`nfip.json` onto `DECL.counties`/`states` by FIPS so it reuses the existing program-first
+machinery (GEO_KEY/GEO_YEARKEY + measure-driven timeline, spanning NFIP's 1978– range);
+claims-only counties (no FEMA declaration) get a minimal synthetic county entry so the map
+still colors them. Detail panes show the building/contents/ICC split and the SFHA in/out
+breakdown with the outside-SFHA share.
 
 ### Phase 2 — claim-level drill-down (Cloudflare R2/D1)
 What you specifically asked: *what does claim-level give me that a rollup doesn't?* A lot — but
