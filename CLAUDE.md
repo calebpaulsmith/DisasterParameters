@@ -207,3 +207,37 @@ live in ~1 minute; hard-refresh to bypass cache.
   README. Don't add eligibility/rights-determination features.
 - When changing numbers or labels, preserve traceability: every figure should be
   reconcilable and linkable back to its OpenFEMA/NOAA/USGS source.
+
+## Roadmap / future options (not yet built)
+
+Parked follow-ups, in rough priority order. None of these are required for the app to
+work today — they're enhancements. See `docs/refresh-architecture.md` for the fuller
+design rationale behind the NFIP and refresh items.
+
+- **NFIP Phase 2 — claim-level drill-down.** Phase 1 (committed `data/nfip.json`) is a
+  county×year rollup. Claim-level (`FimaNfipClaims` per-record: `dateOfLoss`, census-tract
+  centroid, `ratedFloodZone`, `waterDepth`, `causeOfDamage`, repeated locations) unlocks
+  per-event joins to specific disasters, within-county damage clusters, outside-SFHA detail,
+  and repetitive-loss identification. The R5 subset is hundreds of thousands of rows — too
+  big for Pages/live-fetch, so it needs a **Cloudflare R2 (raw) + D1/KV (queryable) + Worker
+  API** backend, refreshed monthly. Budget the **paid Cloudflare plan (~$5/mo)**; ingestion
+  must be a cron batch, never an on-demand Worker fetch.
+- **NFIP policies / coverage as an exposure denominator.** `FimaNfipPolicies` (73.6M rows,
+  monthly) gives policies-in-force + total coverage $ per county — the denominator for
+  "claims paid per dollar of coverage" / take-up rate. Too big for Pages; same Cloudflare
+  path as Phase 2 (or cheap per-county `$inlinecount` COUNT-only queries for counts without
+  coverage $).
+- **Wire the Cloudflare worker for `recent.json`.** Deploy `cloudflare/recent-worker.js`
+  (daily cron → KV) and set `RECENT_WORKER_URL` in `index.html` so the Geography Recent
+  "1 year" window + fallbacks read the daily-fresh feed instead of the committed snapshot.
+- **Tier 1b — weekly heavy rebuild.** `county_declarations.json` is rebuilt by a slow,
+  order-dependent multi-step pipeline and is currently refreshed by hand. A **weekly**
+  GitHub Action (not daily — obligations reconcile over months) should run it and
+  **gate the commit on the dollar-conservation audits** (`ihpAudit`, HMGP/mit conservation) —
+  refuse to commit if reconciliation breaks. See the Tier table in docs/refresh-architecture.md.
+- **Mobile parity for the Recent + Flood-insurance lenses.** Both are desktop-only today
+  (mobile Geography uses the separate `GM_SORTS` sort-chip control set; the desktop geobar is
+  hidden < 760px). Add the Recent window chips + NFIP measures to the mobile control set.
+- **Refresh failure alerting.** The daily/monthly refresh workflows are best-effort + commit-
+  on-change; add an Actions failure notification so a silently-failing pull (stale data looking
+  fresh) is surfaced.
