@@ -7,6 +7,9 @@ Checks (exits non-zero on any failure):
   1. DATA CONSISTENCY (data/disasters.json)
      - iaDeclared === bool(ihpDeclared OR iaProgramDeclared)   (= iaAuthorized)
      - where IHP cost data exists: |ihpTotal - (ihpHousing + ihpOna)| <= 1
+  1b. GEO DOLLAR-CONSERVATION AUDIT (data/county_declarations.json -> ihpAudit)
+     - every registrant dollar accounted for per state (inSet+undeclared+unmatched+residual==ledger)
+     - written county totals match the in-set bucket; HA+ONA==IHP at county & state level
   2. UI-LANGUAGE GUARDRAILS
      - no prohibited displayed labels ("IA dollars", "IA obligated", "PA/IA obligated",
        "IA/IHP obligated", "IA/IHP dollars") in index.html / README.md / CLAUDE.md.
@@ -66,6 +69,64 @@ def check_data():
           f"{'OK' if not bad_recon else 'FAIL'}")
 
 
+def check_geo_reconciliation():
+    """Dollar-conservation audit on data/county_declarations.json (cd['ihpAudit']).
+
+    Asserts every registrant dollar is accounted for and nothing was silently dropped:
+      (a) ihpAudit exists for all six R5 states;
+      (b) per state  inSet + undeclared + unmatched == registrantTotal  (rounding only);
+      (c) per state  registrantTotal + residual == ledgerIhp            (rounding only);
+      (d) sum(county ihpApproved) == sum(state countyInSet)  — what we wrote == the in-set bucket;
+      (e) per state  ihpHousing + ihpOna == ihpApproved (ledger, rounding only);
+      (f) per county ihpHousing + ihpOna == ihpApproved (registrant ihpAmount == ha+ona per row).
+    """
+    path = os.path.join(DATA, "county_declarations.json")
+    if not os.path.exists(path):
+        fails.append("county_declarations.json missing"); return
+    cd = json.load(open(path))
+    states = cd.get("states", {})
+    audit = cd.get("ihpAudit")
+    if not audit:
+        fails.append("county_declarations.json has no ihpAudit block (run build_county_ihp.py)"); return
+    missing = [s for s in states if s not in audit]
+    if missing:
+        fails.append(f"ihpAudit missing states {missing}")
+
+    INT = 3  # per-state independent-rounding slack (dollars)
+    bad = []
+    sum_inset = 0
+    for st in states:
+        A = audit.get(st)
+        if not A:
+            continue
+        sum_inset += A["countyInSet"]
+        if abs((A["countyInSet"] + A["undeclared"] + A["unmatched"]) - A["registrantTotal"]) > INT:
+            bad.append(f"{st}: inSet+undeclared+unmatched != registrantTotal")
+        if abs((A["registrantTotal"] + A["residual"]) - A["ledgerIhp"]) > INT:
+            bad.append(f"{st}: registrantTotal+residual != ledgerIhp")
+        sH, sO, sA = states[st].get("ihpHousing"), states[st].get("ihpOna"), states[st].get("ihpApproved")
+        if None not in (sH, sO, sA) and abs((sH + sO) - sA) > INT:
+            bad.append(f"{st}: state ihpHousing+ihpOna ({sH}+{sO}) != ihpApproved ({sA})")
+
+    counties = cd.get("counties", {})
+    sum_county_ihp = sum(c.get("ihpApproved", 0) for c in counties.values())
+    # (d) written county total == in-set bucket total (rounding across counties)
+    if abs(sum_county_ihp - sum_inset) > max(1000, len(counties)):
+        bad.append(f"sum(county ihpApproved)={sum_county_ihp} != sum(state inSet)={sum_inset}")
+    # (f) per-county HA+ONA == IHP (registrant ihpAmount == ha+ona); independent round() => <=1 each
+    cbad = [f for f, c in counties.items()
+            if abs((c.get("ihpHousing", 0) + c.get("ihpOna", 0)) - c.get("ihpApproved", 0)) > 2]
+    if cbad:
+        bad.append(f"{len(cbad)} counties where ihpHousing+ihpOna != ihpApproved (e.g. {cbad[:5]})")
+
+    if bad:
+        fails.append("geo reconciliation:\n    " + "\n    ".join(bad))
+    flagged = [st for st in states if audit.get(st, {}).get("flags")]
+    print(f"  [geo] {len(counties)} counties · ihpAudit reconciles: "
+          f"{'OK' if not bad else 'FAIL'} · {len(flagged)} state(s) carry data-quality flags "
+          f"(undeclared/unmatched/ledger-gap) — informational, see ihpAudit")
+
+
 PROHIBITED = ["IA dollars", "IA obligated", "PA/IA obligated", "IA/IHP obligated", "IA/IHP dollars"]
 # a line is allowed (explanatory) if it negates / contrasts rather than labels
 ALLOW = ["no separable", "not available", "unavailable", "there is no", "no public",
@@ -114,6 +175,7 @@ def check_fixtures():
 def main():
     print("Verifying IA/IHP assistance model…")
     check_data()
+    check_geo_reconciliation()
     check_labels()
     check_fixtures()
     if fails:
