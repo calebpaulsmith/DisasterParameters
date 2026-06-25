@@ -147,7 +147,6 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
 .badge--no{background:#fbeaea;color:var(--red);border:1px solid #f3bcbc;}
 .badge--pa{background:#e7f1fb;color:var(--blue-dark);border:1px solid #c2dcf3;}
 .badge--ia{background:#eaf6ee;color:var(--green-dark);border:1px solid #b7e4b9;}
-.badge--legacy{background:#f1f0ec;color:#6b6b6b;border:1px solid #d8d5cd;}
 .badge--hm{background:#f3eefb;color:#6b3fa0;border:1px solid #ddccf2;}
 .srcflags{margin-top:14px;border-top:1px solid #e7e4dc;padding-top:8px}
 .srcflags summary{cursor:pointer;font-size:13px;list-style:revert}
@@ -729,7 +728,7 @@ tr.clickable:hover td{background:#eef3f8;}
       <div class="card__bd"><div class="tablewrap"><table class="dis" id="ledger">
         <thead><tr>
           <th data-sort="disasterNumber">DR #</th><th data-sort="begin">Incident period</th><th data-sort="state">St</th>
-          <th data-sort="tagstr">Type</th><th data-sort="prog" title="Programs authorized: PA · IHP · HM (and legacy IA)">Programs</th>
+          <th data-sort="tagstr">Type</th><th data-sort="prog" title="Programs authorized: PA · IA · HM">Programs</th>
           <th data-sort="wind">Wind</th><th data-sort="hail">Hail</th><th data-sort="stage">Stage</th><th data-sort="rain" title="Total incident rainfall (hover a cell for peak 1-day)">Rain</th><th data-sort="tornadoes" title="Tornado count · peak EF">Tor</th>
           <th data-sort="pa">PA oblig.</th><th data-sort="ihp">IHP appr.</th>
         </tr></thead><tbody id="ledgerBody"></tbody></table></div>
@@ -1009,8 +1008,7 @@ function ihpEraNote(d){   // era-aware wording for IA-only (legacy pre-IHP vs mo
 function progBadges(d){
   let s="";
   if(d.pa>0||d.paDeclared)s+=`<span class="badge badge--pa">PA</span> `;
-  if(isIHP(d))s+=`<span class="badge badge--ia" title="Individuals & Households Program declared (IHP) — approved Housing + Other Needs Assistance">IHP</span> `;
-  else if(d.iaProgramDeclared)s+=`<span class="badge badge--legacy" title="Legacy Individual Assistance authorized — predates the modern IHP dollar series">IA</span> `;
+  if(isIHP(d)||d.iaProgramDeclared)s+=`<span class="badge badge--ia" title="Individual Assistance authorized — IHP is the program with public dollars (Housing + Other Needs Assistance); see the breakdown">IA</span> `;
   if(d.hmProgramDeclared)s+=`<span class="badge badge--hm" title="Hazard Mitigation (HMGP, §404) authorized">HM</span>`;
   return s||`<span class="thr-sub">—</span>`;
 }
@@ -1069,7 +1067,7 @@ function renderTimeline(){
 let sortKey="disasterNumber",sortDir=-1,monthFilter=null;
 function ledgerRows(){
   return DATA.filter(d=>(typeFilter==="All"||d.tags.includes(typeFilter))&&(monthFilter==null||new Date(d.begin+"T00:00:00").getMonth()===monthFilter)).map(d=>({...d,
-    tagstr:d.tags.join(","),prog:(d.pa>0||d.paDeclared?2:0)+(isIHP(d)?1:0),
+    tagstr:d.tags.join(","),prog:(d.pa>0||d.paDeclared?2:0)+((isIHP(d)||d.iaProgramDeclared)?1:0),
     wind:d.hz.windMph||0,hail:d.hz.hailIn||0,stage:d.hz.peakStageFt||0,rain:d.hz.rainIn||0,tornadoes:d.hz.tornadoes||0,ef:d.hz.torEF==null?-1:d.hz.torEF}));
 }
 function disasterRow(d){
@@ -2061,7 +2059,7 @@ function renderCovid(){
   const summary=`<div class="ctx-cost" style="margin-top:18px">
     <div class="c"><div class="lab">PA obligated · Region 5</div><div class="big">${fmtMoney(r.paTotal)}</div><div class="thr-sub">6 statewide declarations</div></div>
     <div class="c"><div class="lab">IHP approved · Region 5</div><div class="big">${fmtMoney(r.ihpTotal)}</div><div class="thr-sub">individual assistance</div></div>
-    <div class="c"><div class="lab">PA project worksheets</div><div class="big">${fmtNum(r.paProjects)}</div><div class="thr-sub">${fmtNum(r.iaRegistrations)} IHP registrations</div></div></div>`;
+    <div class="c"><div class="lab">PA project worksheets</div><div class="big">${fmtNum(r.paProjects)}</div><div class="thr-sub">${fmtNum(r.iaRegistrations)} IA registrations</div></div></div>`;
   const sts=Object.entries(COVID.states).sort((a,b)=>b[1].paTotal-a[1].paTotal);
   const cards=sts.map(([s,v])=>`<div class="covcard">
     <div class="covhd"><b>${v.name}</b><span class="thr-sub">DR-${v.dn} · ${v.begin?fmtDate(v.begin):"Mar 2020"}</span></div>

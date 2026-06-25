@@ -140,8 +140,11 @@ disaster to one of:
 | `IA_ONLY_ANOMALY` | `iaProgramDeclared` & not `ihpDeclared` & IHP `$>0` | real IHP $ + a source-flag note |
 | `NONE` | no IA/IHP authorization | compact "no IA/IHP authorization recorded" |
 
-(`isIHP(d)` = the first, second, and fourth states — i.e. show an IHP money section. The ledger
-"IHP" badge fires only on `isIHP`; otherwise a muted **IA** badge marks legacy authorization.)
+(`isIHP(d)` = the first, second, and fourth states — i.e. show an IHP **money** section. The
+ledger/modal **authorization** badge is a single **IA** chip shown for *any* IA-authorized disaster
+(`isIHP(d) || iaProgramDeclared`) — the legacy-vs-modern distinction lives in the survivor card
+above, not the badge. "IHP" stays the label on the dollar figures; "IA" labels the registrations
+count.)
 
 ---
 

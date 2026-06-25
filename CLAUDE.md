@@ -130,12 +130,17 @@ few PA totals against the granular PA Funded Projects worksheets before shipping
 
 - **IA ≠ IHP.** **IA** (Individual Assistance) is the umbrella *authorization*; **IHP**
   (Individuals & Households Program) is the only IA program with public per-disaster dollars
-  (`ihpTotal` = HA + ONA). The UI labels the program **IHP**. Per OpenFEMA, "IA-authorized" =
+  (`ihpTotal` = HA + ONA). **UI labeling splits along the data's own grain: declarations = IA/PA/HM,
+  dollars = IHP, registrations = IA.** So the *authorization* badge (ledger Programs column + detail
+  modal) reads **IA** for any IA-authorized disaster; the *dollar* figures/sections are labeled
+  **IHP** (the program that actually carries public $); the *registrations* count is labeled **IA**
+  (source `totalNumberIaApproved`). Per OpenFEMA, "IA-authorized" =
   `ihProgramDeclared OR iaProgramDeclared`. Each `disasters.json` record stores the **raw flags
   distinctly**: `paDeclared`, `ihpDeclared` (raw IH = modern IHP), `iaProgramDeclared` (raw
-  legacy IA), `hmProgramDeclared`, plus `iaDeclared` (= **iaAuthorized** = the OR). The UI keys
-  "IHP" off **`ihpDeclared`/`isIHP()`**, NOT the OR — so a legacy `iaProgramDeclared`-only record
-  (pre-IHP, no IHP $ series) renders as **Legacy IA / "Not available"**, never **$0 IHP**.
+  legacy IA), `hmProgramDeclared`, plus `iaDeclared` (= **iaAuthorized** = the OR). The IA
+  authorization badge fires on the OR (`isIHP(d) || iaProgramDeclared`); the **IHP money section**
+  keys off **`ihpDeclared`/`isIHP()`**, NOT the OR — so a legacy `iaProgramDeclared`-only record
+  (pre-IHP, no IHP $ series) shows its IHP dollars as **"Not available"**, never **$0 IHP**.
   Classification lives in one place: `survivorState(d)` in `index.html`, mirrored + fixture-tested
   in `scripts/verify_assistance_model.py`. In the current FY2008+ Region 5 ledger
   `iaDeclared = ihpDeclared = (ihpTotal>0) = 34` and `iaProgramDeclared = 8` — but that
