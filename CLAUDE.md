@@ -14,7 +14,7 @@ Live site (GitHub Pages): https://calebpaulsmith.github.io/DisasterParameters/
 
 Three views (in priority order — **facts first**):
 1. **Disaster Ledger** (default) — every Region 5 disaster, sortable, with
-   measured hazards + real PA/IA dollars. **Tap a row → detail modal** with that
+   measured hazards + real PA (obligated) & IHP (approved) dollars. **Tap a row → detail modal** with that
    disaster's full sourced cost breakdown and parameter provenance + verify links.
 2. **Disaster Watch** — live NWS alerts + live USGS gages; trips when a river
    approaches a past disaster's peak stage or warnings match an analog's hazards.
@@ -128,8 +128,16 @@ few PA totals against the granular PA Funded Projects worksheets before shipping
 - **IA ≠ IHP.** **IA** (Individual Assistance) is the umbrella *authorization*; **IHP**
   (Individuals & Households Program) is the only IA program with public per-disaster dollars
   (`ihpTotal` = HA + ONA). The UI labels the program **IHP**. Per OpenFEMA, "IA-authorized" =
-  `ihProgramDeclared OR iaProgramDeclared`; we store `iaDeclared` as that OR (Region 5 = 34,
-  reconciles with `ihpTotal>0`) plus `iaProgramDeclared` (8) for provenance.
+  `ihProgramDeclared OR iaProgramDeclared`. Each `disasters.json` record stores the **raw flags
+  distinctly**: `paDeclared`, `ihpDeclared` (raw IH = modern IHP), `iaProgramDeclared` (raw
+  legacy IA), `hmProgramDeclared`, plus `iaDeclared` (= **iaAuthorized** = the OR). The UI keys
+  "IHP" off **`ihpDeclared`/`isIHP()`**, NOT the OR — so a legacy `iaProgramDeclared`-only record
+  (pre-IHP, no IHP $ series) renders as **Legacy IA / "Not available"**, never **$0 IHP**.
+  Classification lives in one place: `survivorState(d)` in `index.html`, mirrored + fixture-tested
+  in `scripts/verify_assistance_model.py`. In the current FY2008+ Region 5 ledger
+  `iaDeclared = ihpDeclared = (ihpTotal>0) = 34` and `iaProgramDeclared = 8` — but that
+  reconciliation is an **observed property of current data, not a universal rule** (it breaks for
+  legacy/pre-IHP records).
 - **PA is "obligated"; IHP is "approved."** Different accounting stages — never
   conflate or relabel them.
 - **PA breakdown must reconcile:** `paEmergencyAB + paPermanentCG + Category Z

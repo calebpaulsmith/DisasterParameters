@@ -147,6 +147,10 @@ input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;bac
 .badge--no{background:#fbeaea;color:var(--red);border:1px solid #f3bcbc;}
 .badge--pa{background:#e7f1fb;color:var(--blue-dark);border:1px solid #c2dcf3;}
 .badge--ia{background:#eaf6ee;color:var(--green-dark);border:1px solid #b7e4b9;}
+.badge--legacy{background:#f1f0ec;color:#6b6b6b;border:1px solid #d8d5cd;}
+.badge--hm{background:#f3eefb;color:#6b3fa0;border:1px solid #ddccf2;}
+.srcflags{margin-top:14px;border-top:1px solid #e7e4dc;padding-top:8px}
+.srcflags summary{cursor:pointer;font-size:13px;list-style:revert}
 
 .analog{display:grid;grid-template-columns:40px 1fr auto;gap:13px;align-items:center;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:linear-gradient(180deg,#fff,#fcfcfb);}
 .analog+.analog{margin-top:11px;}
@@ -725,7 +729,7 @@ tr.clickable:hover td{background:#eef3f8;}
       <div class="card__bd"><div class="tablewrap"><table class="dis" id="ledger">
         <thead><tr>
           <th data-sort="disasterNumber">DR #</th><th data-sort="begin">Incident period</th><th data-sort="state">St</th>
-          <th data-sort="tagstr">Type</th><th data-sort="prog">PA / IHP</th>
+          <th data-sort="tagstr">Type</th><th data-sort="prog" title="Programs authorized: PA · IHP · HM (and legacy IA)">Programs</th>
           <th data-sort="wind">Wind</th><th data-sort="hail">Hail</th><th data-sort="stage">Stage</th><th data-sort="rain" title="Total incident rainfall (hover a cell for peak 1-day)">Rain</th><th data-sort="tornadoes" title="Tornado count · peak EF">Tor</th>
           <th data-sort="pa">PA oblig.</th><th data-sort="ihp">IHP appr.</th>
         </tr></thead><tbody id="ledgerBody"></tbody></table></div>
@@ -978,10 +982,36 @@ function primaryTrigger(d){
   if(tags.includes("Flooding"))return{label:"Flooding",tag:"Flooding",why:`FEMA "Severe Storm" with flooding`};
   return{label:tags[0]||it||"Severe storm",tag:tags[0]||"Storms",why:`FEMA incident type: ${it||"n/a"}`};
 }
+// ---- Survivor-assistance (IA / IHP) classification — single source of truth ----
+// IA (Individual Assistance) is the umbrella authorization; IHP (Individuals & Households
+// Program) is the modern IA program with public per-disaster $ (approved HA + ONA). A record
+// flagged only with the legacy iaProgramDeclared (no ihpDeclared) is generally a pre-IHP
+// declaration with NO comparable IHP dollar series — so it must NEVER render as "$0 IHP".
+// (See scripts/verify_assistance_model.py for the mirrored logic + fixtures.)
+function ihpApprovedOf(d){ return Number((d.costs&&d.costs.ihpTotal)||d.ihp||0); }
+function survivorState(d){
+  if(!d) return "NONE";
+  const ihp=ihpApprovedOf(d);
+  const ih=!!d.ihpDeclared, iaOnly=!!(d.iaProgramDeclared&&!d.ihpDeclared);
+  if(ih)     return ihp>0?"IHP_WITH_AWARDS":"IHP_NO_AWARDS";
+  if(iaOnly) return ihp>0?"IA_ONLY_ANOMALY":"IA_ONLY";   // legacy pre-IHP / modern IA-only
+  return "NONE";
+}
+// Show an IHP money section? True when IHP is the declared program (modern) or real IHP $ exist
+// (the rare flag/dollar anomaly) — NOT merely because iaDeclared (the OR) is true.
+function isIHP(d){ const s=survivorState(d); return s==="IHP_WITH_AWARDS"||s==="IHP_NO_AWARDS"||s==="IA_ONLY_ANOMALY"; }
+function ihpEraNote(d){   // era-aware wording for IA-only (legacy pre-IHP vs modern IA-only)
+  const y=Number(((d.declared||d.begin||"")+"").slice(0,4))||Number(d.fy)||null;
+  return (y&&y<2003)
+    ? "This declaration predates the modern Individuals &amp; Households Program (IHP) data series."
+    : "Individual Assistance was authorized, but the modern IHP program was not declared for this disaster.";
+}
 function progBadges(d){
   let s="";
   if(d.pa>0||d.paDeclared)s+=`<span class="badge badge--pa">PA</span> `;
-  if(d.ihp>0||d.iaDeclared)s+=`<span class="badge badge--ia" title="Individuals & Households Program declared">IHP</span>`;
+  if(isIHP(d))s+=`<span class="badge badge--ia" title="Individuals & Households Program declared (IHP) — approved Housing + Other Needs Assistance">IHP</span> `;
+  else if(d.iaProgramDeclared)s+=`<span class="badge badge--legacy" title="Legacy Individual Assistance authorized — predates the modern IHP dollar series">IA</span> `;
+  if(d.hmProgramDeclared)s+=`<span class="badge badge--hm" title="Hazard Mitigation (HMGP, §404) authorized">HM</span>`;
   return s||`<span class="thr-sub">—</span>`;
 }
 function renderAnalogs(an){
@@ -1039,7 +1069,7 @@ function renderTimeline(){
 let sortKey="disasterNumber",sortDir=-1,monthFilter=null;
 function ledgerRows(){
   return DATA.filter(d=>(typeFilter==="All"||d.tags.includes(typeFilter))&&(monthFilter==null||new Date(d.begin+"T00:00:00").getMonth()===monthFilter)).map(d=>({...d,
-    tagstr:d.tags.join(","),prog:(d.pa>0||d.paDeclared?2:0)+(d.ihp>0||d.iaDeclared?1:0),
+    tagstr:d.tags.join(","),prog:(d.pa>0||d.paDeclared?2:0)+(isIHP(d)?1:0),
     wind:d.hz.windMph||0,hail:d.hz.hailIn||0,stage:d.hz.peakStageFt||0,rain:d.hz.rainIn||0,tornadoes:d.hz.tornadoes||0,ef:d.hz.torEF==null?-1:d.hz.torEF}));
 }
 function disasterRow(d){
@@ -1689,7 +1719,7 @@ let _geoByDn=null;
 function geoFull(dn){ if(!_geoByDn)_geoByDn=new Map(DISASTERS.map(d=>[d.disasterNumber,d])); return _geoByDn.get(dn); }
 function geoFiltering(){return !(geoPA&&geoIA&&geoHMGP);}
 function geoProgKeep(d){ if(!d)return false;          // PA/IHP use the declaration flags; HMGP uses funded $
-  return (geoPA&&d.paDeclared)||(geoIA&&d.iaDeclared)||(geoHMGP&&(((d.costs&&d.costs.hmgp)||0)>0)); }
+  return (geoPA&&d.paDeclared)||(geoIA&&isIHP(d))||(geoHMGP&&(((d.costs&&d.costs.hmgp)||0)>0)); }
 function geoCountyVal(o,m){
   const F=geoYrFiltering();
   if(m==="count"){ if(!geoFiltering()&&!F)return o.count||0; return (o.disasters||[]).filter(d=>geoProgKeep(geoFull(d.dn))&&inYr(d)).length; }
@@ -2539,6 +2569,33 @@ function renderDisasterDetail(dn){
     ["Housing Assistance (HA)",c.ihpHousing],
     ["Other Needs Assistance (ONA)",c.ihpOna],
   ].filter(r=>r[1]>0).map(r=>`<div class="brk-row sub"><span class="k">${r[0]}</span><span class="v">${fmtMoneyFull(r[1])}</span></div>`).join("");
+  // Survivor-assistance card adapts to the declaration state so a legacy/IA-only record never
+  // shows "$0 IHP". States: IHP_WITH_AWARDS · IHP_NO_AWARDS · IA_ONLY · IA_ONLY_ANOMALY · NONE.
+  const sstate=survivorState(d), regRow=`<div class="brk-row"><span class="k">Registrations approved</span><span class="v">${fmtNum(c.iaRegistrations||0)}</span></div>`;
+  let survivorCard;
+  if(sstate==="IHP_WITH_AWARDS"){
+    survivorCard=`<div class="lab">Individuals &amp; Households Program (IHP) <span style="color:var(--green-dark)">approved</span></div>
+      <div class="big">${fmtMoney(c.ihpTotal||0)}</div>${exact(c.ihpTotal||0)}
+      <div class="brk">${iaRows}${regRow}</div>`;
+  }else if(sstate==="IHP_NO_AWARDS"){
+    survivorCard=`<div class="lab">Individuals &amp; Households Program (IHP) <span style="color:var(--green-dark)">authorized</span></div>
+      <div class="big" style="color:var(--ink-3)">—</div>
+      <div class="brk"><div class="brk-row sub"><span class="k">No approved IHP assistance reported (obligations/approvals can lag).</span></div>${regRow}</div>`;
+  }else if(sstate==="IA_ONLY"){
+    survivorCard=`<div class="lab">Legacy Individual Assistance <span style="color:#6b6b6b">authorized</span></div>
+      <div class="big" style="color:var(--ink-3)">Not available</div>
+      <div class="brk"><div class="brk-row sub"><span class="k">${ihpEraNote(d)}</span></div>
+        <div class="brk-row sub"><span class="k">Comparable IHP, Housing Assistance, and Other Needs Assistance totals are not available.</span></div></div>`;
+  }else if(sstate==="IA_ONLY_ANOMALY"){
+    survivorCard=`<div class="lab">Individuals &amp; Households Program (IHP) <span style="color:var(--green-dark)">approved</span></div>
+      <div class="big">${fmtMoney(c.ihpTotal||0)}</div>${exact(c.ihpTotal||0)}
+      <div class="brk">${iaRows}${regRow}
+        <div class="brk-row sub"><span class="k" style="color:#9a6a00">Source note: declaration records show IA declared but no IHP declaration flag — likely a historical or territorial source transition.</span></div></div>`;
+  }else{
+    survivorCard=`<div class="lab">Survivor assistance</div>
+      <div class="big" style="color:var(--ink-3)">—</div>
+      <div class="brk"><div class="brk-row sub"><span class="k">No Individual Assistance or IHP authorization recorded.</span></div></div>`;
+  }
 
   const costHtml=`
     <div class="sec-h">Federal assistance — actual figures for this disaster<span class="src">OpenFEMA</span></div>
@@ -2552,14 +2609,7 @@ function renderDisasterDetail(dn){
           ${c.hmgp>0?`<div class="brk-row"><span class="k">Hazard Mitigation (HMGP) obligated</span><span class="v">${fmtMoneyFull(c.hmgp)}</span></div>`:""}
         </div>
       </div>
-      <div class="costcard ia">
-        <div class="lab">Individuals &amp; Households Program (IHP) <span style="color:var(--green-dark)">approved</span></div>
-        <div class="big">${fmtMoney(c.ihpTotal||0)}</div>${exact(c.ihpTotal||0)}
-        <div class="brk">
-          ${iaRows||`<div class="brk-row sub"><span class="k">No IHP approved (PA-only declaration)</span></div>`}
-          <div class="brk-row"><span class="k">Registrations approved</span><span class="v">${fmtNum(c.iaRegistrations||0)}</span></div>
-        </div>
-      </div>
+      <div class="costcard ia">${survivorCard}</div>
     </div>`;
 
   // measured parameters with provenance + per-parameter traceability links
@@ -2618,7 +2668,16 @@ function renderDisasterDetail(dn){
   }
   const pt=primaryTrigger(d);
   const triggerHtml=`<div class="trigbanner"><div class="tb-ic">${TRIG_ICON[pt.tag]||"⚠️"}</div><div><div class="tb-lab">Main trigger · ${pt.label}</div><div class="tb-why">${pt.why}</div></div></div>`;
-  el("mBody").innerHTML=triggerHtml+costHtml+gageHtml+parmHtml+nexusSection(d)+geoLinkHtml+linkHtml;
+  const yn=v=>v?"Yes":"No";
+  const flagsHtml=`<details class="srcflags"><summary class="thr-sub">Source declaration flags <span class="thr-sub">(analyst)</span></summary>
+    <div class="brk" style="margin-top:6px">
+      <div class="brk-row"><span class="k">IA-authorized <span class="thr-sub">(ihp OR ia)</span></span><span class="v">${yn(d.iaDeclared)}</span></div>
+      <div class="brk-row"><span class="k">IHP declared <span class="thr-sub">(ihProgramDeclared)</span></span><span class="v">${yn(d.ihpDeclared)}</span></div>
+      <div class="brk-row"><span class="k">Raw IA flag <span class="thr-sub">(iaProgramDeclared)</span></span><span class="v">${yn(d.iaProgramDeclared)}</span></div>
+      <div class="brk-row"><span class="k">PA declared</span><span class="v">${yn(d.paDeclared)}</span></div>
+      <div class="brk-row"><span class="k">HM declared</span><span class="v">${yn(d.hmProgramDeclared)}</span></div>
+    </div></details>`;
+  el("mBody").innerHTML=triggerHtml+costHtml+gageHtml+parmHtml+nexusSection(d)+geoLinkHtml+linkHtml+flagsHtml;
 }
 /* ledger modal — "Triggers & how often": per-disaster hazard params + frequency */
 function matchBin(lab,v){lab=String(lab).replace(/[″"]/g,"");
