@@ -64,10 +64,20 @@ def load_json(path, default=None):
 
 
 def list_artifacts():
-    """Every committed data/*.json (except the lineage feature's own) is an artifact."""
+    """Every COMMITTED data/*.json (except the lineage feature's own) is an artifact.
+
+    Skips `_`-prefixed files: that is the repo's .gitignore convention for regenerable
+    intermediates/caches (data/_request_cache.json, data/_ihp_dc_cache.json, …). Those
+    are NOT committed, so they must never become artifact nodes — otherwise the manifest
+    would depend on whatever caches happen to sit in data/ locally (the build scripts
+    create them), and a clean CI checkout (no caches) would regenerate a different
+    manifest and fail --check though nothing real drifted. Keeping the enumeration to
+    committed files makes the output deterministic. (Equivalent, convention-free option:
+    enumerate `git ls-files data/*.json`.)
+    """
     out = []
     for fn in sorted(os.listdir(DATA)):
-        if fn.endswith(".json") and fn not in SELF_FILES:
+        if fn.endswith(".json") and fn not in SELF_FILES and not fn.startswith("_"):
             out.append(fn)
     return out
 

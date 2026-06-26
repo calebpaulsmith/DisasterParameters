@@ -202,6 +202,21 @@ few PA totals against the granular PA Funded Projects worksheets before shipping
   approximate (`official:false`).
 - Tap-through is wired by event delegation on `[data-dn]` → `openDetail(dn)`.
   Any element representing a disaster should carry `data-dn="<disasterNumber>"`.
+- **Data lineage manifest (the "Provenance Atlas").** `data/lineage.json` is a BUILD
+  ARTIFACT — never hand-edit it. Hand-edit only `data/lineage.seed.json` (providers/
+  sources/transforms/surfaces + prose), then regenerate with
+  `python3 scripts/build_lineage.py` and check with `python3 scripts/verify_lineage.py`
+  (the CI "Guardian"; also runs in `.github/workflows/verify-lineage.yml` + after every
+  refresh workflow). Rules that keep it honest: (1) **whenever you add/remove a committed
+  `data/*.json`, OR add a `fetch("data/…")` in `index.html`, you MUST update the seed +
+  rebuild** — the Guardian fails on orphan artifacts and untracked fetches by design.
+  (2) The artifact list is enumerated from `data/` but **skips `_`-prefixed files** (the
+  gitignore convention for regenerable caches); never commit a `data/_*.json`, and the
+  manifest stays deterministic regardless of local caches. (3) `lineage.json` is
+  STRUCTURAL ONLY — no freshness baked in (that's joined live from `manifest.json` at
+  render). (4) **Serialize seed edits:** two branches/sessions editing `lineage.seed.json`
+  concurrently WILL conflict — do lineage changes in one branch at a time. Full design:
+  `docs/lineage-plan.md`; portable version for other repos: `docs/lineage-discovery-prompt.md`.
 
 ## Deployment
 
