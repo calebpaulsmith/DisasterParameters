@@ -229,8 +229,13 @@ matched to reality and is therefore Phase 0. Offline, no network. It **exits non
   (**no untracked consumption**).
 - Every Source `columnsUsed` ⊆ dictionary columns; emit `columnsUnused`.
 
-Wired into a CI workflow (new, or appended to an existing one). **Acceptance proof:
-deliberately break one edge → CI goes red.** This is the anti-AI-slop guardrail.
+**Placement (decided):** the Guardian is **bolted onto the existing refresh workflows
+— it runs *after* a refresh finishes** (a refresh that changes the data web must be
+re-verified immediately), **and** it is **independently runnable** as its own
+standalone workflow / `python3 scripts/verify_lineage.py` for local + on-demand checks.
+**Both results surface in the Lineage view** (a "manifest verified · <date>" badge,
+red if the last Guardian run failed). **Acceptance proof: deliberately break one edge →
+CI goes red.** This is the anti-AI-slop guardrail.
 
 ---
 
@@ -318,14 +323,16 @@ built, not forgotten. When a phase lands, revisit this list.
 
 ---
 
-## 11. Open questions (to resolve as we go)
+## 11. Open questions
 
+**Resolved (owner, 2026-06-26):**
+- **In-browser joins (`applyNfip()` etc.) DO get their own Transform nodes**
+  (`runtime: browser`). "Show them; we can always hide later."
+- **Guardian placement:** bolted onto the refresh workflows (runs *after* a refresh)
+  **and** independently runnable; both run results surface in the Lineage view. (§6)
+
+**Still open (resolve as we go):**
 - Exact color thresholds for `aging` vs `stale` (multiple of cadence?).
-- Do browser in-page joins (`applyNfip()` etc.) get their own Transform nodes in v1,
-  or are they folded into the Surface for simplicity? (Leaning: show them — they're
-  real process nodes and the owner wants the joins visible.)
-- Where the CI Guardian lives: standalone workflow vs appended to `pages.yml` /
-  refresh workflows.
 - How aggressively to deep-link Surface `location` back into `index.html` (anchors
   exist per view; per-widget anchors may need adding).
 ```
