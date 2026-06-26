@@ -21,7 +21,7 @@ def hmgp_projects(dn):
     out=[]; skip=0
     for _ in range(12):
         flt=urllib.parse.quote(f"disasterNumber eq {dn} and programArea eq 'HMGP'")
-        sel=urllib.parse.quote("subrecipient,stateNumberCode,countyCode,federalShareObligated")
+        sel=urllib.parse.quote("subrecipient,stateNumberCode,countyCode,county,federalShareObligated,projectType,status,numberOfProperties,initialObligationDate,dateApproved")
         u=(f"https://www.fema.gov/api/open/v4/HazardMitigationAssistanceProjects"
            f"?$filter={flt}&$select={sel}&$top=1000&$skip={skip}&$format=json")
         txt=fetch(u)
@@ -39,8 +39,22 @@ dns=[d["disasterNumber"] for d in dis if (d.get("costs") or {}).get("hmgp")]
 print(f"{len(dns)} R5 disasters with HMGP; pulling projects…")
 
 def newapps(): return {}
-def addapp(d,name,fed,dn):
-    a=d.setdefault(name,[0.0,0,set()]); a[0]+=fed; a[1]+=1; a[2].add(dn)
+def addapp(d,name,r,fed,dn):
+    a=d.setdefault(name,{"hmgp":0.0,"projects":0,"dns":set(),"types":{},"props":0,"d0":None,"d1":None,"counties":set(),"status":{}})
+    a["hmgp"]+=fed; a["projects"]+=1; a["dns"].add(dn)
+    for piece in str(r.get("projectType") or "").split(";"):
+        piece=piece.strip()
+        if piece: a["types"][piece]=a["types"].get(piece,0)+1
+    try: a["props"]+=int(float(r.get("numberOfProperties") or 0))
+    except Exception: pass
+    od=str(r.get("initialObligationDate") or r.get("dateApproved") or "")[:10]
+    if len(od)==10:
+        if not a["d0"] or od<a["d0"]: a["d0"]=od
+        if not a["d1"] or od>a["d1"]: a["d1"]=od
+    cn=(r.get("county") or "").strip()
+    if cn: a["counties"].add(cn)
+    stts=(r.get("status") or "").strip()
+    if stts: a["status"][stts]=a["status"].get(stts,0)+1
 cAgg={}; sAgg={s:{"hmgp":0.0,"apps":newapps()} for s in states}; total_by_state={s:0.0 for s in states}
 for i,dn in enumerate(dns):
     recs=hmgp_projects(dn); time.sleep(0.1)
@@ -53,13 +67,18 @@ for i,dn in enumerate(dns):
         total_by_state[ab]=total_by_state.get(ab,0)+fed
         fips=f"{int(sc):02d}{int(cc):03d}" if cc not in (None,"") else None
         if sub.lower()=="statewide" or not fips or fips not in cty:
-            sAgg[ab]["hmgp"]+=fed; addapp(sAgg[ab]["apps"],sub,fed,dn)        # -> STATEWIDE bucket
+            sAgg[ab]["hmgp"]+=fed; addapp(sAgg[ab]["apps"],sub,r,fed,dn)        # -> STATEWIDE bucket
         else:
-            a=cAgg.setdefault(fips,{"hmgp":0.0,"apps":newapps()}); a["hmgp"]+=fed; addapp(a["apps"],sub,fed,dn)
+            a=cAgg.setdefault(fips,{"hmgp":0.0,"apps":newapps()}); a["hmgp"]+=fed; addapp(a["apps"],sub,r,fed,dn)
     print(f"  [{i+1}/{len(dns)}] DR-{dn}: {len(recs)} proj")
 
 def applist(apps):
-    L=[{"name":k,"hmgp":round(v[0]),"projects":v[1],"nDisasters":len(v[2]),"dns":sorted(v[2])} for k,v in apps.items()]
+    L=[]
+    for k,v in apps.items():
+        types=[t for t,_ in sorted(v["types"].items(),key=lambda x:-x[1])][:4]
+        L.append({"name":k,"hmgp":round(v["hmgp"]),"projects":v["projects"],"nDisasters":len(v["dns"]),"dns":sorted(v["dns"]),
+                  "types":types,"props":v["props"],"d0":v["d0"],"d1":v["d1"],
+                  "counties":sorted(v["counties"])[:8]})
     L.sort(key=lambda x:-x["hmgp"]); return L
 for fips,a in cAgg.items():
     cty[fips]["hmgpObligated"]=round(a["hmgp"]); cty[fips]["hmgpApplicants"]=applist(a["apps"]); cty[fips]["nHmgpApplicants"]=len(a["apps"])
