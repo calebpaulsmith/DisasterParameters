@@ -498,6 +498,9 @@ tr.clickable:hover td{background:#eef3f8;}
 .geobar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
 .geohint{flex:1;min-width:220px;}
 .mtag{display:inline-block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#6b3fa0;background:#f3eefb;border:1px solid #ddccf2;border-radius:6px;padding:1px 5px;margin-left:6px;vertical-align:middle;cursor:help;}
+.ncbar{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px;}
+.ncbtn{font:inherit;font-size:11.5px;font-weight:700;color:var(--navy);background:#eef3fb;border:1px solid #c2dcf3;border-radius:8px;padding:5px 10px;cursor:pointer;}
+.ncbtn:hover{background:#dce9f8;}
 .geodash{display:grid;grid-template-columns:200px 1fr 390px;gap:12px;height:calc(100vh - 400px);min-height:380px;}
 .geotl{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:7px 12px 9px;user-select:none;}
 .geotl .gtlhd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-bottom:2px;}
@@ -1962,6 +1965,18 @@ function showCountyGeo(fips){            // enter county focus: zoom, applicants
   const box=el("geoPick"); if(box)box.innerHTML=countyDetailHTML(o,fips);
   syncHash();
 }
+function showNonCounty(s,kind){          // browse a no-county PA applicant bucket (NEVER on the choropleth)
+  const st=(DECL.states||{})[s], box=el("geoPick"); if(!st||!box)return;
+  const MAP={statewide:["paStatewideApplicants","Statewide / no-county PA applicants","state agencies & statewide contracts, not tied to a county"],
+             coops:["paUnmatchedApplicants","Out-of-region / coops","coded to this state but an out-of-state or unresolvable county (e.g. border electric coops)"],
+             undeclared:["paUndeclaredApplicants","Undeclared-county PA applicants","an R5 county with no declaration record"]};
+  const [key,title,note]=MAP[kind]||MAP.statewide;
+  const arr=st[key]||[], amt=arr.reduce((t,a)=>t+(a.pa||0),0);
+  const rows=arr.map(a=>`<div class="declrow"><span class="dk">${a.name}${a.county?` <span class="thr-sub">(${a.county})</span>`:""}${mergedTag(a)}</span><span class="dv">${fmtMoney(a.pa)}<span class="thr-sub"> · ${fmtNum(a.projects||0)} proj</span></span></div>`).join("");
+  box.innerHTML=`<div class="declhd"><span class="geoclear" data-gnoncback="${s}">← ${st.name}</span><br><b>${title}</b> — ${st.name}<br>`
+    +`${fmtNum(arr.length)} applicants · <b>${fmtMoney(amt)}</b> <span class="thr-sub">· ${note} · not on the map</span></div>`
+    +(rows||`<p class="thr-sub">None.</p>`);
+}
 function showApplicant(fips,idx){
   const o=(DECL.counties||{})[fips]; if(!o||!o.applicants)return;
   const a=o.applicants[idx]; if(!a)return;
@@ -2001,11 +2016,12 @@ function showStateGeo(s){
   const blkProj=row("PA projects",`${fmtNum(st.paProjects)}`)+row("· statewide",fmtNum(st.projectsStatewide),1);
   const blkIHP=row("IHP approved",fmtMoney(st.ihpApproved))+row("· Housing (HA)",fmtMoney(st.ihpHousing||0),1)+row("· Other Needs (ONA)",fmtMoney(st.ihpOna||0),1)+row("· statewide",fmtMoney(st.ihpStatewide),1)+row("· IA registrations",fmtNum(st.iaRegistrations||0),1);
   const blkHMGP=row("HMGP obligated",fmtMoney(st.hmgpObligated||0))+row("· statewide",fmtMoney(st.hmgpStatewide||0),1);
-  const swA=st.paStatewideApplicants||[];
+  const swA=st.paStatewideApplicants||[], coopA=st.paUnmatchedApplicants||[], udA=st.paUndeclaredApplicants||[];
   const blkAppl=row("PA applicants",fmtNum((st._paApplCounty||0)+swA.length))+row("· in counties",fmtNum(st._paApplCounty||0),1)+row("· statewide / no county",`${fmtNum(swA.length)} · ${fmtMoney(st._paApplSWamt||0)}`,1);
-  const swList=(sp==="pa"&&swA.length)?`<div class="declsub" style="margin-top:6px">Statewide / no-county PA applicants <span class="thr-sub">· state agencies, not tied to a county (recovered — were previously uncounted)</span></div>`
-      +swA.slice(0,APPL_CAP).map(a=>`<div class="declrow"><span class="dk">${a.name}${mergedTag(a)}</span><span class="dv">${fmtMoney(a.pa)}</span></div>`).join("")
-      +(swA.length>APPL_CAP?`<div class="thr-sub" style="padding:4px">+ ${fmtNum(swA.length-APPL_CAP)} more · ${fmtMoney(st._paApplSWamt||0)} total statewide</div>`:""):"";
+  const ncB=(kind,label,arr)=>arr&&arr.length?`<button class="ncbtn" data-gnonc="${s}|${kind}">${label} · ${fmtNum(arr.length)} · ${fmtMoney(arr.reduce((t,a)=>t+(a.pa||0),0))} →</button>`:"";
+  const swList=(sp==="pa"&&(swA.length||coopA.length||udA.length))?
+      `<div class="declsub" style="margin-top:6px">Non-county PA applicants <span class="thr-sub">· browse groups not tied to a county — never shown on the map</span></div>`
+      +`<div class="ncbar">${ncB("statewide","Statewide / no county",swA)}${ncB("coops","Out-of-region / coops",coopA)}${ncB("undeclared","Undeclared county",udA)}</div>`:"";
   const body=sp==="ihp"?blkIHP+blkPA+blkProj+blkHMGP:sp==="hmgp"?blkHMGP+blkPA+blkIHP+blkProj:sp==="pa"?blkPA+blkProj+blkAppl+blkIHP+blkHMGP:blkPA+blkIHP+blkProj;
   box.innerHTML=`<div class="declhd"><b>${st.name}</b> — ${st.nDisasters} declared disasters</div>`+body+swList+
     (geoCovid&&COVID&&COVID.states&&COVID.states[s]?`<div class="declrow" style="background:#fff3f3"><span class="dk"><b>+ COVID-19</b> · statewide</span><span class="dv">${fmtMoney(COVID.states[s].paTotal||0)} PA · ${fmtMoney(COVID.states[s].ihpTotal||0)} IHP · ${fmtMoney(COVID.states[s].hmgp||0)} HMGP</span></div>`:"")+
@@ -3318,6 +3334,8 @@ function wire(){
     const gax=e.target.closest("[data-applexpand]"); if(gax){geoApplExpanded=!geoApplExpanded;renderGeoBoard();const o=geoCountyFocus&&DECL.counties[geoCountyFocus];if(o)el("geoPick").innerHTML=countyDetailHTML(o,geoCountyFocus);return;}
     const gap=e.target.closest("[data-gappl]"); if(gap){const p=gap.getAttribute("data-gappl").split("|");showApplicant(p[0],+p[1]);return;}
     const gf=e.target.closest("[data-gfips]"); if(gf){showCountyGeo(gf.getAttribute("data-gfips"));return;}
+    const nc=e.target.closest("[data-gnonc]"); if(nc){const p=nc.getAttribute("data-gnonc").split("|");showNonCounty(p[0],p[1]);return;}
+    const ncb=e.target.closest("[data-gnoncback]"); if(ncb){showStateGeo(ncb.getAttribute("data-gnoncback"));return;}
     const gs=e.target.closest("[data-gstate]"); if(gs){geoSelectState(gs.getAttribute("data-gstate"));return;}
     const gjc=e.target.closest("[data-geocounty]"); if(gjc){const f=gjc.getAttribute("data-geocounty");closeDetail();if(isMobileGeo()){showView("geography");gmGoCounty(f);return;}geoStateFilter=(DECL.counties[f]||{}).state||null;geoMetric="paObligated";showView("geography");setGeoMetric("paObligated");showCountyGeo(f);return;}
     const gjs=e.target.closest("[data-geostate]"); if(gjs){const s=gjs.getAttribute("data-geostate");closeDetail();if(isMobileGeo()){showView("geography");gmGoState(s);return;}geoStateFilter=s;geoMetric="paObligated";showView("geography");setGeoMetric("paObligated");showStateGeo(s);syncHash();return;}
