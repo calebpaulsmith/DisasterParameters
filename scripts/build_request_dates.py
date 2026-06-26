@@ -76,7 +76,7 @@ def fetch_one(date, url):
         bdate, hc, rows = bp.parse_pending(tmp)
         lean = [{k: r[k] for k in ("entity", "entityName", "state", "region",
                 "incident", "appeal", "decision", "type", "ia", "pa", "hm",
-                "requestedRaw", "incidentPeriod", "incidentPeriodStart")} for r in rows]
+                "requestedRaw", "incidentPeriod", "incidentPeriodStart", "countiesRequested")} for r in rows]
         inproc = sum(1 for r in rows if not r.get("decision"))  # header counts only in-process
         return date, {"url": url, "briefDate": bdate.isoformat() if bdate else None,
                       "header": hc, "parsed": len(rows), "inproc": inproc,
@@ -132,14 +132,19 @@ def build_inventory(cache):
                     "decision": None, "decisionDate": None,
                     "incidentPeriod": r.get("incidentPeriod"),
                     "incidentPeriodStart": r.get("incidentPeriodStart"),
+                    "countiesRequested": r.get("countiesRequested"),
                 }
             else:
                 e["lastSeen"] = d
                 for f in ("ia", "pa", "hm"):
                     e[f] = e[f] or r[f]
+                # incident period + counties come from the detail page in the brief
+                # where the request was newly filed — backfill from whichever brief had it
                 if not e.get("incidentPeriod") and r.get("incidentPeriod"):
                     e["incidentPeriod"] = r["incidentPeriod"]
                     e["incidentPeriodStart"] = r.get("incidentPeriodStart")
+                if not e.get("countiesRequested") and r.get("countiesRequested"):
+                    e["countiesRequested"] = r["countiesRequested"]
             # capture the brief's own decision tag + the date it first appeared
             if r.get("decision") and not e["decision"]:
                 e["decision"] = r["decision"]
@@ -264,6 +269,8 @@ def match_declarations(inv, date2url):
         # >1 ambiguous candidate and no unique approved tag -> leave unmatched (conservative)
         if pick:
             lag, r = pick
+            ips = r.get("incidentPeriodStart")
+            inc_lag = (dnum - daynum(ips)) if ips else None
             by_disaster[str(dcl["dn"])] = {
                 "requestDate": r["requestDate"], "requestedRaw": r["requestedRaw"],
                 "declared": dcl["declared"], "reqToDeclLagDays": lag,
@@ -272,6 +279,11 @@ def match_declarations(inv, date2url):
                 "firstSeenUrl": date2url.get(r["firstSeen"]),
                 "briefDecision": r["decision"], "briefDecisionDate": r["decisionDate"],
                 "decisionUrl": date2url.get(r["decisionDate"]) if r["decisionDate"] else None,
+                # incident period + counties requested, backfilled from the brief detail page
+                "incidentPeriod": r.get("incidentPeriod"),
+                "incidentPeriodStart": ips,
+                "incidentToDeclLagDays": inc_lag,
+                "countiesRequested": r.get("countiesRequested"),
                 "confidence": conf, "basis": basis, "incident": r["incident"],
                 "source": "FEMA Daily Operations Briefing (unofficial parse)",
             }
@@ -310,13 +322,16 @@ def main():
         "denialCrosscheck": cc,
         "r5DeclaredConsidered": n_decl, "r5RequestsHarvested": n_r5_req,
         "matchedDeclared": len(by_disaster),
+        "withIncidentPeriod": sum(1 for v in by_disaster.values() if v.get("incidentPeriod")),
+        "withCounties": sum(1 for v in by_disaster.values() if v.get("countiesRequested")),
         "byDisaster": by_disaster,
         "denialBriefs": denial_briefs,  # OpenFEMA denial reqNum -> the brief(s) it appeared in
     }
     path = os.path.join(DATA, "request_dates.json")
     json.dump(out, open(path, "w"), separators=(",", ":"))
     print(f"\nwrote request_dates.json ({os.path.getsize(path)//1024} KB): "
-          f"{len(by_disaster)} declared disasters with a harvested request date")
+          f"{len(by_disaster)} declared disasters with a harvested request date; "
+          f"{out['withIncidentPeriod']} w/ incident period, {out['withCounties']} w/ counties")
 
 
 if __name__ == "__main__":
