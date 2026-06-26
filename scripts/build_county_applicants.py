@@ -116,6 +116,26 @@ def main():
         apps.sort(key=lambda a:-a["pa"])
         if st in cd["states"]: cd["states"][st]["paStatewideApplicants"]=apps
 
+    # --- write coops (unmatched) + undeclared lists so they SURFACE (browsable, never on the map) ---
+    geo={c["f"]:c for c in load("r5_counties.json")}
+    for st in cd["states"]: cd["states"][st].pop("paUnmatchedApplicants",None); cd["states"][st].pop("paUndeclaredApplicants",None)
+    cd.pop("paOutOfRegionApplicants",None)
+    umby=collections.defaultdict(list); oor=[]
+    for (k0,name,cnty),v in unmatched.items():     # k0 = R5 abbr (cross-border) OR full state name (non-R5)
+        e={"name":name,"pa":round(v["pa"]),"projects":v["proj"],"nDisasters":len(v["dns"]),"dns":sorted(v["dns"]),"county":cnty}
+        if k0 in cd["states"]: umby[k0].append(e)
+        else: e["state"]=k0; oor.append(e)
+    for st,apps in umby.items():
+        apps.sort(key=lambda a:-a["pa"]); cd["states"][st]["paUnmatchedApplicants"]=apps
+    if oor: oor.sort(key=lambda a:-a["pa"]); cd["paOutOfRegionApplicants"]=oor
+    udby=collections.defaultdict(list)
+    for (st,name,fips),v in undeclared.items():
+        g=geo.get(fips,{})
+        udby[st].append({"name":name,"pa":round(v["pa"]),"projects":v["proj"],"nDisasters":len(v["dns"]),
+                         "dns":sorted(v["dns"]),"county":g.get("n",fips),"fips":fips})
+    for st,apps in udby.items():
+        apps.sort(key=lambda a:-a["pa"]); cd["states"][st]["paUndeclaredApplicants"]=apps
+
     # --- conservation audit ---
     def by_state(d, idx):
         o=collections.defaultdict(lambda:[0.0,0,0])
