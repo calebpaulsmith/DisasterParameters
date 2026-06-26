@@ -56,6 +56,7 @@ for fips,a in cAgg.items():
 for ab,st in states.items():
     csum=sum(round(a["mit"]) for f,a in cAgg.items() if cty.get(f,{}).get("state")==ab); sw=round(sAgg[ab]["mit"])
     st["mitObligated"]=csum+sw; st["mitStatewide"]=sw; st["mitByProgram"]=progmap(sAgg[ab]["prog"]) if False else None
+    st["mitStatewideApplicants"]=applist(sAgg[ab]["apps"])   # no-county mit grantees — browsable, mirrors hmgpStatewideApplicants
     # state-level program totals = county + statewide
     pall={}
     for f,a in cAgg.items():

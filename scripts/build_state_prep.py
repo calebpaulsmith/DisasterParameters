@@ -30,6 +30,17 @@ def yr(s):
     m=re.search(r"(19|20)\d\d",str(s or "")); return m.group(0) if m else None
 def srt(d,n=None):
     L=sorted(d.items(),key=lambda x:-x[1]); L=L[:n] if n else L; return {k:round(v) for k,v in L}
+FF="Firefighter (AFG/SAFER)"
+def afg_family(p):
+    """Map a NonDisasterAssistanceFirefighterGrants programName to a family. None = EMPG
+    (excluded — it is the separate `empg` field; including it here would double-count)."""
+    pl=(p or "").lower()
+    if "emergency management performance" in pl: return None
+    if "non-profit" in pl or "nonprofit" in pl: return "Nonprofit Security"
+    if any(k in pl for k in ("assistance to firefighters","staffing for adequate","fire prevention","station construction")): return FF
+    if "homeland security grant" in pl: return "Homeland Security"
+    if any(k in pl for k in ("transit security","port security","freight rail","intercity bus")): return "Transit/Port/Rail Security"
+    return "Other preparedness"
 cd=json.load(open(os.path.join(DATA,"county_declarations.json"))); states=cd["states"]
 for ab,full in NAMES.items():
     empg=pages("EmergencyManagementPerformanceGrants","v2",f"state eq '{full}'","fundingAmount,reportingPeriod,projectType")
@@ -39,19 +50,30 @@ for ab,full in NAMES.items():
         y=yr(r.get("reportingPeriod")); 
         if y: eByYear[y]=eByYear.get(y,0)+amt
         t=(r.get("projectType") or "Other").strip(); eByType[t]=eByType.get(t,0)+amt
+    # NonDisasterAssistanceFirefighterGrants is a GRAB-BAG of all DHS non-disaster grants (Homeland
+    # Security, Transit/Port, Nonprofit, EMPG, plus actual firefighter grants). Split by family;
+    # `afg` is now ONLY firefighter grants (honest label). EMPG-family rows are excluded (own field).
     afg=pages("NonDisasterAssistanceFirefighterGrants","v1",f"vendorState eq '{ab}'","awardAmount,vendorName,fiscalYear,programName")
-    aByYear={}; aByProg={}; vend={}; at=0.0
+    fam={}; prepByProg={}; prepByYear={}; ffByProg={}; ffByYear={}; ffVend={}; prept=0.0; fft=0.0; nff=0
     for r in afg:
-        amt=float(r.get("awardAmount") or 0); at+=amt
+        amt=float(r.get("awardAmount") or 0); p=(r.get("programName") or "AFG").strip()
+        f=afg_family(p)
+        if f is None: continue                      # EMPG → excluded (the dedicated `empg` field owns it)
         y=str(r.get("fiscalYear") or "").strip()[:4]
-        if y: aByYear[y]=aByYear.get(y,0)+amt
-        p=(r.get("programName") or "AFG").strip(); aByProg[p]=aByProg.get(p,0)+amt
-        vend[r.get("vendorName") or "?"]=vend.get(r.get("vendorName") or "?",0)+amt
+        prept+=amt; prepByProg[p]=prepByProg.get(p,0)+amt; fam[f]=fam.get(f,0)+amt
+        if y: prepByYear[y]=prepByYear.get(y,0)+amt
+        if f==FF:
+            fft+=amt; nff+=1; ffByProg[p]=ffByProg.get(p,0)+amt
+            if y: ffByYear[y]=ffByYear.get(y,0)+amt
+            ffVend[r.get("vendorName") or "?"]=ffVend.get(r.get("vendorName") or "?",0)+amt
     if ab in states:
         st=states[ab]
         st["empg"]=round(et); st["empgByYear"]=srt(eByYear); st["empgByType"]=srt(eByType,12)
-        st["afg"]=round(at); st["afgByYear"]=srt(aByYear); st["afgByProgram"]=srt(aByProg,8)
-        st["afgVendors"]=[{"name":k,"afg":round(v)} for k,v in sorted(vend.items(),key=lambda x:-x[1])[:40]]; st["nAfg"]=len(afg)
-    print(f"  {ab}: EMPG ${round(et):,} ({len(empg)}, {len(eByYear)}y, {len(eByType)} types) · AFG ${round(at):,} ({len(afg)}, {len(aByYear)}y, {len(aByProg)} progs)")
+        # afg* now = FIREFIGHTER grants only (AFG/SAFER/Fire Prevention/Station) — matches the label
+        st["afg"]=round(fft); st["afgByYear"]=srt(ffByYear); st["afgByProgram"]=srt(ffByProg); st["nAfg"]=nff
+        st["afgVendors"]=[{"name":k,"afg":round(v)} for k,v in sorted(ffVend.items(),key=lambda x:-x[1])[:40]]
+        # full non-disaster preparedness breakdown (EMPG excluded), for the program drill-down
+        st["prepTotal"]=round(prept); st["prepByFamily"]=srt(fam); st["prepByProgram"]=srt(prepByProg); st["prepByYear"]=srt(prepByYear)
+    print(f"  {ab}: EMPG ${round(et):,} · AFG(firefighter) ${round(fft):,} ({nff}) · prep total ${round(prept):,} fams={srt(fam)}")
 json.dump(cd,open(os.path.join(DATA,"county_declarations.json"),"w"),separators=(",",":"))
 print("wrote EMPG+AFG with by-year / breakdowns / recipients")
