@@ -856,6 +856,10 @@ tr.clickable:hover td{background:#eef3f8;}
         <button data-geom="mitObligated" data-prog="nondis" class="ndis" title="Non-disaster hazard-mitigation grants (FMA · PDM · BRIC) — competitive, not tied to a declaration">Mitigation $</button>
         <button data-geom="empg" data-prog="nondis" class="ndis" title="Emergency Management Performance Grants — state-level preparedness (no county; the map fills each state)">EMPG $</button>
         <button data-geom="afg" data-prog="nondis" class="ndis" title="Assistance to Firefighters Grants — state-level (no county; the map fills each state)">AFG $</button>
+        <button data-geom="prepHomeland" data-prog="nondis" class="ndis" title="Homeland Security Grant Program (SHSP/UASI/OPSG) — state-level preparedness (no county; the map fills each state)">Homeland $</button>
+        <button data-geom="prepTransit" data-prog="nondis" class="ndis" title="Transit / Port / Rail / Intercity-bus security grants — state-level (no county; the map fills each state)">Transit/Port $</button>
+        <button data-geom="prepNonprofit" data-prog="nondis" class="ndis" title="Nonprofit Security Grant Program — state-level (no county; the map fills each state)">Nonprofit $</button>
+        <button data-geom="prepOther" data-prog="nondis" class="ndis" title="Other DHS non-disaster preparedness grants (EMPG excluded — its own measure) — state-level (no county; the map fills each state)">Other prep $</button>
         <button data-geom="recentPA" data-prog="recent" class="rec" title="PA obligations in the selected recent window (lastObligationDate)">Recent PA $</button>
         <button data-geom="recentHM" data-prog="recent" class="rec" title="Hazard Mitigation obligations in the selected recent window (initialObligationDate)">Recent HM $</button>
         <button data-geom="nfipPaid" data-prog="nfip" title="Total NFIP flood-insurance claims paid (building + contents + ICC), since 1978">Paid $</button>
@@ -1414,6 +1418,10 @@ const GEO_META={count:{label:"disasters",fmt:v=>String(v)},
   mitObligated:{label:"non-disaster mitigation",fmt:v=>fmtMoney(v)},
   empg:{label:"EMPG · preparedness (state)",fmt:v=>fmtMoney(v)},
   afg:{label:"AFG · firefighter (state)",fmt:v=>fmtMoney(v)},
+  prepHomeland:{label:"Homeland Security (state)",fmt:v=>fmtMoney(v)},
+  prepTransit:{label:"Transit/Port/Rail security (state)",fmt:v=>fmtMoney(v)},
+  prepNonprofit:{label:"Nonprofit security (state)",fmt:v=>fmtMoney(v)},
+  prepOther:{label:"Other preparedness (state)",fmt:v=>fmtMoney(v)},
   recentPA:{label:"recent PA obligated",fmt:v=>fmtMoney(v)},
   recentHM:{label:"recent HM obligated",fmt:v=>fmtMoney(v)},
   nfipPaid:{label:"NFIP claims paid",fmt:v=>fmtMoney(v)},
@@ -1430,6 +1438,7 @@ function geoColor(m,v){
   if(m==="mitObligated")return v>=10e6?"#0b525b":v>=2e6?"#0e7c86":v>=5e5?"#3aa8b0":v>=1e5?"#7fcdd3":"#d7f0f2";
   if(m==="empg")return v>=90e6?"#7a5901":v>=70e6?"#a87a02":v>=50e6?"#d4a017":v>=30e6?"#e8c468":"#f6e3a8";
   if(m==="afg")return v>=5e8?"#7a0b0b":v>=3e8?"#b42318":v>=1.5e8?"#e8590c":v>=5e7?"#fb8c00":"#ffd9a0";
+  if(PREP_FAMILY[m])return v>=2e8?"#240046":v>=5e7?"#3c096c":v>=1e7?"#5a189a":v>=1e6?"#7b2cbf":"#d9c2f0";
   if(m==="recentPA")return v>=2e6?"#0b6e3b":v>=5e5?"#1a9850":v>=1e5?"#52b788":v>=1e4?"#95d5b2":"#d8f3dc";
   if(m==="recentHM")return v>=1e6?"#3d2a6e":v>=2.5e5?"#5a3e8e":v>=5e4?"#7b5fb0":v>=1e4?"#9d8ec9":"#e7e0f2";
   if(m==="nfipPaid"||m==="nfipOutPaid")return v>=5e7?"#084081":v>=1e7?"#0868ac":v>=2e6?"#2b8cbe":v>=2.5e5?"#4eb3d3":v>=1?"#a8ddb5":"#eef2f7";
@@ -1449,16 +1458,24 @@ const GEO_LEGEND={count:[[0,"0"],[1,"1"],[2,"2–3"],[4,"4–5"],[6,"6–7"],[8,
   mitObligated:[[0,"$0"],[1,"<$100k"],[1e5,"100–500k"],[5e5,"0.5–2M"],[2e6,"2–10M"],[1e7,"$10M+"]],
   empg:[[0,"$0"],[1,"<$50M"],[50e6,"50–70M"],[70e6,"70–90M"],[90e6,"$90M+"]],
   afg:[[0,"$0"],[1,"<$50M"],[5e7,"50–150M"],[1.5e8,"150–300M"],[3e8,"300–500M"],[5e8,"$500M+"]],
+  prepHomeland:[[0,"$0"],[1,"<$1M"],[1e6,"1–10M"],[1e7,"10–50M"],[5e7,"50–200M"],[2e8,"$200M+"]],
+  prepTransit:[[0,"$0"],[1,"<$1M"],[1e6,"1–10M"],[1e7,"10–50M"],[5e7,"50–200M"],[2e8,"$200M+"]],
+  prepNonprofit:[[0,"$0"],[1,"<$1M"],[1e6,"1–10M"],[1e7,"10–50M"],[5e7,"50–200M"],[2e8,"$200M+"]],
+  prepOther:[[0,"$0"],[1,"<$1M"],[1e6,"1–10M"],[1e7,"10–50M"],[5e7,"50–200M"],[2e8,"$200M+"]],
   recentPA:[[0,"$0"],[1,"<$10k"],[1e4,"10–100k"],[1e5,"0.1–0.5M"],[5e5,"0.5–2M"],[2e6,"$2M+"]],
   recentHM:[[0,"$0"],[1,"<$10k"],[1e4,"10–50k"],[5e4,"50–250k"],[2.5e5,"0.25–1M"],[1e6,"$1M+"]],
   nfipPaid:[[0,"$0"],[1,"<$250k"],[2.5e5,"0.25–2M"],[2e6,"2–10M"],[1e7,"10–50M"],[5e7,"$50M+"]],
   nfipOutPaid:[[0,"$0"],[1,"<$250k"],[2.5e5,"0.25–2M"],[2e6,"2–10M"],[1e7,"10–50M"],[5e7,"$50M+"]],
   nfipClaims:[[0,"0"],[1,"<50"],[50,"50–249"],[250,"250–999"],[1e3,"1–5k"],[5e3,"5k+"]]};
 const GEO_KEY={count:"nDisasters",paObligated:"paObligated",paProjects:"paProjects",paApplicants:"_paAppl",ihpApproved:"ihpApproved",ihpHousing:"ihpHousing",ihpOna:"ihpOna",iaRegistrations:"iaRegistrations",hmgpObligated:"hmgpObligated",hmgpSubs:"_hmgpSubs",mitObligated:"mitObligated",empg:"empg",afg:"afg",nfipPaid:"nfipPaid",nfipClaims:"nfipClaims",nfipOutPaid:"nfipOutPaid"};
-const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",paApplicants:"#4292c6",ihpApproved:"#e8590c",ihpHousing:"#fb8c00",ihpOna:"#d4621a",iaRegistrations:"#2b8cbe",hmgpObligated:"#6a4c93",hmgpSubs:"#7b5fb0",mitObligated:"#0e7c86",empg:"#d4a017",afg:"#e8590c",recentPA:"#1a9850",recentHM:"#6a4c93",nfipPaid:"#0868ac",nfipClaims:"#2b8cbe",nfipOutPaid:"#0868ac"};
-const GEO_STATEONLY={empg:1,afg:1};   // state-level metrics: fill the map by state, rank states in the board
+const GEO_BAR={count:"#7b2cbf",paObligated:"#1a9850",paProjects:"#2171b5",paApplicants:"#4292c6",ihpApproved:"#e8590c",ihpHousing:"#fb8c00",ihpOna:"#d4621a",iaRegistrations:"#2b8cbe",hmgpObligated:"#6a4c93",hmgpSubs:"#7b5fb0",mitObligated:"#0e7c86",empg:"#d4a017",afg:"#e8590c",prepHomeland:"#5a189a",prepTransit:"#5a189a",prepNonprofit:"#5a189a",prepOther:"#5a189a",recentPA:"#1a9850",recentHM:"#6a4c93",nfipPaid:"#0868ac",nfipClaims:"#2b8cbe",nfipOutPaid:"#0868ac"};
+const GEO_STATEONLY={empg:1,afg:1,prepHomeland:1,prepTransit:1,prepNonprofit:1,prepOther:1};   // state-level metrics: fill the map by state, rank states in the board
+// promoted preparedness families (Non-disaster) — value lives in st.prepByFamily[family], year series in st.prepFamilyYear[family]
+const PREP_FAMILY={prepHomeland:"Homeland Security",prepTransit:"Transit/Port/Rail Security",prepNonprofit:"Nonprofit Security",prepOther:"Other preparedness"};
+function prepFamVal(st,m){return (st&&st.prepByFamily)?(st.prepByFamily[PREP_FAMILY[m]]||0):0;}
+function prepFamYear(st,m){return ((st&&st.prepFamilyYear)?st.prepFamilyYear[PREP_FAMILY[m]]:null)||{};}
 // program-first selector: each measure belongs to one program; each program has a default measure
-const GEO_MEASURE_PROG={count:"overview",paObligated:"pa",paProjects:"pa",paApplicants:"pa",ihpApproved:"ia",ihpHousing:"ia",ihpOna:"ia",iaRegistrations:"ia",hmgpObligated:"hmgp",hmgpSubs:"hmgp",mitObligated:"nondis",empg:"nondis",afg:"nondis",recentPA:"recent",recentHM:"recent",nfipPaid:"nfip",nfipClaims:"nfip",nfipOutPaid:"nfip"};
+const GEO_MEASURE_PROG={count:"overview",paObligated:"pa",paProjects:"pa",paApplicants:"pa",ihpApproved:"ia",ihpHousing:"ia",ihpOna:"ia",iaRegistrations:"ia",hmgpObligated:"hmgp",hmgpSubs:"hmgp",mitObligated:"nondis",empg:"nondis",afg:"nondis",prepHomeland:"nondis",prepTransit:"nondis",prepNonprofit:"nondis",prepOther:"nondis",recentPA:"recent",recentHM:"recent",nfipPaid:"nfip",nfipClaims:"nfip",nfipOutPaid:"nfip"};
 const GEO_PROG_DEFAULT={overview:"count",pa:"paObligated",ia:"ihpApproved",hmgp:"hmgpObligated",nondis:"mitObligated",recent:"recentPA",nfip:"nfipPaid"};
 /* ===== Recent activity (live) — last 7/30/60/90 d fetched live from OpenFEMA; 1 yr from
    the daily-refreshed data/recent.json (a single live national pull truncates at the
@@ -2077,6 +2094,13 @@ function prepBreakdownHTML(s){
 }
 /* ===== state-level grant presentation (EMPG/AFG): sub-unit board + by-year trend ===== */
 function prepBoardHTML(m,s){
+  if(PREP_FAMILY[m]){                    // preparedness family → top recipients (prepFamilyVendors)
+    const fam=PREP_FAMILY[m]; let list;
+    if(s)list=((DECL.states[s].prepFamilyVendors||{})[fam]||[]).slice(0,APPL_CAP);
+    else{const all=[]; Object.values(DECL.states).forEach(st=>((st.prepFamilyVendors||{})[fam]||[]).forEach(v=>all.push(v))); all.sort((a,b)=>b.amt-a.amt); list=all.slice(0,APPL_CAP);}
+    return {tag:(s?DECL.states[s].name:"Region 5")+" · "+fam+" recipients",
+      html:list.length?list.map((a,i)=>`<div class="georow"><span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b></span><span class="gv">${fmtMoney(a.amt)}</span></div>`).join(""):`<p class="thr-sub" style="padding:8px">No recipients in scope.</p>`};
+  }
   if(m==="afg"){
     let list;
     if(s){list=(DECL.states[s].afgVendors||[]).slice(0,APPL_CAP);}
@@ -2091,9 +2115,10 @@ function prepBoardHTML(m,s){
   return {tag:(s?DECL.states[s].name:"Region 5")+" · EMPG by project type",
     html:ent.map(([k,v],i)=>`<div class="georow"><span class="gr"><span class="grk">${i+1}</span><b>${k}</b></span><span class="gv">${fmtMoney(v)}</span></div>`).join("")};
 }
-function prepByYear(m,s){const key=m+"ByYear"; let agg={};
-  if(s)agg=DECL.states[s][key]||{};
-  else Object.values(DECL.states).forEach(st=>Object.entries(st[key]||{}).forEach(([y,v])=>agg[y]=(agg[y]||0)+v));
+function prepByYear(m,s){let agg={};
+  const get=PREP_FAMILY[m]?(st=>prepFamYear(st,m)):(st=>st[m+"ByYear"]||{});
+  if(s)agg=get(DECL.states[s]);
+  else Object.values(DECL.states).forEach(st=>Object.entries(get(st)).forEach(([y,v])=>agg[y]=(agg[y]||0)+v));
   return Object.entries(agg).map(([y,v])=>[+y,v]).filter(p=>p[0]).sort((a,b)=>a[0]-b[0]);}
 function prepTrendHTML(m,s){
   const data=prepByYear(m,s);
@@ -2166,7 +2191,9 @@ function geoCountyVal(o,m){
   const F=geoYrFiltering();
   if(isRecentMetric(m))return recentBuckets(recentProg(m)).byFips[o.fips]||0;
   if(m==="count"){ if(!geoFiltering()&&!F)return o.count||0; return (o.disasters||[]).filter(d=>geoProgKeep(geoFull(d.dn))&&inYr(d)).length; }
-  if(GEO_STATEONLY[m]){const st=DECL.states[o.state]; if(!st)return 0; return F?yrSum(st[GEO_YEARKEY[m]],geoYearLo,geoYearHi):(st[m]||0);}   // fill county by its state's value
+  if(GEO_STATEONLY[m]){const st=DECL.states[o.state]; if(!st)return 0;
+    if(PREP_FAMILY[m])return F?yrSum(prepFamYear(st,m),geoYearLo,geoYearHi):prepFamVal(st,m);
+    return F?yrSum(st[GEO_YEARKEY[m]],geoYearLo,geoYearHi):(st[m]||0);}   // fill county by its state's value
   if(m==="mitObligated"){ if(F)return yrSum(o.mitByYear,geoYearLo,geoYearHi); return geoMitProg==="ALL"?(o.mitObligated||0):((o.mitByProgram||{})[geoMitProg]||0); }  // per-program mit isn't year-sliced (v1) → year filter sums all programs
   if(m==="paApplicants")return o.nApplicants||0;   // count measures (not year-bucketed)
   if(m==="hmgpSubs")return o.nHmgpApplicants||0;
@@ -2179,7 +2206,8 @@ function geoStateVal(st,s,m){
   const cov=(geoCovid&&COVID&&COVID.states&&!F)?COVID.states[s]:null;   // COVID is statewide & undated → only when NOT year-filtering
   if(m==="count"){ let n=(!geoFiltering()&&!F)?(st.nDisasters||0):DISASTERS.filter(d=>d.state===s&&geoProgKeep(d)&&inYr(d)).length;
     if(geoCovid&&COVID&&COVID.states&&COVID.states[s]&&(!F||(geoYearLo<=2020&&geoYearHi>=2020)))n+=1; return n; }   // COVID = incident year 2020
-  if(GEO_STATEONLY[m])return F?yrSum(st[GEO_YEARKEY[m]],geoYearLo,geoYearHi):(st[m]||0);
+  if(GEO_STATEONLY[m]){ if(PREP_FAMILY[m])return F?yrSum(prepFamYear(st,m),geoYearLo,geoYearHi):prepFamVal(st,m);
+    return F?yrSum(st[GEO_YEARKEY[m]],geoYearLo,geoYearHi):(st[m]||0); }
   if(m==="mitObligated"){ if(F)return yrSum(st.mitByYear,geoYearLo,geoYearHi); return geoMitProg==="ALL"?(st.mitObligated||0):((st.mitByProgram||{})[geoMitProg]||0); }
   let v=(F&&GEO_YEARKEY[m])?yrSum(st[GEO_YEARKEY[m]],geoYearLo,geoYearHi):(st[GEO_KEY[m]]||0);
   if(cov){ if(m==="paObligated")v+=cov.paTotal||0; else if(m==="ihpApproved")v+=cov.ihpTotal||0; else if(m==="hmgpObligated")v+=cov.hmgp||0; }
@@ -2235,6 +2263,10 @@ function geoScopeCountByYear(){         // # disasters by incident year for the 
 }
 function geoMetricByYear(m){            // scope-aware {year:value} for any metric
   if(m==="count")return geoScopeCountByYear();
+  if(PREP_FAMILY[m]){                    // preparedness families live at state level (prepFamilyYear)
+    const s=geoStateFilter||(geoCountyFocus?(DECL.counties[geoCountyFocus]||{}).state:null);
+    if(s)return prepFamYear(DECL.states[s]||{},m);
+    const agg={}; Object.values(DECL.states).forEach(st=>{const mm=prepFamYear(st,m); for(const y in mm)agg[y]=(agg[y]||0)+mm[y];}); return agg;}
   const em=GEO_YEARKEY[m]?m:GEO_YEARFALLBACK[m];   // measures w/o a year series borrow their program's $ series
   const yk=em&&GEO_YEARKEY[em]; if(!yk)return {};
   if(GEO_STATEONLY[em]){                  // EMPG/AFG live at state level
@@ -2255,6 +2287,7 @@ function geoTlFmt(kind,v){return kind==="money"?fmtMoney(v):fmtNum(v);}
 function geoSetYearBounds(){            // full span for the ACTIVE metric (region-wide, scope-independent)
   if(!DECL||!DECL.states)return; let lo=9999,hi=0; const ext=y=>{if(y>=1900){if(y<lo)lo=y;if(y>hi)hi=y;}};
   if(geoMetric==="count"){ DISASTERS.forEach(d=>ext(+String(d.begin||"").slice(0,4))); if(geoCovid)ext(2020); }
+  else if(PREP_FAMILY[geoMetric]){ Object.values(DECL.states).forEach(st=>{for(const y in prepFamYear(st,geoMetric))ext(+y);}); }
   else { const yk=GEO_YEARKEY[geoMetric]||GEO_YEARKEY[GEO_YEARFALLBACK[geoMetric]]; const keys=yk?[yk]:GEO_TL_DOLLAR_KEYS;
     Object.values(DECL.states).forEach(st=>keys.forEach(k=>{for(const y in (st[k]||{}))ext(+y);})); }
   if(hi>=lo){const wasFull=geoYearLo<=GEO_YR0&&geoYearHi>=GEO_YR1; GEO_YR0=lo;GEO_YR1=hi;
