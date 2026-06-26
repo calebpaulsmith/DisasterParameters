@@ -29,3 +29,6 @@ data/_paappl_cache.json
 
 # IA/IHP declaration-flag cache (regenerable; pulled by scripts/patch_ia_flag.py)
 data/_ia_flag_cache.json
+
+# Daily Ops Brief harvest cache (regenerable; pulled by scripts/build_request_dates.py)
+data/_request_cache.json
