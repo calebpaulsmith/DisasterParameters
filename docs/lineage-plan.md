@@ -153,7 +153,11 @@ first-class (it's a DAG, not a tree — §7).
 Hand-maintaining the structure is the thing we're trying to *kill*, so most of it is
 machine-derived and only the prose is hand-written:
 
-- **Artifacts** ← `ls data/*.json` + bytes/`dataAsOf` from existing `data/manifest.json`.
+- **Artifacts** ← `ls data/*.json`. Freshness (bytes/`dataAsOf`/`sourceCadence`) is
+  **NOT** baked into the committed manifest — it's volatile (changes every refresh) and
+  is joined live from `data/manifest.json` at render time (§5a). Keeping `lineage.json`
+  structural-only makes it deterministic, so the `--check` staleness gate is stable even
+  on a PR merged against a freshly-refreshed `main`.
 - **Transforms `writes`** ← scan `scripts/*.py` for the output filename(s) they write.
 - **Transforms `reads`** ← scan scripts for known OpenFEMA dataset names (regex over
   the endpoint catalog) and for input filenames they open.

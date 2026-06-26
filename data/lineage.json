@@ -1023,9 +1023,7 @@
     {
       "id": "context.json",
       "name": "data/context.json",
-      "bytes": 94171,
-      "dataAsOf": "2026-06",
-      "sourceCadence": null,
+      "freshnessFrom": "data/manifest.json",
       "description": "Per-state x hazard distribution of each driver metric (the Analyses view).",
       "deprecated": false,
       "links": [
@@ -1038,9 +1036,7 @@
     {
       "id": "county_declarations.json",
       "name": "data/county_declarations.json",
-      "bytes": 1691919,
-      "dataAsOf": "2026-06",
-      "sourceCadence": "daily",
+      "freshnessFrom": "data/manifest.json",
       "description": "The geo rollup: per-county declaration counts + disaster lists + PA/IHP/HMGP/non-disaster-mitigation $ + applicants/subrecipients + per-state preparedness + *ByYear buckets. Multi-producer (base map + additive enrichers).",
       "deprecated": false,
       "links": [
@@ -1060,9 +1056,7 @@
     {
       "id": "covid.json",
       "name": "data/covid.json",
-      "bytes": 2567,
-      "dataAsOf": "2026-06",
-      "sourceCadence": "daily",
+      "freshnessFrom": "data/manifest.json",
       "description": "Per-state COVID-19 PA obligated / IHP approved / projects (the standalone COVID-19 view).",
       "deprecated": false,
       "links": [
@@ -1075,9 +1069,7 @@
     {
       "id": "denials.json",
       "name": "data/denials.json",
-      "bytes": 80790,
-      "dataAsOf": null,
-      "sourceCadence": null,
+      "freshnessFrom": "data/manifest.json",
       "description": "Region 5 + nationwide declaration turndowns (FY2007+) for the Declaration Denials block.",
       "deprecated": false,
       "links": [
@@ -1090,9 +1082,7 @@
     {
       "id": "disaster_county_ihp.json",
       "name": "data/disaster_county_ihp.json",
-      "bytes": 16063,
-      "dataAsOf": null,
-      "sourceCadence": null,
+      "freshnessFrom": "data/manifest.json",
       "description": "Per-disaster x per-county IHP (approved $ + HA/ONA + valid-registration count) for the mobile Geography disaster drill-down.",
       "deprecated": false,
       "links": [
@@ -1105,9 +1095,7 @@
     {
       "id": "disasters.json",
       "name": "data/disasters.json",
-      "bytes": 75529,
-      "dataAsOf": null,
-      "sourceCadence": "daily",
+      "freshnessFrom": "data/manifest.json",
       "description": "80 Region 5 disasters (FY2007-2026): the source-of-truth ledger with hazards + authoritative PA/IHP costs + gage lists + declaration dates.",
       "deprecated": false,
       "links": [
@@ -1125,9 +1113,7 @@
     {
       "id": "disasters_national.json",
       "name": "data/disasters_national.json",
-      "bytes": 207642,
-      "dataAsOf": null,
-      "sourceCadence": "daily",
+      "freshnessFrom": "data/manifest.json",
       "description": "Lightweight nationwide companion (~1,196 disasters), declaration-lag fields only, for the Disaster Timelines National toggle.",
       "deprecated": false,
       "links": [
@@ -1140,9 +1126,7 @@
     {
       "id": "event_nexus.json",
       "name": "data/event_nexus.json",
-      "bytes": 80408,
-      "dataAsOf": null,
-      "sourceCadence": null,
+      "freshnessFrom": "data/manifest.json",
       "description": "Per-disaster characterizing driver values placed in history (the Analyses view).",
       "deprecated": false,
       "links": [
@@ -1155,9 +1139,7 @@
     {
       "id": "gages.json",
       "name": "data/gages.json",
-      "bytes": 187160,
-      "dataAsOf": null,
-      "sourceCadence": "as-needed (NWS AHPS)",
+      "freshnessFrom": "data/manifest.json",
       "description": "19 key USGS river gages: AHPS flood categories + crest history + declaration ties.",
       "deprecated": false,
       "links": [
@@ -1170,9 +1152,7 @@
     {
       "id": "manifest.json",
       "name": "data/manifest.json",
-      "bytes": null,
-      "dataAsOf": null,
-      "sourceCadence": null,
+      "freshnessFrom": "data/manifest.json",
       "description": "Per-file freshness manifest (dataAsOf vs sourceCadence) for the footer staleness stamp.",
       "deprecated": false,
       "links": [
@@ -1185,9 +1165,7 @@
     {
       "id": "newsreel.json",
       "name": "data/newsreel.json",
-      "bytes": 4333,
-      "dataAsOf": "2026-06-26",
-      "sourceCadence": "daily",
+      "freshnessFrom": "data/manifest.json",
       "description": "Per-program latest + biggest obligations (PA + Hazard Mitigation) for the Newsreel view.",
       "deprecated": false,
       "links": [
@@ -1200,9 +1178,7 @@
     {
       "id": "nfip.json",
       "name": "data/nfip.json",
-      "bytes": 344614,
-      "dataAsOf": "2026-06-25T13:13:44Z",
-      "sourceCadence": "monthly",
+      "freshnessFrom": "data/manifest.json",
       "description": "Region 5 county x year NFIP claims rollup (counts / paid / by-year / SFHA in-out).",
       "deprecated": false,
       "links": [
@@ -1215,9 +1191,7 @@
     {
       "id": "pending.json",
       "name": "data/pending.json",
-      "bytes": 7819,
-      "dataAsOf": null,
-      "sourceCadence": null,
+      "freshnessFrom": "data/manifest.json",
       "description": "Parsed 'Declaration Requests in Process' table from the latest FEMA Daily Operations Briefing PDF (the one non-OpenFEMA artifact).",
       "deprecated": false,
       "links": [
@@ -1230,9 +1204,7 @@
     {
       "id": "r5_counties.json",
       "name": "data/r5_counties.json",
-      "bytes": 185276,
-      "dataAsOf": null,
-      "sourceCadence": null,
+      "freshnessFrom": "data/manifest.json",
       "description": "Simplified Region 5 county polygons for the Watch declaration-history map.",
       "deprecated": false,
       "links": [
@@ -1245,9 +1217,7 @@
     {
       "id": "recent.json",
       "name": "data/recent.json",
-      "bytes": 102059,
-      "dataAsOf": "2026-06-26T12:29:05Z",
-      "sourceCadence": "daily",
+      "freshnessFrom": "data/manifest.json",
       "description": "Trailing ~400-day Region 5 PA + Hazard Mitigation obligation feed for the Geography 'Recent activity' view (hybrid: short windows fetched live, 1-year window from this file).",
       "deprecated": false,
       "links": [
@@ -1260,9 +1230,7 @@
     {
       "id": "timeline.json",
       "name": "data/timeline.json",
-      "bytes": 18953,
-      "dataAsOf": "2026-06",
-      "sourceCadence": "daily",
+      "freshnessFrom": "data/manifest.json",
       "description": "Monthly regional hazard series + per-month disaster list for the Ledger hazard timeline.",
       "deprecated": false,
       "links": [

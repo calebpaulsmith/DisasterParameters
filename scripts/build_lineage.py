@@ -15,8 +15,12 @@ Inputs
                             transforms(reads/writes), surfaces(reads), plus optional
                             artifact prose overrides. Schema documented below.
   data/*.json               the committed artifacts (enumerated → artifact nodes)
-  data/manifest.json        per-file freshness (bytes / dataAsOf / sourceCadence)
   docs/openfema-definitions/*.json   field dictionaries (→ columnsUnused per source)
+
+Freshness (bytes / dataAsOf / sourceCadence) is intentionally NOT embedded — it is
+volatile (changes every refresh) and is joined live from data/manifest.json at render
+time (see docs/lineage-plan.md §5). The output is therefore DETERMINISTIC given the
+seed + the set of data files, which is what makes --check a stable gate.
 
 Output
   data/lineage.json         the assembled manifest (a BUILD ARTIFACT — regenerate,
@@ -47,7 +51,6 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 SEED = os.path.join(DATA, "lineage.seed.json")
 OUT  = os.path.join(DATA, "lineage.json")
-MANIFEST = os.path.join(DATA, "manifest.json")
 
 # Artifacts that are NOT part of the lineage graph (the lineage feature's own files).
 SELF_FILES = {"lineage.json", "lineage.seed.json"}
@@ -95,20 +98,22 @@ def build():
     if seed is None:
         sys.exit(f"ERROR: missing seed file {os.path.relpath(SEED, ROOT)} — "
                  "author it (see schema in this script's docstring).")
-    manifest = (load_json(MANIFEST) or {}).get("files", {})
 
     # --- artifacts: derived from data/*.json, prose merged from seed ---
+    # NOTE: freshness (bytes / dataAsOf / sourceCadence) is deliberately NOT baked in
+    # here. That data lives in data/manifest.json and changes on every refresh; baking
+    # it would make this committed manifest churn and break the --check staleness gate
+    # on any branch whose data differs (e.g. a PR merged against a freshly-refreshed
+    # main). Per docs/lineage-plan.md §5, health/freshness is joined at RENDER time:
+    # the view looks up manifest.files[<artifact id>]. We only record the pointer.
     art_prose = seed.get("artifacts", {}) or {}
     artifacts = []
     for fn in list_artifacts():
-        meta = manifest.get(fn, {})
         prose = art_prose.get(fn, {})
         artifacts.append({
             "id": fn,
             "name": f"data/{fn}",
-            "bytes": meta.get("bytes"),
-            "dataAsOf": meta.get("dataAsOf"),
-            "sourceCadence": meta.get("sourceCadence"),
+            "freshnessFrom": "data/manifest.json",   # join by id at render time
             "description": prose.get("description"),
             "deprecated": bool(prose.get("deprecated", False)),
             "links": prose.get("links", [f"data/{fn}"]),
