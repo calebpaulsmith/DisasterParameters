@@ -534,6 +534,17 @@
       "links": ["scripts/build_pending.py"]
     },
     {
+      "id": "build_request_dates",
+      "name": "scripts/build_request_dates.py",
+      "runtime": "offline",
+      "schedule": ".github/workflows/refresh-request-dates.yml",
+      "method": "Harvests the FEMA Daily Ops Brief archive (Data Liberation Project), conservatively matches each request to an OpenFEMA declaration, and cross-checks against OpenFEMA denial request dates.",
+      "reads": ["femaDailyOpsBrief", "disasterDeclarationsSummaries", "declarationDenials", "denials.json"],
+      "writes": ["request_dates.json"],
+      "description": "Builds request_dates.json: request dates for DECLARED Region 5 disasters (which OpenFEMA does not publish), enabling a true request->declaration lag. Unofficial Daily-Ops-Brief parse, cross-checked vs OpenFEMA denial request dates.",
+      "links": ["scripts/build_request_dates.py"]
+    },
+    {
       "id": "build_timeline",
       "name": "scripts/build_timeline.py",
       "runtime": "offline",
@@ -616,8 +627,8 @@
       "id": "timelines",
       "name": "Disaster Timelines",
       "location": "index.html#view-timelines",
-      "reads": ["disasters.json", "disasters_national.json", "denials.json", "pending.json"],
-      "description": "Declaration-lag trend + distribution (Region 5 / National toggle), with the Declaration Denials and Declaration-requests-in-process (pending) blocks at the bottom.",
+      "reads": ["disasters.json", "disasters_national.json", "denials.json", "pending.json", "request_dates.json"],
+      "description": "Declaration-lag trend + distribution (Region 5 / National toggle), with the Declaration Denials, Declaration-requests-in-process (pending), and harvested request-date blocks at the bottom.",
       "links": ["index.html"]
     },
     {
@@ -667,6 +678,7 @@
     "disasters_national.json": { "description": "Lightweight nationwide companion (~1,196 disasters), declaration-lag fields only, for the Disaster Timelines National toggle." },
     "denials.json": { "description": "Region 5 + nationwide declaration turndowns (FY2007+) for the Declaration Denials block." },
     "pending.json": { "description": "Parsed 'Declaration Requests in Process' table from the latest FEMA Daily Operations Briefing PDF (the one non-OpenFEMA artifact)." },
+    "request_dates.json": { "description": "Harvested request dates for DECLARED Region 5 disasters (not published by OpenFEMA), from the FEMA Daily Ops Brief archive, conservatively matched to OpenFEMA declarations and cross-checked vs denial request dates." },
     "context.json": { "description": "Per-state x hazard distribution of each driver metric (the Analyses view)." },
     "event_nexus.json": { "description": "Per-disaster characterizing driver values placed in history (the Analyses view)." },
     "r5_counties.json": { "description": "Simplified Region 5 county polygons for the Watch declaration-history map." },
