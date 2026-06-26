@@ -202,6 +202,30 @@ few PA totals against the granular PA Funded Projects worksheets before shipping
   approximate (`official:false`).
 - Tap-through is wired by event delegation on `[data-dn]` → `openDetail(dn)`.
   Any element representing a disaster should carry `data-dn="<disasterNumber>"`.
+- **Data lineage manifest (the "Provenance Atlas").** `data/lineage.json` is a BUILD
+  ARTIFACT — never hand-edit it. Hand-edit only `data/lineage.seed.json` (providers/
+  sources/transforms/surfaces + prose), then regenerate with
+  `python3 scripts/build_lineage.py` and check with `python3 scripts/verify_lineage.py`
+  (the CI "Guardian"; also runs in `.github/workflows/verify-lineage.yml` + after every
+  refresh workflow). Rules that keep it honest: (1) **whenever you add/remove a committed
+  `data/*.json`, OR add a `fetch("data/…")` in `index.html`, you MUST update the seed +
+  rebuild** — the Guardian fails on orphan artifacts and untracked fetches by design.
+  (2) The artifact list is enumerated from `data/` but **skips `_`-prefixed files** (the
+  gitignore convention for regenerable caches); never commit a `data/_*.json`, and the
+  manifest stays deterministic regardless of local caches. (3) `lineage.json` is
+  STRUCTURAL ONLY — no freshness baked in (that's joined live from `manifest.json` at
+  render). **Multi-session safety (many parallel sessions edit data + the seed):** the
+  Guardian is the BACKSTOP — it makes any wiring mistake a VISIBLE red CI check at PR
+  time, never silent bad data, so parallel work is safe; the worst case is a resolvable
+  conflict, not corruption. To keep conflicts rare and trivial: (a) **rebase on `main`
+  right before** touching `lineage.seed.json`; (b) edit it **append-only** — add your
+  node(s) at the END of the relevant array and DON'T reformat the file (a deterministic
+  `build_lineage.py` writes `lineage.json`, so you only hand-edit the seed); (c) if two
+  PRs do collide on the seed, it's a trivial JSON array merge — **keep both sides' nodes,
+  then re-run `build_lineage.py && verify_lineage.py`** to reconcile. If seed collisions
+  become frequent, split the seed into per-domain fragments (deferred item in
+  `docs/lineage-plan.md` §9). Full design: `docs/lineage-plan.md`; portable version for
+  other repos: `docs/lineage-discovery-prompt.md`.
 
 ## Deployment
 

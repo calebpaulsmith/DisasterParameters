@@ -293,6 +293,7 @@ built, not forgotten. When a phase lands, revisit this list.
 | D6 | **Generalized spec / skill** — a paste-into-other-repos prompt that builds this lineage view for *any* convoluted repo (Goal #4) | after v1 proves out | Abstract THIS doc once it's real. OpenLineage-shaped model is what makes it generalize. |
 | D7 | **Live API health probes everywhere** | Phase 4 | Only the browser-fetched sources (NWS/USGS/short recent) can be truly probed client-side. |
 | D8 | **Refresh-failure alerting** | with D3 | Ties into the existing best-effort refresh workflows (see `docs/refresh-architecture.md`). |
+| D9 | **Split the seed into per-domain fragments** (`data/lineage.seed.d/*.json`, merged by `build_lineage.py`) | when seed collisions between parallel sessions become frequent | Lets sessions on different features (denials vs PA vs NFIP) edit DIFFERENT files → no merge conflict. Until then: the append-only + rebase protocol (CLAUDE.md) + the Guardian backstop keep parallel work safe; collisions are trivial JSON-array merges. |
 
 ---
 
