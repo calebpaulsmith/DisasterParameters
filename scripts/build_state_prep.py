@@ -55,6 +55,7 @@ for ab,full in NAMES.items():
     # `afg` is now ONLY firefighter grants (honest label). EMPG-family rows are excluded (own field).
     afg=pages("NonDisasterAssistanceFirefighterGrants","v1",f"vendorState eq '{ab}'","awardAmount,vendorName,fiscalYear,programName")
     fam={}; prepByProg={}; prepByYear={}; ffByProg={}; ffByYear={}; ffVend={}; prept=0.0; fft=0.0; nff=0
+    famYear={}; famProg={}; famVend={}    # per-family year / program / recipient — for the per-family map lenses
     for r in afg:
         amt=float(r.get("awardAmount") or 0); p=(r.get("programName") or "AFG").strip()
         f=afg_family(p)
@@ -62,6 +63,9 @@ for ab,full in NAMES.items():
         y=str(r.get("fiscalYear") or "").strip()[:4]
         prept+=amt; prepByProg[p]=prepByProg.get(p,0)+amt; fam[f]=fam.get(f,0)+amt
         if y: prepByYear[y]=prepByYear.get(y,0)+amt
+        fp=famProg.setdefault(f,{}); fp[p]=fp.get(p,0)+amt
+        fv=famVend.setdefault(f,{}); vn=r.get("vendorName") or "?"; fv[vn]=fv.get(vn,0)+amt
+        if y: fy=famYear.setdefault(f,{}); fy[y]=fy.get(y,0)+amt
         if f==FF:
             fft+=amt; nff+=1; ffByProg[p]=ffByProg.get(p,0)+amt
             if y: ffByYear[y]=ffByYear.get(y,0)+amt
@@ -74,6 +78,10 @@ for ab,full in NAMES.items():
         st["afgVendors"]=[{"name":k,"afg":round(v)} for k,v in sorted(ffVend.items(),key=lambda x:-x[1])[:40]]
         # full non-disaster preparedness breakdown (EMPG excluded), for the program drill-down
         st["prepTotal"]=round(prept); st["prepByFamily"]=srt(fam); st["prepByProgram"]=srt(prepByProg); st["prepByYear"]=srt(prepByYear)
+        # per-family detail powering the promoted map lenses (Homeland Security / Transit-Port / Nonprofit / Other)
+        st["prepFamilyYear"]={k:srt(v) for k,v in famYear.items()}
+        st["prepFamilyProgram"]={k:srt(v,8) for k,v in famProg.items()}
+        st["prepFamilyVendors"]={k:[{"name":n,"amt":round(a)} for n,a in sorted(v.items(),key=lambda x:-x[1])[:20]] for k,v in famVend.items()}
     print(f"  {ab}: EMPG ${round(et):,} · AFG(firefighter) ${round(fft):,} ({nff}) · prep total ${round(prept):,} fams={srt(fam)}")
 json.dump(cd,open(os.path.join(DATA,"county_declarations.json"),"w"),separators=(",",":"))
 print("wrote EMPG+AFG with by-year / breakdowns / recipients")
