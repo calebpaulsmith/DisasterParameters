@@ -1999,7 +1999,7 @@ function showStateGeo(s){
   const F=geoYrFiltering();
   if(isRecentMetric(geoMetric)){box.innerHTML=recentScopeDetailHTML("state",s);return;}
   if(isNfipMetric(geoMetric)){box.innerHTML=nfipDetailHTML(st.name,st);return;}
-  if(GEO_STATEONLY[geoMetric]){box.innerHTML=prepTrendHTML(geoMetric,s);return;}   // state grant → by-year trend
+  if(GEO_STATEONLY[geoMetric]){box.innerHTML=prepTrendHTML(geoMetric,s)+prepBreakdownHTML(s);return;}   // state grant → by-year trend + preparedness family split
   if(geoMetric==="mitObligated"){box.innerHTML=geoNonDisDetailHTML("mitObligated",st.name,F?yrSum(st.mitByYear,geoYearLo,geoYearHi):st.mitObligated,F?null:st.mitByProgram,null,"")+geoYrCap(false);return;}
   if(geoMetric==="hmgpObligated"){box.innerHTML=geoNonDisDetailHTML("hmgpObligated",st.name,F?yrSum(st.hmgpByYear,geoYearLo,geoYearHi):st.hmgpObligated,null,null,"")+geoYrCap(false);return;}
   const sp=geoSoleProgram();
@@ -2035,6 +2035,20 @@ function geoSelectState(s){
   renderGeoStates();renderGeoMap();renderGeoBoard();renderGeoTimeline();geoFocus(true);
   if(geoStateFilter)showStateGeo(geoStateFilter); else el("geoPick").innerHTML=geoPickDefault();
   syncHash();
+}
+/* All non-disaster PREPAREDNESS split by family + program (from build_state_prep prepByFamily/
+   prepByProgram). AFG=firefighter is its own measure; this shows where the rest of the DHS
+   non-disaster grant dollars go (Homeland Security, Transit/Port, Nonprofit, Other). EMPG separate. */
+function prepBreakdownHTML(s){
+  const st=(DECL.states||{})[s]||{}, fam=st.prepByFamily||{};
+  if(!Object.keys(fam).length)return "";
+  const famRows=Object.entries(fam).sort((a,b)=>b[1]-a[1])
+    .map(([k,v])=>`<div class="declrow"><span class="dk">${k}</span><span class="dv">${fmtMoney(v)}</span></div>`).join("");
+  const pe=Object.entries(st.prepByProgram||{}).sort((a,b)=>b[1]-a[1]);
+  const progRows=pe.slice(0,12).map(([k,v])=>`<div class="declrow"><span class="dk" style="padding-left:12px;color:var(--ink-3)">${k}</span><span class="dv">${fmtMoney(v)}</span></div>`).join("")
+    +(pe.length>12?`<div class="thr-sub" style="padding:4px">+ ${pe.length-12} more programs</div>`:"");
+  return `<div class="declsub" style="margin-top:10px">All non-disaster preparedness — by family <span class="thr-sub">· total ${fmtMoney(st.prepTotal||0)} · EMPG counted separately</span></div>${famRows}`
+    +`<div class="declsub" style="margin-top:6px">By program</div>${progRows}`;
 }
 /* ===== state-level grant presentation (EMPG/AFG): sub-unit board + by-year trend ===== */
 function prepBoardHTML(m,s){
