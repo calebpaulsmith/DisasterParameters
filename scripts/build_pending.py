@@ -65,8 +65,12 @@ TRIBE_STATE = {
 MONTHS = {m: i for i, m in enumerate(
     ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], 1)}
 
+# date may be abbreviated ("Jun 3") or spelled out ("June 3", "March 12") — the
+# briefs are inconsistent, so accept a 3-9 letter month.
 ROW_RE = re.compile(
-    r"^(?P<ent>.+?)\s+(?P<type>DR|EM)\s+(?:X\s*){1,3}(?P<date>[A-Z][a-z]{2}\s+\d{1,2})\s*$")
+    r"^(?P<ent>.+?)\s+(?P<type>DR|EM)\s+(?:X\s*){1,3}(?P<date>[A-Z][a-z]{2,8}\s+\d{1,2})\s*$")
+# terminal tags on the incident tail, either "– Appeal" / "- Denied" or "(Appeal)" / "(Approved)"
+TAG_RE = re.compile(r"\s*(?:[–-]\s*|\()(Appeal|Approved|Denied)\)?\s*$", re.I)
 
 MONTH_FULL = {m: i for i, m in enumerate(
     ["January", "February", "March", "April", "May", "June", "July", "August",
@@ -97,9 +101,9 @@ def brief_date(text):
 
 
 def infer_date(raw, bdate):
-    """'Oct 24' + brief date -> most-recent ISO date <= brief date."""
+    """'Oct 24' / 'June 3' + brief date -> most-recent ISO date <= brief date."""
     mon, day = raw.split()
-    mo, dy = MONTHS[mon], int(day)
+    mo, dy = MONTHS[mon[:3]], int(day)  # mon[:3] handles both 'Jun' and 'June'
     for yr in (bdate.year, bdate.year - 1, bdate.year - 2):
         try:
             d = datetime.date(yr, mo, dy)
@@ -226,7 +230,7 @@ def parse_pending(pdf_path):
             appeal = False
             decision = None
             while True:
-                tm = re.search(r"\s*[–-]\s*(Appeal|Approved|Denied)\s*$", ent, re.I)
+                tm = TAG_RE.search(ent)
                 if not tm:
                     break
                 tag = tm.group(1).lower()
