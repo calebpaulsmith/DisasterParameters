@@ -416,7 +416,8 @@ tr.clickable:hover td{background:#eef3f8;}
 .declrow:hover{background:var(--blue-light);}
 .declrow .dk{color:var(--ink-2);font-variant-numeric:tabular-nums;}
 .declrow .dv{color:var(--ink-3);white-space:nowrap;}
-.geotoggle{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.geotoggle{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;background:#f4f7fb;border:1px solid var(--line-2);border-radius:0 8px 8px 8px;padding:8px 10px;}
+.geotoggle::before{content:"measure";font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-right:2px;align-self:center;}
 .geotoggle button{font:inherit;font-size:12.5px;font-weight:700;padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--ink-2);border-radius:20px;cursor:pointer;}
 .geotoggle button.active{background:var(--navy);color:#fff;border-color:var(--navy);}
 .geotoggle button.ndis{border-style:dashed;border-color:#0e7c86;color:#0b525b;}
@@ -426,10 +427,11 @@ tr.clickable:hover td{background:#eef3f8;}
 .mitchip{font:inherit;font-size:11.5px;font-weight:700;padding:3px 10px;border:1px solid var(--line);background:#fff;color:var(--ink-2);border-radius:999px;cursor:pointer;}
 .mitchip.on{background:#0e7c86;border-color:#0e7c86;color:#fff;}
 .covtog{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer;margin-bottom:12px;}
-.geogrp{display:inline-flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+.geogrp{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line-2);border-radius:8px 8px 0 0;overflow:hidden;margin-bottom:-1px;position:relative;z-index:1;}
 .geogrp button{font:inherit;font-size:12.5px;font-weight:800;padding:6px 14px;border:0;background:#fff;color:var(--ink-2);cursor:pointer;}
 .geogrp button+button{border-left:1px solid var(--line-2);}
 .geogrp button.active{background:var(--navy);color:#fff;}
+.geogrp button.active::after{content:" ▾";opacity:.85;}
 #geoToggle[data-prog="overview"] button:not([data-prog="overview"]),
 #geoToggle[data-prog="pa"] button:not([data-prog="pa"]),
 #geoToggle[data-prog="ia"] button:not([data-prog="ia"]),
