@@ -2040,6 +2040,34 @@ function geoExitCounty(){
   if(geoStateFilter)showStateGeo(geoStateFilter); else el("geoPick").innerHTML=geoPickDefault();
   syncHash();
 }
+/* ===== HMGP §404 subrecipient roll-up (state scope): the real subrecipients + what they got.
+   HMGP grants don't map to disaster "applicants" — they go to local govts/agencies, obligated for
+   YEARS after the disaster, so the figures are keyed to obligation year (hmgpByYear), not incident. ===== */
+function hmgpTypeShort(t){return String(t||"").replace(/^\d+(\.\d+)?:\s*/,"").trim();}
+function hmgpSubsForState(s){          // county-tied hmgpApplicants + statewide bucket → one ranked list
+  const out=[];
+  for(const f in DECL.counties){const c=DECL.counties[f]; if(c.state!==s)continue;
+    (c.hmgpApplicants||[]).forEach(a=>out.push(Object.assign({},a,{_geo:c.name+" County",_fips:f})));}
+  ((DECL.states[s]||{}).hmgpStatewideApplicants||[]).forEach(a=>out.push(Object.assign({},a,{_geo:(a.counties&&a.counties.length)?a.counties.slice(0,3).join(", ")+(a.counties.length>3?` +${a.counties.length-3}`:""):"Statewide / no county"})));
+  out.sort((x,y)=>(y.hmgp||0)-(x.hmgp||0)); return out;
+}
+function hmgpSubLine(a){               // "what they got" sub-line
+  const b=[`${fmtNum(a.projects||0)} project${a.projects===1?"":"s"}`];
+  if(a.props)b.push(`${fmtNum(a.props)} propert${a.props===1?"y":"ies"}`);
+  b.push(`${a.nDisasters||0} disaster${a.nDisasters===1?"":"s"}`);
+  if(a.d0)b.push(a.d0===a.d1?`obligated ${a.d0}`:`obligated ${(a.d0||"").slice(0,7)} → ${(a.d1||"").slice(0,7)}`);
+  return b.join(" · ");
+}
+function hmgpStateDetailHTML(s){
+  const st=DECL.states[s]||{}, subs=hmgpSubsForState(s);
+  const cap=geoApplExpanded?subs.length:APPL_CAP;
+  const rows=subs.slice(0,cap).map((a,i)=>
+    `<div class="georow"><span class="gr"><span class="grk">${i+1}</span><b>${a.name}</b> <span class="thr-sub">· ${a._geo}</span><br><span class="thr-sub">${hmgpSubLine(a)}${a.types&&a.types.length?` · ${a.types.map(hmgpTypeShort).slice(0,2).join("; ")}`:""}</span></span><span class="gv">${fmtMoney(a.hmgp)}</span></div>`).join("");
+  const more=subs.length>APPL_CAP?`<div class="georow applmore clickable" data-applexpand="1">${geoApplExpanded?"▲ Show top "+APPL_CAP:"▾ Show all "+fmtNum(subs.length)+" subrecipients"}</div>`:"";
+  return `<div class="declhd"><b>${st.name}</b> — HMGP §404 subrecipients<br>Total <b>${fmtMoney(st.hmgpObligated||0)}</b> · <b>${fmtNum(subs.length)}</b> subrecipients <span class="thr-sub">(${fmtMoney(st.hmgpStatewide||0)} statewide / no-county)</span></div>`
+    +rows+more
+    +`<p class="thr-sub" style="margin-top:6px">Hazard Mitigation Grant Program (Stafford §404), post-disaster. Subrecipients are the local governments/agencies that received the grant; geography is the project county (the source has no point coordinates). HMGP obligates for years after a disaster, so figures + the timeline are keyed to <b>obligation</b> year, not the incident.</p>`;
+}
 function showStateGeo(s){
   const st=(DECL.states||{})[s],box=el("geoPick");if(!st||!box)return; geoComputeStatewide();
   const F=geoYrFiltering();
@@ -2047,7 +2075,7 @@ function showStateGeo(s){
   if(isNfipMetric(geoMetric)){box.innerHTML=nfipDetailHTML(st.name,st);return;}
   if(GEO_STATEONLY[geoMetric]){box.innerHTML=prepTrendHTML(geoMetric,s)+prepBreakdownHTML(s);return;}   // state grant → by-year trend + preparedness family split
   if(geoMetric==="mitObligated"){box.innerHTML=geoNonDisDetailHTML("mitObligated",st.name,F?yrSum(st.mitByYear,geoYearLo,geoYearHi):st.mitObligated,F?null:st.mitByProgram,null,"")+geoYrCap(false);return;}
-  if(geoMetric==="hmgpObligated"){box.innerHTML=geoNonDisDetailHTML("hmgpObligated",st.name,F?yrSum(st.hmgpByYear,geoYearLo,geoYearHi):st.hmgpObligated,null,null,"")+geoYrCap(false);return;}
+  if(geoMetric==="hmgpObligated"||geoMetric==="hmgpSubs"){box.innerHTML=hmgpStateDetailHTML(s)+geoYrCap(false);return;}   // HMGP → real subrecipients + what they got
   const sp=geoSoleProgram();
   if(F){const nd=DISASTERS.filter(d=>d.state===s&&inYr(d)).length;
     const row2=(k,v)=>`<div class="declrow"><span class="dk">${k}</span><span class="dv">${v}</span></div>`;
@@ -2505,20 +2533,32 @@ function gmNonDisStateBody(s,st){       // non-disaster lens (mit / EMPG / AFG /
     : `<p class="thr-sub" style="padding:8px">No ${lbl} recipients recorded for ${st.name}.</p>`;
   return `<div class="gm-sech">Lens</div>${gmLensControl()}<p class="thr-sub" style="margin:-2px 0 8px">${lbl} are state-level (not tied to a county or disaster).</p>${brk}${recHtml}`;
 }
+function gmHmgpStateBody(s,st){        // HMGP lens: real subrecipients + what they got (not a disaster list)
+  const subs=hmgpSubsForState(s); const shown=gmExpanded?subs:subs.slice(0,25);
+  const rows=shown.map((a,i)=>`<div class="gm-row static"><div class="gm-rk">${i+1}</div><div class="gm-rmain"><b>${a.name}</b><span class="gm-rsub">${a._geo} · ${hmgpSubLine(a)}${a.types&&a.types.length?`<br>${a.types.map(hmgpTypeShort).slice(0,2).join("; ")}`:""}</span></div><div class="gm-rval">${fmtMoney(a.hmgp)}</div></div>`).join("");
+  return `<div class="gm-sech">Lens</div>${gmLensControl()}`
+    +`<div class="gm-sech">${fmtNum(subs.length)} HMGP §404 subrecipients <span class="thr-sub">· ${fmtMoney(st.hmgpObligated||0)} obligated · ${fmtMoney(st.hmgpStatewide||0)} statewide</span></div>`
+    +`<div class="gm-list">${rows||'<p class="thr-sub" style="padding:8px">No HMGP subrecipients recorded.</p>'}</div>`
+    +(subs.length>25?`<button class="gm-more" data-gmexpand="1">${gmExpanded?"▲ Show fewer":"▾ Show all "+fmtNum(subs.length)}</button>`:"")
+    +`<p class="thr-sub" style="margin-top:6px">Subrecipients = local govts/agencies that got the grant; geography is the project county (no point coordinates in the source). HMGP obligates for years after a disaster — figures are keyed to obligation year.</p>`;
+}
 function gmRenderState(box){
   const s=gmState, st=DECL.states[s]; if(!st)return gmRenderHome(box);
   const col=GEO_BAR[gmSort]||GEO_BAR.paObligated, fmtk=gmSort==="az"?"paObligated":gmSort;
   const Fs=geoYrFiltering();
-  const isND=(gmProgram==="nondis"), m=geoMetric, ndLbl=GEO_META[m]?GEO_META[m].label:"";
+  const isND=(gmProgram==="nondis"), isHM=(gmProgram==="hmgp"), m=geoMetric, ndLbl=GEO_META[m]?GEO_META[m].label:"";
   const stat=isND
     ? `<span><b>${fmtMoney(geoStateVal(st,s,m))}</b> ${ndLbl}</span><span>${fmtMoney(st.mitObligated||0)} mit</span><span>${fmtMoney(st.empg||0)} EMPG</span><span>${fmtMoney(st.afg||0)} AFG</span>`
+    : isHM
+    ? `<span><b>${fmtMoney(geoStateVal(st,s,"hmgpObligated"))}</b> HMGP obligated</span><span>${fmtMoney(st.hmgpStatewide||0)} statewide</span>${Fs?`<span class="thr-sub">${geoYearLo}–${geoYearHi}</span>`:""}`
     : `${geoSoleProgram()?geoFocusSpans(k=>geoStateVal(st,s,k),geoStateVal(st,s,"count")):`<span>${geoStateVal(st,s,"count")} disasters</span><span>${fmtMoney(geoStateVal(st,s,"paObligated"))} PA</span><span>${fmtMoney(geoStateVal(st,s,"ihpApproved"))} IHP</span>`}<span>${fmtNum(geoStateVal(st,s,"paProjects"))} projects</span>${Fs?`<span class="thr-sub">${geoYearLo}–${geoYearHi}</span>`:""}`;
   const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span></div>
       <div class="gm-title">${st.name}</div>
       <div class="gm-stat">${stat}</div>
-      ${isND?"":`<div class="gm-tabs"><button class="gm-tab${gmTab==="disasters"?" active":""}" data-gmtab="disasters">Disasters</button><button class="gm-tab${gmTab==="counties"?" active":""}" data-gmtab="counties">Counties</button></div>`}</div>`;
+      ${(isND||isHM)?"":`<div class="gm-tabs"><button class="gm-tab${gmTab==="disasters"?" active":""}" data-gmtab="disasters">Disasters</button><button class="gm-tab${gmTab==="counties"?" active":""}" data-gmtab="counties">Counties</button></div>`}</div>`;
   let body="";
   if(isND){body=gmNonDisStateBody(s,st);}
+  else if(isHM){body=gmHmgpStateBody(s,st);}
   else if(gmTab==="counties"){
     const rows=Object.entries(DECL.counties).filter(([f,v])=>v.state===s).map(([f,v])=>({_n:v.name,_o:v,f,v}));
     const sorted=gmSortRows(rows,"county"); const mx=Math.max(...sorted.map(r=>gmVal(fmtk,"county",r._o)),1);
