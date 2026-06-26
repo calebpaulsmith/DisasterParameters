@@ -55,6 +55,11 @@ jobs:
       - name: Harvest + match request dates
         run: python3 scripts/build_request_dates.py || echo "request-dates refresh failed (fetch/network) — keeping committed snapshot"
 
+      # Re-verify the data web after the refresh (Guardian) — catches a refresh that
+      # ever added/removed a data file before it commits. See docs/lineage-plan.md §6.
+      - name: Verify lineage (Guardian)
+        run: python3 scripts/verify_lineage.py
+
       - name: Commit on change
         run: |
           git config user.name  "github-actions[bot]"

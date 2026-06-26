@@ -90,8 +90,12 @@ def main():
     data_ids    = set(artifacts) | set(sources)   # valid edge endpoints
 
     # --- artifacts ---
+    # Skip `_`-prefixed files: the .gitignore convention for regenerable caches/
+    # intermediates (data/_request_cache.json, …). They are not committed, so they must
+    # not count as orphan artifacts when a build script left one in data/ locally. This
+    # mirrors list_artifacts() in build_lineage.py — keep the two in sync.
     committed = {fn for fn in os.listdir(DATA)
-                 if fn.endswith(".json") and fn not in SELF_FILES}
+                 if fn.endswith(".json") and fn not in SELF_FILES and not fn.startswith("_")}
     for fn in sorted(committed - set(artifacts)):
         err(f"ORPHAN ARTIFACT: data/{fn} is committed but has no artifact node "
             f"in lineage.json (add it to the seed / rebuild).")
