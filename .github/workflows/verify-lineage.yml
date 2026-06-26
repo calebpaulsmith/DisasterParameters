@@ -1,0 +1,48 @@
+name: Verify lineage (Guardian)
+
+# The lineage "Guardian" — checks that data/lineage.json (the Provenance Atlas manifest)
+# still matches the real repo: every committed artifact is documented, no untracked
+# data fetch, no dangling edges, columns are real. A lineage tool that lies is worse
+# than none, so this gate goes RED the moment the documented data web and the actual
+# code disagree. See docs/lineage-plan.md §6.
+#
+# This is the STANDALONE / on-demand check (runnable by itself). The same two commands
+# also run at the end of the refresh workflows so a data refresh is re-verified — see
+# refresh-daily.yml / refresh-monthly.yml.
+
+on:
+  push:
+    paths:
+      - "data/**"
+      - "scripts/build_lineage.py"
+      - "scripts/verify_lineage.py"
+      - "index.html"
+      - "docs/openfema-definitions/**"
+      - ".github/workflows/verify-lineage.yml"
+  pull_request:
+    paths:
+      - "data/**"
+      - "scripts/build_lineage.py"
+      - "scripts/verify_lineage.py"
+      - "index.html"
+      - "docs/openfema-definitions/**"
+      - ".github/workflows/verify-lineage.yml"
+  workflow_dispatch:
+
+jobs:
+  guardian:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 1) the committed manifest must be in sync with the seed + live data files
+      - name: Manifest is up to date
+        run: python3 scripts/build_lineage.py --check
+
+      # 2) the manifest must match reality (the Guardian)
+      - name: Guardian
+        run: python3 scripts/verify_lineage.py

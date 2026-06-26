@@ -1,0 +1,1365 @@
+{
+  "schema": "provenance-atlas/1",
+  "note": "Lineage manifest for the Provenance Atlas view. BUILD ARTIFACT — regenerate with scripts/build_lineage.py; do not hand-edit. Verified by scripts/verify_lineage.py. Not endorsed by FEMA.",
+  "providers": [
+    {
+      "id": "openfema",
+      "name": "OpenFEMA",
+      "links": [
+        "https://www.fema.gov/about/openfema/api"
+      ]
+    },
+    {
+      "id": "noaa",
+      "name": "NOAA",
+      "links": [
+        "https://www.ncdc.noaa.gov/stormevents/",
+        "https://www.rcc-acis.org/"
+      ]
+    },
+    {
+      "id": "usgs",
+      "name": "USGS",
+      "links": [
+        "https://waterservices.usgs.gov/"
+      ]
+    },
+    {
+      "id": "nws",
+      "name": "NWS",
+      "links": [
+        "https://api.weather.gov/",
+        "https://api.water.noaa.gov/"
+      ]
+    },
+    {
+      "id": "dlp",
+      "name": "Data Liberation Project",
+      "links": [
+        "https://github.com/data-liberation-project/fema-daily-ops-email-to-rss"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "femaWebDisasterSummaries",
+      "providerId": "openfema",
+      "name": "FemaWebDisasterSummaries",
+      "endpoint": "https://www.fema.gov/api/open/v1/FemaWebDisasterSummaries",
+      "binding": "snapshot",
+      "cadence": "daily",
+      "dictionary": "docs/openfema-definitions/FemaWebDisasterSummaries.json",
+      "columnsUsed": [
+        "disasterNumber",
+        "totalObligatedAmountPa",
+        "totalObligatedAmountCatAb",
+        "totalObligatedAmountCatC2g",
+        "totalObligatedAmountHmgp",
+        "totalAmountIhpApproved",
+        "totalAmountHaApproved",
+        "totalAmountOnaApproved",
+        "totalNumberIaApproved"
+      ],
+      "columnsUnused": [
+        "hash",
+        "iaLoadDate",
+        "id",
+        "lastRefresh",
+        "paLoadDate"
+      ],
+      "description": "Per-disaster rollup of PA obligated and IHP approved dollars (with HA/ONA and Cat-AB/C-G splits). The authoritative source of the ledger cost figures.",
+      "links": [
+        "https://www.fema.gov/openfema-data-page/fema-web-disaster-summaries-v1"
+      ]
+    },
+    {
+      "id": "disasterDeclarationsSummaries",
+      "providerId": "openfema",
+      "name": "DisasterDeclarationsSummaries",
+      "endpoint": "https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries",
+      "binding": "snapshot",
+      "cadence": "daily",
+      "dictionary": "docs/openfema-definitions/DisasterDeclarationsSummaries.json",
+      "columnsUsed": [
+        "disasterNumber",
+        "declarationDate",
+        "declarationTitle",
+        "incidentType",
+        "incidentBeginDate",
+        "incidentEndDate",
+        "fyDeclared",
+        "state",
+        "region",
+        "fipsCountyCode",
+        "paProgramDeclared",
+        "ihProgramDeclared",
+        "iaProgramDeclared",
+        "hmProgramDeclared"
+      ],
+      "columnsUnused": [
+        "declarationRequestNumber",
+        "declarationType",
+        "designatedArea",
+        "designatedIncidentTypes",
+        "disasterCloseoutDate",
+        "femaDeclarationString",
+        "fipsStateCode",
+        "hash",
+        "id",
+        "incidentId",
+        "lastIAFilingDate",
+        "lastRefresh",
+        "placeCode",
+        "tribalRequest"
+      ],
+      "description": "The declaration ledger: one row per declared area, carrying dates, region/state, county FIPS, and the per-program declaration flags. Feeds disaster identity, the declaration date, and county designations.",
+      "links": [
+        "https://www.fema.gov/openfema-data-page/disaster-declarations-summaries-v2"
+      ]
+    },
+    {
+      "id": "publicAssistanceFundedProjectsDetails",
+      "providerId": "openfema",
+      "name": "PublicAssistanceFundedProjectsDetails",
+      "endpoint": "https://www.fema.gov/api/open/v1/PublicAssistanceFundedProjectsDetails",
+      "binding": "snapshot",
+      "cadence": "daily",
+      "dictionary": "docs/openfema-definitions/PublicAssistanceFundedProjectsDetails.json",
+      "columnsUsed": [
+        "disasterNumber",
+        "county",
+        "countyCode",
+        "federalShareObligated",
+        "lastObligationDate",
+        "damageCategory"
+      ],
+      "columnsUnused": [
+        "applicantId",
+        "applicationTitle",
+        "damageCategoryCode",
+        "damageCategoryDescrip",
+        "dcc",
+        "declarationDate",
+        "firstObligationDate",
+        "gmApplicantId",
+        "gmProjectId",
+        "hash",
+        "id",
+        "incidentType",
+        "lastRefresh",
+        "mitigationAmount",
+        "obligatedDate",
+        "projectAmount",
+        "projectProcessStep",
+        "projectSize",
+        "projectStatus",
+        "pwNumber",
+        "state",
+        "stateAbbreviation",
+        "stateCode",
+        "stateNumberCode",
+        "totalObligated"
+      ],
+      "description": "Project-level PA obligations (one row per funded project), with county, obligated federal share, damage category, and obligation dates. Powers per-county PA dollars, project counts, and the obligation-year buckets.",
+      "links": [
+        "https://www.fema.gov/openfema-data-page/public-assistance-funded-projects-details-v1"
+      ]
+    },
+    {
+      "id": "publicAssistanceFundedProjectsSummaries",
+      "providerId": "openfema",
+      "name": "PublicAssistanceFundedProjectsSummaries",
+      "endpoint": "https://www.fema.gov/api/open/v1/PublicAssistanceFundedProjectsSummaries",
+      "binding": "snapshot",
+      "cadence": "daily",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "description": "Pre-aggregated PA summaries by applicant x county (no per-project rows). Used for the browsable per-county PA applicant lists. No OpenFEMA field dictionary is committed for this dataset, so columns are not enumerated here.",
+      "links": [
+        "https://www.fema.gov/openfema-data-page/public-assistance-funded-project-summaries-v1"
+      ]
+    },
+    {
+      "id": "individualsAndHouseholdsProgramValidRegistrations",
+      "providerId": "openfema",
+      "name": "IndividualsAndHouseholdsProgramValidRegistrations",
+      "endpoint": "https://www.fema.gov/api/open/v1/IndividualsAndHouseholdsProgramValidRegistrations",
+      "binding": "snapshot",
+      "cadence": "daily",
+      "dictionary": "docs/openfema-definitions/IndividualsAndHouseholdsProgramValidRegistrations.json",
+      "columnsUsed": [
+        "disasterNumber",
+        "fips",
+        "county",
+        "ihpAmount",
+        "haAmount",
+        "onaAmount"
+      ],
+      "columnsUnused": [
+        "accessFunctionalNeeds",
+        "applicantAge",
+        "appliedDate",
+        "autoDamage",
+        "censusGeoid",
+        "censusYear",
+        "currentLocation",
+        "damagedCity",
+        "damagedStateAbbreviation",
+        "damagedZipCode",
+        "declarationDate",
+        "destroyed",
+        "emergencyNeeds",
+        "fipAmount",
+        "floodDamage",
+        "floodDamageAmount",
+        "floodInsurance",
+        "foodNeed",
+        "foundationDamage",
+        "foundationDamageAmount",
+        "grossIncome",
+        "haEligible",
+        "haMax",
+        "haReferral",
+        "haStatus",
+        "habitabilityRepairsRequired",
+        "highWaterLocation",
+        "homeDamage",
+        "homeOwnersInsurance",
+        "householdComposition",
+        "id",
+        "ihpEligible",
+        "ihpMax",
+        "ihpReferral",
+        "incidentTypeCode",
+        "ineligibleInsurance",
+        "ineligibleReason",
+        "inspnIssued",
+        "inspnReturned",
+        "insufficientDamage",
+        "lastRefresh",
+        "occupants19to64",
+        "occupants2to5",
+        "occupants65andOver",
+        "occupants6to18",
+        "occupantsUnderTwo",
+        "onaDentalAssistAmount",
+        "onaDentalAssistEligible",
+        "onaEligible",
+        "onaFuneralAssistAmount",
+        "onaFuneralAssistEligible",
+        "onaMax",
+        "onaMedicalAssistAmount",
+        "onaMedicalAssistEligible",
+        "onaMovingAssistAmount",
+        "onaMovingAssistEligible",
+        "onaOtherAssistAmount",
+        "onaOtherAssistEligible",
+        "onaReferral",
+        "ownRent",
+        "personalPropertyAmount",
+        "personalPropertyEligible",
+        "ppfvl",
+        "primaryResidence",
+        "registrationMethod",
+        "rentalAssistanceAmount",
+        "rentalAssistanceEligible",
+        "rentalAssistanceEndDate",
+        "rentalResourceCity",
+        "rentalResourceStateAbbrev",
+        "rentalResourceZipCode",
+        "renterDamageLevel",
+        "repairAmount",
+        "repairAssistanceEligible",
+        "replacementAmount",
+        "replacementAssistanceEligible",
+        "reportedDamage",
+        "residenceType",
+        "roofDamage",
+        "roofDamageAmount",
+        "rpfvl",
+        "sbaApproved",
+        "selfAssessmentInformation",
+        "shelterNeed",
+        "transientAccommodAmount",
+        "transientAccommodEligible",
+        "tsaCheckedIn",
+        "tsaEligible",
+        "unmetNeedPp",
+        "unmetNeedRp",
+        "utilitiesOut",
+        "verifiedOccupancy",
+        "verifiedOwnership",
+        "waterLevel"
+      ],
+      "description": "Registrant-level IHP records (one row per valid registration), with county FIPS and approved IHP/HA/ONA dollars. Powers per-county and per-disaster-x-county IHP figures and registration counts.",
+      "links": [
+        "https://www.fema.gov/openfema-data-page/individuals-and-households-program-valid-registrations-v1"
+      ]
+    },
+    {
+      "id": "hazardMitigationAssistanceProjects",
+      "providerId": "openfema",
+      "name": "HazardMitigationAssistanceProjects",
+      "endpoint": "https://www.fema.gov/api/open/v4/HazardMitigationAssistanceProjects",
+      "binding": "snapshot",
+      "cadence": "daily",
+      "dictionary": "docs/openfema-definitions/HazardMitigationAssistanceProjects.json",
+      "columnsUsed": [
+        "disasterNumber",
+        "programArea",
+        "county",
+        "countyCode",
+        "subrecipient",
+        "federalShareObligated",
+        "projectType",
+        "numberOfProperties",
+        "initialObligationDate",
+        "dateApproved"
+      ],
+      "columnsUnused": [
+        "benefitCostRatio",
+        "costSharePercentage",
+        "dataSource",
+        "dateClosed",
+        "dateInitiallyApproved",
+        "id",
+        "initialObligationAmount",
+        "netValueBenefits",
+        "numberOfFinalProperties",
+        "programFy",
+        "projectAmount",
+        "projectCounties",
+        "projectIdentifier",
+        "recipient",
+        "recipientAdminCostAmt",
+        "recipientTribalIndicator",
+        "region",
+        "srmcObligatedAmt",
+        "state",
+        "stateNumberCode",
+        "status",
+        "subrecipientAdminCostAmt",
+        "subrecipientTribalIndicator"
+      ],
+      "description": "Hazard-mitigation grant projects across all HMA program areas (HMGP plus the non-disaster FMA/PDM/BRIC/LPDM/RFC/SRL family). Powers per-county HMGP subrecipient lists, non-disaster mitigation dollars, and mitigation obligation-year buckets.",
+      "links": [
+        "https://www.fema.gov/openfema-data-page/hazard-mitigation-assistance-projects-v4"
+      ]
+    },
+    {
+      "id": "emergencyManagementPerformanceGrants",
+      "providerId": "openfema",
+      "name": "EmergencyManagementPerformanceGrants",
+      "endpoint": "https://www.fema.gov/api/open/v1/EmergencyManagementPerformanceGrants",
+      "binding": "snapshot",
+      "cadence": "annual",
+      "dictionary": "docs/openfema-definitions/EmergencyManagementPerformanceGrants.json",
+      "columnsUsed": [
+        "state",
+        "fundingAmount"
+      ],
+      "columnsUnused": [
+        "id",
+        "legalAgencyName",
+        "nameOfProgram",
+        "projectEndDate",
+        "projectStartDate",
+        "projectType",
+        "reportingPeriod"
+      ],
+      "description": "Emergency Management Performance Grant (EMPG) awards by state and year. Feeds the per-state non-disaster EMPG preparedness layer.",
+      "links": [
+        "https://www.fema.gov/openfema-data-page/emergency-management-performance-grants-v1"
+      ]
+    },
+    {
+      "id": "nonDisasterAssistanceFirefighterGrants",
+      "providerId": "openfema",
+      "name": "NonDisasterAssistanceFirefighterGrants",
+      "endpoint": "https://www.fema.gov/api/open/v1/NonDisasterAssistanceFirefighterGrants",
+      "binding": "snapshot",
+      "cadence": "annual",
+      "dictionary": "docs/openfema-definitions/NonDisasterAssistanceFirefighterGrants.json",
+      "columnsUsed": [
+        "vendorState",
+        "awardAmount",
+        "programName",
+        "vendorName",
+        "fiscalYear"
+      ],
+      "columnsUnused": [
+        "awardNumber",
+        "id",
+        "programAbbreviation",
+        "region"
+      ],
+      "description": "Despite its name, a grab-bag of all DHS non-disaster preparedness grants (firefighter, Homeland Security, Transit/Port, Nonprofit Security, plus EMPG). Split by program family into the per-state preparedness lenses; EMPG is excluded here to avoid double-count.",
+      "links": [
+        "https://www.fema.gov/openfema-data-page/assistance-firefighters-grants-v1"
+      ]
+    },
+    {
+      "id": "fimaNfipClaims",
+      "providerId": "openfema",
+      "name": "FimaNfipClaims",
+      "endpoint": "https://www.fema.gov/api/open/v2/FimaNfipClaims",
+      "binding": "snapshot",
+      "cadence": "monthly",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "description": "Public redacted NFIP flood-insurance claims (one row per claim). Rolled up to a Region 5 county x year claims/paid summary with SFHA in/out share. No OpenFEMA field dictionary is committed for this dataset, so columns are not enumerated here.",
+      "links": [
+        "https://www.fema.gov/openfema-data-page/fima-nfip-redacted-claims-v2"
+      ]
+    },
+    {
+      "id": "declarationDenials",
+      "providerId": "openfema",
+      "name": "DeclarationDenials",
+      "endpoint": "https://www.fema.gov/api/open/v1/DeclarationDenials",
+      "binding": "snapshot",
+      "cadence": "daily",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "description": "Declaration turndowns (requests denied), each carrying a request date and a decision date plus the programs requested. Powers the Declaration Denials block. No OpenFEMA field dictionary is committed for this dataset, so columns are not enumerated here.",
+      "links": [
+        "https://www.fema.gov/openfema-data-page/declaration-denials-v1"
+      ]
+    },
+    {
+      "id": "noaaStormEvents",
+      "providerId": "noaa",
+      "name": "NOAA Storm Events",
+      "endpoint": "https://www.ncei.noaa.gov/pub/data/swdi/stormevents/csvfiles/",
+      "binding": "snapshot",
+      "cadence": "monthly",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "description": "NOAA Storm Events bulk CSVs (county-FIPS + incident-window join). Source of measured wind, hail, tornado, and reported-damage hazards and event counts.",
+      "links": [
+        "https://www.ncdc.noaa.gov/stormevents/"
+      ]
+    },
+    {
+      "id": "rccAcis",
+      "providerId": "noaa",
+      "name": "RCC-ACIS",
+      "endpoint": "https://data.rcc-acis.org/",
+      "binding": "snapshot",
+      "cadence": "daily",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "description": "RCC-ACIS (NOAA) daily precipitation, summed over the incident window for storm-total and daily-max rainfall per county.",
+      "links": [
+        "https://www.rcc-acis.org/"
+      ]
+    },
+    {
+      "id": "usgsWaterServices",
+      "providerId": "usgs",
+      "name": "USGS Water Services",
+      "endpoint": "https://waterservices.usgs.gov/",
+      "binding": "snapshot",
+      "cadence": "daily",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "description": "USGS daily-values water service (gage height parameterCd 00065). Offline source of peak river stage; the same service's instantaneous values are also fetched live in the browser for current gage heights on the Watch view.",
+      "links": [
+        "https://waterservices.usgs.gov/"
+      ]
+    },
+    {
+      "id": "usgsInstantaneousValues",
+      "providerId": "usgs",
+      "name": "USGS Instantaneous Values",
+      "endpoint": "https://waterservices.usgs.gov/nwis/iv/",
+      "binding": "live",
+      "cadence": "realtime",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "description": "USGS instantaneous-values service, fetched live in the browser to show current river gage heights on the Disaster Watch view.",
+      "links": [
+        "https://waterservices.usgs.gov/rest/IV-Service.html"
+      ]
+    },
+    {
+      "id": "nwsAlerts",
+      "providerId": "nws",
+      "name": "NWS api.weather.gov",
+      "endpoint": "https://api.weather.gov/alerts/active",
+      "binding": "live",
+      "cadence": "realtime",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "description": "NWS active weather alerts, fetched live in the browser for the Disaster Watch view.",
+      "links": [
+        "https://api.weather.gov/"
+      ]
+    },
+    {
+      "id": "nwpsAhps",
+      "providerId": "nws",
+      "name": "NWPS AHPS",
+      "endpoint": "https://api.water.noaa.gov/nwps/v1/gauges",
+      "binding": "snapshot",
+      "cadence": "static",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "description": "NWS National Water Prediction Service AHPS flood categories (action/minor/moderate/major) per gauge. Flaky and rate-limited, so resolved offline into gages.json.",
+      "links": [
+        "https://api.water.noaa.gov/"
+      ]
+    },
+    {
+      "id": "femaDailyOpsBrief",
+      "providerId": "dlp",
+      "name": "FEMA Daily Operations Briefing",
+      "endpoint": "https://github.com/data-liberation-project/fema-daily-ops-email-to-rss",
+      "binding": "snapshot",
+      "cadence": "daily",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "description": "The FEMA Daily Operations Briefing PDF (the only non-OpenFEMA source), archived by the Data Liberation Project. Parsed for the 'Declaration Requests in Process' (pending) table — OpenFEMA publishes no feed of pending requests.",
+      "links": [
+        "https://github.com/data-liberation-project/fema-daily-ops-email-to-rss"
+      ]
+    }
+  ],
+  "transforms": [
+    {
+      "id": "enrich",
+      "name": "scripts/enrich.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "Join NOAA Storm Events + USGS stage + RCC-ACIS rainfall onto the declaration set (no costs).",
+      "reads": [
+        "noaaStormEvents",
+        "usgsWaterServices",
+        "rccAcis",
+        "disasterDeclarationsSummaries"
+      ],
+      "writes": [
+        "disasters.json"
+      ],
+      "description": "Builds the disasters.json hazard envelope by joining measured NOAA/USGS hazards onto Region 5 declarations. Writes hazards only — NOT costs (costs come from add_history.py).",
+      "links": [
+        "scripts/enrich.py"
+      ]
+    },
+    {
+      "id": "add_history",
+      "name": "scripts/add_history.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "OpenFEMA pull of FemaWebDisasterSummaries (+ PA project counts) and DisasterDeclarationsSummaries; additive merge.",
+      "reads": [
+        "femaWebDisasterSummaries",
+        "disasterDeclarationsSummaries",
+        "publicAssistanceFundedProjectsDetails"
+      ],
+      "writes": [
+        "disasters.json"
+      ],
+      "description": "Pulls older Region 5 disasters with authoritative FEMA costs (PA obligated / IHP approved + breakdowns) and hazards, merging them into disasters.json. The authoritative carrier of the costs fields.",
+      "links": [
+        "scripts/add_history.py"
+      ]
+    },
+    {
+      "id": "build_declared",
+      "name": "scripts/build_declared.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "Earliest declarationDate per disasterNumber; additive (touches only the 'declared' field).",
+      "reads": [
+        "disasterDeclarationsSummaries",
+        "disasters.json"
+      ],
+      "writes": [
+        "disasters.json"
+      ],
+      "description": "Adds the original federal declaration date to each disasters.json record; powers the declaration-lag charts. Leaves costs/gages/hazards untouched.",
+      "links": [
+        "scripts/build_declared.py"
+      ]
+    },
+    {
+      "id": "augment_rain",
+      "name": "scripts/augment_rain.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "RCC-ACIS daily precip summed over the incident window; additive (rainfall hz fields only).",
+      "reads": [
+        "rccAcis",
+        "disasters.json"
+      ],
+      "writes": [
+        "disasters.json"
+      ],
+      "description": "Refreshes/extends the rainfall hazard fields (rainIn / rainMeanIn / rainDailyMaxIn) in disasters.json; does not touch costs.",
+      "links": [
+        "scripts/augment_rain.py"
+      ]
+    },
+    {
+      "id": "build_gages",
+      "name": "scripts/build_gages.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "Resolve gauges via NWPS AHPS + USGS stage; tie crests to declarations.",
+      "reads": [
+        "nwpsAhps",
+        "usgsWaterServices",
+        "disasters.json"
+      ],
+      "writes": [
+        "gages.json",
+        "disasters.json"
+      ],
+      "description": "Builds gages.json (AHPS flood categories + crest history + declaration ties) and writes per-disaster gage lists back into disasters.json.",
+      "links": [
+        "scripts/build_gages.py"
+      ]
+    },
+    {
+      "id": "patch_ia_flag",
+      "name": "scripts/patch_ia_flag.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "Backfill/correct the IA-program declaration flags from DisasterDeclarationsSummaries.",
+      "reads": [
+        "disasterDeclarationsSummaries",
+        "disasters.json"
+      ],
+      "writes": [
+        "disasters.json"
+      ],
+      "description": "Patches the raw IA/IH program flags on disasters.json records so the IA-authorization badge and IHP-money gate classify correctly.",
+      "links": [
+        "scripts/patch_ia_flag.py"
+      ]
+    },
+    {
+      "id": "build_county_map",
+      "name": "scripts/build_county_map.py",
+      "runtime": "offline",
+      "schedule": "weekly (manual today)",
+      "method": "Designations from declarations + per-county PA $/projects from PublicAssistanceFundedProjectsDetails (pandas FIPS join).",
+      "reads": [
+        "disasterDeclarationsSummaries",
+        "publicAssistanceFundedProjectsDetails",
+        "disasters.json"
+      ],
+      "writes": [
+        "county_declarations.json"
+      ],
+      "description": "Builds county_declarations.json: per-county declaration counts + disaster lists + per-county PA obligated $/projects and per-state totals. The base layer the additive enrichers extend.",
+      "links": [
+        "scripts/build_county_map.py"
+      ]
+    },
+    {
+      "id": "build_county_applicants",
+      "name": "scripts/build_county_applicants.py",
+      "runtime": "offline",
+      "schedule": "weekly (manual today)",
+      "method": "PA Summaries by applicant x county; no-county applicants routed to per-state statewide buckets; conservation audit.",
+      "reads": [
+        "publicAssistanceFundedProjectsSummaries",
+        "femaWebDisasterSummaries",
+        "county_declarations.json"
+      ],
+      "writes": [
+        "county_declarations.json"
+      ],
+      "description": "Adds per-county PA applicant lists (and per-state statewide applicants for state agencies) to county_declarations.json, conserving every applicant row in an audit.",
+      "links": [
+        "scripts/build_county_applicants.py"
+      ]
+    },
+    {
+      "id": "dedup_applicants",
+      "name": "scripts/dedup_applicants.py",
+      "runtime": "offline",
+      "schedule": "weekly (manual today)",
+      "method": "Order-preserving normalized-string merge of duplicate per-county applicant entries (no network).",
+      "reads": [
+        "county_declarations.json"
+      ],
+      "writes": [
+        "county_declarations.json"
+      ],
+      "description": "Collapses duplicate per-county PA applicant entries in county_declarations.json, summing PA $/projects and tagging merged provenance. Idempotent; re-run after build_county_map.",
+      "links": [
+        "scripts/dedup_applicants.py"
+      ]
+    },
+    {
+      "id": "build_county_ihp",
+      "name": "scripts/build_county_ihp.py",
+      "runtime": "offline",
+      "schedule": "weekly (manual today)",
+      "method": "Registrant-level IHP roll-up per county (network) + per-state IHP from the ledger; dollar-conservation audit.",
+      "reads": [
+        "individualsAndHouseholdsProgramValidRegistrations",
+        "femaWebDisasterSummaries",
+        "county_declarations.json"
+      ],
+      "writes": [
+        "county_declarations.json"
+      ],
+      "description": "Adds per-county IHP approved $ + HA/ONA split + registration counts (registrant-level) and per-state IHP rollups (ledger) to county_declarations.json, with a cross-dataset conservation audit.",
+      "links": [
+        "scripts/build_county_ihp.py"
+      ]
+    },
+    {
+      "id": "build_county_hmgp",
+      "name": "scripts/build_county_hmgp.py",
+      "runtime": "offline",
+      "schedule": "weekly (manual today)",
+      "method": "HazardMitigationAssistanceProjects programArea=HMGP; per-county + per-state STATEWIDE buckets with subrecipient detail.",
+      "reads": [
+        "hazardMitigationAssistanceProjects",
+        "county_declarations.json"
+      ],
+      "writes": [
+        "county_declarations.json"
+      ],
+      "description": "Adds per-county and per-state HMGP (§404) obligated $ + subrecipient lists to county_declarations.json; dollars conserved into county or statewide buckets.",
+      "links": [
+        "scripts/build_county_hmgp.py"
+      ]
+    },
+    {
+      "id": "build_county_mitigation",
+      "name": "scripts/build_county_mitigation.py",
+      "runtime": "offline",
+      "schedule": "weekly (manual today)",
+      "method": "All non-HMGP HMA program areas (FMA/PDM/BRIC/LPDM/RFC/SRL) per county + per-state statewide; dollars conserved.",
+      "reads": [
+        "hazardMitigationAssistanceProjects",
+        "county_declarations.json"
+      ],
+      "writes": [
+        "county_declarations.json"
+      ],
+      "description": "Adds the per-county NON-disaster hazard-mitigation grant layer (mitObligated/mitByProgram + per-state statewide) to county_declarations.json.",
+      "links": [
+        "scripts/build_county_mitigation.py"
+      ]
+    },
+    {
+      "id": "build_state_prep",
+      "name": "scripts/build_state_prep.py",
+      "runtime": "offline",
+      "schedule": "weekly (manual today)",
+      "method": "EMPG + the DHS preparedness grab-bag (firefighter / Homeland / Transit-Port / Nonprofit / Other) rolled up per state.",
+      "reads": [
+        "emergencyManagementPerformanceGrants",
+        "nonDisasterAssistanceFirefighterGrants",
+        "county_declarations.json"
+      ],
+      "writes": [
+        "county_declarations.json"
+      ],
+      "description": "Adds per-state non-disaster preparedness grant dollars (EMPG + the preparedness families) to county_declarations.json's state entries.",
+      "links": [
+        "scripts/build_state_prep.py"
+      ]
+    },
+    {
+      "id": "build_county_byyear",
+      "name": "scripts/build_county_byyear.py",
+      "runtime": "offline",
+      "schedule": "weekly (manual today)",
+      "method": "Additive per-county + per-state *ByYear obligation buckets (PA/HMGP/mit true obligation year; IHP proxy by incident year).",
+      "reads": [
+        "publicAssistanceFundedProjectsDetails",
+        "hazardMitigationAssistanceProjects",
+        "county_declarations.json"
+      ],
+      "writes": [
+        "county_declarations.json"
+      ],
+      "description": "Adds the per-county/per-state obligation-by-year buckets that drive the Geography timeline + draggable year-range filter. Dollars conserved against the all-time fields.",
+      "links": [
+        "scripts/build_county_byyear.py"
+      ]
+    },
+    {
+      "id": "build_disaster_county_ihp",
+      "name": "scripts/build_disaster_county_ihp.py",
+      "runtime": "offline",
+      "schedule": "weekly (manual today)",
+      "method": "Per-disaster x per-county registrant-level IHP roll-up; same dataset/norm as build_county_ihp so figures reconcile.",
+      "reads": [
+        "individualsAndHouseholdsProgramValidRegistrations"
+      ],
+      "writes": [
+        "disaster_county_ihp.json"
+      ],
+      "description": "Builds disaster_county_ihp.json: per-disaster x per-county IHP approved $ + HA/ONA split + valid-registration count, for the mobile Geography disaster drill-down (too heavy to fetch live).",
+      "links": [
+        "scripts/build_disaster_county_ihp.py"
+      ]
+    },
+    {
+      "id": "build_counties",
+      "name": "scripts/build_counties.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "Simplify county polygons for FEMA Region 5 into a lean GeoJSON-ish feature list.",
+      "reads": [],
+      "writes": [
+        "r5_counties.json"
+      ],
+      "description": "Builds r5_counties.json: simplified Region 5 county polygons (fips/name/state/geometry) for the Watch declaration-history map.",
+      "links": [
+        "scripts/build_counties.py"
+      ]
+    },
+    {
+      "id": "build_nfip",
+      "name": "scripts/build_county_nfip.py",
+      "runtime": "offline",
+      "schedule": ".github/workflows/refresh-monthly.yml",
+      "method": "Per-state FimaNfipClaims pull, rolled up to Region 5 county x year (counts/paid/byYear/SFHA in-out).",
+      "reads": [
+        "fimaNfipClaims"
+      ],
+      "writes": [
+        "nfip.json"
+      ],
+      "description": "Builds nfip.json: the Region 5 county x year NFIP claims rollup (counts, paid with split, by-year, SFHA in/out share). Surfaced as the Geography 'Flood insurance' lens.",
+      "links": [
+        "scripts/build_county_nfip.py"
+      ]
+    },
+    {
+      "id": "build_recent",
+      "name": "scripts/build_county_recent.py",
+      "runtime": "offline",
+      "schedule": ".github/workflows/refresh-daily.yml",
+      "method": "National date-windowed pull of PA (lastObligationDate) + HM (initialObligationDate), filtered to R5 client-side; paginated past the 10k cap.",
+      "reads": [
+        "publicAssistanceFundedProjectsDetails",
+        "hazardMitigationAssistanceProjects"
+      ],
+      "writes": [
+        "recent.json"
+      ],
+      "description": "Builds recent.json: a trailing ~400-day feed of Region 5 PA + Hazard Mitigation obligation rows for the Geography 'Recent activity' view (the 1-year window + live-fetch fallback).",
+      "links": [
+        "scripts/build_county_recent.py"
+      ]
+    },
+    {
+      "id": "build_newsreel",
+      "name": "scripts/build_newsreel.py",
+      "runtime": "offline",
+      "schedule": ".github/workflows/refresh-daily.yml",
+      "method": "Latest N + biggest-in-6mo obligations for the two programs that carry a per-item obligation date (PA + HM).",
+      "reads": [
+        "publicAssistanceFundedProjectsDetails",
+        "hazardMitigationAssistanceProjects"
+      ],
+      "writes": [
+        "newsreel.json"
+      ],
+      "description": "Builds newsreel.json: the per-program 'latest obligations' reel (PA + Hazard Mitigation), Region 5, COVID excluded.",
+      "links": [
+        "scripts/build_newsreel.py"
+      ]
+    },
+    {
+      "id": "build_covid",
+      "name": "scripts/build_covid.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "Pull the 6 Region 5 COVID-19 (Biological) declarations' PA/IHP/projects.",
+      "reads": [
+        "femaWebDisasterSummaries",
+        "publicAssistanceFundedProjectsDetails"
+      ],
+      "writes": [
+        "covid.json"
+      ],
+      "description": "Builds covid.json: per-state COVID-19 PA obligated / IHP approved / projects, kept OUT of the weather ledger (it is ~7x weather PA).",
+      "links": [
+        "scripts/build_covid.py"
+      ]
+    },
+    {
+      "id": "build_national",
+      "name": "scripts/build_national.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "All nationwide DR declarations FY2007+ (COVID excluded), lag fields only — no costs/hazards.",
+      "reads": [
+        "disasterDeclarationsSummaries"
+      ],
+      "writes": [
+        "disasters_national.json"
+      ],
+      "description": "Builds disasters_national.json: a lightweight nationwide companion (declaration lag fields only) for the Disaster Timelines 'National' toggle.",
+      "links": [
+        "scripts/build_national.py"
+      ]
+    },
+    {
+      "id": "build_denials",
+      "name": "scripts/build_denials.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "DeclarationDenials turndowns FY2007+, lean rows with request + decision dates and programs requested.",
+      "reads": [
+        "declarationDenials"
+      ],
+      "writes": [
+        "denials.json"
+      ],
+      "description": "Builds denials.json: Region 5 + nationwide declaration turndowns for the Declaration Denials block (denial rate, lag distribution, by type/state/program).",
+      "links": [
+        "scripts/build_denials.py"
+      ]
+    },
+    {
+      "id": "build_pending",
+      "name": "scripts/build_pending.py",
+      "runtime": "offline",
+      "schedule": ".github/workflows/refresh-pending.yml",
+      "method": "pdfplumber column-x parse of the latest Daily Ops Brief 'Requests in Process' table; trust-gated on the header count.",
+      "reads": [
+        "femaDailyOpsBrief"
+      ],
+      "writes": [
+        "pending.json"
+      ],
+      "description": "Builds pending.json: the parsed 'Declaration Requests in Process' (pending) table from the latest FEMA Daily Operations Briefing PDF (the one non-OpenFEMA source).",
+      "links": [
+        "scripts/build_pending.py"
+      ]
+    },
+    {
+      "id": "build_timeline",
+      "name": "scripts/build_timeline.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "Aggregate measured hazards into one regional monthly series + per-month disaster markers.",
+      "reads": [
+        "disasters.json",
+        "noaaStormEvents"
+      ],
+      "writes": [
+        "timeline.json"
+      ],
+      "description": "Builds timeline.json: one regional monthly hazard series (rain/river/tornado/snow) + per-month disaster list for the Ledger 'Hazard timeline' chart.",
+      "links": [
+        "scripts/build_timeline.py"
+      ]
+    },
+    {
+      "id": "build_context",
+      "name": "scripts/build_context.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "Distill the state panel + disasters into per-state x hazard driver distributions and per-disaster driver values.",
+      "reads": [
+        "disasters.json"
+      ],
+      "writes": [
+        "context.json",
+        "event_nexus.json"
+      ],
+      "description": "Builds context.json (per-state x hazard distribution of each driver metric) and event_nexus.json (per-disaster characterizing driver values placed in history) for the Analyses view.",
+      "links": [
+        "scripts/build_context.py"
+      ]
+    },
+    {
+      "id": "build_manifest",
+      "name": "scripts/build_manifest.py",
+      "runtime": "offline",
+      "schedule": ".github/workflows/refresh-daily.yml",
+      "method": "Per-file bytes + internal dataAsOf + the source's OpenFEMA cadence for every committed data/*.json.",
+      "reads": [],
+      "writes": [
+        "manifest.json"
+      ],
+      "description": "Builds manifest.json: the per-file freshness manifest (dataAsOf vs sourceCadence) that powers the footer 'Data as of' stamp.",
+      "links": [
+        "scripts/build_manifest.py"
+      ]
+    },
+    {
+      "id": "applyNfip",
+      "name": "applyNfip()",
+      "runtime": "browser",
+      "schedule": "page load",
+      "method": "Merge nfip.json onto DECL.counties/states by FIPS (synthesizing claims-only county entries) at load time.",
+      "reads": [
+        "nfip.json",
+        "county_declarations.json"
+      ],
+      "writes": [],
+      "description": "In-browser join: merges the NFIP county x year rollup onto the loaded county_declarations data by FIPS so the Geography 'Flood insurance' lens reuses the standard metric machinery.",
+      "links": [
+        "index.html"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "context.json",
+      "name": "data/context.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Per-state x hazard distribution of each driver metric (the Analyses view).",
+      "deprecated": false,
+      "links": [
+        "data/context.json"
+      ],
+      "producedBy": [
+        "build_context"
+      ]
+    },
+    {
+      "id": "county_declarations.json",
+      "name": "data/county_declarations.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "The geo rollup: per-county declaration counts + disaster lists + PA/IHP/HMGP/non-disaster-mitigation $ + applicants/subrecipients + per-state preparedness + *ByYear buckets. Multi-producer (base map + additive enrichers).",
+      "deprecated": false,
+      "links": [
+        "data/county_declarations.json"
+      ],
+      "producedBy": [
+        "build_county_map",
+        "build_county_applicants",
+        "dedup_applicants",
+        "build_county_ihp",
+        "build_county_hmgp",
+        "build_county_mitigation",
+        "build_state_prep",
+        "build_county_byyear"
+      ]
+    },
+    {
+      "id": "covid.json",
+      "name": "data/covid.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Per-state COVID-19 PA obligated / IHP approved / projects (the standalone COVID-19 view).",
+      "deprecated": false,
+      "links": [
+        "data/covid.json"
+      ],
+      "producedBy": [
+        "build_covid"
+      ]
+    },
+    {
+      "id": "denials.json",
+      "name": "data/denials.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Region 5 + nationwide declaration turndowns (FY2007+) for the Declaration Denials block.",
+      "deprecated": false,
+      "links": [
+        "data/denials.json"
+      ],
+      "producedBy": [
+        "build_denials"
+      ]
+    },
+    {
+      "id": "disaster_county_ihp.json",
+      "name": "data/disaster_county_ihp.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Per-disaster x per-county IHP (approved $ + HA/ONA + valid-registration count) for the mobile Geography disaster drill-down.",
+      "deprecated": false,
+      "links": [
+        "data/disaster_county_ihp.json"
+      ],
+      "producedBy": [
+        "build_disaster_county_ihp"
+      ]
+    },
+    {
+      "id": "disasters.json",
+      "name": "data/disasters.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "80 Region 5 disasters (FY2007-2026): the source-of-truth ledger with hazards + authoritative PA/IHP costs + gage lists + declaration dates.",
+      "deprecated": false,
+      "links": [
+        "data/disasters.json"
+      ],
+      "producedBy": [
+        "enrich",
+        "add_history",
+        "build_declared",
+        "augment_rain",
+        "build_gages",
+        "patch_ia_flag"
+      ]
+    },
+    {
+      "id": "disasters_national.json",
+      "name": "data/disasters_national.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Lightweight nationwide companion (~1,196 disasters), declaration-lag fields only, for the Disaster Timelines National toggle.",
+      "deprecated": false,
+      "links": [
+        "data/disasters_national.json"
+      ],
+      "producedBy": [
+        "build_national"
+      ]
+    },
+    {
+      "id": "event_nexus.json",
+      "name": "data/event_nexus.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Per-disaster characterizing driver values placed in history (the Analyses view).",
+      "deprecated": false,
+      "links": [
+        "data/event_nexus.json"
+      ],
+      "producedBy": [
+        "build_context"
+      ]
+    },
+    {
+      "id": "gages.json",
+      "name": "data/gages.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "19 key USGS river gages: AHPS flood categories + crest history + declaration ties.",
+      "deprecated": false,
+      "links": [
+        "data/gages.json"
+      ],
+      "producedBy": [
+        "build_gages"
+      ]
+    },
+    {
+      "id": "manifest.json",
+      "name": "data/manifest.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Per-file freshness manifest (dataAsOf vs sourceCadence) for the footer staleness stamp.",
+      "deprecated": false,
+      "links": [
+        "data/manifest.json"
+      ],
+      "producedBy": [
+        "build_manifest"
+      ]
+    },
+    {
+      "id": "newsreel.json",
+      "name": "data/newsreel.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Per-program latest + biggest obligations (PA + Hazard Mitigation) for the Newsreel view.",
+      "deprecated": false,
+      "links": [
+        "data/newsreel.json"
+      ],
+      "producedBy": [
+        "build_newsreel"
+      ]
+    },
+    {
+      "id": "nfip.json",
+      "name": "data/nfip.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Region 5 county x year NFIP claims rollup (counts / paid / by-year / SFHA in-out).",
+      "deprecated": false,
+      "links": [
+        "data/nfip.json"
+      ],
+      "producedBy": [
+        "build_nfip"
+      ]
+    },
+    {
+      "id": "pending.json",
+      "name": "data/pending.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Parsed 'Declaration Requests in Process' table from the latest FEMA Daily Operations Briefing PDF (the one non-OpenFEMA artifact).",
+      "deprecated": false,
+      "links": [
+        "data/pending.json"
+      ],
+      "producedBy": [
+        "build_pending"
+      ]
+    },
+    {
+      "id": "r5_counties.json",
+      "name": "data/r5_counties.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Simplified Region 5 county polygons for the Watch declaration-history map.",
+      "deprecated": false,
+      "links": [
+        "data/r5_counties.json"
+      ],
+      "producedBy": [
+        "build_counties"
+      ]
+    },
+    {
+      "id": "recent.json",
+      "name": "data/recent.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Trailing ~400-day Region 5 PA + Hazard Mitigation obligation feed for the Geography 'Recent activity' view (hybrid: short windows fetched live, 1-year window from this file).",
+      "deprecated": false,
+      "links": [
+        "data/recent.json"
+      ],
+      "producedBy": [
+        "build_recent"
+      ]
+    },
+    {
+      "id": "timeline.json",
+      "name": "data/timeline.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Monthly regional hazard series + per-month disaster list for the Ledger hazard timeline.",
+      "deprecated": false,
+      "links": [
+        "data/timeline.json"
+      ],
+      "producedBy": [
+        "build_timeline"
+      ]
+    }
+  ],
+  "surfaces": [
+    {
+      "id": "ledger",
+      "name": "Disaster Ledger",
+      "location": "index.html#view-ledger",
+      "reads": [
+        "disasters.json",
+        "gages.json",
+        "timeline.json"
+      ],
+      "description": "The default facts-first view: every Region 5 disaster, sortable, with measured hazards + real PA (obligated) and IHP (approved) dollars, the per-disaster detail modal, and the hazard timeline chart.",
+      "links": [
+        "index.html"
+      ]
+    },
+    {
+      "id": "watch",
+      "name": "Disaster Watch",
+      "location": "index.html#view-watch",
+      "reads": [
+        "r5_counties.json",
+        "county_declarations.json",
+        "disasters.json"
+      ],
+      "description": "Live NWS alerts + live USGS gage heights, with a declaration-history map; trips when a river approaches a past disaster's peak stage or warnings match an analog's hazards.",
+      "links": [
+        "index.html"
+      ]
+    },
+    {
+      "id": "geography",
+      "name": "Geography view",
+      "location": "index.html#view-geography",
+      "reads": [
+        "county_declarations.json",
+        "nfip.json",
+        "disaster_county_ihp.json",
+        "recent.json"
+      ],
+      "description": "Program-first county/state choropleth + measure-driven timeline (PA / IA / HMGP / Non-disaster / NFIP / Recent activity), with desktop and mobile lenses.",
+      "links": [
+        "index.html"
+      ]
+    },
+    {
+      "id": "estimate",
+      "name": "Estimate (beta)",
+      "location": "index.html#view-estimate",
+      "reads": [
+        "disasters.json"
+      ],
+      "description": "A deliberately-downplayed comparables heuristic that scales similar past disasters' obligations by population. Not a forecast.",
+      "links": [
+        "index.html"
+      ]
+    },
+    {
+      "id": "timelines",
+      "name": "Disaster Timelines",
+      "location": "index.html#view-timelines",
+      "reads": [
+        "disasters.json",
+        "disasters_national.json",
+        "denials.json",
+        "pending.json"
+      ],
+      "description": "Declaration-lag trend + distribution (Region 5 / National toggle), with the Declaration Denials and Declaration-requests-in-process (pending) blocks at the bottom.",
+      "links": [
+        "index.html"
+      ]
+    },
+    {
+      "id": "newsreel",
+      "name": "Newsreel",
+      "location": "index.html#view-newsreel",
+      "reads": [
+        "newsreel.json"
+      ],
+      "description": "The 'latest obligations' reel for the two programs with a per-item obligation date (PA + Hazard Mitigation).",
+      "links": [
+        "index.html"
+      ]
+    },
+    {
+      "id": "covid",
+      "name": "COVID-19 view",
+      "location": "index.html#view-covid",
+      "reads": [
+        "covid.json"
+      ],
+      "description": "The standalone COVID-19 view: per-state PA obligated / IHP approved / projects, kept out of the weather ledger.",
+      "links": [
+        "index.html"
+      ]
+    },
+    {
+      "id": "analyses",
+      "name": "Analyses (Context)",
+      "location": "index.html#view-context",
+      "reads": [
+        "context.json",
+        "event_nexus.json"
+      ],
+      "description": "Per-state x hazard driver distributions (context.json) with each disaster's characterizing driver values placed in history (event_nexus.json).",
+      "links": [
+        "index.html"
+      ]
+    },
+    {
+      "id": "footer",
+      "name": "Footer freshness stamp",
+      "location": "index.html",
+      "reads": [
+        "manifest.json"
+      ],
+      "description": "The footer 'Data as of …' staleness stamp, read from the per-file freshness manifest.",
+      "links": [
+        "index.html"
+      ]
+    }
+  ]
+}
