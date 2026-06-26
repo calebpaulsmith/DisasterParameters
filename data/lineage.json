@@ -952,6 +952,25 @@
       ]
     },
     {
+      "id": "build_request_dates",
+      "name": "scripts/build_request_dates.py",
+      "runtime": "offline",
+      "schedule": ".github/workflows/refresh-request-dates.yml",
+      "method": "Harvests the full Daily Ops Brief archive, dedups each request, and matches conservatively to OpenFEMA declarations; cross-checked against OpenFEMA denial request dates (ground truth).",
+      "reads": [
+        "femaDailyOpsBrief",
+        "disasterDeclarationsSummaries",
+        "denials.json"
+      ],
+      "writes": [
+        "request_dates.json"
+      ],
+      "description": "Builds request_dates.json: request dates for DECLARED R5 disasters (which OpenFEMA never publishes), harvested from the Daily Ops Brief archive and matched to OpenFEMA declarations, plus a denial-request-date cross-check.",
+      "links": [
+        "scripts/build_request_dates.py"
+      ]
+    },
+    {
       "id": "build_timeline",
       "name": "scripts/build_timeline.py",
       "runtime": "offline",
@@ -1020,6 +1039,17 @@
     }
   ],
   "artifacts": [
+    {
+      "id": "_request_cache.json",
+      "name": "data/_request_cache.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": null,
+      "deprecated": false,
+      "links": [
+        "data/_request_cache.json"
+      ],
+      "producedBy": []
+    },
     {
       "id": "context.json",
       "name": "data/context.json",
@@ -1228,6 +1258,19 @@
       ]
     },
     {
+      "id": "request_dates.json",
+      "name": "data/request_dates.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Request dates for DECLARED R5 disasters, harvested from the Daily Ops Brief archive and matched conservatively to OpenFEMA declarations; includes a denial-request-date cross-check. Unofficial brief parse, not OpenFEMA.",
+      "deprecated": false,
+      "links": [
+        "data/request_dates.json"
+      ],
+      "producedBy": [
+        "build_request_dates"
+      ]
+    },
+    {
       "id": "timeline.json",
       "name": "data/timeline.json",
       "freshnessFrom": "data/manifest.json",
@@ -1305,9 +1348,10 @@
         "disasters.json",
         "disasters_national.json",
         "denials.json",
-        "pending.json"
+        "pending.json",
+        "request_dates.json"
       ],
-      "description": "Declaration-lag trend + distribution (Region 5 / National toggle), with the Declaration Denials and Declaration-requests-in-process (pending) blocks at the bottom.",
+      "description": "Declaration-lag trend + distribution (Region 5 / National toggle), with the Declaration Denials, Declaration-requests-in-process (pending), and Request→decision timing (harvested request dates) blocks at the bottom.",
       "links": [
         "index.html"
       ]
