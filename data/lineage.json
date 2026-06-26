@@ -1040,17 +1040,6 @@
   ],
   "artifacts": [
     {
-      "id": "_request_cache.json",
-      "name": "data/_request_cache.json",
-      "freshnessFrom": "data/manifest.json",
-      "description": null,
-      "deprecated": false,
-      "links": [
-        "data/_request_cache.json"
-      ],
-      "producedBy": []
-    },
-    {
       "id": "context.json",
       "name": "data/context.json",
       "freshnessFrom": "data/manifest.json",
