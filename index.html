@@ -1735,10 +1735,15 @@ function enterDisasterFocus(dn){
   geoDisasterFocus=dn; geoCountyFocus=null; geoApplExpanded=false;
   const d=disasterMeta(dn); if(d.state)geoStateFilter=d.state;
   renderGeoStates();renderGeoMap();renderGeoBoard();renderGeoTimeline();geoFocus(true);
-  const box=el("geoPick"); if(box)box.innerHTML=disasterDetailHTML(dn);
+  geoRenderDisasterDetail(dn);
   if(!geoDisApplCache[dn])fetchDisasterApplicants(dn);
-  if(geoDisMACache[dn]==null)fetchDisasterMA(dn); else renderDisasterMA(dn);
   syncHash();
+}
+// (re)render the desktop detail pane for a focused disaster — re-callable when live per-county PA / DCIHP land
+function geoRenderDisasterDetail(dn){
+  const box=el("geoPick"); if(!box)return;
+  box.innerHTML=disasterDetailHTML(dn);
+  if(geoDisMACache[dn]==null)fetchDisasterMA(dn); else renderDisasterMA(dn);
 }
 function geoExitDisaster(){const s=geoStateFilter; geoDisasterFocus=null; renderGeoStates();renderGeoMap();renderGeoBoard();renderGeoTimeline();geoFocus(true);
   if(s)showStateGeo(s); else el("geoPick").innerHTML=geoPickDefault(); syncHash();}
@@ -1749,7 +1754,25 @@ function disasterDetailHTML(dn){
     PA <b>${fmtMoney(d.pa||0)}</b> · IHP <b>${fmtMoney(d.ihp||0)}</b> · <b>${fmtNum(c.paProjects||0)}</b> projects</div>
     <div class="declrow clickable" data-dn="${dn}"><span class="dk"><b style="color:var(--navy)">Full disaster details</b> · costs, hazards, gages</span><span class="dv">open ↗</span></div>
     <p class="thr-sub" style="margin-top:8px">Counties this disaster designated are highlighted on the map — tap any one for its own history. Applicants (left) are this disaster's <b>obligated federal share</b>, live from OpenFEMA.</p>
+    ${geoDisCountyBreakdownHTML(dn)}
     <div id="geoMABox"></div>`;
+}
+// per-county PA + IHP for THIS disaster (desktop detail pane) — PA live (geoDisCountyCache), IHP committed (DCIHP).
+// Tappable via the existing [data-gfips] handler → showCountyGeo. Re-rendered when those caches land.
+function geoDisCountyBreakdownHTML(dn){
+  if(!DECL||!DECL.counties)return "";
+  const fset=geoDisasterFips(dn);
+  const dcc=geoDisCountyCache[dn], dccReady=dcc&&typeof dcc==="object";
+  const ihpMap=(DCIHP&&DCIHP.byDisaster&&DCIHP.byDisaster[dn])||null;
+  const rows=[...fset].filter(f=>DECL.counties[f]).map(f=>{const v=DECL.counties[f];
+    const p=dccReady?(dcc[geoNormCounty(v.name)]||{}):{}, h=ihpMap?(ihpMap[f]||null):null;
+    return {f,name:v.name,pa:p.pa||0,projects:p.projects||0,ihp:h?h[0]:0,regs:h?h[3]:0};});
+  if(!rows.length)return "";
+  rows.sort((a,b)=>b.pa-a.pa||b.ihp-a.ihp);
+  const status=dccReady?`DR-${dn} obligations`:geoDisCountyCache[dn]==="error"?"per-disaster PA unavailable — IHP only":`loading DR-${dn} PA…`;
+  const head=`<div class="declsub" style="margin-top:12px">${rows.length} designated counties — <b>this disaster</b> <span class="thr-sub">· ${status}</span></div>`;
+  if(!dccReady&&!ihpMap&&geoDisCountyCache[dn]!=="error")return head+`<div class="skeleton"><span class="spin"></span> Loading…</div>`;
+  return head+rows.map(r=>`<div class="declrow clickable" data-gfips="${r.f}"><span class="dk">${r.name}<span class="thr-sub"> · ${fmtNum(r.projects)} proj${r.regs?` · ${fmtNum(r.regs)} regs`:""}</span></span><span class="dv">${fmtMoney(r.pa)} PA${r.ihp?` · ${fmtMoney(r.ihp)} IHP`:""}</span></div>`).join("");
 }
 const MA_ESF={1:"Transportation",2:"Communications",3:"Public Works",4:"Firefighting",5:"Info & Planning",6:"Mass Care",7:"Logistics",8:"Public Health",9:"Search & Rescue",10:"HazMat",11:"Agriculture",12:"Energy",13:"Public Safety & Security",14:"Recovery",15:"External Affairs"};
 const MA_TYPE={FOS:"Federal Ops Support",DFA:"Direct Federal Assistance",TA:"Technical Assistance"};
@@ -1817,7 +1840,7 @@ function fetchDisasterApplicants(dn){
       for(const ck in cagg)cagg[ck].pa=Math.round(cagg[ck].pa);
       geoDisApplCache[dn]=list; geoDisCountyCache[dn]=cagg;
     }catch(e){geoDisApplCache[dn]="error"; geoDisCountyCache[dn]="error";}
-    if(geoDisasterFocus===dn)renderGeoBoard();
+    if(geoDisasterFocus===dn){renderGeoBoard();geoRenderDisasterDetail(dn);}
     if(isMobileGeo()&&gmLevel==="disaster"&&gmDisaster===dn)renderGeoMobile();
   })();
 }
@@ -3778,7 +3801,7 @@ async function loadData(){
     fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();renderDeclMap();}).catch(()=>{});
     fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;if(d&&d.counties)for(const f in d.counties)d.counties[f].fips=f;applyNfip();geoSetYearBounds();renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
     fetch("data/nfip.json").then(r=>r.ok?r.json():null).then(n=>{NFIP=n;applyNfip();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
-    fetch("data/disaster_county_ihp.json").then(r=>r.ok?r.json():null).then(d=>{DCIHP=d;if(isMobileGeo()&&gmLevel==="disaster"&&gmDisaster)renderGeoMobile();}).catch(()=>{});
+    fetch("data/disaster_county_ihp.json").then(r=>r.ok?r.json():null).then(d=>{DCIHP=d;if(isMobileGeo()&&gmLevel==="disaster"&&gmDisaster)renderGeoMobile();else if(geoDisasterFocus)geoRenderDisasterDetail(geoDisasterFocus);}).catch(()=>{});
     // freshness stamp (footer): per-file "data as of" from data/manifest.json (built by build_manifest.py)
     fetch("data/manifest.json").then(r=>r.ok?r.json():null).then(mf=>{const el2=el("dataFresh"); if(!el2||!mf||!mf.files)return;
       const f=mf.files, pick=n=>(f[n]&&(f[n].dataAsOf||"")).slice(0,10);
