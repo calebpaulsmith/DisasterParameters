@@ -65,10 +65,12 @@ TRIBE_STATE = {
 MONTHS = {m: i for i, m in enumerate(
     ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], 1)}
 
-# date may be abbreviated ("Jun 3") or spelled out ("June 3", "March 12") — the
-# briefs are inconsistent, so accept a 3-9 letter month.
+# date may be abbreviated ("Jun 3"), spelled out ("June 3", "March 12"), or carry
+# an explicit year for long-running requests ("Jul 3, 2023") — the briefs are
+# inconsistent, so accept a 3-9 letter month and an optional ", YYYY".
 ROW_RE = re.compile(
-    r"^(?P<ent>.+?)\s+(?P<type>DR|EM)\s+(?:X\s*){1,3}(?P<date>[A-Z][a-z]{2,8}\s+\d{1,2})\s*$")
+    r"^(?P<ent>.+?)\s+(?P<type>DR|EM)\s+(?:X\s*){1,3}"
+    r"(?P<date>[A-Z][a-z]{2,8}\s+\d{1,2}(?:,\s*\d{4})?)\s*$")
 # terminal tags on the incident tail, either "– Appeal" / "- Denied" or "(Appeal)" / "(Approved)"
 TAG_RE = re.compile(r"\s*(?:[–-]\s*|\()(Appeal|Approved|Denied)\)?\s*$", re.I)
 
@@ -101,9 +103,18 @@ def brief_date(text):
 
 
 def infer_date(raw, bdate):
-    """'Oct 24' / 'June 3' + brief date -> most-recent ISO date <= brief date."""
-    mon, day = raw.split()
-    mo, dy = MONTHS[mon[:3]], int(day)  # mon[:3] handles both 'Jun' and 'June'
+    """'Oct 24' / 'June 3' / 'Jul 3, 2023' + brief date -> ISO date.
+    Uses the explicit year when the brief prints one; else the most-recent
+    year whose month/day is <= the brief date."""
+    m = re.match(r"([A-Za-z]+)\s+(\d{1,2})(?:,\s*(\d{4}))?", raw)
+    if not m:
+        return None
+    mo, dy = MONTHS[m.group(1)[:3]], int(m.group(2))  # [:3] handles 'Jun' and 'June'
+    if m.group(3):                                     # explicit year printed
+        try:
+            return datetime.date(int(m.group(3)), mo, dy)
+        except ValueError:
+            return None
     for yr in (bdate.year, bdate.year - 1, bdate.year - 2):
         try:
             d = datetime.date(yr, mo, dy)
