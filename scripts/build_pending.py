@@ -219,9 +219,22 @@ def parse_pending(pdf_path):
 
             def hit(col):  # an X within +/-12pt of the column header
                 return any(abs(x - cols[col]) < 12 for x in xs)
+            # The brief tags terminal states on the incident's tail: "– Appeal"
+            # (a resubmission) and, on decision day, "– Approved" / "– Denied"
+            # (shown once, then dropped — and EXCLUDED from the header count).
             ent = m.group("ent")
-            appeal = bool(re.search(r"[–-]\s*Appeal\s*$", ent))
-            ent = re.sub(r"\s*[–-]\s*Appeal\s*$", "", ent)
+            appeal = False
+            decision = None
+            while True:
+                tm = re.search(r"\s*[–-]\s*(Appeal|Approved|Denied)\s*$", ent, re.I)
+                if not tm:
+                    break
+                tag = tm.group(1).lower()
+                if tag == "appeal":
+                    appeal = True
+                else:
+                    decision = tag  # "approved" | "denied"
+                ent = ent[:tm.start()].strip()
             parts = re.split(r"\s*[–-]\s*", ent, maxsplit=1)
             ent_code = parts[0]
             incident = parts[1].strip() if len(parts) > 1 else ""
@@ -230,7 +243,8 @@ def parse_pending(pdf_path):
             row = {
                 "entity": code, "entityName": name, "kind": kind,
                 "state": st, "region": region,
-                "incident": incident, "appeal": appeal, "type": m.group("type"),
+                "incident": incident, "appeal": appeal, "decision": decision,
+                "type": m.group("type"),
                 "ia": hit("IA"), "pa": hit("PA"), "hm": hit("HM"),
                 "requestedRaw": m.group("date"),
                 "requestDate": rd.isoformat() if rd else None,
@@ -262,16 +276,22 @@ def main():
     bdate, header_count, rows = parse_pending(tmp)
     os.remove(tmp)
 
-    parsed = len(rows)
+    # The header count is the IN-PROCESS (undecided) total; rows the brief tagged
+    # "– Approved"/"– Denied" on decision day are shown once but NOT counted. So the
+    # cross-check is header == in-process rows, and pending.json carries only those.
+    inproc = [r for r in rows if not r["decision"]]
+    decided = [r for r in rows if r["decision"]]
+    parsed = len(inproc)
     ok = header_count is not None and parsed == header_count
     print(f"  brief date: {bdate}")
-    print(f"  CROSS-CHECK: header says {header_count}, parsed {parsed} -> {'OK' if ok else 'MISMATCH'}")
-    r5 = [r for r in rows if r["region"] == 5]
+    print(f"  CROSS-CHECK: header says {header_count}, in-process parsed {parsed} -> "
+          f"{'OK' if ok else 'MISMATCH'}" + (f" (+{len(decided)} just-decided rows excluded)" if decided else ""))
+    r5 = [r for r in inproc if r["region"] == 5]
     print(f"  Region 5 pending: {len(r5)} -> " +
           ", ".join(f"{r['entity']}({'A' if r['appeal'] else ''}{r['requestedRaw']})" for r in r5))
 
     if not ok:
-        print("REFUSING to write: parsed count != header count (layout may have changed).",
+        print("REFUSING to write: in-process count != header count (layout may have changed).",
               file=sys.stderr)
         sys.exit(2)
 
@@ -280,7 +300,7 @@ def main():
         "briefTitle": title, "briefUrl": url,
         "headerCount": header_count, "parsedCount": parsed, "crossCheckOk": ok,
         "source": "FEMA Daily Operations Briefing (unofficial parse) via Data Liberation Project",
-        "rows": rows,
+        "rows": inproc,
     }
     path = os.path.join(DATA, "pending.json")
     json.dump(out, open(path, "w"), separators=(",", ":"))
