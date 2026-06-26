@@ -49,6 +49,8 @@ def main():
     for name in sorted(os.listdir(DATA)):
         if not name.endswith(".json") or name == "manifest.json":
             continue
+        if name.startswith("_"):   # skip git-ignored intermediate/cache files (e.g. _ihp_dc_cache.json)
+            continue
         path = os.path.join(DATA, name)
         entry = {"bytes": os.path.getsize(path)}
         try:
