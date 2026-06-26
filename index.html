@@ -833,6 +833,21 @@ tr.clickable:hover td{background:#eef3f8;}
     <div class="card"><div class="card__hd"><h2>Median lag by group</h2>
         <div class="geogrp" id="tlBreakToggle" style="margin-bottom:0"><button data-tlbreak="state" class="active">By state</button><button data-tlbreak="type">By incident type</button></div></div>
       <div class="card__bd"><div id="tlBreakdown"></div></div></div>
+
+    <!-- ===== DECLARATION DENIALS (turndowns — the mirror of the lag charts) ===== -->
+    <div class="note" id="dnIntro" style="margin:30px 0 14px"><span class="i">!</span><span><b>The other side: turndowns.</b> Not every request becomes a disaster. These charts use OpenFEMA <b>Declaration Denials</b> — requests a governor or tribe filed that FEMA <b>turned down</b> (FY2007 on; the dataset reaches back to 1953, to be added later). Denials carry a request date <i>and</i> a decision date, so we can ask both <b>how long FEMA took to say no</b> and <b>how that compares to saying yes</b>. This dataset records the turndown only — <b>not</b> whether a later appeal or resubmission succeeded. Honors the same Region 5 / National switch above. <b>Not endorsed by FEMA.</b></span></div>
+    <div id="dnHeadlines" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px"></div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      <span class="thr-sub">Measure denial wait from:</span>
+      <div class="geogrp" id="dnLagToggle" style="margin-bottom:0"><button data-dnlag="incident" class="active">Incident start</button><button data-dnlag="request">Request date</button></div>
+    </div>
+    <div class="card"><div class="card__hd"><h2>&#128683; How long until a turndown?</h2><span class="sub" id="dnDistSub">days from incident start to denial · vs declaration lag</span></div>
+      <div class="card__bd"><div id="dnDist"></div><div id="dnDistPick" class="declpick" style="margin-top:10px"></div></div></div>
+    <div class="card"><div class="card__hd"><h2>&#128201; Turndowns over time</h2><span class="sub">denials per year · tap a year for its denial rate</span></div>
+      <div class="card__bd"><div id="dnTrend"></div><div id="dnTrendPick" class="declpick" style="margin-top:10px"></div></div></div>
+    <div class="card"><div class="card__hd"><h2>Denials by group</h2>
+        <div class="geogrp" id="dnBreakToggle" style="margin-bottom:0"><button data-dnbreak="type" class="active">By incident type</button><button data-dnbreak="state">By state</button><button data-dnbreak="program">By program</button></div></div>
+      <div class="card__bd"><div id="dnBreakdown"></div></div></div>
   </section>
 
   <!-- ============ GEOGRAPHY (state + county rollup: disasters · dollars · projects) ============ -->
@@ -2809,6 +2824,7 @@ function tlShowBucket(i){const box=el("tlHistPick"),b=TL_BUCKETS[i]; if(!box||!b
 function renderTimelines(){
   tlSyncScopeUI();
   renderTlHeadlines();renderTlTrend();renderTlLagTime();renderTlCumulative();renderTlHistogram();renderTlBreakdown();
+  renderDenials();
   const tp=el("tlTrendPick"); if(tp)tp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a year above to list the disasters declared that year.</div>';
   const hp=el("tlHistPick"); if(hp)hp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a bar above to list the disasters in that lag range.</div>';
 }
@@ -2963,6 +2979,178 @@ function renderTlBreakdown(){
     +`<p class="thr-sub" style="margin-top:6px">Median declaration lag (days from incident start), sorted longest-wait first. n = disasters in group; small n is noisy.${capped?` Showing the ${CAP} longest-wait of ${total} ${byState?"states/territories":"types"}.`:""}</p>`;
 }
 
+/* ===== DECLARATION DENIALS (turndowns — analytic mirror of the lag charts) ===== */
+/* OpenFEMA DeclarationDenials: every row is a "Turndown" (no appeal-outcome field).
+   Denials carry a request date AND a decision date, so two lags are available:
+   incident-start->denial (apples-to-apples with the approval charts) and
+   request->denial (FEMA's decision turnaround). Honors the TL_SCOPE clicker. */
+let DENIALS=null, dnPending=false, dnLagBasis="incident", dnBreakBy="type";
+const DN_BUCKETS=[{lab:"0–14",f:v=>v>=0&&v<=14},{lab:"15–30",f:v=>v>=15&&v<=30},{lab:"31–60",f:v=>v>=31&&v<=60},{lab:"61–90",f:v=>v>=61&&v<=90},{lab:"91–180",f:v=>v>=91&&v<=180},{lab:"181–365",f:v=>v>=181&&v<=365},{lab:"365+",f:v=>v>365}];
+function dnLoad(){
+  if(dnPending||DENIALS!==null)return; dnPending=true;
+  fetch("data/denials.json").then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{
+    DENIALS=d; dnPending=false; const v=el("view-timelines"); if(v&&v.classList.contains("active"))renderDenials();
+  }).catch(()=>{dnPending=false; DENIALS=[]; renderDenials();});
+}
+function dnData(){const a=DENIALS||[]; return TL_SCOPE==="national"?a:a.filter(d=>d.region===5);}
+function dnLag(d){
+  const base=dnLagBasis==="request"?d.reqDate:d.begin; if(!base||!d.statusDate)return null;
+  const v=Math.round((tlDayNum(d.statusDate)-tlDayNum(base))/86400000); return v<0?null:v;
+}
+function dnColor(v){if(v==null)return"#9aa5b1";if(v<=30)return"#1a9850";if(v<=60)return"#66bd63";if(v<=90)return"#d4a017";if(v<=180)return"#e8590c";return"#d7191c";}
+// denial rate = denied / (denied + declared), major-disaster requests only (the comparable grain)
+function dnRate(){const den=dnData().filter(d=>d.type==="DR").length, appr=tlData().length, tot=den+appr; return tot?{den,appr,pct:Math.round(den/tot*100)}:null;}
+function dnRenderPickList(box,title,rows){
+  if(!box)return;
+  rows=rows.slice().filter(d=>dnLag(d)!=null).sort((a,b)=>dnLag(b)-dnLag(a));
+  if(!rows.length){box.innerHTML=`<div class="declhd"><b>${title}</b> — none</div>`;return;}
+  const items=rows.map(d=>{const l=dnLag(d);
+    return `<div class="declrow clickable" data-dnreq="${d.reqNum}"><span class="dk"><b style="color:var(--navy)">${esc(d.state)}</b> · ${esc(titleCase(d.incidentType))} · ${esc(d.name?titleCase(d.name):fmtDate(d.statusDate))}</span><span class="dv">${l} day${Math.abs(l)===1?"":"s"} ↗</span></div>`;}).join("");
+  box.innerHTML=`<div class="declhd"><b>${title}</b> — ${rows.length} turndown${rows.length===1?"":"s"} · tap any for detail</div>${items}`;
+}
+function dnShowYear(y){const box=el("dnTrendPick");if(!box)return;dnRenderPickList(box,`${y} — turndowns`,dnData().filter(d=>d.begin&&+d.begin.slice(0,4)===y));box.scrollIntoView({behavior:"smooth",block:"nearest"});}
+function dnShowBucket(i){const box=el("dnDistPick"),b=DN_BUCKETS[i];if(!box||!b)return;dnRenderPickList(box,`Denied ${b.lab} days after ${dnLagBasis==="request"?"request":"incident start"}`,dnData().filter(d=>{const l=dnLag(d);return l!=null&&b.f(l);}));box.scrollIntoView({behavior:"smooth",block:"nearest"});}
+function dnSetLag(b){if(b===dnLagBasis)return;dnLagBasis=b;const w=el("dnLagToggle");if(w)w.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x.dataset.dnlag===b));renderDnHeadlines();renderDnDist();renderDnBreakdown();const dp=el("dnDistPick");if(dp)dp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a bar above to list the turndowns in that range.</div>';}
+function renderDenials(){
+  if(DENIALS===null){dnLoad();const h=el("dnHeadlines");if(h)h.innerHTML='<div class="skeleton"><span class="spin"></span> Loading denials…</div>';return;}
+  renderDnHeadlines();renderDnDist();renderDnTrend();renderDnBreakdown();
+  const tp=el("dnTrendPick");if(tp)tp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a year above to list that year\'s turndowns.</div>';
+  const dp=el("dnDistPick");if(dp)dp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a bar above to list the turndowns in that range.</div>';
+}
+function renderDnHeadlines(){
+  const box=el("dnHeadlines");if(!box)return;
+  const rows=dnData();
+  if(!rows.length){box.innerHTML='<p class="thr-sub">No denial records for this scope.</p>';return;}
+  const lags=rows.map(dnLag).filter(v=>v!=null).sort((a,b)=>a-b);
+  const med=tlMedian(lags);
+  const cmp=dnLagBasis==="incident";
+  const apprMed=cmp?tlMedian(tlData().map(tlLag).filter(v=>v!=null)):null;
+  const rate=dnRate();
+  const longest=rows.reduce((a,b)=>{const la=dnLag(a),lb=dnLag(b);return (lb!=null&&(la==null||lb>la))?b:a;});
+  const basis=dnLagBasis==="request"?"from request filed":"from incident start";
+  const card=(lab,big,sub,rn,col)=>`<div class="costcard"${rn?` data-dnreq="${rn}"`:""} style="cursor:${rn?"pointer":"default"}${col?`;border-left:4px solid ${col}`:""}"><div class="lab">${lab}</div><div class="big">${big}</div><span class="thr-sub">${sub}</span></div>`;
+  let html=card("Median time to deny",`${med} days`,`${basis} · ${lags.length} turndowns`,null,dnColor(med));
+  if(cmp&&apprMed!=null)html+=card("vs. time to declare",`${apprMed} days`,med!=null&&med>apprMed?`FEMA takes ~${med-apprMed}d longer to say no`:"approval lag (incident start)");
+  if(rate)html+=card("Denial rate",`${rate.pct}%`,`${rate.den} denied vs ${rate.appr} declared (major-disaster)`);
+  html+=card("Longest wait to deny",`${dnLag(longest)} days`,`${esc(longest.state)} · ${esc(titleCase(longest.incidentType))} · tap →`,longest.reqNum,dnColor(dnLag(longest)));
+  box.innerHTML=html;
+}
+function renderDnDist(){
+  const box=el("dnDist");if(!box)return;
+  const sub=el("dnDistSub");if(sub)sub.textContent=`days from ${dnLagBasis==="request"?"request filed":"incident start"} to denial${dnLagBasis==="incident"?" · vs declaration lag":""}`;
+  const lags=dnData().map(dnLag).filter(v=>v!=null);
+  if(!lags.length){box.innerHTML='<p class="thr-sub">No denial records for this scope.</p>';return;}
+  const cmp=dnLagBasis==="incident";
+  const apprLags=cmp?tlData().map(tlLag).filter(v=>v!=null):[];
+  const dCounts=DN_BUCKETS.map(b=>lags.filter(b.f).length);
+  const aCounts=DN_BUCKETS.map(b=>apprLags.filter(b.f).length);
+  const dN=lags.length||1,aN=apprLags.length||1;
+  const dPct=dCounts.map(c=>c/dN),aPct=aCounts.map(c=>c/aN);
+  const mx=Math.max(0.0001,...dPct,...(cmp?aPct:[]));
+  const W=920,H=260,pl=34,pr=10,pt=16,pb=46,iw=W-pl-pr,ih=H-pt-pb,n=DN_BUCKETS.length,step=iw/n;
+  let grid="";[0,.25,.5,.75,1].forEach(p=>{const v=p*mx,gy=pt+ih-p*ih;grid+=`<line x1="${pl}" y1="${gy.toFixed(1)}" x2="${pl+iw}" y2="${gy.toFixed(1)}" stroke="#eef2f6"/><text x="${pl-5}" y="${(gy+3).toFixed(1)}" font-size="8.5" fill="#8a94a6" text-anchor="end">${Math.round(v*100)}%</text>`;});
+  const gw=cmp?step*0.30:step*0.5;
+  let bars="";
+  DN_BUCKETS.forEach((b,i)=>{const cx=pl+i*step+step/2;
+    if(cmp){const ax=cx-gw-1,dx=cx+1,ah=aPct[i]/mx*ih,dh=dPct[i]/mx*ih;
+      bars+=`<rect x="${ax.toFixed(1)}" y="${(pt+ih-ah).toFixed(1)}" width="${gw.toFixed(1)}" height="${ah.toFixed(1)}" rx="1.5" fill="#1a9850" opacity="0.8"/>`+
+            `<rect x="${dx.toFixed(1)}" y="${(pt+ih-dh).toFixed(1)}" width="${gw.toFixed(1)}" height="${dh.toFixed(1)}" rx="1.5" fill="#d7191c" opacity="0.85"/>`;
+    }else{const dh=dPct[i]/mx*ih;
+      bars+=`<rect x="${(cx-gw/2).toFixed(1)}" y="${(pt+ih-dh).toFixed(1)}" width="${gw.toFixed(1)}" height="${dh.toFixed(1)}" rx="1.5" fill="#d7191c" opacity="0.85"/>`;}
+    bars+=`<text x="${cx.toFixed(1)}" y="${H-26}" font-size="9.5" fill="#5a6573" text-anchor="middle">${b.lab}</text>`+
+          `<text x="${cx.toFixed(1)}" y="${H-14}" font-size="8" fill="#9aa5b1" text-anchor="middle">${dCounts[i]||""}</text>`+
+          `<rect x="${(pl+i*step).toFixed(1)}" y="${pt}" width="${step.toFixed(1)}" height="${ih}" fill="transparent" data-dnbkt="${i}" style="cursor:pointer"><title>${b.lab} days: ${dCounts[i]} turndown${dCounts[i]===1?"":"s"} — tap to list</title></rect>`;});
+  const med=tlMedian(lags),apprMed=cmp?tlMedian(apprLags):null;
+  const legend=cmp?`<span><i style="background:#d7191c"></i>denials</span><span><i style="background:#1a9850"></i>declarations</span>`:`<span><i style="background:#d7191c"></i>denials</span>`;
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:#fbfdff;border-radius:8px">${grid}${bars}<text x="${pl}" y="${H-2}" font-size="8.5" fill="#8a94a6">← decided sooner · longer wait →</text></svg>`
+    +`<div class="maplegend">${legend}<span class="thr-sub" style="margin-left:auto">share within each set</span></div>`
+    +`<p class="thr-sub" style="margin-top:6px">${cmp?`Half of turndowns took <b>${med} days</b> from incident start vs <b>${apprMed} days</b> for declarations${med>apprMed?` — FEMA generally takes <b>~${med-apprMed} days longer</b> to say no than to say yes`:""}.`:`Half of turndowns came <b>${med} days</b> after the request was filed.`} <b>Tap any bar</b> to list its turndowns.</p>`;
+}
+function renderDnTrend(){
+  const box=el("dnTrend");if(!box)return;
+  const rows=dnData().filter(d=>d.begin);
+  if(!rows.length){box.innerHTML='<p class="thr-sub">No denial records for this scope.</p>';return;}
+  const byYear={};rows.forEach(d=>{const y=+d.begin.slice(0,4);byYear[y]=(byYear[y]||0)+1;});
+  const apprYear={};tlData().forEach(d=>{if(!d.begin)return;const y=+d.begin.slice(0,4);apprYear[y]=(apprYear[y]||0)+1;});
+  const denDRYear={};rows.filter(d=>d.type==="DR").forEach(d=>{const y=+d.begin.slice(0,4);denDRYear[y]=(denDRYear[y]||0)+1;});
+  const years=Object.keys(byYear).map(Number),yLo=Math.min(...years),yHi=Math.max(...years);
+  const data=[];for(let y=yLo;y<=yHi;y++){const c=byYear[y]||0,dr=denDRYear[y]||0,ap=apprYear[y]||0;data.push({y,c,rate:(dr+ap)?Math.round(dr/(dr+ap)*100):null});}
+  const mx=Math.max(1,...data.map(d=>d.c));
+  const W=920,H=320,pl=30,pr=14,pt=18,pb=54,iw=W-pl-pr,ih=H-pt-pb;
+  const xOf=yr=>pl+(yr-yLo)/((yHi+1)-yLo)*iw,yOf=v=>pt+ih-v/mx*ih;
+  const slot=iw/((yHi+1)-yLo),bw=Math.max(4,slot*0.6);
+  let grid="";const tstep=tlNiceStep(mx/5)||1;
+  for(let t=0;t<=mx;t+=tstep){const gy=yOf(t);grid+=`<line x1="${pl}" y1="${gy.toFixed(1)}" x2="${pl+iw}" y2="${gy.toFixed(1)}" stroke="#eef2f6"/><text x="${pl-5}" y="${(gy+3).toFixed(1)}" font-size="8.5" fill="#8a94a6" text-anchor="end">${Math.round(t)}</text>`;}
+  let bars="",xlab="",hits="";
+  data.forEach(d=>{const cx=xOf(d.y+0.5);
+    xlab+=`<text x="${cx.toFixed(1)}" y="${H-20}" font-size="8.5" fill="#8a94a6" text-anchor="middle">'${String(d.y).slice(2)}</text>`;
+    if(d.c){const y=yOf(d.c);
+      bars+=`<rect x="${(cx-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${(pt+ih-y).toFixed(1)}" rx="1.5" fill="#b5651d" opacity="0.85"/>`+
+            `<text x="${cx.toFixed(1)}" y="${(y-4).toFixed(1)}" font-size="8.5" fill="#3d4551" text-anchor="middle" font-weight="700">${d.c}</text>`;
+      hits+=`<rect x="${(cx-slot/2).toFixed(1)}" y="${pt}" width="${slot.toFixed(1)}" height="${ih}" fill="transparent" data-dnyear="${d.y}" style="cursor:pointer"><title>${d.y}: ${d.c} turndown${d.c===1?"":"s"}${d.rate!=null?` · ${d.rate}% of major-disaster requests denied`:""} — tap to list</title></rect>`;}});
+  const reg=tlRegress(data.filter(d=>d.c).map(d=>({x:d.y,y:d.c})));
+  let trend="",verdict="";
+  if(reg){const x1=xOf(yLo),x2=xOf(yHi+1),y1=yOf(Math.max(0,reg.slope*yLo+reg.intercept)),y2=yOf(Math.max(0,reg.slope*(yHi+1)+reg.intercept));
+    trend=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#0d2342" stroke-width="2.4" stroke-dasharray="7 4"/>`;
+    const per=Math.round(reg.slope*10)/10;verdict=`<b>Trend: ${per>0?"+":""}${per} turndowns/year.</b>`;}
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;background:#fbfdff;border-radius:8px">${grid}${bars}${trend}${xlab}${hits}<text x="${(pl+iw/2).toFixed(1)}" y="${H-4}" font-size="9" fill="#8a94a6" text-anchor="middle">incident year · bar height = turndowns that year</text></svg>`
+    +`<div class="maplegend"><span>${verdict}</span></div>`
+    +`<p class="thr-sub" style="margin-top:6px">Turndowns by the year the incident began. <b>Tap any year</b> to list them; the tooltip shows that year's <b>denial rate</b> (denied ÷ denied+declared, major-disaster requests).</p>`;
+}
+function renderDnBreakdown(){
+  const box=el("dnBreakdown");if(!box)return;
+  const rows=dnData();if(!rows.length){box.innerHTML='<p class="thr-sub">No denial records for this scope.</p>';return;}
+  let arr,isCount;
+  if(dnBreakBy==="program"){
+    isCount=true;
+    arr=[["PA","pa"],["IA","ia"],["IHP","ih"],["HM","hm"]].map(([lab,k])=>[lab,rows.filter(d=>d[k]).length,rows.filter(d=>d[k]).length]).filter(x=>x[1]>0);
+    arr.sort((a,b)=>b[1]-a[1]);
+  }else{
+    isCount=false;const byState=dnBreakBy==="state",groups={};
+    rows.forEach(d=>{const k=byState?d.state:(d.incidentType||"Other"),l=dnLag(d);if(l==null)return;(groups[k]=groups[k]||[]).push(l);});
+    arr=Object.entries(groups).map(([k,v])=>[k,tlMedian(v),v.length]).filter(x=>x[1]!=null);
+    arr.sort((a,b)=>b[1]-a[1]);
+  }
+  if(!arr.length){box.innerHTML="";return;}
+  const CAP=40,total=arr.length,capped=arr.length>CAP;if(capped)arr=arr.slice(0,CAP);
+  const W=920,rowH=27,pt=8,pb=8,pl=dnBreakBy==="state"?(TL_SCOPE==="national"?56:46):150,pr=84,H=pt+pb+arr.length*rowH,iw=W-pl-pr;
+  const mx=Math.max(1,...arr.map(x=>Math.abs(x[1])));
+  const bars=arr.map((x,i)=>{const y=pt+i*rowH,w=Math.abs(x[1])/mx*iw,col=isCount?"#b5651d":dnColor(x[1]);
+    const lab=dnBreakBy==="state"?x[0]:titleCase(x[0]),valTxt=isCount?`${x[1]}`:`${x[1]}d · n=${x[2]}`;
+    return `<text x="${pl-8}" y="${(y+rowH/2+3).toFixed(1)}" font-size="11" fill="#3d4551" text-anchor="end">${esc(lab)}</text>`+
+      `<rect x="${pl}" y="${(y+4).toFixed(1)}" width="${w.toFixed(1)}" height="${rowH-10}" rx="2" fill="${col}"><title>${esc(lab)}: ${valTxt}</title></rect>`+
+      `<text x="${(pl+w+6).toFixed(1)}" y="${(y+rowH/2+3).toFixed(1)}" font-size="10.5" fill="#3d4551" font-weight="700">${valTxt}</text>`;}).join("");
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${bars}</svg>`
+    +`<p class="thr-sub" style="margin-top:6px">${isCount?"Number of turndowns whose request included each program (a request can span several).":`Median days from ${dnLagBasis==="request"?"request filed":"incident start"} to denial, longest first. n = turndowns in group; small n is noisy.`}${capped?` Showing ${CAP} of ${total}.`:""}</p>`;
+}
+function openDenial(rn){mStack.push({t:"n",v:rn});renderModal();}
+function renderDenialDetail(rn){
+  const d=(DENIALS||[]).find(x=>String(x.reqNum)===String(rn));if(!d)return;
+  const ms=86400000;
+  const incLag=d.begin?Math.round((tlDayNum(d.statusDate)-tlDayNum(d.begin))/ms):null;
+  const reqLag=d.reqDate?Math.round((tlDayNum(d.statusDate)-tlDayNum(d.reqDate))/ms):null;
+  el("mDr").textContent=`${d.state} · ${d.type==="EM"?"Emergency":"Major Disaster"} request`;
+  el("mTitle").textContent=d.name?titleCase(d.name):`${titleCase(d.incidentType)} — turndown`;
+  el("mMeta").innerHTML=`<span class="tag-storm">TURNDOWN</span> &nbsp;·&nbsp; ${esc(d.incidentType||"—")} &nbsp;·&nbsp; ${esc(d.state)}${d.tribal?' &nbsp;·&nbsp; <b>tribal request</b>':""}`;
+  const progs=[["PA",d.pa],["IA",d.ia],["IHP",d.ih],["HM",d.hm]].filter(p=>p[1]).map(p=>p[0]).join(" · ")||"—";
+  el("mBody").innerHTML=`
+    <div class="note" style="margin:2px 0 18px"><span class="i">!</span><span>FEMA <b>turned down</b> this declaration request. OpenFEMA <b>DeclarationDenials</b> records the turndown only — it does <b>not</b> indicate whether a later appeal or resubmission succeeded.</span></div>
+    <div class="sec-h">Request timeline<span class="src">OpenFEMA</span></div>
+    <div class="parm">
+      <div class="parmcard"><div class="pv">${d.begin?fmtDate(d.begin):"—"}</div><div class="pl">Incident begin</div></div>
+      <div class="parmcard"><div class="pv">${d.reqDate?fmtDate(d.reqDate):"—"}</div><div class="pl">Request filed</div></div>
+      <div class="parmcard"><div class="pv">${fmtDate(d.statusDate)}</div><div class="pl">Turndown date</div></div>
+      <div class="parmcard" style="border-left:4px solid ${dnColor(incLag)}"><div class="pv">${incLag==null?"—":incLag+" d"}</div><div class="pl">Incident start → denial</div></div>
+      <div class="parmcard" style="border-left:4px solid ${dnColor(reqLag)}"><div class="pv">${reqLag==null?"—":reqLag+" d"}</div><div class="pl">Request → denial</div></div>
+    </div>
+    <div class="sec-h" style="margin-top:22px">Programs requested</div>
+    <div class="thr-sub" style="margin:6px 0 2px"><b>${progs}</b></div>
+    <div class="sec-h" style="margin-top:22px">Verify</div>
+    <div class="parm">
+      <a class="parmcard clickable" style="text-decoration:none" href="https://www.fema.gov/api/open/v1/DeclarationDenials?$filter=declarationRequestNumber%20eq%20${encodeURIComponent(d.reqNum)}" target="_blank" rel="noopener"><div class="pv">OpenFEMA ↗</div><div class="pl">Denials API record</div></a>
+    </div>`;
+}
+
 function renderAlerts(){
   const a=watchState.alerts;
   el("alertSub").textContent=`${a.reduce((s,x)=>s+x.count,0)} active · Region 5`;
@@ -3111,7 +3299,7 @@ function renderModal(){
   const top=mStack[mStack.length-1];
   el("modal").classList.add("open"); document.body.style.overflow="hidden";
   el("mBack").style.display=mStack.length>1?"":"none";
-  if(top.t==="d") renderDisasterDetail(top.v); else renderGageDetail(top.v);
+  if(top.t==="d") renderDisasterDetail(top.v); else if(top.t==="n") renderDenialDetail(top.v); else renderGageDetail(top.v);
   el("sheet").scrollTop=0; el("modal").scrollTop=0;
 }
 function renderNationalDetail(d){
@@ -3487,6 +3675,11 @@ function wire(){
     const tsc=e.target.closest("#tlScopeToggle button[data-tlscope]"); if(tsc){tlSetScope(tsc.getAttribute("data-tlscope"));return;}
     const tty=e.target.closest("[data-tltyear]"); if(tty){tlShowYear(+tty.getAttribute("data-tltyear"));return;}
     const tbk=e.target.closest("[data-tltbkt]"); if(tbk){tlShowBucket(+tbk.getAttribute("data-tltbkt"));return;}
+    const dlt=e.target.closest("#dnLagToggle button[data-dnlag]"); if(dlt){dnSetLag(dlt.getAttribute("data-dnlag"));return;}
+    const dbt=e.target.closest("#dnBreakToggle button[data-dnbreak]"); if(dbt){dnBreakBy=dbt.getAttribute("data-dnbreak");el("dnBreakToggle").querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===dbt));renderDnBreakdown();return;}
+    const dyr=e.target.closest("[data-dnyear]"); if(dyr){dnShowYear(+dyr.getAttribute("data-dnyear"));return;}
+    const dbk=e.target.closest("[data-dnbkt]"); if(dbk){dnShowBucket(+dbk.getAttribute("data-dnbkt"));return;}
+    const dnr=e.target.closest("[data-dnreq]"); if(dnr){openDenial(dnr.getAttribute("data-dnreq"));return;}
     const t=e.target.closest("[data-dn]"); if(t)openDetail(t.getAttribute("data-dn"));
   });
   el("mClose").addEventListener("click",closeDetail);
