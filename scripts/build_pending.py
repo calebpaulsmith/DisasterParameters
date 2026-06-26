@@ -65,8 +65,14 @@ TRIBE_STATE = {
 MONTHS = {m: i for i, m in enumerate(
     ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], 1)}
 
+# date may be abbreviated ("Jun 3"), spelled out ("June 3", "March 12"), or carry
+# an explicit year for long-running requests ("Jul 3, 2023") — the briefs are
+# inconsistent, so accept a 3-9 letter month and an optional ", YYYY".
 ROW_RE = re.compile(
-    r"^(?P<ent>.+?)\s+(?P<type>DR|EM)\s+(?:X\s*){1,3}(?P<date>[A-Z][a-z]{2}\s+\d{1,2})\s*$")
+    r"^(?P<ent>.+?)\s+(?P<type>DR|EM)\s+(?:X\s*){1,3}"
+    r"(?P<date>[A-Z][a-z]{2,8}\s+\d{1,2}(?:,\s*\d{4})?)\s*$")
+# terminal tags on the incident tail, either "– Appeal" / "- Denied" or "(Appeal)" / "(Approved)"
+TAG_RE = re.compile(r"\s*(?:[–-]\s*|\()(Appeal|Approved|Denied)\)?\s*$", re.I)
 
 MONTH_FULL = {m: i for i, m in enumerate(
     ["January", "February", "March", "April", "May", "June", "July", "August",
@@ -97,9 +103,18 @@ def brief_date(text):
 
 
 def infer_date(raw, bdate):
-    """'Oct 24' + brief date -> most-recent ISO date <= brief date."""
-    mon, day = raw.split()
-    mo, dy = MONTHS[mon], int(day)
+    """'Oct 24' / 'June 3' / 'Jul 3, 2023' + brief date -> ISO date.
+    Uses the explicit year when the brief prints one; else the most-recent
+    year whose month/day is <= the brief date."""
+    m = re.match(r"([A-Za-z]+)\s+(\d{1,2})(?:,\s*(\d{4}))?", raw)
+    if not m:
+        return None
+    mo, dy = MONTHS[m.group(1)[:3]], int(m.group(2))  # [:3] handles 'Jun' and 'June'
+    if m.group(3):                                     # explicit year printed
+        try:
+            return datetime.date(int(m.group(3)), mo, dy)
+        except ValueError:
+            return None
     for yr in (bdate.year, bdate.year - 1, bdate.year - 2):
         try:
             d = datetime.date(yr, mo, dy)
@@ -219,9 +234,22 @@ def parse_pending(pdf_path):
 
             def hit(col):  # an X within +/-12pt of the column header
                 return any(abs(x - cols[col]) < 12 for x in xs)
+            # The brief tags terminal states on the incident's tail: "– Appeal"
+            # (a resubmission) and, on decision day, "– Approved" / "– Denied"
+            # (shown once, then dropped — and EXCLUDED from the header count).
             ent = m.group("ent")
-            appeal = bool(re.search(r"[–-]\s*Appeal\s*$", ent))
-            ent = re.sub(r"\s*[–-]\s*Appeal\s*$", "", ent)
+            appeal = False
+            decision = None
+            while True:
+                tm = TAG_RE.search(ent)
+                if not tm:
+                    break
+                tag = tm.group(1).lower()
+                if tag == "appeal":
+                    appeal = True
+                else:
+                    decision = tag  # "approved" | "denied"
+                ent = ent[:tm.start()].strip()
             parts = re.split(r"\s*[–-]\s*", ent, maxsplit=1)
             ent_code = parts[0]
             incident = parts[1].strip() if len(parts) > 1 else ""
@@ -230,7 +258,8 @@ def parse_pending(pdf_path):
             row = {
                 "entity": code, "entityName": name, "kind": kind,
                 "state": st, "region": region,
-                "incident": incident, "appeal": appeal, "type": m.group("type"),
+                "incident": incident, "appeal": appeal, "decision": decision,
+                "type": m.group("type"),
                 "ia": hit("IA"), "pa": hit("PA"), "hm": hit("HM"),
                 "requestedRaw": m.group("date"),
                 "requestDate": rd.isoformat() if rd else None,
@@ -262,16 +291,22 @@ def main():
     bdate, header_count, rows = parse_pending(tmp)
     os.remove(tmp)
 
-    parsed = len(rows)
+    # The header count is the IN-PROCESS (undecided) total; rows the brief tagged
+    # "– Approved"/"– Denied" on decision day are shown once but NOT counted. So the
+    # cross-check is header == in-process rows, and pending.json carries only those.
+    inproc = [r for r in rows if not r["decision"]]
+    decided = [r for r in rows if r["decision"]]
+    parsed = len(inproc)
     ok = header_count is not None and parsed == header_count
     print(f"  brief date: {bdate}")
-    print(f"  CROSS-CHECK: header says {header_count}, parsed {parsed} -> {'OK' if ok else 'MISMATCH'}")
-    r5 = [r for r in rows if r["region"] == 5]
+    print(f"  CROSS-CHECK: header says {header_count}, in-process parsed {parsed} -> "
+          f"{'OK' if ok else 'MISMATCH'}" + (f" (+{len(decided)} just-decided rows excluded)" if decided else ""))
+    r5 = [r for r in inproc if r["region"] == 5]
     print(f"  Region 5 pending: {len(r5)} -> " +
           ", ".join(f"{r['entity']}({'A' if r['appeal'] else ''}{r['requestedRaw']})" for r in r5))
 
     if not ok:
-        print("REFUSING to write: parsed count != header count (layout may have changed).",
+        print("REFUSING to write: in-process count != header count (layout may have changed).",
               file=sys.stderr)
         sys.exit(2)
 
@@ -280,7 +315,7 @@ def main():
         "briefTitle": title, "briefUrl": url,
         "headerCount": header_count, "parsedCount": parsed, "crossCheckOk": ok,
         "source": "FEMA Daily Operations Briefing (unofficial parse) via Data Liberation Project",
-        "rows": rows,
+        "rows": inproc,
     }
     path = os.path.join(DATA, "pending.json")
     json.dump(out, open(path, "w"), separators=(",", ":"))
