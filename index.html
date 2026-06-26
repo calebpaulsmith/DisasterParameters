@@ -2480,16 +2480,46 @@ function gmRenderHome(box){
           ${gmBar(gmVal(fmtk,"state",r._o),mx,col)}</div>
         <div class="gm-rval">${gmFmt(gmSort,"state",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`;
 }
+function gmKVRows(pairs){return `<div class="gm-list">${pairs.map(([k,v])=>`<div class="gm-row static"><div class="gm-rmain"><b>${k}</b></div><div class="gm-rval">${v}</div></div>`).join("")}</div>`;}
+function gmRecipRows(list){return `<div class="gm-list">${list.map((a,i)=>`<div class="gm-row static"><div class="gm-rk">${i+1}</div><div class="gm-rmain"><b>${a.name}</b></div><div class="gm-rval">${fmtMoney(a.amt)}</div></div>`).join("")}</div>`;}
+function gmNonDisStateBody(s,st){       // non-disaster lens (mit / EMPG / AFG / prep families): recipients + breakdown, NOT a disaster list
+  const m=geoMetric, lbl=GEO_META[m]?GEO_META[m].label:"non-disaster grants";
+  let recips=[], recLabel="recipients";
+  if(PREP_FAMILY[m]){const fam=PREP_FAMILY[m]; recips=((st.prepFamilyVendors||{})[fam]||[]).map(v=>({name:v.name,amt:v.amt})); recLabel=fam+" — top recipients";}
+  else if(m==="afg"){recips=(st.afgVendors||[]).map(v=>({name:v.name,amt:v.afg})); recLabel="Fire-department recipients";}
+  else if(m==="empg"){recips=Object.entries(st.empgByType||{}).map(([k,v])=>({name:k,amt:v})).sort((a,b)=>b.amt-a.amt); recLabel="EMPG by project type";}
+  else if(m==="mitObligated"){recips=(st.mitStatewideApplicants||[]).map(v=>({name:v.name,amt:v.mit})); recLabel="Statewide mitigation grantees";}
+  let brk="";
+  if(m==="mitObligated"){
+    const bp=Object.entries(st.mitByProgram||{}).sort((a,b)=>b[1]-a[1]);
+    if(bp.length)brk+=`<div class="gm-sech">By program (FMA · PDM · BRIC …)</div>${gmKVRows(bp.map(([k,v])=>[k,fmtMoney(v)]))}`;
+    const cty=Object.entries(DECL.counties).filter(([f,v])=>v.state===s&&(v.mitObligated||0)>0).map(([f,v])=>({f,name:v.name,amt:v.mitObligated})).sort((a,b)=>b.amt-a.amt);
+    if(cty.length)brk+=`<div class="gm-sech">${cty.length} counties with mitigation grants</div><div class="gm-list">${cty.slice(0,30).map(c=>`<div class="gm-row" data-gmcounty="${c.f}"><div class="gm-rmain"><b>${c.name}</b></div><div class="gm-rval">${fmtMoney(c.amt)}<span class="gm-go">›</span></div></div>`).join("")}</div>`;
+  } else {
+    const fam=Object.entries(st.prepByFamily||{}).sort((a,b)=>b[1]-a[1]);
+    if(fam.length)brk+=`<div class="gm-sech">All preparedness — by family <span class="thr-sub">· total ${fmtMoney(st.prepTotal||0)} · EMPG separate</span></div>${gmKVRows(fam.map(([k,v])=>[k,fmtMoney(v)]))}`;
+  }
+  const shown=gmExpanded?recips:recips.slice(0,20);
+  const recHtml=recips.length
+    ? `<div class="gm-sech">${recLabel}${recips.length>20?` · top ${shown.length} of ${fmtNum(recips.length)}`:""}</div>${gmRecipRows(shown)}${recips.length>20?`<button class="gm-more" data-gmexpand="1">${gmExpanded?"▲ Show fewer":"▾ Show all "+fmtNum(recips.length)}</button>`:""}`
+    : `<p class="thr-sub" style="padding:8px">No ${lbl} recipients recorded for ${st.name}.</p>`;
+  return `<div class="gm-sech">Lens</div>${gmLensControl()}<p class="thr-sub" style="margin:-2px 0 8px">${lbl} are state-level (not tied to a county or disaster).</p>${brk}${recHtml}`;
+}
 function gmRenderState(box){
   const s=gmState, st=DECL.states[s]; if(!st)return gmRenderHome(box);
   const col=GEO_BAR[gmSort]||GEO_BAR.paObligated, fmtk=gmSort==="az"?"paObligated":gmSort;
   const Fs=geoYrFiltering();
+  const isND=(gmProgram==="nondis"), m=geoMetric, ndLbl=GEO_META[m]?GEO_META[m].label:"";
+  const stat=isND
+    ? `<span><b>${fmtMoney(geoStateVal(st,s,m))}</b> ${ndLbl}</span><span>${fmtMoney(st.mitObligated||0)} mit</span><span>${fmtMoney(st.empg||0)} EMPG</span><span>${fmtMoney(st.afg||0)} AFG</span>`
+    : `${geoSoleProgram()?geoFocusSpans(k=>geoStateVal(st,s,k),geoStateVal(st,s,"count")):`<span>${geoStateVal(st,s,"count")} disasters</span><span>${fmtMoney(geoStateVal(st,s,"paObligated"))} PA</span><span>${fmtMoney(geoStateVal(st,s,"ihpApproved"))} IHP</span>`}<span>${fmtNum(geoStateVal(st,s,"paProjects"))} projects</span>${Fs?`<span class="thr-sub">${geoYearLo}–${geoYearHi}</span>`:""}`;
   const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span></div>
       <div class="gm-title">${st.name}</div>
-      <div class="gm-stat">${geoSoleProgram()?geoFocusSpans(k=>geoStateVal(st,s,k),geoStateVal(st,s,"count")):`<span>${geoStateVal(st,s,"count")} disasters</span><span>${fmtMoney(geoStateVal(st,s,"paObligated"))} PA</span><span>${fmtMoney(geoStateVal(st,s,"ihpApproved"))} IHP</span>`}<span>${fmtNum(geoStateVal(st,s,"paProjects"))} projects</span>${Fs?`<span class="thr-sub">${geoYearLo}–${geoYearHi}</span>`:""}</div>
-      <div class="gm-tabs"><button class="gm-tab${gmTab==="disasters"?" active":""}" data-gmtab="disasters">Disasters</button><button class="gm-tab${gmTab==="counties"?" active":""}" data-gmtab="counties">Counties</button></div></div>`;
+      <div class="gm-stat">${stat}</div>
+      ${isND?"":`<div class="gm-tabs"><button class="gm-tab${gmTab==="disasters"?" active":""}" data-gmtab="disasters">Disasters</button><button class="gm-tab${gmTab==="counties"?" active":""}" data-gmtab="counties">Counties</button></div>`}</div>`;
   let body="";
-  if(gmTab==="counties"){
+  if(isND){body=gmNonDisStateBody(s,st);}
+  else if(gmTab==="counties"){
     const rows=Object.entries(DECL.counties).filter(([f,v])=>v.state===s).map(([f,v])=>({_n:v.name,_o:v,f,v}));
     const sorted=gmSortRows(rows,"county"); const mx=Math.max(...sorted.map(r=>gmVal(fmtk,"county",r._o)),1);
     body=`<div class="gm-sech">Lens · sort ${sorted.length} counties</div>${gmLensControl()}
