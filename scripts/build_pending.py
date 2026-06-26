@@ -68,6 +68,10 @@ MONTHS = {m: i for i, m in enumerate(
 ROW_RE = re.compile(
     r"^(?P<ent>.+?)\s+(?P<type>DR|EM)\s+(?:X\s*){1,3}(?P<date>[A-Z][a-z]{2}\s+\d{1,2})\s*$")
 
+MONTH_FULL = {m: i for i, m in enumerate(
+    ["January", "February", "March", "April", "May", "June", "July", "August",
+     "September", "October", "November", "December"], 1)}
+
 
 def latest_brief():
     with urllib.request.urlopen(HISTORY_CSV, timeout=120) as r:
@@ -129,11 +133,62 @@ def resolve_entity(ent_raw, footnotes):
     return "tribal", code, name, st, region
 
 
+def infer_full_date(mon_full, day, bdate):
+    """'April' 23 + brief date -> most-recent ISO date <= brief date."""
+    mo = MONTH_FULL[mon_full]
+    for yr in (bdate.year, bdate.year - 1, bdate.year - 2):
+        try:
+            d = datetime.date(yr, mo, int(day))
+        except ValueError:
+            continue
+        if d <= bdate:
+            return d
+    return None
+
+
+def parse_detail_pages(pdf, bdate):
+    """Best-effort: the 'Disaster Request - <State>' detail pages (present only
+    for newly-filed requests) carry the INCIDENT PERIOD and COUNTIES REQUESTED,
+    neither of which is in the summary table. Returns a list of detail dicts to
+    merge onto matching pending rows by state + requested date."""
+    details = []
+    for page in pdf.pages:
+        t = page.extract_text() or ""
+        if not re.search(r"Disaster Request\s*[–-]", t):
+            continue
+        st = None
+        ms = re.search(r"Declaration Type:.*?[–-]\s*([A-Z]{2})\b", t)
+        if ms:
+            st = ms.group(1)
+        mreq = re.search(r"Date Requested:\s*([A-Z][a-z]{2}\s+\d{1,2})", t)
+        mper = re.search(r"Incident Period:\s*([^\n]+)", t)
+        period = mper.group(1).strip() if mper else None
+        pstart = None
+        if period:
+            pm = re.match(r"([A-Z][a-z]+)\s+(\d{1,2})", period)
+            if pm:
+                pstart = infer_full_date(pm.group(1), pm.group(2), bdate)
+        counties = {}
+        for cm in re.finditer(r"[▪•]\s*([A-Za-z/ ]+?):\s*(\d+)\s*count", t):
+            counties[cm.group(1).strip()] = int(cm.group(2))
+        for cm in re.finditer(r"[▪•]\s*([A-Za-z/ ]+?):\s*(Statewide)", t):
+            counties[cm.group(1).strip()] = "Statewide"
+        details.append({
+            "state": st,
+            "requestedRaw": mreq.group(1) if mreq else None,
+            "incidentPeriod": period,
+            "incidentPeriodStart": pstart.isoformat() if pstart else None,
+            "countiesRequested": counties or None,
+        })
+    return details
+
+
 def parse_pending(pdf_path):
     import pdfplumber
     pdf = pdfplumber.open(pdf_path)
     full = "\n".join((p.extract_text() or "") for p in pdf.pages)
     bdate = brief_date(full)
+    details = parse_detail_pages(pdf, bdate) if bdate else []
     header = re.search(r"Declaration Requests in Process\s*[–-]\s*(\d+)", full)
     header_count = int(header.group(1)) if header else None
 
@@ -172,7 +227,7 @@ def parse_pending(pdf_path):
             incident = parts[1].strip() if len(parts) > 1 else ""
             kind, code, name, st, region = resolve_entity(ent_code, footnotes)
             rd = infer_date(m.group("date"), bdate) if bdate else None
-            rows.append({
+            row = {
                 "entity": code, "entityName": name, "kind": kind,
                 "state": st, "region": region,
                 "incident": incident, "appeal": appeal, "type": m.group("type"),
@@ -181,7 +236,21 @@ def parse_pending(pdf_path):
                 "requestDate": rd.isoformat() if rd else None,
                 "requestYearInferred": rd is not None,
                 "daysWaiting": (bdate - rd).days if (rd and bdate) else None,
-            })
+                # incident period / counties — filled from a detail page when present
+                "incidentPeriod": None, "incidentPeriodStart": None,
+                "daysSinceIncident": None, "countiesRequested": None,
+            }
+            # best-effort merge: match a detail page by state + requested date
+            for d in details:
+                if d["state"] == st and d["requestedRaw"] == m.group("date"):
+                    row["incidentPeriod"] = d["incidentPeriod"]
+                    row["incidentPeriodStart"] = d["incidentPeriodStart"]
+                    row["countiesRequested"] = d["countiesRequested"]
+                    if d["incidentPeriodStart"]:
+                        ps = datetime.date.fromisoformat(d["incidentPeriodStart"])
+                        row["daysSinceIncident"] = (bdate - ps).days
+                    break
+            rows.append(row)
     return bdate, header_count, rows
 
 

@@ -411,6 +411,12 @@ tr.clickable:hover td{background:#eef3f8;}
 .declsub{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:10px 0 4px;border-top:1px solid var(--line);padding-top:8px;}
 .applmore{justify-content:center !important;text-align:center;font-weight:800;color:var(--blue);background:#f0f6ff !important;margin-top:4px;}
 .applmore:hover{background:#e2eefe !important;}
+.ptable{width:100%;border-collapse:collapse;font-size:12.5px;}
+.ptable th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);font-weight:800;padding:6px 8px;border-bottom:1.5px solid var(--line);white-space:nowrap;}
+.ptable td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top;}
+.ptable tbody tr:hover{background:var(--blue-light);}
+.pchip{display:inline-block;font-size:10px;font-weight:800;padding:1px 5px;border-radius:4px;background:#eef2f6;color:var(--ink-2);margin-right:3px;}
+.abadge{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.03em;padding:1px 5px;border-radius:4px;background:#fde7c7;color:#8a4b00;}
 .declrow{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:5px 8px;border-radius:7px;}
 .declrow:nth-child(even){background:#f4f7fb;}
 .declrow:hover{background:var(--blue-light);}
@@ -848,6 +854,11 @@ tr.clickable:hover td{background:#eef3f8;}
     <div class="card"><div class="card__hd"><h2>Denials by group</h2>
         <div class="geogrp" id="dnBreakToggle" style="margin-bottom:0"><button data-dnbreak="type" class="active">By incident type</button><button data-dnbreak="state">By state</button><button data-dnbreak="program">By program</button></div></div>
       <div class="card__bd"><div id="dnBreakdown"></div></div></div>
+
+    <!-- ===== PENDING (Declaration Requests in Process — unofficial Daily Ops Brief parse) ===== -->
+    <div class="note" id="pendIntro" style="margin:30px 0 14px"><span class="i">!</span><span><b>Still waiting: requests in process.</b> OpenFEMA has no feed of declaration requests that are <b>pending a decision</b> — FEMA lists those only in its <b>Daily Operations Briefing</b> (a PDF emailed each morning, not posted to a stable URL). Below is an <b>unofficial parse</b> of that briefing's "Declaration Requests in Process" table, sourced via the Data Liberation Project's daily archive — <b>this is NOT an OpenFEMA dataset</b>. Honors the Region 5 / National switch above. <b>Not endorsed by FEMA.</b></span></div>
+    <div class="card"><div class="card__hd"><h2>&#9203; Declaration requests in process</h2><span class="sub" id="pendSub"></span></div>
+      <div class="card__bd"><div id="pendBody"></div></div></div>
   </section>
 
   <!-- ============ GEOGRAPHY (state + county rollup: disasters · dollars · projects) ============ -->
@@ -2824,7 +2835,7 @@ function tlShowBucket(i){const box=el("tlHistPick"),b=TL_BUCKETS[i]; if(!box||!b
 function renderTimelines(){
   tlSyncScopeUI();
   renderTlHeadlines();renderTlTrend();renderTlLagTime();renderTlCumulative();renderTlHistogram();renderTlBreakdown();
-  renderDenials();
+  renderDenials();renderPending();
   const tp=el("tlTrendPick"); if(tp)tp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a year above to list the disasters declared that year.</div>';
   const hp=el("tlHistPick"); if(hp)hp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a bar above to list the disasters in that lag range.</div>';
 }
@@ -3122,6 +3133,37 @@ function renderDnBreakdown(){
       `<text x="${(pl+w+6).toFixed(1)}" y="${(y+rowH/2+3).toFixed(1)}" font-size="10.5" fill="#3d4551" font-weight="700">${valTxt}</text>`;}).join("");
   box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${bars}</svg>`
     +`<p class="thr-sub" style="margin-top:6px">${isCount?"Number of turndowns whose request included each program (a request can span several).":`Median days from ${dnLagBasis==="request"?"request filed":"incident start"} to denial, longest first. n = turndowns in group; small n is noisy.`}${capped?` Showing ${CAP} of ${total}.`:""}</p>`;
+}
+/* ===== PENDING declaration requests (unofficial FEMA Daily Ops Brief parse) ===== */
+let PENDING=null, pendPending=false;
+function pendLoad(){
+  if(pendPending||PENDING!==null)return; pendPending=true;
+  fetch("data/pending.json").then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{
+    PENDING=d; pendPending=false; const v=el("view-timelines"); if(v&&v.classList.contains("active"))renderPending();
+  }).catch(()=>{pendPending=false; PENDING={error:1,rows:[]}; renderPending();});
+}
+function pendDays(d){ // days waiting recomputed to "today" so it stays live between brief refreshes
+  if(!d.requestDate)return d.daysWaiting;
+  return Math.max(0,Math.round((Date.now()-tlDayNum(d.requestDate))/86400000));
+}
+function renderPending(){
+  const sub=el("pendSub"), body=el("pendBody"); if(!body)return;
+  if(PENDING===null){pendLoad();body.innerHTML='<div class="skeleton"><span class="spin"></span> Loading pending requests…</div>';if(sub)sub.textContent="";return;}
+  if(PENDING.error||!PENDING.rows){body.innerHTML='<p class="thr-sub">Couldn\'t load the pending-requests snapshot.</p>';if(sub)sub.textContent="";return;}
+  const all=PENDING.rows, rows=(TL_SCOPE==="national"?all:all.filter(d=>d.region===5)).slice();
+  const brief=PENDING.briefDate?fmtDate(PENDING.briefDate):"—";
+  if(sub)sub.innerHTML=`${rows.length} ${TL_SCOPE==="national"?"national":"Region&nbsp;5"} · as of ${brief}${PENDING.briefUrl?` · <a href="${esc(PENDING.briefUrl)}" target="_blank" rel="noopener" style="color:var(--navy);font-weight:700">source brief ↗</a>`:""}`;
+  if(!rows.length){body.innerHTML=`<p class="thr-sub">No pending Region&nbsp;5 requests in the latest briefing (${brief}). Switch to National above to see all ${all.length}.</p>`;return;}
+  rows.sort((a,b)=>(pendDays(b)||0)-(pendDays(a)||0));
+  const prog=d=>[d.ia?"IA":"",d.pa?"PA":"",d.hm?"HM":""].filter(Boolean).map(p=>`<span class="pchip">${p}</span>`).join("")||"<span class='thr-sub'>—</span>";
+  const items=rows.map(d=>{
+    const ent=d.entityName?`${esc(d.entity)} · ${esc(d.entityName)}`:esc(d.entity);
+    const wait=pendDays(d);
+    const reqCell=d.requestDate?`<span${d.requestYearInferred?' title="year inferred — the briefing prints only the month/day"':''}>${fmtDate(d.requestDate)}${d.requestYearInferred?' <span style="color:var(--ink-3)">·est</span>':''}</span>`:esc(d.requestedRaw||"—");
+    const incCell=d.incidentPeriod?`<span title="from a per-request detail page in the briefing">${esc(d.incidentPeriod)}${d.daysSinceIncident!=null?` <span class="thr-sub">(${d.daysSinceIncident}d)</span>`:""}</span>`:'<span class="thr-sub">—</span>';
+    return `<tr><td><b>${ent}</b>${d.region===5?'':''}${d.appeal?' <span class="abadge">APPEAL</span>':""}</td><td>${esc(titleCase(d.incident))}</td><td>${d.type}</td><td>${prog(d)}</td><td>${reqCell}</td><td style="text-align:right;font-weight:700">${wait==null?"—":wait+"d"}</td><td>${incCell}</td></tr>`;}).join("");
+  body.innerHTML=`<div style="overflow-x:auto"><table class="ptable"><thead><tr><th>State / Tribe / Territory</th><th>Incident</th><th>Type</th><th>Programs</th><th>Requested</th><th style="text-align:right">Waiting</th><th>Incident period</th></tr></thead><tbody>${items}</tbody></table></div>`
+    +`<p class="thr-sub" style="margin-top:10px"><b>Waiting</b> = days since the request was filed (the briefing's "Requested" date), recomputed to today — <b>not</b> from the incident start, which the summary table doesn't carry. <b>Incident period</b> appears only when the briefing includes a per-request detail page (newly-filed requests); Phase&nbsp;2's daily harvest will backfill more. Request <b>year is inferred</b> (·est) where the briefing prints only "Mon Day"; long-pending appeals may be a year older. Type <b>DR</b> = Major Disaster, <b>EM</b> = Emergency; <b>IA/PA/HM</b> = programs requested. Source: FEMA Daily Operations Briefing (unofficial parse) · header-count cross-check ${PENDING.parsedCount}/${PENDING.headerCount} ✓.</p>`;
 }
 function openDenial(rn){mStack.push({t:"n",v:rn});renderModal();}
 function renderDenialDetail(rn){

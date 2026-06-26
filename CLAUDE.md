@@ -61,6 +61,9 @@ scripts/build_national.py   # OFFLINE: builds data/disasters_national.json — a
 data/disasters_national.json # committed: ~1,196 nationwide disasters, lag fields only (NO costs/hazards/gages). Loaded lazily by the browser when the Disaster Timelines view is toggled to "National". Clicking a national disaster opens a minimal modal (dates + lag + links to fema.gov/OpenFEMA); the rich detail card stays Region-5-only. Rebuild with scripts/build_national.py.
 scripts/build_denials.py    # OFFLINE: builds data/denials.json — Region-5 + nationwide DECLARATION DENIALS ("turndowns") from OpenFEMA DeclarationDenials v1. Every row's currentRequestStatus is "Turndown" (the dataset has NO appeal-outcome field). Unlike declarations, denials carry BOTH a request date and a decision date, so two lags exist: incident-start→denial (apples-to-apples with the approval lag charts) and request→denial (FEMA decision turnaround). Scoped to requestStatusDate year >= YEAR_MIN (2007 — matches the approval charts; widen YEAR_MIN to bring in the full ~1953– history). Needs network.
 data/denials.json           # committed, small (~80KB): 258 nationwide / 32 R5 denial rows (FY2007+), lean fields (reqNum,region,state,tribal,reqDate,statusDate,begin,reqBegin,reqEnd,type DR/EM,incidentType,name,ia/pa/ih/hm,incidentId). Loaded lazily by the browser when the Disaster Timelines view is first shown; powers the **Declaration Denials** block at the bottom of that view (headline metrics incl. a denial-rate = denied÷(denied+declared) cross-cut vs disasters.json/disasters_national.json, a denial-lag distribution overlaid on the approval-lag distribution, turndowns-by-year with per-year denial rate, and a by-type/state/program breakdown). Honors the SAME Region 5 / National clicker (filters region==5 client-side; national set already includes R5). Clicking a turndown opens a minimal denial modal (request timeline + programs requested + OpenFEMA link). The denials dataset's incidentId/declarationRequestNumber do NOT join cleanly into DisasterDeclarationsSummaries (a successful appeal leaves this dataset), so there is no automatic "denial later overturned" link — the reliable cross-dataset signal is the denial rate. Rebuild with scripts/build_denials.py.
+scripts/build_pending.py    # OFFLINE: builds data/pending.json — PENDING declarations (the "Declaration Requests in Process" table) parsed from the latest FEMA **Daily Operations Briefing** PDF. THIS IS THE ONE NON-OPENFEMA SOURCE: OpenFEMA has no feed of requests awaiting a decision; FEMA lists them only in the daily briefing (emailed, not on a stable URL). The govdelivery PDF link for each day's brief is taken from the **Data Liberation Project** archive (https://github.com/data-liberation-project/fema-daily-ops-email-to-rss — CC0, actively/daily maintained, history to Sept 2022). Parsing uses pdfplumber with COLUMN X-COORDINATES so the IA/PA/HM X-marks are attributed to the right program (a row with two X's is correctly PA+HM vs IA+PA). TRUST GATE: asserts parsed rows == the header count ("…in Process – N") and EXITS NONZERO WITHOUT WRITING on mismatch (a layout change keeps the last good snapshot). Best-effort detail-page parse: the per-request "Disaster Request – <State>" pages (present only for newly-filed requests) carry the INCIDENT PERIOD + COUNTIES REQUESTED (neither is in the summary table) and are merged onto matching rows. Needs network + `pip install pdfplumber`.
+data/pending.json           # committed, small (~7KB): {briefDate,briefTitle,briefUrl,headerCount,parsedCount,crossCheckOk,source,rows[]}. Each row: entity(+entityName for tribes/territories),kind(state/tribal),state,region (tribes mapped via curated TRIBE_STATE→state→region, so e.g. Leech Lake Band of Ojibwe→MN→R5),incident,appeal(bool),type DR/EM,ia/pa/hm,requestedRaw("Mon Day"),requestDate(ISO, year INFERRED most-recent≤brief),requestYearInferred,daysWaiting, plus incidentPeriod/incidentPeriodStart/daysSinceIncident/countiesRequested (only when a detail page was present). Loaded lazily by the browser on the Disaster Timelines view; powers the **Declaration requests in process** (pending) block at the bottom of that view (table: entity·incident·type·programs·requested·waiting·incident-period; honors the SAME Region 5 / National clicker via region==5; "Waiting" is recomputed to today client-side; clearly labeled UNOFFICIAL parse with a "source brief ↗" link). CAVEAT: the summary table carries NO incident period — "Waiting" is request→today, not from incident start. Rebuild with scripts/build_pending.py.
+.github/workflows/refresh-pending.yml # daily (14:23 + 16:23 UTC fallback) re-parse of the latest Daily Ops Brief → data/pending.json, commit-on-change to main (gated on the cross-check; commit is a no-op when no new brief). Timed just after the Data Liberation Project ingests the morning brief (~13:00–16:00 UTC; brief drops 8:30 a.m. ET).
 # --- state-incident declaration & cost model (see analysis/state-declaration-model.md) ---
 scripts/build_panel.py      # OFFLINE: county×episode panel (now also ingests Z-type flood/winter via NWS zone→county xwalk)
 scripts/build_precip.py …   # OFFLINE additive enrichers: build_precip, build_snow, augment_ari, augment_stage, augment_exposure
@@ -218,6 +221,33 @@ live in ~1 minute; hard-refresh to bypass cache.
 Parked follow-ups, in rough priority order. None of these are required for the app to
 work today — they're enhancements. See `docs/refresh-architecture.md` for the fuller
 design rationale behind the NFIP and refresh items.
+
+- **Pending declarations → Phase 2 (request-date harvest) + the capacity-call vision.**
+  `data/pending.json` (committed, from `scripts/build_pending.py`) is **Phase 1**: a parse of
+  the LATEST Daily Ops Brief's "Requests in Process" table, shown under Disaster Timelines.
+  The owner's stated intent for this surface (record it, don't lose it): for each pending
+  request, **assign/review parameters and form a judgment on whether the event is likely to
+  exceed state/local capacity** (the core Stafford-Act declaration question) — synthesizing
+  what we already have in **Watch** (live gages/alerts), the **Ledger** (analogous past
+  disasters + their obligations), and the **predictor/estimator** (base rates, triggers,
+  comparables). Caveat the owner flagged: our measured **weather data is not very predictive**
+  of obligations (extent/exposure matter more than peak intensity — see the hazards note above).
+  **Counties-requested** would sharpen this and is NOT as DOA as first feared: the brief's
+  per-request **detail pages** (incident period + counties by program) and the **Joint
+  Preliminary Damage Assessments** page (counties under assessment + event dates) carry it for
+  newly-active requests — Phase 1 already merges detail-page data when present.
+  **Phase 2** (separate, reviewed PR): harvest the historical brief archive (Data Liberation
+  Project feed → govdelivery PDFs, back to Sept 2022), dedup each request across the days it
+  recurs, and **conservatively (high-confidence only)** match requests to OpenFEMA
+  declarations/denials by state+incident-type+time-window. This yields the **request date for
+  DECLARED disasters** — which OpenFEMA never publishes (it carries request dates only for
+  denials) — enabling a true **request→declaration lag** and finally making the Denials chart's
+  request-basis toggle an apples-to-apples **denial-vs-approval** comparison. CROSS-CHECK the
+  harvested request dates against OpenFEMA's denial request dates (ground truth we already have)
+  + sanity (request ≤ decision, request ≥ incident begin). The wrinkle: one incident often has
+  MULTIPLE requests/declarations (program splits, denials→appeals — appeals are tagged
+  "– Appeal" in the brief), so keep matching conservative and label every derived figure as a
+  Daily-Ops-Brief parse, not OpenFEMA. Also backfill incident periods/counties for more requests.
 
 - **NFIP Phase 2 — claim-level drill-down.** Phase 1 (committed `data/nfip.json`) is a
   county×year rollup. Claim-level (`FimaNfipClaims` per-record: `dateOfLoss`, census-tract
