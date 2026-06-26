@@ -152,9 +152,11 @@ def daynum(s):
     return datetime.date.fromisoformat(s).toordinal() if s else None
 
 
-def denial_crosscheck(inv):
+def denial_crosscheck(inv, date2url):
     """Validate parsed request dates against OpenFEMA denial request dates
-    (ground truth). Match a brief request to a denial by state + |reqDate diff|."""
+    (ground truth). Match a brief request to a denial by state + |reqDate diff|.
+    Also record, per OpenFEMA denial reqNum, the ACTUAL brief(s) it appeared in
+    (first-seen + the brief that tagged the turndown) so the UI can link them."""
     den = json.load(open(os.path.join(DATA, "denials.json")))
     # only denials whose request could fall inside the brief archive window
     archive_start = "2022-09-01"
@@ -164,6 +166,7 @@ def denial_crosscheck(inv):
         if r["requestDate"]:
             by_state.setdefault(r["state"], []).append(r)
     matched, diffs, examples = 0, [], []
+    denial_briefs = {}
     for x in cand:
         best, bestdiff = None, 99
         for r in by_state.get(x["state"], []):
@@ -172,10 +175,18 @@ def denial_crosscheck(inv):
                 best, bestdiff = r, dd
         if best is not None and bestdiff <= 10:
             matched += 1; diffs.append(bestdiff)
+            if x.get("reqNum") is not None:
+                denial_briefs[str(x["reqNum"])] = {
+                    "firstSeen": best["firstSeen"], "firstSeenUrl": date2url.get(best["firstSeen"]),
+                    "decisionDate": best.get("decisionDate") or best["lastSeen"],
+                    "decisionUrl": date2url.get(best.get("decisionDate") or best["lastSeen"]),
+                    "briefRequestDate": best["requestDate"],
+                }
             if len(examples) < 8:
                 examples.append({"state": x["state"], "openfema": x["reqDate"],
                                  "brief": best["requestDate"], "diffDays": bestdiff,
-                                 "incident": best["incident"][:40]})
+                                 "incident": best["incident"][:40],
+                                 "firstSeenUrl": date2url.get(best["firstSeen"])})
     exact = sum(1 for d in diffs if d == 0)
     within3 = sum(1 for d in diffs if d <= 3)
     cc = {
@@ -192,7 +203,7 @@ def denial_crosscheck(inv):
           f"mean |diff| {cc['meanAbsDiffDays']}d")
     for e in examples:
         print(f"   {e['state']} OF={e['openfema']} brief={e['brief']} Δ{e['diffDays']}d  {e['incident']}")
-    return cc
+    return cc, denial_briefs
 
 
 def fetch_declarations():
@@ -221,7 +232,7 @@ def fetch_declarations():
     return list(by.values())
 
 
-def match_declarations(inv):
+def match_declarations(inv, date2url):
     """CONSERVATIVE: attach a request date to a declared R5 disaster only when
     exactly one brief request fits state + declared-in-(req, req+150d]."""
     decls = fetch_declarations()
@@ -257,7 +268,10 @@ def match_declarations(inv):
                 "requestDate": r["requestDate"], "requestedRaw": r["requestedRaw"],
                 "declared": dcl["declared"], "reqToDeclLagDays": lag,
                 "firstSeen": r["firstSeen"], "lastSeen": r["lastSeen"],
+                # link the ACTUAL briefs: where the request first appeared, and where it was decided
+                "firstSeenUrl": date2url.get(r["firstSeen"]),
                 "briefDecision": r["decision"], "briefDecisionDate": r["decisionDate"],
+                "decisionUrl": date2url.get(r["decisionDate"]) if r["decisionDate"] else None,
                 "confidence": conf, "basis": basis, "incident": r["incident"],
                 "source": "FEMA Daily Operations Briefing (unofficial parse)",
             }
@@ -278,10 +292,11 @@ def main():
     total = len(briefs)
     if limit:
         briefs = briefs[-limit:]
+    date2url = dict(briefs)  # brief date -> the actual govdelivery PDF URL
     cache = harvest(briefs)
     inv = build_inventory(cache)
-    cc = denial_crosscheck(inv)
-    by_disaster, n_decl, n_r5_req = match_declarations(inv)
+    cc, denial_briefs = denial_crosscheck(inv, date2url)
+    by_disaster, n_decl, n_r5_req = match_declarations(inv, date2url)
 
     parsed_ok = sum(1 for r in cache.values() if not r.get("error") and r.get("ok"))
     dates = sorted(r["briefDate"] for r in cache.values() if r.get("briefDate"))
@@ -296,6 +311,7 @@ def main():
         "r5DeclaredConsidered": n_decl, "r5RequestsHarvested": n_r5_req,
         "matchedDeclared": len(by_disaster),
         "byDisaster": by_disaster,
+        "denialBriefs": denial_briefs,  # OpenFEMA denial reqNum -> the brief(s) it appeared in
     }
     path = os.path.join(DATA, "request_dates.json")
     json.dump(out, open(path, "w"), separators=(",", ":"))
