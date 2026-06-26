@@ -416,7 +416,8 @@ tr.clickable:hover td{background:#eef3f8;}
 .declrow:hover{background:var(--blue-light);}
 .declrow .dk{color:var(--ink-2);font-variant-numeric:tabular-nums;}
 .declrow .dv{color:var(--ink-3);white-space:nowrap;}
-.geotoggle{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.geotoggle{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;background:#f4f7fb;border:1px solid var(--line-2);border-radius:0 8px 8px 8px;padding:8px 10px;}
+.geotoggle::before{content:"measure";font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-right:2px;align-self:center;}
 .geotoggle button{font:inherit;font-size:12.5px;font-weight:700;padding:6px 12px;border:1px solid var(--line);background:#fff;color:var(--ink-2);border-radius:20px;cursor:pointer;}
 .geotoggle button.active{background:var(--navy);color:#fff;border-color:var(--navy);}
 .geotoggle button.ndis{border-style:dashed;border-color:#0e7c86;color:#0b525b;}
@@ -426,10 +427,11 @@ tr.clickable:hover td{background:#eef3f8;}
 .mitchip{font:inherit;font-size:11.5px;font-weight:700;padding:3px 10px;border:1px solid var(--line);background:#fff;color:var(--ink-2);border-radius:999px;cursor:pointer;}
 .mitchip.on{background:#0e7c86;border-color:#0e7c86;color:#fff;}
 .covtog{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer;margin-bottom:12px;}
-.geogrp{display:inline-flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+.geogrp{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line-2);border-radius:8px 8px 0 0;overflow:hidden;margin-bottom:-1px;position:relative;z-index:1;}
 .geogrp button{font:inherit;font-size:12.5px;font-weight:800;padding:6px 14px;border:0;background:#fff;color:var(--ink-2);cursor:pointer;}
 .geogrp button+button{border-left:1px solid var(--line-2);}
 .geogrp button.active{background:var(--navy);color:#fff;}
+.geogrp button.active::after{content:" ▾";opacity:.85;}
 #geoToggle[data-prog="overview"] button:not([data-prog="overview"]),
 #geoToggle[data-prog="pa"] button:not([data-prog="pa"]),
 #geoToggle[data-prog="ia"] button:not([data-prog="ia"]),
@@ -498,6 +500,9 @@ tr.clickable:hover td{background:#eef3f8;}
 .geobar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
 .geohint{flex:1;min-width:220px;}
 .mtag{display:inline-block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#6b3fa0;background:#f3eefb;border:1px solid #ddccf2;border-radius:6px;padding:1px 5px;margin-left:6px;vertical-align:middle;cursor:help;}
+.ncbar{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px;}
+.ncbtn{font:inherit;font-size:11.5px;font-weight:700;color:var(--navy);background:#eef3fb;border:1px solid #c2dcf3;border-radius:8px;padding:5px 10px;cursor:pointer;}
+.ncbtn:hover{background:#dce9f8;}
 .geodash{display:grid;grid-template-columns:200px 1fr 390px;gap:12px;height:calc(100vh - 400px);min-height:380px;}
 .geotl{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:7px 12px 9px;user-select:none;}
 .geotl .gtlhd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-bottom:2px;}
@@ -528,6 +533,8 @@ tr.clickable:hover td{background:#eef3f8;}
 .gmpaia{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:7px;}
 .gmpaia__b{font-size:11px;font-weight:800;color:var(--ink-3);background:#fff;border:1px solid var(--line);border-radius:9px;padding:4px 11px;cursor:pointer;min-height:32px;}
 .gmpaia__b.on{color:#fff;background:var(--navy);border-color:var(--navy);}
+.gm-ncbar{display:flex;flex-direction:column;gap:6px;margin:4px 0 10px;}
+.gm-ncbtn{font:inherit;font-size:12.5px;font-weight:700;text-align:left;color:var(--navy);background:#eef3fb;border:1px solid #c2dcf3;border-radius:9px;padding:9px 12px;cursor:pointer;min-height:40px;}
 .geocol{min-height:0;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:12px;}
 .geocol--map{background:#f7f9fc;}
 .geocol--right{background:none;border:none;display:grid;grid-template-rows:1fr 1fr;gap:12px;}
@@ -1985,6 +1992,18 @@ function showCountyGeo(fips){            // enter county focus: zoom, applicants
   const box=el("geoPick"); if(box)box.innerHTML=countyDetailHTML(o,fips);
   syncHash();
 }
+function showNonCounty(s,kind){          // browse a no-county PA applicant bucket (NEVER on the choropleth)
+  const st=(DECL.states||{})[s], box=el("geoPick"); if(!st||!box)return;
+  const MAP={statewide:["paStatewideApplicants","Statewide / no-county PA applicants","state agencies & statewide contracts, not tied to a county"],
+             coops:["paUnmatchedApplicants","Out-of-region / coops","coded to this state but an out-of-state or unresolvable county (e.g. border electric coops)"],
+             undeclared:["paUndeclaredApplicants","Undeclared-county PA applicants","an R5 county with no declaration record"]};
+  const [key,title,note]=MAP[kind]||MAP.statewide;
+  const arr=st[key]||[], amt=arr.reduce((t,a)=>t+(a.pa||0),0);
+  const rows=arr.map(a=>`<div class="declrow"><span class="dk">${a.name}${a.county?` <span class="thr-sub">(${a.county})</span>`:""}${mergedTag(a)}</span><span class="dv">${fmtMoney(a.pa)}<span class="thr-sub"> · ${fmtNum(a.projects||0)} proj</span></span></div>`).join("");
+  box.innerHTML=`<div class="declhd"><span class="geoclear" data-gnoncback="${s}">← ${st.name}</span><br><b>${title}</b> — ${st.name}<br>`
+    +`${fmtNum(arr.length)} applicants · <b>${fmtMoney(amt)}</b> <span class="thr-sub">· ${note} · not on the map</span></div>`
+    +(rows||`<p class="thr-sub">None.</p>`);
+}
 function showApplicant(fips,idx){
   const o=(DECL.counties||{})[fips]; if(!o||!o.applicants)return;
   const a=o.applicants[idx]; if(!a)return;
@@ -2005,7 +2024,7 @@ function showStateGeo(s){
   const F=geoYrFiltering();
   if(isRecentMetric(geoMetric)){box.innerHTML=recentScopeDetailHTML("state",s);return;}
   if(isNfipMetric(geoMetric)){box.innerHTML=nfipDetailHTML(st.name,st);return;}
-  if(GEO_STATEONLY[geoMetric]){box.innerHTML=prepTrendHTML(geoMetric,s);return;}   // state grant → by-year trend
+  if(GEO_STATEONLY[geoMetric]){box.innerHTML=prepTrendHTML(geoMetric,s)+prepBreakdownHTML(s);return;}   // state grant → by-year trend + preparedness family split
   if(geoMetric==="mitObligated"){box.innerHTML=geoNonDisDetailHTML("mitObligated",st.name,F?yrSum(st.mitByYear,geoYearLo,geoYearHi):st.mitObligated,F?null:st.mitByProgram,null,"")+geoYrCap(false);return;}
   if(geoMetric==="hmgpObligated"){box.innerHTML=geoNonDisDetailHTML("hmgpObligated",st.name,F?yrSum(st.hmgpByYear,geoYearLo,geoYearHi):st.hmgpObligated,null,null,"")+geoYrCap(false);return;}
   const sp=geoSoleProgram();
@@ -2024,11 +2043,12 @@ function showStateGeo(s){
   const blkProj=row("PA projects",`${fmtNum(st.paProjects)}`)+row("· statewide",fmtNum(st.projectsStatewide),1);
   const blkIHP=row("IHP approved",fmtMoney(st.ihpApproved))+row("· Housing (HA)",fmtMoney(st.ihpHousing||0),1)+row("· Other Needs (ONA)",fmtMoney(st.ihpOna||0),1)+row("· statewide",fmtMoney(st.ihpStatewide),1)+row("· IA registrations",fmtNum(st.iaRegistrations||0),1);
   const blkHMGP=row("HMGP obligated",fmtMoney(st.hmgpObligated||0))+row("· statewide",fmtMoney(st.hmgpStatewide||0),1);
-  const swA=st.paStatewideApplicants||[];
+  const swA=st.paStatewideApplicants||[], coopA=st.paUnmatchedApplicants||[], udA=st.paUndeclaredApplicants||[];
   const blkAppl=row("PA applicants",fmtNum((st._paApplCounty||0)+swA.length))+row("· in counties",fmtNum(st._paApplCounty||0),1)+row("· statewide / no county",`${fmtNum(swA.length)} · ${fmtMoney(st._paApplSWamt||0)}`,1);
-  const swList=(sp==="pa"&&swA.length)?`<div class="declsub" style="margin-top:6px">Statewide / no-county PA applicants <span class="thr-sub">· state agencies, not tied to a county (recovered — were previously uncounted)</span></div>`
-      +swA.slice(0,APPL_CAP).map(a=>`<div class="declrow"><span class="dk">${a.name}${mergedTag(a)}</span><span class="dv">${fmtMoney(a.pa)}</span></div>`).join("")
-      +(swA.length>APPL_CAP?`<div class="thr-sub" style="padding:4px">+ ${fmtNum(swA.length-APPL_CAP)} more · ${fmtMoney(st._paApplSWamt||0)} total statewide</div>`:""):"";
+  const ncB=(kind,label,arr)=>arr&&arr.length?`<button class="ncbtn" data-gnonc="${s}|${kind}">${label} · ${fmtNum(arr.length)} · ${fmtMoney(arr.reduce((t,a)=>t+(a.pa||0),0))} →</button>`:"";
+  const swList=(sp==="pa"&&(swA.length||coopA.length||udA.length))?
+      `<div class="declsub" style="margin-top:6px">Non-county PA applicants <span class="thr-sub">· browse groups not tied to a county — never shown on the map</span></div>`
+      +`<div class="ncbar">${ncB("statewide","Statewide / no county",swA)}${ncB("coops","Out-of-region / coops",coopA)}${ncB("undeclared","Undeclared county",udA)}</div>`:"";
   const body=sp==="ihp"?blkIHP+blkPA+blkProj+blkHMGP:sp==="hmgp"?blkHMGP+blkPA+blkIHP+blkProj:sp==="pa"?blkPA+blkProj+blkAppl+blkIHP+blkHMGP:blkPA+blkIHP+blkProj;
   box.innerHTML=`<div class="declhd"><b>${st.name}</b> — ${st.nDisasters} declared disasters</div>`+body+swList+
     (geoCovid&&COVID&&COVID.states&&COVID.states[s]?`<div class="declrow" style="background:#fff3f3"><span class="dk"><b>+ COVID-19</b> · statewide</span><span class="dv">${fmtMoney(COVID.states[s].paTotal||0)} PA · ${fmtMoney(COVID.states[s].ihpTotal||0)} IHP · ${fmtMoney(COVID.states[s].hmgp||0)} HMGP</span></div>`:"")+
@@ -2040,6 +2060,20 @@ function geoSelectState(s){
   renderGeoStates();renderGeoMap();renderGeoBoard();renderGeoTimeline();geoFocus(true);
   if(geoStateFilter)showStateGeo(geoStateFilter); else el("geoPick").innerHTML=geoPickDefault();
   syncHash();
+}
+/* All non-disaster PREPAREDNESS split by family + program (from build_state_prep prepByFamily/
+   prepByProgram). AFG=firefighter is its own measure; this shows where the rest of the DHS
+   non-disaster grant dollars go (Homeland Security, Transit/Port, Nonprofit, Other). EMPG separate. */
+function prepBreakdownHTML(s){
+  const st=(DECL.states||{})[s]||{}, fam=st.prepByFamily||{};
+  if(!Object.keys(fam).length)return "";
+  const famRows=Object.entries(fam).sort((a,b)=>b[1]-a[1])
+    .map(([k,v])=>`<div class="declrow"><span class="dk">${k}</span><span class="dv">${fmtMoney(v)}</span></div>`).join("");
+  const pe=Object.entries(st.prepByProgram||{}).sort((a,b)=>b[1]-a[1]);
+  const progRows=pe.slice(0,12).map(([k,v])=>`<div class="declrow"><span class="dk" style="padding-left:12px;color:var(--ink-3)">${k}</span><span class="dv">${fmtMoney(v)}</span></div>`).join("")
+    +(pe.length>12?`<div class="thr-sub" style="padding:4px">+ ${pe.length-12} more programs</div>`:"");
+  return `<div class="declsub" style="margin-top:10px">All non-disaster preparedness — by family <span class="thr-sub">· total ${fmtMoney(st.prepTotal||0)} · EMPG counted separately</span></div>${famRows}`
+    +`<div class="declsub" style="margin-top:6px">By program</div>${progRows}`;
 }
 /* ===== state-level grant presentation (EMPG/AFG): sub-unit board + by-year trend ===== */
 function prepBoardHTML(m,s){
@@ -2329,7 +2363,7 @@ function geoRenderAll(){
   else if(geoStateFilter)showStateGeo(geoStateFilter);}
 /* ===== MOBILE Geography — a single-column, in-depth sorter/drill-down ===== */
 function isMobileGeo(){return window.matchMedia("(max-width:760px)").matches;}
-let gmLevel="region", gmState=null, gmDisaster=null, gmCounty=null, gmTab="disasters", gmSort="paObligated", gmAsc=false, gmExpanded=false;
+let gmLevel="region", gmState=null, gmDisaster=null, gmCounty=null, gmTab="disasters", gmSort="paObligated", gmAsc=false, gmExpanded=false, gmNonc=null;
 const GM_SORTS=[["count","Disasters"],
   ["paObligated","PA $"],["paProjects","Projects"],["paApplicants","Applicants"],
   ["ihpApproved","IHP $"],["ihpHousing","HA $"],["ihpOna","ONA $"],["iaRegistrations","Registrations"],
@@ -2359,6 +2393,7 @@ function renderGeoMobile(){const box=el("geoMobile");if(!box||!DECL)return;
   if(gmLevel==="state"&&gmState)gmRenderState(box);
   else if(gmLevel==="disaster"&&gmDisaster)gmRenderDisaster(box);
   else if(gmLevel==="county"&&gmCounty)gmRenderCounty(box);
+  else if(gmLevel==="noncounty"&&gmNonc)gmRenderNonCounty(box);
   else gmRenderHome(box);
   if(gmLevel!=="disaster")gmInjectTimeline(box);
 }
@@ -2416,7 +2451,19 @@ function gmRenderState(box){
         <div class="gm-rmain"><b>DR-${d.disasterNumber} · ${d.incidentType||(d.tags||[])[0]||""}</b><span class="gm-rsub">${(d.begin||"").slice(0,7)} · ${geoDisasterFips(d.disasterNumber).size} counties · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP</span>${gmBar(gmVal(fmtk,"disaster",r._o),mx,col)}</div>
         <div class="gm-rval">${gmFmt(gmSort,"disaster",r._o)}<span class="gm-go">›</span></div></div>`;}).join("")}</div>`;
   }
-  const bb=geoStateBBox(s); box.innerHTML=head+(bb?gmMiniMap(new Set(COUNTIES.filter(c=>c.s===s).map(c=>c.f)),bb,true):"")+body;
+  const ncList=[["statewide","Statewide / no county",st.paStatewideApplicants],["coops","Out-of-region / coops",st.paUnmatchedApplicants],["undeclared","Undeclared county",st.paUndeclaredApplicants]].filter(x=>x[2]&&x[2].length);
+  const ncHtml=ncList.length?`<div class="gm-sech">Non-county PA applicants <span class="thr-sub">· not on the map</span></div><div class="gm-ncbar">${ncList.map(([k,l,arr])=>`<button class="gm-ncbtn" data-gmnonc="${s}|${k}">${l} · ${fmtNum(arr.length)} · ${fmtMoney(arr.reduce((t,a)=>t+(a.pa||0),0))}</button>`).join("")}</div>`:"";
+  const bb=geoStateBBox(s); box.innerHTML=head+(bb?gmMiniMap(new Set(COUNTIES.filter(c=>c.s===s).map(c=>c.f)),bb,true):"")+ncHtml+body;
+}
+function gmRenderNonCounty(box){
+  const nc=gmNonc||{}, st=DECL.states[nc.s]; if(!st)return gmRenderHome(box);
+  const MAP={statewide:["paStatewideApplicants","Statewide / no-county"],coops:["paUnmatchedApplicants","Out-of-region / coops"],undeclared:["paUndeclaredApplicants","Undeclared county"]};
+  const [key,title]=MAP[nc.kind]||MAP.statewide; const arr=st[key]||[], amt=arr.reduce((t,a)=>t+(a.pa||0),0);
+  const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span> <span data-gmback="state">‹ ${st.name}</span></div>
+      <div class="gm-title">${title} — ${st.name}</div>
+      <div class="gm-stat"><span>${fmtNum(arr.length)} applicants</span><span>${fmtMoney(amt)}</span><span class="thr-sub">not on the map</span></div></div>`;
+  const rows=arr.map((a,i)=>`<div class="gm-row static"><div class="gm-rk">${i+1}</div><div class="gm-rmain"><b>${a.name}</b>${a.county?`<span class="gm-rsub">${a.county}</span>`:""}</div><div class="gm-rval">${fmtMoney(a.pa)}</div></div>`).join("");
+  box.innerHTML=head+`<div class="gm-list">${rows||'<p class="thr-sub" style="padding:8px">None.</p>'}</div>`;
 }
 function gmRenderDisaster(box){
   const dn=gmDisaster, d=disasterMeta(dn); const fset=geoDisasterFips(dn);
@@ -3332,6 +3379,7 @@ function wire(){
     const gdis=e.target.closest("[data-geodis]"); if(gdis){enterDisasterFocus(+gdis.getAttribute("data-geodis"));return;}
     const mso=e.target.closest("[data-gmsort]"); if(mso){const k=mso.getAttribute("data-gmsort"); if(gmSort===k)gmAsc=!gmAsc; else{gmSort=k;gmAsc=(k==="az");} if(GEO_META[k]){geoMetric=k;geoSetYearBounds();} renderGeoMobile(); return;}
     const mtb=e.target.closest("[data-gmtab]"); if(mtb){gmTab=mtb.getAttribute("data-gmtab");gmExpanded=false;renderGeoMobile();return;}
+    const mnc=e.target.closest("[data-gmnonc]"); if(mnc){const p=mnc.getAttribute("data-gmnonc").split("|");gmNonc={s:p[0],kind:p[1]};gmLevel="noncounty";renderGeoMobile();window.scrollTo({top:0,behavior:"smooth"});return;}
     const mbk=e.target.closest("[data-gmback]"); if(mbk){gmBack(mbk.getAttribute("data-gmback"));return;}
     const mst=e.target.closest("[data-gmstate]"); if(mst){gmGoState(mst.getAttribute("data-gmstate"));return;}
     const mds=e.target.closest("[data-gmdisaster]"); if(mds){gmGoDisaster(+mds.getAttribute("data-gmdisaster"));return;}
@@ -3341,6 +3389,8 @@ function wire(){
     const gax=e.target.closest("[data-applexpand]"); if(gax){geoApplExpanded=!geoApplExpanded;renderGeoBoard();const o=geoCountyFocus&&DECL.counties[geoCountyFocus];if(o)el("geoPick").innerHTML=countyDetailHTML(o,geoCountyFocus);return;}
     const gap=e.target.closest("[data-gappl]"); if(gap){const p=gap.getAttribute("data-gappl").split("|");showApplicant(p[0],+p[1]);return;}
     const gf=e.target.closest("[data-gfips]"); if(gf){showCountyGeo(gf.getAttribute("data-gfips"));return;}
+    const nc=e.target.closest("[data-gnonc]"); if(nc){const p=nc.getAttribute("data-gnonc").split("|");showNonCounty(p[0],p[1]);return;}
+    const ncb=e.target.closest("[data-gnoncback]"); if(ncb){showStateGeo(ncb.getAttribute("data-gnoncback"));return;}
     const gs=e.target.closest("[data-gstate]"); if(gs){geoSelectState(gs.getAttribute("data-gstate"));return;}
     const gjc=e.target.closest("[data-geocounty]"); if(gjc){const f=gjc.getAttribute("data-geocounty");closeDetail();if(isMobileGeo()){showView("geography");gmGoCounty(f);return;}geoStateFilter=(DECL.counties[f]||{}).state||null;geoMetric="paObligated";showView("geography");setGeoMetric("paObligated");showCountyGeo(f);return;}
     const gjs=e.target.closest("[data-geostate]"); if(gjs){const s=gjs.getAttribute("data-geostate");closeDetail();if(isMobileGeo()){showView("geography");gmGoState(s);return;}geoStateFilter=s;geoMetric="paObligated";showView("geography");setGeoMetric("paObligated");showStateGeo(s);syncHash();return;}
