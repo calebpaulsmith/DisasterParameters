@@ -1326,7 +1326,7 @@ function showCountyAlerts(fips){
     +sec("Declaration history")+dHtml;
 }
 /* ===== historical declaration-frequency choropleth (R5 counties) ===== */
-let DECL=null, NFIP=null;
+let DECL=null, NFIP=null, DCIHP=null;   // DCIHP = per-disaster × county IHP rollup (data/disaster_county_ihp.json)
 /* Merge the committed NFIP claims rollup (data/nfip.json) onto DECL by county FIPS so the
    "Flood insurance" program lens reuses the standard metric machinery (GEO_KEY/GEO_YEARKEY).
    Counties with NFIP claims but no FEMA declaration get a minimal synthetic entry so the map
@@ -2404,30 +2404,35 @@ function gmRenderDisaster(box){
   const fHi=fset.size?fset:new Set(COUNTIES.filter(c=>c.s===d.state).map(c=>c.f));
   const bb=geoMultiBBox(fset)||geoStateBBox(d.state);
   const mapHtml=bb?gmMiniMap(fHi,bb,true):"";
-  // declared counties (sortable, tappable) — scoped to THIS disaster's obligations (live), not all-time
+  // declared counties (sortable, tappable) — scoped to THIS disaster, not all-time.
+  // PA $/projects/applicants come from the live applicant fetch (geoDisCountyCache); IHP $/HA/ONA/registrations
+  // come from the committed per-disaster×county rollup (DCIHP) — too heavy to fetch live (registrant-level).
   if(geoDisApplCache[dn]==null)fetchDisasterApplicants(dn);   // also fills geoDisCountyCache[dn]
   const colc=GEO_BAR[gmSort]||GEO_BAR.paObligated;
   const dcc=geoDisCountyCache[dn], dccReady=dcc&&typeof dcc==="object";
-  // which per-disaster county figure the active sort chip maps to (only PA $/projects/applicants exist per-disaster-per-county)
-  const dKey=gmSort==="paProjects"?"projects":gmSort==="paApplicants"?"applicants":"pa";
-  const cval=v=>dccReady?(dcc[geoNormCounty(v.name)]||{pa:0,projects:0,applicants:0}):null;
-  const crows=[...fset].filter(f=>DECL.counties[f]).map(f=>{const v=DECL.counties[f];return {_n:v.name,_o:v,f,v,c:cval(v)};});
+  const ihpMap=(DCIHP&&DCIHP.byDisaster&&DCIHP.byDisaster[dn])||null;   // {fips:[ihp,ha,ona,regs]} for this disaster
+  // which per-disaster county figure the active sort chip maps to (chips with no per-disaster series fall back to PA)
+  const DIS_DKEY={paObligated:"pa",paProjects:"projects",paApplicants:"applicants",ihpApproved:"ihp",ihpHousing:"ha",ihpOna:"ona",iaRegistrations:"regs"};
+  const dKey=DIS_DKEY[gmSort]||"pa", dCount=dKey==="projects"||dKey==="applicants"||dKey==="regs";
+  const cval=(f,v)=>{const p=dccReady?(dcc[geoNormCounty(v.name)]||{}):{}, h=ihpMap?(ihpMap[f]||null):null;
+    return {pa:p.pa||0,projects:p.projects||0,applicants:p.applicants||0,ihp:h?h[0]:0,ha:h?h[1]:0,ona:h?h[2]:0,regs:h?h[3]:0};};
+  const crows=[...fset].filter(f=>DECL.counties[f]).map(f=>{const v=DECL.counties[f];return {_n:v.name,_o:v,f,v,c:cval(f,v)};});
   const csorted=dccReady
     ? crows.slice().sort((a,b)=>gmSort==="az"?(gmAsc?b._n.localeCompare(a._n):a._n.localeCompare(b._n)):(gmAsc?a.c[dKey]-b.c[dKey]:b.c[dKey]-a.c[dKey]))
     : gmSortRows(crows,"county");
   const cmx=dccReady?Math.max(...csorted.map(r=>r.c[dKey]),1):Math.max(...csorted.map(r=>gmVal(gmSort==="az"?"paObligated":gmSort,"county",r._o)),1);
-  const cNote=dccReady?`each county's <b>DR-${dn}</b> obligated PA (live)`
+  const cNote=dccReady?`each county's <b>DR-${dn}</b> obligations`
     :geoDisCountyCache[dn]==="error"?`each county's <b>all-time</b> totals (per-disaster breakdown unavailable)`
     :`loading each county's DR-${dn} obligations…`;
-  // only PA $/projects/applicants exist per-disaster-per-county; other chips fall back to PA, so label the chip we actually used
-  const dSortLabel=!dccReady?((GM_SORTS.find(x=>x[0]===gmSort)||["","this list"])[1])
-    :gmSort==="az"?"A–Z":dKey==="projects"?"Projects":dKey==="applicants"?"Applicants":"PA $";
+  // label the chip we actually used (unsupported chips fell back to PA)
+  const DIS_OK={paObligated:"PA $",paProjects:"Projects",paApplicants:"Applicants",ihpApproved:"IHP $",ihpHousing:"HA $",ihpOna:"ONA $",iaRegistrations:"Registrations"};
+  const dSortLabel=!dccReady?((GM_SORTS.find(x=>x[0]===gmSort)||["","this list"])[1]):gmSort==="az"?"A–Z":(DIS_OK[gmSort]||"PA $");
   const cHtml=csorted.length?`<div class="gm-sech">${csorted.length} counties DR-${dn} designated — ${cNote} (sort by ${dSortLabel})</div>${gmSortChips()}
     <div class="gm-list">${csorted.map(r=>{
-      const sub=dccReady?`${fmtMoney(r.c.pa)} PA · ${fmtNum(r.c.projects)} proj · ${fmtNum(r.c.applicants)} appl <span class="thr-sub">this disaster</span>`
+      const sub=dccReady?`${fmtMoney(r.c.pa)} PA · ${fmtNum(r.c.projects)} proj${r.c.ihp||r.c.regs?` · ${fmtMoney(r.c.ihp)} IHP · ${fmtNum(r.c.regs)} regs`:""} <span class="thr-sub">this disaster</span>`
         :`all-time: ${r.v.count} dis · ${fmtMoney(r.v.paObligated)} PA · ${fmtMoney(r.v.ihpApproved||0)} IHP`;
       const barv=dccReady?r.c[dKey]:gmVal(gmSort==="az"?"paObligated":gmSort,"county",r._o);
-      const val=dccReady?(dKey==="projects"?fmtNum(r.c.projects):dKey==="applicants"?fmtNum(r.c.applicants):fmtMoney(r.c.pa)):gmFmt(gmSort,"county",r._o);
+      const val=dccReady?(dCount?fmtNum(r.c[dKey]):fmtMoney(r.c[dKey])):gmFmt(gmSort,"county",r._o);
       return `<div class="gm-row" data-gmcounty="${r.f}">
       <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${sub}</span>${gmBar(barv,cmx,colc)}</div>
       <div class="gm-rval">${val}<span class="gm-go">›</span></div></div>`;}).join("")}</div>`:"";
@@ -3773,6 +3778,7 @@ async function loadData(){
     fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();renderDeclMap();}).catch(()=>{});
     fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;if(d&&d.counties)for(const f in d.counties)d.counties[f].fips=f;applyNfip();geoSetYearBounds();renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
     fetch("data/nfip.json").then(r=>r.ok?r.json():null).then(n=>{NFIP=n;applyNfip();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
+    fetch("data/disaster_county_ihp.json").then(r=>r.ok?r.json():null).then(d=>{DCIHP=d;if(isMobileGeo()&&gmLevel==="disaster"&&gmDisaster)renderGeoMobile();}).catch(()=>{});
     // freshness stamp (footer): per-file "data as of" from data/manifest.json (built by build_manifest.py)
     fetch("data/manifest.json").then(r=>r.ok?r.json():null).then(mf=>{const el2=el("dataFresh"); if(!el2||!mf||!mf.files)return;
       const f=mf.files, pick=n=>(f[n]&&(f[n].dataAsOf||"")).slice(0,10);
