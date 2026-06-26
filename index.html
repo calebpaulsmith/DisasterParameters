@@ -3207,7 +3207,9 @@ function renderPending(){
     const ent=d.entityName?`${esc(d.entity)} · ${esc(d.entityName)}`:esc(d.entity);
     const wait=pendDays(d);
     const reqCell=d.requestDate?`<span${d.requestYearInferred?' title="year inferred — the briefing prints only the month/day"':''}>${fmtDate(d.requestDate)}${d.requestYearInferred?' <span style="color:var(--ink-3)">·est</span>':''}</span>`:esc(d.requestedRaw||"—");
-    const incCell=d.incidentPeriod?`<span title="from a per-request detail page in the briefing">${esc(d.incidentPeriod)}${d.daysSinceIncident!=null?` <span class="thr-sub">(${d.daysSinceIncident}d)</span>`:""}</span>`:'<span class="thr-sub">—</span>';
+    let incCell=d.incidentPeriod?`<span title="from a per-request detail page in the briefing">${esc(d.incidentPeriod)}${d.daysSinceIncident!=null?` <span class="thr-sub">(${d.daysSinceIncident}d)</span>`:""}</span>`:'<span class="thr-sub">—</span>';
+    if(d.countiesRequested){const cc=Object.entries(d.countiesRequested).map(([k,v])=>`${esc(k)} ${v==="Statewide"?"statewide":v}`).join(" · ");
+      incCell+=`<div class="thr-sub" title="counties requested, from the briefing detail page">counties: ${cc}${PENDING.briefUrl?` <a href="${esc(PENDING.briefUrl)}" target="_blank" rel="noopener" style="color:var(--navy)">↗</a>`:""}</div>`;}
     return `<tr><td><b>${ent}</b>${d.region===5?'':''}${d.appeal?' <span class="abadge">APPEAL</span>':""}</td><td>${esc(titleCase(d.incident))}</td><td>${d.type}</td><td>${prog(d)}</td><td>${reqCell}</td><td style="text-align:right;font-weight:700">${wait==null?"—":wait+"d"}</td><td>${incCell}</td></tr>`;}).join("");
   body.innerHTML=`<div style="overflow-x:auto"><table class="ptable"><thead><tr><th>State / Tribe / Territory</th><th>Incident</th><th>Type</th><th>Programs</th><th>Requested</th><th style="text-align:right">Waiting</th><th>Incident period</th></tr></thead><tbody>${items}</tbody></table></div>`
     +`<p class="thr-sub" style="margin-top:10px"><b>Waiting</b> = days since the request was filed (the briefing's "Requested" date), recomputed to today — <b>not</b> from the incident start, which the summary table doesn't carry. <b>Incident period</b> appears only when the briefing includes a per-request detail page (newly-filed requests); Phase&nbsp;2's daily harvest will backfill more. Request <b>year is inferred</b> (·est) where the briefing prints only "Mon Day"; long-pending appeals may be a year older. Type <b>DR</b> = Major Disaster, <b>EM</b> = Emergency; <b>IA/PA/HM</b> = programs requested. Source: FEMA Daily Operations Briefing (unofficial parse) · header-count cross-check ${PENDING.parsedCount}/${PENDING.headerCount} ✓.</p>`;
@@ -3241,7 +3243,10 @@ function renderReqDates(){
     +(apprMed!=null&&denMed!=null?card("Approval vs denial",`${Math.abs(denMed-apprMed)} days`,denMed>=apprMed?"denials take longer to decide":"approvals take longer"):"")
     +`</div>`;
   const rows=Object.entries(REQDATES.byDisaster||{}).map(([dn,m])=>({dn,...m})).sort((a,b)=>b.declared.localeCompare(a.declared));
-  const list=rows.map(m=>`<div class="declrow clickable" data-dn="${m.dn}"><span class="dk"><b style="color:var(--navy)">DR-${m.dn}</b> · ${esc(titleCase(m.incident))}</span><span class="dv">req ${fmtDate(m.requestDate)} → decl ${fmtDate(m.declared)} · <b>${m.reqToDeclLagDays}d</b> ↗</span></div>`).join("");
+  const list=rows.map(m=>{
+    const burl=m.decisionUrl||m.firstSeenUrl;
+    const brief=burl?` · <a href="${burl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="The actual Daily Ops Brief PDF" style="color:var(--navy)">brief ↗</a>`:"";
+    return `<div class="declrow clickable" data-dn="${m.dn}"><span class="dk"><b style="color:var(--navy)">DR-${m.dn}</b> · ${esc(titleCase(m.incident))}${brief}</span><span class="dv">req ${fmtDate(m.requestDate)} → decl ${fmtDate(m.declared)} · <b>${m.reqToDeclLagDays}d</b> ↗</span></div>`;}).join("");
   body.innerHTML=badge+cards
     +`<div class="declhd"><b>Region&nbsp;5 approvals with a harvested request date</b> — ${rows.length} · tap any for its full detail</div>${list}`
     +`<p class="thr-sub" style="margin-top:8px">Approval request dates are parsed from the FEMA Daily Operations Briefing and matched <b>conservatively</b> to the OpenFEMA declaration — high-confidence only (${rows.length}/${REQDATES.r5DeclaredConsidered||"?"} of FY2022+ R5 declarations matched; ambiguous ones left out). Denial request→decision is straight from OpenFEMA. This is an unofficial brief parse, <b>not</b> OpenFEMA.</p>`;
@@ -3256,6 +3261,14 @@ function renderDenialDetail(rn){
   el("mTitle").textContent=d.name?titleCase(d.name):`${titleCase(d.incidentType)} — turndown`;
   el("mMeta").innerHTML=`<span class="tag-storm">TURNDOWN</span> &nbsp;·&nbsp; ${esc(d.incidentType||"—")} &nbsp;·&nbsp; ${esc(d.state)}${d.tribal?' &nbsp;·&nbsp; <b>tribal request</b>':""}`;
   const progs=[["PA",d.pa],["IA",d.ia],["IHP",d.ih],["HM",d.hm]].filter(p=>p[1]).map(p=>p[0]).join(" · ")||"—";
+  // brief provenance: the actual Daily Ops Brief(s) this turndown appeared in (from the harvest)
+  const bp2=(REQDATES&&REQDATES.denialBriefs)?REQDATES.denialBriefs[String(d.reqNum)]:null;
+  const briefSec=bp2?`<div class="sec-h" style="margin-top:22px">Seen in the Daily Ops Briefing<span class="src">unofficial parse</span></div>
+    <div class="parm">
+      ${bp2.firstSeenUrl?`<a class="parmcard clickable" style="text-decoration:none" href="${bp2.firstSeenUrl}" target="_blank" rel="noopener"><div class="pv">${fmtDate(bp2.firstSeen)} ↗</div><div class="pl">First listed in brief</div></a>`:""}
+      ${bp2.decisionUrl?`<a class="parmcard clickable" style="text-decoration:none" href="${bp2.decisionUrl}" target="_blank" rel="noopener"><div class="pv">${fmtDate(bp2.decisionDate)} ↗</div><div class="pl">Last brief / turndown shown</div></a>`:""}
+    </div>
+    <div class="thr-sub" style="margin-top:6px">Harvested request date <b>${fmtDate(bp2.briefRequestDate)}</b>${bp2.briefRequestDate===d.reqDate?" — matches OpenFEMA exactly":""}. Links open the actual FEMA Daily Operations Briefing PDF.</div>`:"";
   el("mBody").innerHTML=`
     <div class="note" style="margin:2px 0 18px"><span class="i">!</span><span>FEMA <b>turned down</b> this declaration request. OpenFEMA <b>DeclarationDenials</b> records the turndown only — it does <b>not</b> indicate whether a later appeal or resubmission succeeded.</span></div>
     <div class="sec-h">Request timeline<span class="src">OpenFEMA</span></div>
@@ -3271,7 +3284,7 @@ function renderDenialDetail(rn){
     <div class="sec-h" style="margin-top:22px">Verify</div>
     <div class="parm">
       <a class="parmcard clickable" style="text-decoration:none" href="https://www.fema.gov/api/open/v1/DeclarationDenials?$filter=declarationRequestNumber%20eq%20${encodeURIComponent(d.reqNum)}" target="_blank" rel="noopener"><div class="pv">OpenFEMA ↗</div><div class="pl">Denials API record</div></a>
-    </div>`;
+    </div>${briefSec}`;
 }
 
 function renderAlerts(){
@@ -3456,7 +3469,11 @@ function renderDisasterDetail(dn){
   el("mMeta").innerHTML=`${fmtRange(d.begin,d.end)}${declMeta} &nbsp;·&nbsp; ${d.countyCount} ${d.countyCount===1?"designated county":"designated counties"} &nbsp;·&nbsp; ${progBadges(d)} &nbsp;·&nbsp; ${d.tags.map(t=>`<span class="${tagClass(t)}">${t}</span>`).join(" ")}`;
   // request date is not in OpenFEMA for approvals — surface it when harvested from the Daily Ops Brief
   const _rq=(REQDATES&&REQDATES.byDisaster)?REQDATES.byDisaster[String(d.disasterNumber)]:null;
-  if(_rq&&_rq.requestDate)el("mMeta").innerHTML+=`<br><span class="thr-sub">requested <b>${fmtDate(_rq.requestDate)}</b> · request→declaration <b>${_rq.reqToDeclLagDays} day${_rq.reqToDeclLagDays===1?"":"s"}</b> <a href="${DOB_SOURCE_URL}" target="_blank" rel="noopener" title="Parsed from the FEMA Daily Operations Briefing — not OpenFEMA" style="color:var(--navy)">· Daily Ops Brief ↗</a></span>`;
+  if(_rq&&_rq.requestDate){
+    const fb=_rq.firstSeenUrl||DOB_SOURCE_URL;
+    const decLink=_rq.decisionUrl?` · <a href="${_rq.decisionUrl}" target="_blank" rel="noopener" style="color:var(--navy)">approval brief ↗</a>`:"";
+    el("mMeta").innerHTML+=`<br><span class="thr-sub">requested <b>${fmtDate(_rq.requestDate)}</b> · request→declaration <b>${_rq.reqToDeclLagDays} day${_rq.reqToDeclLagDays===1?"":"s"}</b> · <a href="${fb}" target="_blank" rel="noopener" title="The FEMA Daily Operations Briefing this request was parsed from — not OpenFEMA" style="color:var(--navy)">request brief ↗</a>${decLink}</span>`;
+  }
 
   const exact=v=>`<span class="thr-sub">${fmtMoneyFull(v)}</span>`;
   const paMgmt=Math.max(0,(c.paTotal||0)-(c.paEmergencyAB||0)-(c.paPermanentCG||0));
