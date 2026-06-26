@@ -2504,8 +2504,9 @@ function gmRenderState(box){
         <div class="gm-rmain"><b>DR-${d.disasterNumber} · ${d.incidentType||(d.tags||[])[0]||""}</b><span class="gm-rsub">${(d.begin||"").slice(0,7)} · ${geoDisasterFips(d.disasterNumber).size} counties · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP</span>${gmBar(gmVal(fmtk,"disaster",r._o),mx,col)}</div>
         <div class="gm-rval">${gmFmt(gmSort,"disaster",r._o)}<span class="gm-go">›</span></div></div>`;}).join("")}</div>`;
   }
-  const ncList=[["statewide","Statewide / no county",st.paStatewideApplicants],["coops","Out-of-region / coops",st.paUnmatchedApplicants],["undeclared","Undeclared county",st.paUndeclaredApplicants]].filter(x=>x[2]&&x[2].length);
-  const ncHtml=ncList.length?`<div class="gm-sech">Non-county PA applicants <span class="thr-sub">· not on the map</span></div><div class="gm-ncbar">${ncList.map(([k,l,arr])=>`<button class="gm-ncbtn" data-gmnonc="${s}|${k}">${l} · ${fmtNum(arr.length)} · ${fmtMoney(arr.reduce((t,a)=>t+(a.pa||0),0))}</button>`).join("")}</div>`:"";
+  // non-county PA applicant buckets carry PA $ NOT on the choropleth → only relevant on the PA lens
+  const ncList=(gmProgram==="pa")?[["statewide","Statewide / no county",st.paStatewideApplicants],["coops","Out-of-region / coops",st.paUnmatchedApplicants],["undeclared","Undeclared county",st.paUndeclaredApplicants]].filter(x=>x[2]&&x[2].length):[];
+  const ncHtml=ncList.length?`<div class="gm-sech">Non-county PA applicants <span class="thr-sub">· PA $ not on the map</span></div><div class="gm-ncbar">${ncList.map(([k,l,arr])=>`<button class="gm-ncbtn" data-gmnonc="${s}|${k}">${l} · ${fmtNum(arr.length)} · ${fmtMoney(arr.reduce((t,a)=>t+(a.pa||0),0))}</button>`).join("")}</div>`:"";
   const bb=geoStateBBox(s); box.innerHTML=head+(bb?gmMiniMap(new Set(COUNTIES.filter(c=>c.s===s).map(c=>c.f)),bb,true):"")+ncHtml+body;
 }
 function gmRenderNonCounty(box){
