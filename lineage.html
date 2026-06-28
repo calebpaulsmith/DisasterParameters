@@ -17,7 +17,6 @@
   --shadow-md:0 2px 6px rgba(11,31,58,.10),0 6px 18px rgba(11,31,58,.10);
   --radius:8px;--radius-lg:14px;
   --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-  --c-provider:#5a6b8c;--c-source:#005ea2;--c-transform:#7b4ea0;--c-artifact:#1a7a3a;--c-surface:#c05600;
 }
 *{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -31,35 +30,44 @@ a{color:var(--blue);}
 .masthead a.back{margin-left:auto;color:#fff;text-decoration:none;font-weight:700;font-size:13px;background:rgba(255,255,255,.12);padding:8px 13px;border-radius:8px;border:1px solid rgba(255,255,255,.18);}
 .masthead a.back:hover{background:rgba(255,255,255,.2);}
 .toolbar{position:sticky;top:0;z-index:30;background:var(--white);border-bottom:1px solid var(--line);box-shadow:var(--shadow-sm);}
-.toolbar__inner{max-width:1500px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
-.legend{display:flex;gap:13px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--ink-2);}
+.toolbar__inner{max-width:1500px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;gap:12px 14px;flex-wrap:wrap;}
+.legend{display:flex;gap:11px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--ink-2);}
 .legend b{color:var(--ink);}
 .chip-h{display:inline-flex;align-items:center;gap:5px;}
 .sw{width:11px;height:11px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.15);}
 .sw.fresh{background:var(--green);}.sw.aging{background:var(--gold);}.sw.stale{background:var(--red-vivid);}
 .sw.unknown{background:repeating-linear-gradient(45deg,#cfd3d8 0 4px,#eef0f2 4px 8px);}
-.toolbar input[type=search]{padding:7px 11px;border:1px solid var(--line-2);border-radius:7px;font-family:inherit;font-size:13px;min-width:180px;}
+.toolbar input[type=search]{padding:7px 11px;border:1px solid var(--line-2);border-radius:7px;font-family:inherit;font-size:13px;min-width:150px;}
+.toolbar select{padding:7px 9px;border:1px solid var(--line-2);border-radius:7px;font-family:inherit;font-size:13px;background:var(--white);max-width:210px;}
 .btn{font-family:inherit;font-size:12.5px;font-weight:700;color:var(--navy);background:var(--bg-2);border:1px solid var(--line-2);border-radius:7px;padding:7px 12px;cursor:pointer;}
 .btn:hover{background:#eef0f2;}
-.wrap{max-width:1500px;margin:0 auto;padding:16px 20px 40px;display:grid;grid-template-columns:1fr 360px;gap:18px;}
+.btn.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.filters .lbl{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);}
+.fchip{font-size:12px;font-weight:600;border:1px solid var(--line-2);border-radius:20px;padding:3px 11px;cursor:pointer;background:var(--white);color:var(--ink-2);display:inline-flex;gap:6px;align-items:center;user-select:none;}
+.fchip .gd{width:9px;height:9px;border-radius:50%;}
+.fchip.off{opacity:.42;background:var(--bg-2);text-decoration:line-through;}
+.barwrap{max-width:1500px;margin:0 auto;padding:7px 20px 0;}
+.wrap{max-width:1500px;margin:0 auto;padding:14px 20px 40px;display:grid;grid-template-columns:1fr 360px;gap:18px;}
 .graph{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:auto;max-height:78vh;position:relative;}
 .graph svg{display:block;}
 .colhead{fill:var(--ink-3);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
 .node rect{rx:7;cursor:pointer;transition:opacity .12s;}
 .node text{font-size:11.5px;fill:var(--ink);pointer-events:none;}
 .node .nm{font-weight:700;}
-.node.dim{opacity:.16;}
+.node.dim{opacity:.14;}
+.node.sel rect.box{stroke-width:2.6;}
 .edge{fill:none;stroke:#c4ccd6;stroke-width:1.3;transition:opacity .12s,stroke .12s;}
-.edge.dim{opacity:.06;}
+.edge.dim{opacity:.05;}
 .edge.hot{stroke:var(--gold-dark);stroke-width:2.1;}
 .edge.hot.stale{stroke:var(--red-vivid);}
-.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:16px 17px;align-self:start;position:sticky;top:74px;max-height:78vh;overflow:auto;}
-.panel h2{font-size:15px;margin:0 0 3px;}
+.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:16px 17px;align-self:start;position:sticky;top:120px;max-height:78vh;overflow:auto;}
+.panel h2{font-size:15px;margin:0 0 3px;word-break:break-word;}
 .kindtag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:2px 8px;border-radius:20px;margin-bottom:8px;}
 .panel .desc{font-size:13px;color:var(--ink-2);margin:6px 0 12px;}
 .row{display:flex;gap:8px;font-size:12.5px;padding:5px 0;border-top:1px solid var(--line);}
 .row .k{color:var(--ink-3);min-width:84px;flex:none;font-weight:600;}
-.row .v{color:var(--ink);}
+.row .v{color:var(--ink);min-width:0;}
 .statusline{font-weight:800;}
 .statusline.fresh{color:var(--green-dark);}.statusline.aging{color:var(--gold-dark);}.statusline.stale{color:var(--red);}.statusline.unknown{color:var(--ink-3);}
 .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px;}
@@ -95,9 +103,12 @@ details summary{cursor:pointer;font-size:12.5px;color:var(--blue);font-weight:60
       <span class="chip-h"><span class="sw unknown"></span>no date</span>
     </div>
     <input type="search" id="search" placeholder="Find a node…" aria-label="Find a node" />
-    <button class="btn" id="reset">Reset focus</button>
+    <select id="trace" aria-label="Trace lineage for a surface"><option value="">Trace a UI surface…</option></select>
+    <button class="btn" id="isolate" title="Hide everything outside the selected node's dependency cone">Isolate</button>
+    <button class="btn" id="reset">Reset</button>
     <span class="muted" id="counts"></span>
   </div>
+  <div class="barwrap"><div class="filters" id="filters"><span class="lbl">Programs:</span></div></div>
 </div>
 
 <div class="wrap">
@@ -106,232 +117,214 @@ details summary{cursor:pointer;font-size:12.5px;color:var(--blue);font-weight:60
 </div>
 
 <div class="footer">
-  <p class="disc"><b>This is not a government website.</b> It maps the data flow of an independent tool built on FEMA OpenFEMA, NOAA Storm Events, NOAA/NWS, USGS, and the Data Liberation Project — <b>not endorsed by FEMA</b>, NOAA, NWS, or USGS. Lineage is generated by <code>scripts/build_lineage.py</code> and CI-verified by <code>scripts/verify_lineage.py</code> (the "Guardian"). Freshness is read live from <code>data/manifest.json</code>.</p>
+  <p class="disc"><b>This is not a government website.</b> It maps the data flow of an independent tool built on FEMA OpenFEMA, NOAA Storm Events, NOAA/NWS, USGS, and the Data Liberation Project — <b>not endorsed by FEMA</b>, NOAA, NWS, or USGS. Lineage is generated by <code>scripts/build_lineage.py</code> and CI-verified by <code>scripts/verify_lineage.py</code> (the "Guardian"). Freshness is read live from <code>data/manifest.json</code>. Program groupings are a display-only heuristic.</p>
 </div>
 
 <script>
 const KINDS=[
-  {k:"provider",label:"Provider",arr:"providers",color:"var(--c-provider)"},
-  {k:"source",label:"Source",arr:"sources",color:"var(--c-source)"},
-  {k:"transform",label:"Transform",arr:"transforms",color:"var(--c-transform)"},
-  {k:"artifact",label:"Artifact",arr:"artifacts",color:"var(--c-artifact)"},
-  {k:"surface",label:"Surface",arr:"surfaces",color:"var(--c-surface)"},
+  {k:"provider",label:"Provider",arr:"providers"},
+  {k:"source",label:"Source",arr:"sources"},
+  {k:"transform",label:"Transform",arr:"transforms"},
+  {k:"artifact",label:"Artifact",arr:"artifacts"},
+  {k:"surface",label:"Surface",arr:"surfaces"},
 ];
 const KCOLOR={provider:"#5a6b8c",source:"#005ea2",transform:"#7b4ea0",artifact:"#1a7a3a",surface:"#c05600"};
-const COLW=270, NODEW=196, NODEH=30, VGAP=40, TOP=64, LEFT=24;
+// Display-only program groups (heuristic over id/name/description). Order = priority.
+const GROUPS=[
+  ["PA","#005ea2",/public assistance|\bpa\b|applicant|fundedproject/],
+  ["IA/IHP","#2e8540",/ihp|individuals and households|household|registration|\bia\b|\bona\b/],
+  ["Mitigation","#8168b3",/hmgp|hazard mitigation|\bhma\b|mitigation|\bmit\b|\bfma\b|\bpdm\b|\bbric\b/],
+  ["NFIP","#00a6d2",/nfip|flood insurance|\bfima\b/],
+  ["Preparedness","#c05600",/empg|\bafg\b|firefighter|preparedness|homeland|transit|nonprofit|safer/],
+  ["Declarations","#e5a000",/denial|pending|request|daily ops|brief|liberation|declarationrequest|turndown|lag/],
+  ["Hazards","#5a8f3a",/storm|gage|usgs|\bnws\b|noaa|rain|snow|stage|weather|alert|tornado|hail|wind|nwps|ahps|panel|precip|exposure/],
+  ["Core","#5a6b8c",/.*/],
+];
+const GCOLOR={};GROUPS.forEach(([g,c])=>GCOLOR[g]=c);
+function groupOf(n){
+  const s=(n.id+" "+(n.d.name||"")+" "+(n.d.description||"")).toLowerCase();
+  for(const [g,,re] of GROUPS) if(re.test(s)) return g;
+  return "Core";
+}
+
+let NODEH=30,VGAP=40,TOP=64,LEFT=24,COLW=270,NODEW=196;
+function sizeConsts(){const w=window.innerWidth;if(w<760){COLW=182;NODEW=152;}else{COLW=270;NODEW=196;}}
 const RANK={none:0,fresh:0,unknown:1,aging:2,stale:3};
 
-let MAN=null, FILES={}, nodes=[], byKey={}, dataById={}, provById={}, edges=[], outAdj={}, inAdj={}, selected=null;
+let MAN=null,FILES={},nodes=[],byKey={},dataById={},provById={},edges=[],outAdj={},inAdj={};
+let selected=null,isolateKey=null,activeGroups=new Set(GROUPS.map(g=>g[0]));
 
 function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function basename(p){const s=String(p||"");const i=s.lastIndexOf("/");return i<0?s:s.slice(i+1);}
+function cssid(key){return "n_"+key.replace(/[^a-zA-Z0-9]/g,"_");}
 
-function cadenceDays(c){c=(c||"").toLowerCase();
-  if(!c)return null;
-  if(c.includes("dai"))return 1;
-  if(c.includes("week"))return 7;
-  if(c.includes("month"))return 31;
-  if(c.includes("quarter"))return 92;
-  if(c.includes("year")||c.includes("annual"))return 366;
-  return null; // as-needed / unknown → no staleness clock
-}
-function parseAsOf(s){
-  if(!s)return null;
-  if(/^\d{4}-\d{2}$/.test(s))return new Date(s+"-28T23:59:59Z"); // month granularity → lenient (end of month)
-  const d=new Date(s); return isNaN(d.getTime())?null:d;
-}
-// Freshness for an artifact id, from manifest. Lenient + clearly labelled (thresholds are a v1 heuristic).
-function artHealth(id){
-  const f=FILES[id]||{};
-  const as=parseAsOf(f.dataAsOf), cd=cadenceDays(f.sourceCadence);
+function cadenceDays(c){c=(c||"").toLowerCase();if(!c)return null;
+  if(c.includes("dai"))return 1;if(c.includes("week"))return 7;if(c.includes("month"))return 31;
+  if(c.includes("quarter"))return 92;if(c.includes("year")||c.includes("annual"))return 366;return null;}
+function parseAsOf(s){if(!s)return null;if(/^\d{4}-\d{2}$/.test(s))return new Date(s+"-28T23:59:59Z");const d=new Date(s);return isNaN(d.getTime())?null:d;}
+function artHealth(id){const f=FILES[id]||{};const as=parseAsOf(f.dataAsOf),cd=cadenceDays(f.sourceCadence);
   if(!as)return {status:"unknown",basis:f.sourceCadence?("cadence "+f.sourceCadence+", no as-of date"):"no freshness metadata"};
-  const ageD=(Date.now()-as.getTime())/864e5;
-  const asLabel="as of "+f.dataAsOf+(f.sourceCadence?(" · "+f.sourceCadence):"");
-  if(cd==null)return {status:"fresh",basis:asLabel+" (no fixed cadence)",ageD};
-  if(ageD<=cd+Math.max(cd,7))return {status:"fresh",basis:asLabel,ageD};
-  if(ageD<=cd*5)return {status:"aging",basis:asLabel+" — running behind cadence",ageD};
-  return {status:"stale",basis:asLabel+" — well past cadence",ageD};
-}
-function surfHealth(su){
-  let worst="fresh";
-  (su.reads||[]).forEach(r=>{ if(FILES[r]!==undefined || isArtifact(r)){ const h=artHealth(r).status; if(RANK[h]>RANK[worst])worst=h; }});
-  return worst;
-}
+  const ageD=(Date.now()-as.getTime())/864e5,asL="as of "+f.dataAsOf+(f.sourceCadence?(" · "+f.sourceCadence):"");
+  if(cd==null)return {status:"fresh",basis:asL+" (no fixed cadence)"};
+  if(ageD<=cd+Math.max(cd,7))return {status:"fresh",basis:asL};
+  if(ageD<=cd*5)return {status:"aging",basis:asL+" — running behind cadence"};
+  return {status:"stale",basis:asL+" — well past cadence"};}
 function isArtifact(id){return byKey["artifact:"+id]!==undefined;}
-function nodeHealth(n){
-  if(n.kind==="artifact")return artHealth(n.id).status;
-  if(n.kind==="surface")return surfHealth(n.d);
-  return "none";
-}
+function surfHealth(su){let worst="fresh";(su.reads||[]).forEach(r=>{if(FILES[r]!==undefined||isArtifact(r)){const h=artHealth(r).status;if(RANK[h]>RANK[worst])worst=h;}});return worst;}
+function nodeHealth(n){if(n.kind==="artifact")return artHealth(n.id).status;if(n.kind==="surface")return surfHealth(n.d);return "none";}
 function healthColor(s){return s==="fresh"?"#00a91c":s==="aging"?"#ffbe2e":s==="stale"?"#e41d3d":s==="unknown"?"#aeb4bb":null;}
 
 function build(man){
-  MAN=man; FILES=(man.files||{}); // note: manifest is merged in separately
+  MAN=man;FILES=(man.files||{});
   nodes=[];byKey={};dataById={};provById={};edges=[];outAdj={};inAdj={};
-  KINDS.forEach((kd,col)=>{
-    (man[kd.arr]||[]).forEach(d=>{
-      const key=kd.k+":"+d.id;
-      const n={key,kind:kd.k,col,id:d.id,d,label:kd.k==="transform"||kd.k==="artifact"?basename(d.name||d.id):(d.name||d.id)};
-      nodes.push(n);byKey[key]=n;
-      if(kd.k==="source"||kd.k==="artifact")dataById[d.id]=key;
-      if(kd.k==="provider")provById[d.id]=key;
-    });
-  });
+  KINDS.forEach((kd,col)=>{(man[kd.arr]||[]).forEach(d=>{
+    const key=kd.k+":"+d.id;
+    const n={key,kind:kd.k,col,id:d.id,d,label:(kd.k==="transform"||kd.k==="artifact")?basename(d.name||d.id):(d.name||d.id),x:0,y:0};
+    nodes.push(n);byKey[key]=n;
+    if(kd.k==="source"||kd.k==="artifact")dataById[d.id]=key;
+    if(kd.k==="provider")provById[d.id]=key;
+  });});
   const add=(f,t)=>{if(f&&t&&byKey[f]&&byKey[t]){edges.push({from:f,to:t});(outAdj[f]=outAdj[f]||[]).push(t);(inAdj[t]=inAdj[t]||[]).push(f);}};
   (man.sources||[]).forEach(s=>add(provById[s.providerId],"source:"+s.id));
   (man.transforms||[]).forEach(t=>{(t.reads||[]).forEach(r=>add(dataById[r],"transform:"+t.id));(t.writes||[]).forEach(w=>add("transform:"+t.id,"artifact:"+w));});
   (man.surfaces||[]).forEach(su=>(su.reads||[]).forEach(r=>add(dataById[r],"surface:"+su.id)));
-  // layout: column by kind, ordered within column
-  const perCol={};
-  nodes.forEach(n=>{(perCol[n.col]=perCol[n.col]||[]).push(n);});
-  let maxLen=0;
-  Object.values(perCol).forEach(arr=>{arr.sort((a,b)=>a.label.localeCompare(b.label));arr.forEach((n,i)=>{n.x=LEFT+n.col*COLW;n.y=TOP+i*VGAP;});maxLen=Math.max(maxLen,arr.length);});
-  render(maxLen);
+  buildFilters();buildTrace();
 }
 
-function render(maxLen){
-  const W=LEFT*2+4*COLW+NODEW, H=TOP+maxLen*VGAP+30;
+function cone(start,adj){const seen=new Set(),st=[start];while(st.length){const k=st.pop();(adj[k]||[]).forEach(nx=>{if(!seen.has(nx)){seen.add(nx);st.push(nx);}});}return seen;}
+function passGroup(n){return n.kind==="provider"||activeGroups.has(groupOf(n));}
+
+function computeVisible(){
+  const vis=new Set();
+  let base;
+  if(isolateKey&&byKey[isolateKey]){const u=cone(isolateKey,inAdj),d=cone(isolateKey,outAdj);base=new Set([isolateKey,...u,...d]);}
+  nodes.forEach(n=>{if(passGroup(n)&&(!base||base.has(n.key)))vis.add(n.key);});
+  return vis;
+}
+
+// Barycenter ordering to reduce edge crossings, over the currently-visible subgraph.
+function relayout(vis){
+  const cols={};for(const n of nodes)if(vis.has(n.key))(cols[n.col]=cols[n.col]||[]).push(n);
+  const colKeys=Object.keys(cols).map(Number).sort((a,b)=>a-b);
+  for(const c of colKeys)cols[c].sort((a,b)=>(a.y||0)-(b.y||0)||a.label.localeCompare(b.label));
+  const order=new Map();const reindex=()=>{for(const c of colKeys)cols[c].forEach((n,i)=>order.set(n.key,i));};reindex();
+  const visEdges=edges.filter(e=>vis.has(e.from)&&vis.has(e.to));
+  const nbr=(key,adjCol)=>{const r=[];for(const e of visEdges){if(e.from===key&&byKey[e.to].col===adjCol)r.push(order.get(e.to));if(e.to===key&&byKey[e.from].col===adjCol)r.push(order.get(e.from));}return r;};
+  for(let pass=0;pass<6;pass++){
+    const dir=pass%2===0?1:-1;const seq=dir>0?colKeys:[...colKeys].reverse();
+    for(const c of seq){const adj=c-dir;const arr=cols[c];const bary=new Map();
+      arr.forEach(n=>{const ns=nbr(n.key,adj);bary.set(n.key,ns.length?ns.reduce((x,y)=>x+y,0)/ns.length:order.get(n.key));});
+      arr.sort((a,b)=>bary.get(a.key)-bary.get(b.key));reindex();}
+  }
+  let maxLen=0;for(const c of colKeys){cols[c].forEach((n,i)=>{n.x=LEFT+c*COLW;n.y=TOP+i*VGAP;});maxLen=Math.max(maxLen,cols[c].length);}
+  return {maxLen,vis,visEdges};
+}
+
+function render(){
+  sizeConsts();
+  const vis=computeVisible();
+  const {maxLen}=relayout(vis);
+  const W=LEFT*2+4*COLW+NODEW,H=Math.max(TOP+maxLen*VGAP+30,200);
   const svg=document.getElementById("svg");
   svg.setAttribute("viewBox",`0 0 ${W} ${H}`);svg.setAttribute("width",W);svg.setAttribute("height",H);
   let s="";
-  // column headers
   KINDS.forEach((kd,c)=>{s+=`<text class="colhead" x="${LEFT+c*COLW}" y="34">${kd.label}</text>`;});
-  // edges
-  edges.forEach((e,i)=>{
-    const a=byKey[e.from],b=byKey[e.to];
-    const x1=a.x+NODEW,y1=a.y+NODEH/2,x2=b.x,y2=b.y+NODEH/2;
-    const dx=Math.max(40,Math.abs(x2-x1)*0.4);
-    s+=`<path class="edge" id="e${i}" d="M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}"/>`;
-  });
-  // nodes
-  nodes.forEach(n=>{
-    const hc=healthColor(nodeHealth(n));
-    const stripe=hc||KCOLOR[n.kind];
+  edges.forEach((e,i)=>{if(!vis.has(e.from)||!vis.has(e.to))return;const a=byKey[e.from],b=byKey[e.to];
+    const x1=a.x+NODEW,y1=a.y+NODEH/2,x2=b.x,y2=b.y+NODEH/2,dx=Math.max(40,Math.abs(x2-x1)*0.4);
+    s+=`<path class="edge" id="e${i}" d="M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}"/>`;});
+  nodes.forEach(n=>{if(!vis.has(n.key))return;const hc=healthColor(nodeHealth(n)),stripe=hc||KCOLOR[n.kind];
     const lab=n.label.length>26?n.label.slice(0,25)+"…":n.label;
     s+=`<g class="node" id="${cssid(n.key)}" data-key="${esc(n.key)}" transform="translate(${n.x},${n.y})">`
-      +`<rect width="${NODEW}" height="${NODEH}" fill="#fff" stroke="${KCOLOR[n.kind]}" stroke-width="1.4"/>`
+      +`<rect class="box" width="${NODEW}" height="${NODEH}" fill="#fff" stroke="${KCOLOR[n.kind]}" stroke-width="1.4"/>`
       +`<rect width="5" height="${NODEH}" fill="${stripe}"/>`
-      +`<text class="nm" x="12" y="${NODEH/2+4}">${esc(lab)}</text></g>`;
-  });
+      +`<text class="nm" x="12" y="${NODEH/2+4}">${esc(lab)}</text></g>`;});
   svg.innerHTML=s;
-  nodes.forEach(n=>{document.getElementById(cssid(n.key)).addEventListener("click",ev=>{ev.stopPropagation();focusNode(n.key);});});
-  document.getElementById("counts").textContent=
-    `${(MAN.providers||[]).length} providers · ${(MAN.sources||[]).length} sources · ${(MAN.transforms||[]).length} transforms · ${(MAN.artifacts||[]).length} artifacts · ${(MAN.surfaces||[]).length} surfaces`;
+  nodes.forEach(n=>{if(!vis.has(n.key))return;const g=document.getElementById(cssid(n.key));g&&g.addEventListener("click",ev=>{ev.stopPropagation();selected=n.key;applyFocus(n.key,vis);showDetailKey(n.key);});});
+  document.getElementById("counts").textContent=`${vis.size} of ${nodes.length} nodes`+(isolateKey?" · isolated":"");
+  if(selected&&vis.has(selected))applyFocus(selected,vis);
 }
-function cssid(key){return "n_"+key.replace(/[^a-zA-Z0-9]/g,"_");}
 
-function cone(start,adj){const seen=new Set();const st=[start];while(st.length){const k=st.pop();(adj[k]||[]).forEach(nx=>{if(!seen.has(nx)){seen.add(nx);st.push(nx);}});}return seen;}
-
-function focusNode(key){
-  selected=key;
-  const up=cone(key,inAdj),down=cone(key,outAdj);
-  const active=new Set([key,...up,...down]);
-  const selStatus=nodeHealth(byKey[key]);
-  nodes.forEach(n=>{const g=document.getElementById(cssid(n.key));g.classList.toggle("dim",!active.has(n.key));});
-  edges.forEach((e,i)=>{const el=document.getElementById("e"+i);const hot=active.has(e.from)&&active.has(e.to);
-    el.classList.toggle("dim",!hot);el.classList.toggle("hot",hot);
-    el.classList.toggle("stale",hot && selStatus==="stale" && down.has(e.to));});
-  showDetail(byKey[key],{up,down});
-  history.replaceState(null,"","#"+encodeURIComponent(key));
+function applyFocus(key,vis){
+  vis=vis||computeVisible();
+  const up=cone(key,inAdj),down=cone(key,outAdj),active=new Set([key,...up,...down]),sel=nodeHealth(byKey[key]);
+  nodes.forEach(n=>{if(!vis.has(n.key))return;const g=document.getElementById(cssid(n.key));if(!g)return;
+    g.classList.toggle("dim",!active.has(n.key));g.classList.toggle("sel",n.key===key);});
+  edges.forEach((e,i)=>{if(!vis.has(e.from)||!vis.has(e.to))return;const el=document.getElementById("e"+i);if(!el)return;
+    const hot=active.has(e.from)&&active.has(e.to);el.classList.toggle("dim",!hot);el.classList.toggle("hot",hot);
+    el.classList.toggle("stale",hot&&sel==="stale"&&down.has(e.to));});
 }
-function resetFocus(){selected=null;nodes.forEach(n=>document.getElementById(cssid(n.key)).classList.remove("dim"));
-  edges.forEach((e,i)=>{const el=document.getElementById("e"+i);el.classList.remove("dim","hot","stale");});
-  overview();history.replaceState(null,"","#");}
+function clearFocus(){nodes.forEach(n=>{const g=document.getElementById(cssid(n.key));g&&g.classList.remove("dim","sel");});
+  edges.forEach((e,i)=>{const el=document.getElementById("e"+i);el&&el.classList.remove("dim","hot","stale");});}
 
-function rowsFor(n,cones){
-  const d=n.d;const R=[];
+function chip(key,txt){return byKey[key]?`<span class="chip" data-key="${esc(key)}">${esc(txt)}</span>`:`<span class="chip" style="opacity:.5;cursor:default">${esc(txt)} ?</span>`;}
+function rowsFor(n){
+  const d=n.d,R=[];
   const link=(p,t)=>`<a href="${esc(p)}" ${/^https?:/.test(p)?'target="_blank" rel="noopener"':""}>${esc(t||p)}</a>`;
-  const chip=(key,txt)=>byKey[key]?`<span class="chip" data-key="${esc(key)}">${esc(txt)}</span>`:`<span class="chip" style="opacity:.5;cursor:default">${esc(txt)} ?</span>`;
-  if(n.kind==="provider"){
-    if((d.links||[]).length)R.push(["Links",d.links.map(l=>link(l)).join("<br>")]);
-    const kids=(MAN.sources||[]).filter(s=>s.providerId===d.id);
-    R.push(["Datasets",`<div class="chips">${kids.map(s=>chip("source:"+s.id,s.name)).join("")}</div>`]);
-  }
-  if(n.kind==="source"){
-    if(d.providerId)R.push(["Provider",chipsHTML([["provider:"+d.providerId,(byKey["provider:"+d.providerId]||{}).label||d.providerId]])]);
+  if(n.kind==="provider"){if((d.links||[]).length)R.push(["Links",d.links.map(l=>link(l)).join("<br>")]);
+    const kids=(MAN.sources||[]).filter(s=>s.providerId===d.id);R.push(["Datasets",`<div class="chips">${kids.map(s=>chip("source:"+s.id,s.name)).join("")}</div>`]);}
+  if(n.kind==="source"){if(d.providerId)R.push(["Provider",`<div class="chips">${chip("provider:"+d.providerId,(byKey["provider:"+d.providerId]||{}).label||d.providerId)}</div>`]);
     if(d.binding)R.push(["Binding",`<b>${esc(d.binding)}</b> ${d.binding==="live"?"(fetched in-browser)":d.binding==="hybrid"?"(snapshot + live)":"(committed snapshot)"}`]);
-    if(d.cadence)R.push(["Cadence",esc(d.cadence)]);
-    if(d.endpoint)R.push(["Endpoint",link(d.endpoint)]);
+    if(d.cadence)R.push(["Cadence",esc(d.cadence)]);if(d.endpoint)R.push(["Endpoint",link(d.endpoint)]);
     if((d.columnsUsed||[]).length)R.push(["Columns used",`<div class="chips">${d.columnsUsed.map(c=>`<span class="chip" style="cursor:default">${esc(c)}</span>`).join("")}</div>`]);
     if((d.columnsUnused||[]).length)R.push(["Not used",`<details><summary>${d.columnsUnused.length} available, unused</summary><div class="cols">${d.columnsUnused.map(esc).join("<br>")}</div></details>`]);
-    if(d.dictionary)R.push(["Dictionary",link(d.dictionary,basename(d.dictionary))]);
-  }
-  if(n.kind==="transform"){
-    R.push(["Runtime",`<b>${esc(d.runtime||"offline")}</b> ${d.runtime==="browser"?"(runs at page load)":"(offline / CI)"}`]);
-    if(d.schedule)R.push(["Schedule",esc(basename(d.schedule))]);
-    if(d.method)R.push(["Method",esc(d.method)]);
+    if(d.dictionary)R.push(["Dictionary",link(d.dictionary,basename(d.dictionary))]);}
+  if(n.kind==="transform"){R.push(["Runtime",`<b>${esc(d.runtime||"offline")}</b> ${d.runtime==="browser"?"(runs at page load)":"(offline / CI)"}`]);
+    if(d.schedule)R.push(["Schedule",esc(basename(d.schedule))]);if(d.method)R.push(["Method",esc(d.method)]);
     if((d.reads||[]).length)R.push(["Reads",`<div class="chips">${d.reads.map(r=>chip(dataById[r]||("?:"+r),r)).join("")}</div>`]);
     if((d.writes||[]).length)R.push(["Writes",`<div class="chips">${d.writes.map(w=>chip("artifact:"+w,w)).join("")}</div>`]);
-    if(/\//.test(d.name||""))R.push(["Source",link(d.name,d.name)]);
-  }
-  if(n.kind==="artifact"){
-    const h=artHealth(n.id);
-    R.push(["Freshness",`<span class="statusline ${h.status}">${h.status.toUpperCase()}</span><br><span class="muted">${esc(h.basis)}</span>`]);
+    if(/\//.test(d.name||""))R.push(["Source",link(d.name,d.name)]);}
+  if(n.kind==="artifact"){const h=artHealth(n.id);R.push(["Freshness",`<span class="statusline ${h.status}">${h.status.toUpperCase()}</span><br><span class="muted">${esc(h.basis)}</span>`]);
     const f=FILES[n.id]||{};if(f.bytes)R.push(["Size",(f.bytes/1024).toFixed(f.bytes>1048576?0:1)+" KB"]);
     if((d.producedBy||[]).length)R.push(["Built by",`<div class="chips">${d.producedBy.map(t=>chip("transform:"+t,t)).join("")}</div>`]);
-    const cons=(MAN.surfaces||[]).filter(su=>(su.reads||[]).includes(n.id));
-    if(cons.length)R.push(["Read by",`<div class="chips">${cons.map(su=>chip("surface:"+su.id,su.name)).join("")}</div>`]);
-    R.push(["File",link("data/"+n.id,"data/"+n.id)]);
-  }
-  if(n.kind==="surface"){
-    const h=surfHealth(d);
-    R.push(["Health",`<span class="statusline ${h}">${h.toUpperCase()}</span> <span class="muted">(worst of its inputs)</span>`]);
+    const cons=(MAN.surfaces||[]).filter(su=>(su.reads||[]).includes(n.id));if(cons.length)R.push(["Read by",`<div class="chips">${cons.map(su=>chip("surface:"+su.id,su.name)).join("")}</div>`]);
+    R.push(["File",link("data/"+n.id,"data/"+n.id)]);}
+  if(n.kind==="surface"){const h=surfHealth(d);R.push(["Health",`<span class="statusline ${h}">${h.toUpperCase()}</span> <span class="muted">(worst of inputs)</span>`]);
     if(d.location)R.push(["Location",link(d.location,d.location)]);
-    if((d.reads||[]).length)R.push(["Reads",`<div class="chips">${d.reads.map(r=>chip(dataById[r]||("?:"+r),r)).join("")}</div>`]);
-  }
-  if(cones){R.push(["Upstream",`${cones.up.size} node(s)`]);R.push(["Downstream (impact)",`${cones.down.size} node(s)`]);}
+    if((d.reads||[]).length)R.push(["Reads",`<div class="chips">${d.reads.map(r=>chip(dataById[r]||("?:"+r),r)).join("")}</div>`]);}
+  R.push(["Program",`<span class="chip" style="cursor:default;border-color:${GCOLOR[groupOf(n)]}">${esc(groupOf(n))}</span>`]);
+  R.push(["Upstream",`${cone(n.key,inAdj).size} · Downstream ${cone(n.key,outAdj).size}`]);
   return R;
 }
-function chipsHTML(pairs){return `<div class="chips">${pairs.map(([k,t])=>`<span class="chip" data-key="${esc(k)}">${esc(t)}</span>`).join("")}</div>`;}
-
-function showDetail(n,cones){
-  const p=document.getElementById("panel");
+function showDetailKey(key){const n=byKey[key];if(!n)return;const p=document.getElementById("panel");
   const kindLabel=(KINDS.find(x=>x.k===n.kind)||{}).label||n.kind;
-  const rows=rowsFor(n,cones).map(([k,v])=>`<div class="row"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`).join("");
+  const rows=rowsFor(n).map(([k,v])=>`<div class="row"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`).join("");
   p.innerHTML=`<span class="kindtag" style="background:${KCOLOR[n.kind]}">${esc(kindLabel)}</span>`
-    +`<h2>${esc(n.kind==="transform"||n.kind==="artifact"?basename(n.d.name||n.id):(n.d.name||n.id))}</h2>`
-    +(n.d.description?`<div class="desc">${esc(n.d.description)}</div>`:"")
-    +rows;
-  p.querySelectorAll(".chip[data-key]").forEach(c=>c.addEventListener("click",()=>focusNode(c.getAttribute("data-key"))));
-  p.scrollTop=0;
-}
-function overview(){
-  const p=document.getElementById("panel");
-  const arts=(MAN.artifacts||[]);
-  const tally={fresh:0,aging:0,stale:0,unknown:0};
-  arts.forEach(a=>{tally[artHealth(a.id).status]=(tally[artHealth(a.id).status]||0)+1;});
-  p.innerHTML=`<h2>Provenance Atlas</h2>`
-    +`<div class="desc">Click any node to trace its <b>upstream</b> (root cause) and <b>downstream</b> (impact) cone. Columns flow left→right: source → transform → built file → UI surface.</div>`
-    +`<div class="row"><span class="k">Artifacts</span><span class="v">`
-      +`<span class="statusline fresh">${tally.fresh} fresh</span> · `
-      +`<span class="statusline aging">${tally.aging} aging</span> · `
-      +`<span class="statusline stale">${tally.stale} stale</span> · `
-      +`<span class="statusline unknown">${tally.unknown} no-date</span></span></div>`
-    +`<div class="row"><span class="k">How health works</span><span class="v muted">Freshness is each built file's <code>dataAsOf</code> vs its source's cadence (from <code>data/manifest.json</code>), propagated to the surfaces that read it. Thresholds are a v1 heuristic.</span></div>`
-    +`<div class="row"><span class="k">Verified</span><span class="v muted">Structure is CI-checked by the Guardian (<code>verify_lineage.py</code>) on every push.</span></div>`;
-}
+    +`<h2>${esc((n.kind==="transform"||n.kind==="artifact")?basename(n.d.name||n.id):(n.d.name||n.id))}</h2>`
+    +(n.d.description?`<div class="desc">${esc(n.d.description)}</div>`:"")+rows;
+  p.querySelectorAll(".chip[data-key]").forEach(c=>c.addEventListener("click",()=>{const k=c.getAttribute("data-key");selected=k;render();showDetailKey(k);document.getElementById(cssid(k))?.scrollIntoView({block:"center",inline:"center"});}));
+  p.scrollTop=0;}
+function overview(){const p=document.getElementById("panel");const arts=(MAN.artifacts||[]);const t={fresh:0,aging:0,stale:0,unknown:0};
+  arts.forEach(a=>{t[artHealth(a.id).status]++;});
+  p.innerHTML=`<h2>Provenance Atlas</h2><div class="desc">Click any node to trace its <b>upstream</b> (root cause) and <b>downstream</b> (impact) cone. Use <b>Programs</b> to hide domains, <b>Trace a UI surface</b> or <b>Isolate</b> to focus one dependency chain.</div>`
+    +`<div class="row"><span class="k">Artifacts</span><span class="v"><span class="statusline fresh">${t.fresh} fresh</span> · <span class="statusline aging">${t.aging} aging</span> · <span class="statusline stale">${t.stale} stale</span> · <span class="statusline unknown">${t.unknown} no-date</span></span></div>`
+    +`<div class="row"><span class="k">Health</span><span class="v muted">Each file's <code>dataAsOf</code> vs its source cadence (<code>manifest.json</code>), propagated to the surfaces that read it. Thresholds are a v1 heuristic.</span></div>`
+    +`<div class="row"><span class="k">Verified</span><span class="v muted">Structure is CI-checked by the Guardian (<code>verify_lineage.py</code>) on every push.</span></div>`;}
 
-function doSearch(q){
-  q=q.trim().toLowerCase();if(!q){resetFocus();return;}
-  const hit=nodes.find(n=>(n.label||"").toLowerCase().includes(q)||(n.id||"").toLowerCase().includes(q));
-  if(hit)focusNode(hit.key);
-}
+function buildFilters(){const f=document.getElementById("filters");
+  GROUPS.forEach(([g,c])=>{const el=document.createElement("span");el.className="fchip";el.dataset.g=g;
+    el.innerHTML=`<span class="gd" style="background:${c}"></span>${g}`;
+    el.addEventListener("click",()=>{if(activeGroups.has(g))activeGroups.delete(g);else activeGroups.add(g);el.classList.toggle("off",!activeGroups.has(g));render();});
+    f.appendChild(el);});}
+function buildTrace(){const sel=document.getElementById("trace");
+  (MAN.surfaces||[]).slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(su=>{const o=document.createElement("option");o.value="surface:"+su.id;o.textContent=su.name;sel.appendChild(o);});}
 
-document.getElementById("reset").addEventListener("click",resetFocus);
-document.getElementById("graph").addEventListener("click",e=>{if(e.target.id==="svg"||e.target.id==="graph")resetFocus();});
-document.getElementById("search").addEventListener("input",e=>doSearch(e.target.value));
+document.getElementById("reset").addEventListener("click",()=>{selected=null;isolateKey=null;activeGroups=new Set(GROUPS.map(g=>g[0]));document.querySelectorAll(".fchip").forEach(c=>c.classList.remove("off"));document.getElementById("trace").value="";document.getElementById("isolate").classList.remove("on");render();clearFocus();overview();history.replaceState(null,"","#");});
+document.getElementById("isolate").addEventListener("click",function(){if(!selected){return;}isolateKey=isolateKey?null:selected;this.classList.toggle("on",!!isolateKey);render();if(selected)showDetailKey(selected);});
+document.getElementById("trace").addEventListener("change",function(){const v=this.value;if(!v){isolateKey=null;document.getElementById("isolate").classList.remove("on");render();overview();return;}selected=v;isolateKey=v;document.getElementById("isolate").classList.add("on");render();showDetailKey(v);});
+document.getElementById("graph").addEventListener("click",e=>{if(e.target.id==="svg"||e.target.id==="graph"){selected=null;clearFocus();overview();}});
+document.getElementById("search").addEventListener("input",e=>{const q=e.target.value.trim().toLowerCase();if(!q)return;const hit=nodes.find(n=>(n.label||"").toLowerCase().includes(q)||(n.id||"").toLowerCase().includes(q));if(hit){selected=hit.key;render();showDetailKey(hit.key);document.getElementById(cssid(hit.key))?.scrollIntoView({block:"center",inline:"center"});}});
+let rT;window.addEventListener("resize",()=>{clearTimeout(rT);rT=setTimeout(render,150);});
 
 Promise.all([
   fetch("data/lineage.json").then(r=>r.ok?r.json():Promise.reject(0)),
   fetch("data/manifest.json").then(r=>r.ok?r.json():{files:{}}).catch(()=>({files:{}}))
 ]).then(([lin,man])=>{
   build(Object.assign({},lin,{files:(man&&man.files)||{}}));
-  document.getElementById("verstamp").textContent = lin.schema?("· schema "+lin.schema):"";
+  document.getElementById("verstamp").textContent=lin.schema?("· schema "+lin.schema):"";
+  render();
   const h=decodeURIComponent((location.hash||"").slice(1));
-  if(h&&byKey[h])focusNode(h);else overview();
-}).catch(()=>{
-  document.getElementById("panel").innerHTML="<h2>Couldn’t load lineage</h2><div class='desc'>This page must be served over http(s) (same-origin <code>data/lineage.json</code>), not opened as a file. Try <code>python3 -m http.server</code>.</div>";
-});
+  if(h&&byKey[h]){selected=h;render();showDetailKey(h);}else overview();
+}).catch(()=>{document.getElementById("panel").innerHTML="<h2>Couldn’t load lineage</h2><div class='desc'>This page must be served over http(s) (same-origin <code>data/lineage.json</code>), not opened as a file. Try <code>python3 -m http.server</code>.</div>";});
 </script>
 </body>
 </html>
