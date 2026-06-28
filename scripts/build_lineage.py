@@ -82,6 +82,29 @@ def list_artifacts():
     return out
 
 
+_script_cache = {}
+def script_text(rel_name):
+    """Read a transform's script once (cached). Empty string for browser fns / missing."""
+    if rel_name in _script_cache:
+        return _script_cache[rel_name]
+    p = os.path.join(ROOT, rel_name)
+    txt = ""
+    if "/" in rel_name and os.path.exists(p):
+        with open(p, encoding="utf-8", errors="ignore") as f:
+            txt = f.read()
+    _script_cache[rel_name] = txt
+    return txt
+
+
+def column_in(col, txt):
+    """True if a column is referenced in a GROUNDED way (quoted string or attribute/
+    bracket access) — e.g. "disasterNumber", 'ratedFloodZone', .state, [col] — rather
+    than as incidental prose. Reduces coincidental matches; still a heuristic."""
+    if not txt:
+        return False
+    return re.search(r'''["'.\[]''' + re.escape(col) + r"\b", txt, re.IGNORECASE) is not None
+
+
 def dict_columns(rel_path):
     """Pull the available column/field names from an OpenFEMA dictionary file."""
     d = load_json(os.path.join(ROOT, rel_path))
@@ -160,6 +183,18 @@ def build():
             if avail:
                 used_set = {c.lower() for c in used}
                 unused = [c for c in avail if c.lower() not in used_set]
+        # --- column-level usage (Phase 3): for each used column, which CONSUMING
+        # transform scripts actually reference it? Grounded in the real code (column_in),
+        # so it's deterministic + regenerable. Columns claimed used but found in NO
+        # consuming script are flagged (columnsDeclaredUnfound) — a slop/staleness signal.
+        consumers = [t for t in transforms if s["id"] in t["reads"] and "/" in t["name"]]
+        col_usage, col_unfound = {}, []
+        for col in used:
+            hits = [t["id"] for t in consumers if column_in(col, script_text(t["name"]))]
+            if hits:
+                col_usage[col] = hits
+            elif consumers:           # only flag when there IS a script that could use it
+                col_unfound.append(col)
         sources.append({
             "id": s["id"],
             "providerId": s.get("providerId"),
@@ -170,6 +205,8 @@ def build():
             "dictionary": s.get("dictionary"),
             "columnsUsed": used,
             "columnsUnused": unused,
+            "columnUsage": col_usage,                  # column -> [transform ids that reference it]
+            "columnsDeclaredUnfound": col_unfound,     # used but not found in any consuming script
             "description": s.get("description"),
             "links": s.get("links", []),
         })

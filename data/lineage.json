@@ -67,6 +67,47 @@
         "lastRefresh",
         "paLoadDate"
       ],
+      "columnUsage": {
+        "disasterNumber": [
+          "add_history",
+          "build_county_applicants",
+          "build_county_ihp",
+          "build_covid"
+        ],
+        "totalObligatedAmountPa": [
+          "add_history",
+          "build_covid"
+        ],
+        "totalObligatedAmountCatAb": [
+          "add_history",
+          "build_covid"
+        ],
+        "totalObligatedAmountCatC2g": [
+          "add_history",
+          "build_covid"
+        ],
+        "totalObligatedAmountHmgp": [
+          "add_history",
+          "build_covid"
+        ],
+        "totalAmountIhpApproved": [
+          "add_history",
+          "build_covid"
+        ],
+        "totalAmountHaApproved": [
+          "add_history",
+          "build_covid"
+        ],
+        "totalAmountOnaApproved": [
+          "add_history",
+          "build_covid"
+        ],
+        "totalNumberIaApproved": [
+          "add_history",
+          "build_covid"
+        ]
+      },
+      "columnsDeclaredUnfound": [],
       "description": "Per-disaster rollup of PA obligated and IHP approved dollars (with HA/ONA and Cat-AB/C-G splits). The authoritative source of the ledger cost figures.",
       "links": [
         "https://www.fema.gov/openfema-data-page/fema-web-disaster-summaries-v1"
@@ -112,6 +153,78 @@
         "placeCode",
         "tribalRequest"
       ],
+      "columnUsage": {
+        "disasterNumber": [
+          "enrich",
+          "add_history",
+          "build_declared",
+          "patch_ia_flag",
+          "build_county_map",
+          "build_national",
+          "build_request_dates"
+        ],
+        "declarationDate": [
+          "build_declared",
+          "build_national",
+          "build_request_dates"
+        ],
+        "declarationTitle": [
+          "add_history",
+          "build_national",
+          "build_request_dates"
+        ],
+        "incidentType": [
+          "enrich",
+          "add_history",
+          "build_county_map",
+          "build_national",
+          "build_request_dates"
+        ],
+        "incidentBeginDate": [
+          "add_history",
+          "build_national",
+          "build_request_dates"
+        ],
+        "incidentEndDate": [
+          "add_history",
+          "build_national"
+        ],
+        "fyDeclared": [
+          "add_history"
+        ],
+        "state": [
+          "enrich",
+          "add_history",
+          "build_declared",
+          "build_county_map",
+          "build_national",
+          "build_request_dates"
+        ],
+        "region": [
+          "enrich",
+          "build_request_dates"
+        ],
+        "fipsCountyCode": [
+          "add_history"
+        ],
+        "paProgramDeclared": [
+          "add_history",
+          "patch_ia_flag"
+        ],
+        "ihProgramDeclared": [
+          "add_history",
+          "patch_ia_flag"
+        ],
+        "iaProgramDeclared": [
+          "add_history",
+          "patch_ia_flag"
+        ],
+        "hmProgramDeclared": [
+          "add_history",
+          "patch_ia_flag"
+        ]
+      },
+      "columnsDeclaredUnfound": [],
       "description": "The declaration ledger: one row per declared area, carrying dates, region/state, county FIPS, and the per-program declaration flags. Feeds disaster identity, the declaration date, and county designations.",
       "links": [
         "https://www.fema.gov/openfema-data-page/disaster-declarations-summaries-v2"
@@ -160,6 +273,39 @@
         "stateNumberCode",
         "totalObligated"
       ],
+      "columnUsage": {
+        "disasterNumber": [
+          "add_history",
+          "build_county_map",
+          "build_county_byyear",
+          "build_recent",
+          "build_newsreel",
+          "build_covid"
+        ],
+        "county": [
+          "build_recent",
+          "build_newsreel"
+        ],
+        "countyCode": [
+          "build_county_map",
+          "build_county_byyear",
+          "build_recent"
+        ],
+        "federalShareObligated": [
+          "build_county_map",
+          "build_county_byyear",
+          "build_recent",
+          "build_newsreel"
+        ],
+        "lastObligationDate": [
+          "build_county_byyear",
+          "build_recent",
+          "build_newsreel"
+        ]
+      },
+      "columnsDeclaredUnfound": [
+        "damageCategory"
+      ],
       "description": "Project-level PA obligations (one row per funded project), with county, obligated federal share, damage category, and obligation dates. Powers per-county PA dollars, project counts, and the obligation-year buckets.",
       "links": [
         "https://www.fema.gov/openfema-data-page/public-assistance-funded-projects-details-v1"
@@ -175,6 +321,8 @@
       "dictionary": null,
       "columnsUsed": [],
       "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
       "description": "Pre-aggregated PA summaries by applicant x county (no per-project rows). Used for the browsable per-county PA applicant lists. No OpenFEMA field dictionary is committed for this dataset, so columns are not enumerated here.",
       "links": [
         "https://www.fema.gov/openfema-data-page/public-assistance-funded-project-summaries-v1"
@@ -292,6 +440,33 @@
         "verifiedOwnership",
         "waterLevel"
       ],
+      "columnUsage": {
+        "disasterNumber": [
+          "build_county_ihp",
+          "build_disaster_county_ihp"
+        ],
+        "fips": [
+          "build_county_ihp",
+          "build_disaster_county_ihp"
+        ],
+        "county": [
+          "build_county_ihp",
+          "build_disaster_county_ihp"
+        ],
+        "ihpAmount": [
+          "build_county_ihp",
+          "build_disaster_county_ihp"
+        ],
+        "haAmount": [
+          "build_county_ihp",
+          "build_disaster_county_ihp"
+        ],
+        "onaAmount": [
+          "build_county_ihp",
+          "build_disaster_county_ihp"
+        ]
+      },
+      "columnsDeclaredUnfound": [],
       "description": "Registrant-level IHP records (one row per valid registration), with county FIPS and approved IHP/HA/ONA dollars. Powers per-county and per-disaster-x-county IHP figures and registration counts.",
       "links": [
         "https://www.fema.gov/openfema-data-page/individuals-and-households-program-valid-registrations-v1"
@@ -342,6 +517,63 @@
         "subrecipientAdminCostAmt",
         "subrecipientTribalIndicator"
       ],
+      "columnUsage": {
+        "disasterNumber": [
+          "build_county_hmgp",
+          "build_county_byyear",
+          "build_recent",
+          "build_newsreel"
+        ],
+        "programArea": [
+          "build_county_mitigation",
+          "build_county_byyear",
+          "build_recent",
+          "build_newsreel"
+        ],
+        "county": [
+          "build_county_hmgp",
+          "build_recent",
+          "build_newsreel"
+        ],
+        "countyCode": [
+          "build_county_hmgp",
+          "build_county_mitigation",
+          "build_county_byyear",
+          "build_recent"
+        ],
+        "subrecipient": [
+          "build_county_hmgp",
+          "build_county_mitigation",
+          "build_county_byyear",
+          "build_recent",
+          "build_newsreel"
+        ],
+        "federalShareObligated": [
+          "build_county_hmgp",
+          "build_county_mitigation",
+          "build_county_byyear",
+          "build_recent",
+          "build_newsreel"
+        ],
+        "projectType": [
+          "build_county_hmgp",
+          "build_recent",
+          "build_newsreel"
+        ],
+        "numberOfProperties": [
+          "build_county_hmgp"
+        ],
+        "initialObligationDate": [
+          "build_county_hmgp",
+          "build_county_byyear",
+          "build_recent",
+          "build_newsreel"
+        ],
+        "dateApproved": [
+          "build_county_hmgp"
+        ]
+      },
+      "columnsDeclaredUnfound": [],
       "description": "Hazard-mitigation grant projects across all HMA program areas (HMGP plus the non-disaster FMA/PDM/BRIC/LPDM/RFC/SRL family). Powers per-county HMGP subrecipient lists, non-disaster mitigation dollars, and mitigation obligation-year buckets.",
       "links": [
         "https://www.fema.gov/openfema-data-page/hazard-mitigation-assistance-projects-v4"
@@ -368,6 +600,15 @@
         "projectType",
         "reportingPeriod"
       ],
+      "columnUsage": {
+        "state": [
+          "build_state_prep"
+        ],
+        "fundingAmount": [
+          "build_state_prep"
+        ]
+      },
+      "columnsDeclaredUnfound": [],
       "description": "Emergency Management Performance Grant (EMPG) awards by state and year. Feeds the per-state non-disaster EMPG preparedness layer.",
       "links": [
         "https://www.fema.gov/openfema-data-page/emergency-management-performance-grants-v1"
@@ -394,6 +635,24 @@
         "programAbbreviation",
         "region"
       ],
+      "columnUsage": {
+        "vendorState": [
+          "build_state_prep"
+        ],
+        "awardAmount": [
+          "build_state_prep"
+        ],
+        "programName": [
+          "build_state_prep"
+        ],
+        "vendorName": [
+          "build_state_prep"
+        ],
+        "fiscalYear": [
+          "build_state_prep"
+        ]
+      },
+      "columnsDeclaredUnfound": [],
       "description": "Despite its name, a grab-bag of all DHS non-disaster preparedness grants (firefighter, Homeland Security, Transit/Port, Nonprofit Security, plus EMPG). Split by program family into the per-state preparedness lenses; EMPG is excluded here to avoid double-count.",
       "links": [
         "https://www.fema.gov/openfema-data-page/assistance-firefighters-grants-v1"
@@ -409,6 +668,8 @@
       "dictionary": null,
       "columnsUsed": [],
       "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
       "description": "Public redacted NFIP flood-insurance claims (one row per claim). Rolled up to a Region 5 county x year claims/paid summary with SFHA in/out share. No OpenFEMA field dictionary is committed for this dataset, so columns are not enumerated here.",
       "links": [
         "https://www.fema.gov/openfema-data-page/fima-nfip-redacted-claims-v2"
@@ -424,6 +685,8 @@
       "dictionary": null,
       "columnsUsed": [],
       "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
       "description": "Declaration turndowns (requests denied), each carrying a request date and a decision date plus the programs requested. Powers the Declaration Denials block. No OpenFEMA field dictionary is committed for this dataset, so columns are not enumerated here.",
       "links": [
         "https://www.fema.gov/openfema-data-page/declaration-denials-v1"
@@ -439,6 +702,8 @@
       "dictionary": null,
       "columnsUsed": [],
       "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
       "description": "NOAA Storm Events bulk CSVs (county-FIPS + incident-window join). Source of measured wind, hail, tornado, and reported-damage hazards and event counts.",
       "links": [
         "https://www.ncdc.noaa.gov/stormevents/"
@@ -454,6 +719,8 @@
       "dictionary": null,
       "columnsUsed": [],
       "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
       "description": "RCC-ACIS (NOAA) daily precipitation, summed over the incident window for storm-total and daily-max rainfall per county.",
       "links": [
         "https://www.rcc-acis.org/"
@@ -469,6 +736,8 @@
       "dictionary": null,
       "columnsUsed": [],
       "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
       "description": "USGS daily-values water service (gage height parameterCd 00065). Offline source of peak river stage; the same service's instantaneous values are also fetched live in the browser for current gage heights on the Watch view.",
       "links": [
         "https://waterservices.usgs.gov/"
@@ -484,6 +753,8 @@
       "dictionary": null,
       "columnsUsed": [],
       "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
       "description": "USGS instantaneous-values service, fetched live in the browser to show current river gage heights on the Disaster Watch view.",
       "links": [
         "https://waterservices.usgs.gov/rest/IV-Service.html"
@@ -499,6 +770,8 @@
       "dictionary": null,
       "columnsUsed": [],
       "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
       "description": "NWS active weather alerts, fetched live in the browser for the Disaster Watch view.",
       "links": [
         "https://api.weather.gov/"
@@ -514,6 +787,8 @@
       "dictionary": null,
       "columnsUsed": [],
       "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
       "description": "NWS National Water Prediction Service AHPS flood categories (action/minor/moderate/major) per gauge. Flaky and rate-limited, so resolved offline into gages.json.",
       "links": [
         "https://api.water.noaa.gov/"
@@ -529,6 +804,8 @@
       "dictionary": null,
       "columnsUsed": [],
       "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
       "description": "The FEMA Daily Operations Briefing PDF (the only non-OpenFEMA source), archived by the Data Liberation Project. Parsed for the 'Declaration Requests in Process' (pending) table — OpenFEMA publishes no feed of pending requests.",
       "links": [
         "https://github.com/data-liberation-project/fema-daily-ops-email-to-rss"

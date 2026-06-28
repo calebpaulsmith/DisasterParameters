@@ -14,16 +14,14 @@ on:
   push:
     paths:
       - "data/**"
-      - "scripts/build_lineage.py"
-      - "scripts/verify_lineage.py"
+      - "scripts/**"
       - "index.html"
       - "docs/openfema-definitions/**"
       - ".github/workflows/verify-lineage.yml"
   pull_request:
     paths:
       - "data/**"
-      - "scripts/build_lineage.py"
-      - "scripts/verify_lineage.py"
+      - "scripts/**"
       - "index.html"
       - "docs/openfema-definitions/**"
       - ".github/workflows/verify-lineage.yml"

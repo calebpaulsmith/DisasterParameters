@@ -73,6 +73,10 @@ a{color:var(--blue);}
 .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px;}
 .chip{font-size:11.5px;background:var(--bg-2);border:1px solid var(--line-2);border-radius:14px;padding:2px 9px;cursor:pointer;color:var(--navy);}
 .chip:hover{background:var(--blue-light);}
+.colchip{cursor:pointer;}
+.colchip.unfound{border-color:var(--orange);color:var(--orange);}
+.colchip.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+#fieldTrace b{color:inherit;}
 .cols{column-count:2;font-size:11.5px;color:var(--ink-2);}
 details summary{cursor:pointer;font-size:12.5px;color:var(--blue);font-weight:600;}
 .footer{max-width:1500px;margin:0 auto;padding:0 20px 36px;font-size:12px;color:var(--ink-3);}
@@ -265,7 +269,10 @@ function rowsFor(n){
   if(n.kind==="source"){if(d.providerId)R.push(["Provider",`<div class="chips">${chip("provider:"+d.providerId,(byKey["provider:"+d.providerId]||{}).label||d.providerId)}</div>`]);
     if(d.binding)R.push(["Binding",`<b>${esc(d.binding)}</b> ${d.binding==="live"?"(fetched in-browser)":d.binding==="hybrid"?"(snapshot + live)":"(committed snapshot)"}`]);
     if(d.cadence)R.push(["Cadence",esc(d.cadence)]);if(d.endpoint)R.push(["Endpoint",link(d.endpoint)]);
-    if((d.columnsUsed||[]).length)R.push(["Columns used",`<div class="chips">${d.columnsUsed.map(c=>`<span class="chip" style="cursor:default">${esc(c)}</span>`).join("")}</div>`]);
+    if((d.columnsUsed||[]).length){const unf=new Set(d.columnsDeclaredUnfound||[]);
+      const chips=d.columnsUsed.map(c=>`<span class="chip colchip ${unf.has(c)?"unfound":""}" data-col="${esc(c)}" data-src="${esc(n.key)}" title="${unf.has(c)?"declared used but not found in any consuming script — click to verify":"click to trace which surfaces use this field"}">${esc(c)}</span>`).join("");
+      R.push(["Columns used",`<div class="chips">${chips}</div><div id="fieldTrace" class="muted" style="margin-top:7px">Click a field to trace it downstream →.</div>`]);}
+    if((d.columnsDeclaredUnfound||[]).length)R.push(["Unverified",`<span class="muted">${d.columnsDeclaredUnfound.length} field(s) declared used but not found in any consuming script (possible slop / stale mapping): <b style="color:var(--orange)">${d.columnsDeclaredUnfound.map(esc).join(", ")}</b></span>`]);
     if((d.columnsUnused||[]).length)R.push(["Not used",`<details><summary>${d.columnsUnused.length} available, unused</summary><div class="cols">${d.columnsUnused.map(esc).join("<br>")}</div></details>`]);
     if(d.dictionary)R.push(["Dictionary",link(d.dictionary,basename(d.dictionary))]);}
   if(n.kind==="transform"){R.push(["Runtime",`<b>${esc(d.runtime||"offline")}</b> ${d.runtime==="browser"?"(runs at page load)":"(offline / CI)"}`]);
@@ -285,14 +292,39 @@ function rowsFor(n){
   R.push(["Upstream",`${cone(n.key,inAdj).size} · Downstream ${cone(n.key,outAdj).size}`]);
   return R;
 }
-function showDetailKey(key){const n=byKey[key];if(!n)return;const p=document.getElementById("panel");
+let activeCol=null;
+function showDetailKey(key){const n=byKey[key];if(!n)return;activeCol=null;const p=document.getElementById("panel");
   const kindLabel=(KINDS.find(x=>x.k===n.kind)||{}).label||n.kind;
   const rows=rowsFor(n).map(([k,v])=>`<div class="row"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`).join("");
   p.innerHTML=`<span class="kindtag" style="background:${KCOLOR[n.kind]}">${esc(kindLabel)}</span>`
     +`<h2>${esc((n.kind==="transform"||n.kind==="artifact")?basename(n.d.name||n.id):(n.d.name||n.id))}</h2>`
     +(n.d.description?`<div class="desc">${esc(n.d.description)}</div>`:"")+rows;
   p.querySelectorAll(".chip[data-key]").forEach(c=>c.addEventListener("click",()=>{const k=c.getAttribute("data-key");selected=k;render();showDetailKey(k);document.getElementById(cssid(k))?.scrollIntoView({block:"center",inline:"center"});}));
+  p.querySelectorAll(".colchip").forEach(c=>c.addEventListener("click",ev=>{ev.stopPropagation();handleColClick(c.getAttribute("data-src"),c.getAttribute("data-col"),c);}));
   p.scrollTop=0;}
+
+// Phase 3: trace a single source column → consuming transforms → the surfaces it reaches.
+function handleColClick(srcKey,col,chipEl){
+  const same=activeCol&&activeCol.src===srcKey&&activeCol.col===col;
+  document.querySelectorAll(".colchip.active").forEach(e=>e.classList.remove("active"));
+  const ft=document.getElementById("fieldTrace");
+  if(same){activeCol=null;applyFocus(srcKey);if(ft)ft.innerHTML="Click a field to trace it downstream →.";return;}
+  activeCol={src:srcKey,col};chipEl.classList.add("active");
+  const s=byKey[srcKey].d,tids=((s.columnUsage||{})[col])||[];
+  const tKeys=tids.map(t=>"transform:"+t).filter(k=>byKey[k]);
+  const active=new Set([srcKey,...tKeys]),surfaces=new Set();
+  tKeys.forEach(k=>cone(k,outAdj).forEach(x=>{active.add(x);if(byKey[x].kind==="surface")surfaces.add(x);}));
+  const vis=computeVisible();
+  nodes.forEach(n=>{if(!vis.has(n.key))return;const g=document.getElementById(cssid(n.key));if(g){g.classList.toggle("dim",!active.has(n.key));g.classList.toggle("sel",n.key===srcKey);}});
+  edges.forEach((e,i)=>{if(!vis.has(e.from)||!vis.has(e.to))return;const el=document.getElementById("e"+i);if(!el)return;const hot=active.has(e.from)&&active.has(e.to);el.classList.toggle("dim",!hot);el.classList.toggle("hot",hot);el.classList.remove("stale");});
+  if(ft){
+    if(!tKeys.length)ft.innerHTML=`<b style="color:var(--orange)">No consuming script references “${esc(col)}”.</b> Declared used but unverified — candidate slop / stale mapping.`;
+    else{ft.innerHTML=`<div><b>${esc(col)}</b> → <b>${tKeys.length}</b> transform(s) → <b>${surfaces.size}</b> surface(s):</div>`
+      +`<div class="chips" style="margin-top:4px">${tKeys.map(k=>chip(k,basename(byKey[k].d.name||byKey[k].id))).join("")}</div>`
+      +(surfaces.size?`<div class="chips" style="margin-top:4px">${[...surfaces].map(k=>chip(k,byKey[k].d.name)).join("")}</div>`:"");
+      ft.querySelectorAll(".chip[data-key]").forEach(c=>c.addEventListener("click",()=>{const k=c.getAttribute("data-key");selected=k;render();showDetailKey(k);}));}
+  }
+}
 function overview(){const p=document.getElementById("panel");const arts=(MAN.artifacts||[]);const t={fresh:0,aging:0,stale:0,unknown:0};
   arts.forEach(a=>{t[artHealth(a.id).status]++;});
   p.innerHTML=`<h2>Provenance Atlas</h2><div class="desc">Click any node to trace its <b>upstream</b> (root cause) and <b>downstream</b> (impact) cone. Use <b>Programs</b> to hide domains, <b>Trace a UI surface</b> or <b>Isolate</b> to focus one dependency chain.</div>`
