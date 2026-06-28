@@ -3244,13 +3244,16 @@ function renderReqDates(){
     +(apprMed!=null&&denMed!=null?card("Approval vs denial",`${Math.abs(denMed-apprMed)} days`,denMed>=apprMed?"denials take longer to decide":"approvals take longer"):"")
     +`</div>`;
   const rows=Object.entries(REQDATES.byDisaster||{}).map(([dn,m])=>({dn,...m})).sort((a,b)=>b.declared.localeCompare(a.declared));
+  const nJpda=rows.filter(m=>m.countyCheck==="ok"&&(m.jpdaPaReqCounties||m.jpdaIaReqCounties)).length;
   const list=rows.map(m=>{
     const burl=m.decisionUrl||m.firstSeenUrl;
     const brief=burl?` · <a href="${burl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="The actual Daily Ops Brief PDF" style="color:var(--navy)">brief ↗</a>`:"";
-    return `<div class="declrow clickable" data-dn="${m.dn}"><span class="dk"><b style="color:var(--navy)">DR-${m.dn}</b> · ${esc(titleCase(m.incident))}${brief}</span><span class="dv">req ${fmtDate(m.requestDate)} → decl ${fmtDate(m.declared)} · <b>${m.reqToDeclLagDays}d</b> ↗</span></div>`;}).join("");
+    const cc=[m.designatedPaCounties?`${m.designatedPaCounties} PA`:"",m.designatedIaCounties?`${m.designatedIaCounties} IA`:""].filter(Boolean).join("/");
+    const ctyNote=cc?` · <span style="color:var(--ink-3)" title="designated counties (OpenFEMA)">${cc} counties</span>`:"";
+    return `<div class="declrow clickable" data-dn="${m.dn}"><span class="dk"><b style="color:var(--navy)">DR-${m.dn}</b> · ${esc(titleCase(m.incident))}${ctyNote}${brief}</span><span class="dv">req ${fmtDate(m.requestDate)} → decl ${fmtDate(m.declared)} · <b>${m.reqToDeclLagDays}d</b> ↗</span></div>`;}).join("");
   body.innerHTML=badge+cards
     +`<div class="declhd"><b>Region&nbsp;5 approvals with a harvested request date</b> — ${rows.length} · tap any for its full detail</div>${list}`
-    +`<p class="thr-sub" style="margin-top:8px">Approval request dates are parsed from the FEMA Daily Operations Briefing and matched <b>conservatively</b> to the OpenFEMA declaration — high-confidence only (${rows.length}/${REQDATES.r5DeclaredConsidered||"?"} of FY2022+ R5 declarations matched; ambiguous ones left out). Denial request→decision is straight from OpenFEMA. This is an unofficial brief parse, <b>not</b> OpenFEMA.</p>`;
+    +`<p class="thr-sub" style="margin-top:8px">Approval request dates are parsed from the FEMA Daily Operations Briefing and matched <b>conservatively</b> to the OpenFEMA declaration — high-confidence only (${rows.length}/${REQDATES.r5DeclaredConsidered||"?"} of FY2022+ R5 declarations matched; ambiguous ones left out). <b>County counts</b> shown are OpenFEMA <b>designated</b> areas (authoritative); tap a disaster to also see the <b>counties under preliminary damage assessment</b> from the brief, shown only where they reconcile with the designated set (${nJpda} disasters). Denial request→decision is straight from OpenFEMA. Unofficial brief parse, <b>not</b> OpenFEMA.</p>`;
 }
 function openDenial(rn){mStack.push({t:"n",v:rn});renderModal();}
 function renderDenialDetail(rn){
@@ -3474,6 +3477,16 @@ function renderDisasterDetail(dn){
     const fb=_rq.firstSeenUrl||DOB_SOURCE_URL;
     const decLink=_rq.decisionUrl?` · <a href="${_rq.decisionUrl}" target="_blank" rel="noopener" style="color:var(--navy)">approval brief ↗</a>`:"";
     el("mMeta").innerHTML+=`<br><span class="thr-sub">requested <b>${fmtDate(_rq.requestDate)}</b> · request→declaration <b>${_rq.reqToDeclLagDays} day${_rq.reqToDeclLagDays===1?"":"s"}</b> · <a href="${fb}" target="_blank" rel="noopener" title="The FEMA Daily Operations Briefing this request was parsed from — not OpenFEMA" style="color:var(--navy)">request brief ↗</a>${decLink}</span>`;
+    // counties: authoritative designated counts (OpenFEMA) + the brief's PDA "requested" scope where it reconciles
+    const desig=[_rq.designatedPaCounties?`${_rq.designatedPaCounties} PA`:"",_rq.designatedIaCounties?`${_rq.designatedIaCounties} IA`:""].filter(Boolean).join(" · ");
+    if(desig){
+      let cty=`<br><span class="thr-sub">designated counties: <b>${desig}</b> <span style="color:var(--ink-3)" title="Authoritative — distinct designated county areas in OpenFEMA">(OpenFEMA)</span>`;
+      if(_rq.countyCheck==="ok"){
+        const req=[_rq.jpdaPaReqCounties?`${_rq.jpdaPaReqCounties} PA`:"",_rq.jpdaIaReqCounties?`${_rq.jpdaIaReqCounties} IA`:""].filter(Boolean).join(" · ");
+        if(req)cty+=` &nbsp;·&nbsp; under PDA: <b>${req}</b> <span style="color:var(--ink-3)" title="Counties under preliminary damage assessment, parsed from the Daily Ops Brief and reconciled against the designated set (requested ≥ designated)">(Daily Ops Brief ✓)</span>`;
+      }
+      el("mMeta").innerHTML+=cty+"</span>";
+    }
   }
 
   const exact=v=>`<span class="thr-sub">${fmtMoneyFull(v)}</span>`;
