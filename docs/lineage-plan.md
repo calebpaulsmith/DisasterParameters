@@ -1,8 +1,11 @@
 # Data Lineage ("Provenance Atlas") — Plan & Living Spec
 
-**Status:** approved direction, not yet built. This is the source of truth for the
-feature. Update it as phases land; do **not** let scope quietly shrink — see
-[§9 Scope guard](#9-scope-guard--deferred-but-do-not-drop).
+**Status:** Phase 0 (manifest + builder + CI Guardian) **merged** (PR #83/#85). Phase 2
+(the `lineage.html` visual — tiered DAG, provenance cards, focus/impact mode, live
+freshness) **v1 shipped**. Phase 1 (health) folded into render-time, per the
+freshness-decoupling decision (§5). Next: Phase 3 (column-level UI) + visual polish.
+This doc is the source of truth; update it as phases land; do **not** let scope quietly
+shrink — see [§9 Scope guard](#9-scope-guard--deferred-but-do-not-drop).
 
 **Branch:** `claude/data-lineage-chart-odfw2b`
 

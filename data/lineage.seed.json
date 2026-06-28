@@ -662,6 +662,14 @@
       "reads": ["manifest.json"],
       "description": "The footer 'Data as of …' staleness stamp, read from the per-file freshness manifest.",
       "links": ["index.html"]
+    },
+    {
+      "id": "lineage",
+      "name": "Provenance Atlas (lineage view)",
+      "location": "lineage.html",
+      "reads": ["manifest.json"],
+      "description": "This data-lineage view itself: renders lineage.json as a tiered Provider->Source->Transform->Artifact->Surface graph with focus/impact mode, and joins live freshness from manifest.json onto each artifact.",
+      "links": ["lineage.html"]
     }
   ],
 
