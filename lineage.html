@@ -339,18 +339,21 @@ function handleColClick(srcKey,col,chipEl){
   const ft=document.getElementById("fieldTrace");
   if(same){activeCol=null;applyFocus(srcKey);if(ft)ft.innerHTML="Click a field to trace it downstream →.";return;}
   activeCol={src:srcKey,col};chipEl.classList.add("active");
-  const s=byKey[srcKey].d,tids=((s.columnUsage||{})[col])||[];
-  const tKeys=tids.map(t=>"transform:"+t).filter(k=>byKey[k]);
+  const s=byKey[srcKey].d,ids=((s.columnUsage||{})[col])||[];
+  // a usage target is a transform OR (for live/direct sources) a surface
+  const tKeys=ids.map(id=>byKey["transform:"+id]?"transform:"+id:(byKey["surface:"+id]?"surface:"+id:null)).filter(Boolean);
   const active=new Set([srcKey,...tKeys]),surfaces=new Set();
-  tKeys.forEach(k=>cone(k,outAdj).forEach(x=>{active.add(x);if(byKey[x].kind==="surface")surfaces.add(x);}));
+  tKeys.forEach(k=>{if(byKey[k].kind==="surface")surfaces.add(k);cone(k,outAdj).forEach(x=>{active.add(x);if(byKey[x].kind==="surface")surfaces.add(x);});});
+  const transformKeys=tKeys.filter(k=>byKey[k].kind==="transform");
   const vis=computeVisible();
   nodes.forEach(n=>{if(!vis.has(n.key))return;const g=document.getElementById(cssid(n.key));if(g){g.classList.toggle("dim",!active.has(n.key));g.classList.toggle("sel",n.key===srcKey);}});
   edges.forEach((e,i)=>{if(!vis.has(e.from)||!vis.has(e.to))return;const el=document.getElementById("e"+i);if(!el)return;const hot=active.has(e.from)&&active.has(e.to);el.classList.toggle("dim",!hot);el.classList.toggle("hot",hot);el.classList.remove("stale");});
   if(ft){
-    if(!tKeys.length)ft.innerHTML=`<b style="color:var(--orange)">No consuming script references “${esc(col)}”.</b> Declared used but unverified — candidate slop / stale mapping.`;
-    else{ft.innerHTML=`<div><b>${esc(col)}</b> → <b>${tKeys.length}</b> transform(s) → <b>${surfaces.size}</b> surface(s):</div>`
-      +`<div class="chips" style="margin-top:4px">${tKeys.map(k=>chip(k,basename(byKey[k].d.name||byKey[k].id))).join("")}</div>`
-      +(surfaces.size?`<div class="chips" style="margin-top:4px">${[...surfaces].map(k=>chip(k,byKey[k].d.name)).join("")}</div>`:"");
+    if(!tKeys.length)ft.innerHTML=`<b style="color:var(--orange)">No consuming script or surface references “${esc(col)}”.</b> Declared used but unverified — candidate slop / stale mapping.`;
+    else{const head=transformKeys.length?`→ <b>${transformKeys.length}</b> transform(s) → <b>${surfaces.size}</b> surface(s)`:`→ <b>${surfaces.size}</b> surface(s) <span class="muted">(read live)</span>`;
+      ft.innerHTML=`<div><b>${esc(col)}</b> ${head}:</div>`
+        +(transformKeys.length?`<div class="chips" style="margin-top:4px">${transformKeys.map(k=>chip(k,basename(byKey[k].d.name||byKey[k].id))).join("")}</div>`:"")
+        +(surfaces.size?`<div class="chips" style="margin-top:4px">${[...surfaces].map(k=>chip(k,byKey[k].d.name)).join("")}</div>`:"");
       ft.querySelectorAll(".chip[data-key]").forEach(c=>c.addEventListener("click",()=>{const k=c.getAttribute("data-key");selected=k;render();showDetailKey(k);}));}
   }
 }
