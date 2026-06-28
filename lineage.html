@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Provenance Atlas — Data Lineage · Disaster Data</title>
+<meta name="description" content="Data lineage for the Disaster Data tool: every source → transform → built file → UI surface, with live freshness/health. Built on public open data; not endorsed by FEMA." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy:#162e51;--navy-2:#0b1f3a;--blue:#005ea2;--blue-dark:#1a4480;--blue-vivid:#2491ff;--blue-light:#d9e8f6;
+  --gold:#ffbe2e;--gold-dark:#e5a000;--red:#b50909;--red-vivid:#e41d3d;--orange:#c05600;--green:#00a91c;--green-dark:#008817;
+  --ink:#1b1b1b;--ink-2:#3d4551;--ink-3:#565c65;--line:#dfe1e2;--line-2:#c6cace;--bg:#f0f0ee;--bg-2:#f9f9f7;--white:#fff;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.08),0 1px 4px rgba(0,0,0,.06);
+  --shadow-md:0 2px 6px rgba(11,31,58,.10),0 6px 18px rgba(11,31,58,.10);
+  --radius:8px;--radius-lg:14px;
+  --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --c-provider:#5a6b8c;--c-source:#005ea2;--c-transform:#7b4ea0;--c-artifact:#1a7a3a;--c-surface:#c05600;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+a{color:var(--blue);}
+.masthead{background:linear-gradient(120deg,var(--navy-2),var(--navy) 55%,var(--blue-dark) 130%);color:#fff;border-bottom:4px solid var(--gold);}
+.masthead__inner{max-width:1500px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.masthead h1{font-size:20px;margin:0;font-weight:900;letter-spacing:-.01em;}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);}
+.masthead__sub{margin:2px 0 0;font-size:13px;color:#cdd9ea;}
+.masthead a.back{margin-left:auto;color:#fff;text-decoration:none;font-weight:700;font-size:13px;background:rgba(255,255,255,.12);padding:8px 13px;border-radius:8px;border:1px solid rgba(255,255,255,.18);}
+.masthead a.back:hover{background:rgba(255,255,255,.2);}
+.toolbar{position:sticky;top:0;z-index:30;background:var(--white);border-bottom:1px solid var(--line);box-shadow:var(--shadow-sm);}
+.toolbar__inner{max-width:1500px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.legend{display:flex;gap:13px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--ink-2);}
+.legend b{color:var(--ink);}
+.chip-h{display:inline-flex;align-items:center;gap:5px;}
+.sw{width:11px;height:11px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.15);}
+.sw.fresh{background:var(--green);}.sw.aging{background:var(--gold);}.sw.stale{background:var(--red-vivid);}
+.sw.unknown{background:repeating-linear-gradient(45deg,#cfd3d8 0 4px,#eef0f2 4px 8px);}
+.toolbar input[type=search]{padding:7px 11px;border:1px solid var(--line-2);border-radius:7px;font-family:inherit;font-size:13px;min-width:180px;}
+.btn{font-family:inherit;font-size:12.5px;font-weight:700;color:var(--navy);background:var(--bg-2);border:1px solid var(--line-2);border-radius:7px;padding:7px 12px;cursor:pointer;}
+.btn:hover{background:#eef0f2;}
+.wrap{max-width:1500px;margin:0 auto;padding:16px 20px 40px;display:grid;grid-template-columns:1fr 360px;gap:18px;}
+.graph{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:auto;max-height:78vh;position:relative;}
+.graph svg{display:block;}
+.colhead{fill:var(--ink-3);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
+.node rect{rx:7;cursor:pointer;transition:opacity .12s;}
+.node text{font-size:11.5px;fill:var(--ink);pointer-events:none;}
+.node .nm{font-weight:700;}
+.node.dim{opacity:.16;}
+.edge{fill:none;stroke:#c4ccd6;stroke-width:1.3;transition:opacity .12s,stroke .12s;}
+.edge.dim{opacity:.06;}
+.edge.hot{stroke:var(--gold-dark);stroke-width:2.1;}
+.edge.hot.stale{stroke:var(--red-vivid);}
+.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:16px 17px;align-self:start;position:sticky;top:74px;max-height:78vh;overflow:auto;}
+.panel h2{font-size:15px;margin:0 0 3px;}
+.kindtag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:2px 8px;border-radius:20px;margin-bottom:8px;}
+.panel .desc{font-size:13px;color:var(--ink-2);margin:6px 0 12px;}
+.row{display:flex;gap:8px;font-size:12.5px;padding:5px 0;border-top:1px solid var(--line);}
+.row .k{color:var(--ink-3);min-width:84px;flex:none;font-weight:600;}
+.row .v{color:var(--ink);}
+.statusline{font-weight:800;}
+.statusline.fresh{color:var(--green-dark);}.statusline.aging{color:var(--gold-dark);}.statusline.stale{color:var(--red);}.statusline.unknown{color:var(--ink-3);}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px;}
+.chip{font-size:11.5px;background:var(--bg-2);border:1px solid var(--line-2);border-radius:14px;padding:2px 9px;cursor:pointer;color:var(--navy);}
+.chip:hover{background:var(--blue-light);}
+.cols{column-count:2;font-size:11.5px;color:var(--ink-2);}
+details summary{cursor:pointer;font-size:12.5px;color:var(--blue);font-weight:600;}
+.footer{max-width:1500px;margin:0 auto;padding:0 20px 36px;font-size:12px;color:var(--ink-3);}
+.footer .disc{background:var(--white);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:11px 14px;}
+.muted{color:var(--ink-3);font-size:12px;}
+@media(max-width:1000px){.wrap{grid-template-columns:1fr;}.panel{position:static;max-height:none;}}
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead__inner">
+    <div>
+      <div class="eyebrow">Provenance Atlas</div>
+      <h1>Data Lineage</h1>
+      <p class="masthead__sub">Every source → transform → built file → UI surface, with live freshness. <span id="verstamp" class="muted"></span></p>
+    </div>
+    <a class="back" href="index.html">← Back to Disaster Data</a>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="toolbar__inner">
+    <div class="legend">
+      <span class="chip-h"><b>Health:</b></span>
+      <span class="chip-h"><span class="sw fresh"></span>fresh</span>
+      <span class="chip-h"><span class="sw aging"></span>aging</span>
+      <span class="chip-h"><span class="sw stale"></span>stale</span>
+      <span class="chip-h"><span class="sw unknown"></span>no date</span>
+    </div>
+    <input type="search" id="search" placeholder="Find a node…" aria-label="Find a node" />
+    <button class="btn" id="reset">Reset focus</button>
+    <span class="muted" id="counts"></span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="graph" id="graph"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  <aside class="panel" id="panel"></aside>
+</div>
+
+<div class="footer">
+  <p class="disc"><b>This is not a government website.</b> It maps the data flow of an independent tool built on FEMA OpenFEMA, NOAA Storm Events, NOAA/NWS, USGS, and the Data Liberation Project — <b>not endorsed by FEMA</b>, NOAA, NWS, or USGS. Lineage is generated by <code>scripts/build_lineage.py</code> and CI-verified by <code>scripts/verify_lineage.py</code> (the "Guardian"). Freshness is read live from <code>data/manifest.json</code>.</p>
+</div>
+
+<script>
+const KINDS=[
+  {k:"provider",label:"Provider",arr:"providers",color:"var(--c-provider)"},
+  {k:"source",label:"Source",arr:"sources",color:"var(--c-source)"},
+  {k:"transform",label:"Transform",arr:"transforms",color:"var(--c-transform)"},
+  {k:"artifact",label:"Artifact",arr:"artifacts",color:"var(--c-artifact)"},
+  {k:"surface",label:"Surface",arr:"surfaces",color:"var(--c-surface)"},
+];
+const KCOLOR={provider:"#5a6b8c",source:"#005ea2",transform:"#7b4ea0",artifact:"#1a7a3a",surface:"#c05600"};
+const COLW=270, NODEW=196, NODEH=30, VGAP=40, TOP=64, LEFT=24;
+const RANK={none:0,fresh:0,unknown:1,aging:2,stale:3};
+
+let MAN=null, FILES={}, nodes=[], byKey={}, dataById={}, provById={}, edges=[], outAdj={}, inAdj={}, selected=null;
+
+function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function basename(p){const s=String(p||"");const i=s.lastIndexOf("/");return i<0?s:s.slice(i+1);}
+
+function cadenceDays(c){c=(c||"").toLowerCase();
+  if(!c)return null;
+  if(c.includes("dai"))return 1;
+  if(c.includes("week"))return 7;
+  if(c.includes("month"))return 31;
+  if(c.includes("quarter"))return 92;
+  if(c.includes("year")||c.includes("annual"))return 366;
+  return null; // as-needed / unknown → no staleness clock
+}
+function parseAsOf(s){
+  if(!s)return null;
+  if(/^\d{4}-\d{2}$/.test(s))return new Date(s+"-28T23:59:59Z"); // month granularity → lenient (end of month)
+  const d=new Date(s); return isNaN(d.getTime())?null:d;
+}
+// Freshness for an artifact id, from manifest. Lenient + clearly labelled (thresholds are a v1 heuristic).
+function artHealth(id){
+  const f=FILES[id]||{};
+  const as=parseAsOf(f.dataAsOf), cd=cadenceDays(f.sourceCadence);
+  if(!as)return {status:"unknown",basis:f.sourceCadence?("cadence "+f.sourceCadence+", no as-of date"):"no freshness metadata"};
+  const ageD=(Date.now()-as.getTime())/864e5;
+  const asLabel="as of "+f.dataAsOf+(f.sourceCadence?(" · "+f.sourceCadence):"");
+  if(cd==null)return {status:"fresh",basis:asLabel+" (no fixed cadence)",ageD};
+  if(ageD<=cd+Math.max(cd,7))return {status:"fresh",basis:asLabel,ageD};
+  if(ageD<=cd*5)return {status:"aging",basis:asLabel+" — running behind cadence",ageD};
+  return {status:"stale",basis:asLabel+" — well past cadence",ageD};
+}
+function surfHealth(su){
+  let worst="fresh";
+  (su.reads||[]).forEach(r=>{ if(FILES[r]!==undefined || isArtifact(r)){ const h=artHealth(r).status; if(RANK[h]>RANK[worst])worst=h; }});
+  return worst;
+}
+function isArtifact(id){return byKey["artifact:"+id]!==undefined;}
+function nodeHealth(n){
+  if(n.kind==="artifact")return artHealth(n.id).status;
+  if(n.kind==="surface")return surfHealth(n.d);
+  return "none";
+}
+function healthColor(s){return s==="fresh"?"#00a91c":s==="aging"?"#ffbe2e":s==="stale"?"#e41d3d":s==="unknown"?"#aeb4bb":null;}
+
+function build(man){
+  MAN=man; FILES=(man.files||{}); // note: manifest is merged in separately
+  nodes=[];byKey={};dataById={};provById={};edges=[];outAdj={};inAdj={};
+  KINDS.forEach((kd,col)=>{
+    (man[kd.arr]||[]).forEach(d=>{
+      const key=kd.k+":"+d.id;
+      const n={key,kind:kd.k,col,id:d.id,d,label:kd.k==="transform"||kd.k==="artifact"?basename(d.name||d.id):(d.name||d.id)};
+      nodes.push(n);byKey[key]=n;
+      if(kd.k==="source"||kd.k==="artifact")dataById[d.id]=key;
+      if(kd.k==="provider")provById[d.id]=key;
+    });
+  });
+  const add=(f,t)=>{if(f&&t&&byKey[f]&&byKey[t]){edges.push({from:f,to:t});(outAdj[f]=outAdj[f]||[]).push(t);(inAdj[t]=inAdj[t]||[]).push(f);}};
+  (man.sources||[]).forEach(s=>add(provById[s.providerId],"source:"+s.id));
+  (man.transforms||[]).forEach(t=>{(t.reads||[]).forEach(r=>add(dataById[r],"transform:"+t.id));(t.writes||[]).forEach(w=>add("transform:"+t.id,"artifact:"+w));});
+  (man.surfaces||[]).forEach(su=>(su.reads||[]).forEach(r=>add(dataById[r],"surface:"+su.id)));
+  // layout: column by kind, ordered within column
+  const perCol={};
+  nodes.forEach(n=>{(perCol[n.col]=perCol[n.col]||[]).push(n);});
+  let maxLen=0;
+  Object.values(perCol).forEach(arr=>{arr.sort((a,b)=>a.label.localeCompare(b.label));arr.forEach((n,i)=>{n.x=LEFT+n.col*COLW;n.y=TOP+i*VGAP;});maxLen=Math.max(maxLen,arr.length);});
+  render(maxLen);
+}
+
+function render(maxLen){
+  const W=LEFT*2+4*COLW+NODEW, H=TOP+maxLen*VGAP+30;
+  const svg=document.getElementById("svg");
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);svg.setAttribute("width",W);svg.setAttribute("height",H);
+  let s="";
+  // column headers
+  KINDS.forEach((kd,c)=>{s+=`<text class="colhead" x="${LEFT+c*COLW}" y="34">${kd.label}</text>`;});
+  // edges
+  edges.forEach((e,i)=>{
+    const a=byKey[e.from],b=byKey[e.to];
+    const x1=a.x+NODEW,y1=a.y+NODEH/2,x2=b.x,y2=b.y+NODEH/2;
+    const dx=Math.max(40,Math.abs(x2-x1)*0.4);
+    s+=`<path class="edge" id="e${i}" d="M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}"/>`;
+  });
+  // nodes
+  nodes.forEach(n=>{
+    const hc=healthColor(nodeHealth(n));
+    const stripe=hc||KCOLOR[n.kind];
+    const lab=n.label.length>26?n.label.slice(0,25)+"…":n.label;
+    s+=`<g class="node" id="${cssid(n.key)}" data-key="${esc(n.key)}" transform="translate(${n.x},${n.y})">`
+      +`<rect width="${NODEW}" height="${NODEH}" fill="#fff" stroke="${KCOLOR[n.kind]}" stroke-width="1.4"/>`
+      +`<rect width="5" height="${NODEH}" fill="${stripe}"/>`
+      +`<text class="nm" x="12" y="${NODEH/2+4}">${esc(lab)}</text></g>`;
+  });
+  svg.innerHTML=s;
+  nodes.forEach(n=>{document.getElementById(cssid(n.key)).addEventListener("click",ev=>{ev.stopPropagation();focusNode(n.key);});});
+  document.getElementById("counts").textContent=
+    `${(MAN.providers||[]).length} providers · ${(MAN.sources||[]).length} sources · ${(MAN.transforms||[]).length} transforms · ${(MAN.artifacts||[]).length} artifacts · ${(MAN.surfaces||[]).length} surfaces`;
+}
+function cssid(key){return "n_"+key.replace(/[^a-zA-Z0-9]/g,"_");}
+
+function cone(start,adj){const seen=new Set();const st=[start];while(st.length){const k=st.pop();(adj[k]||[]).forEach(nx=>{if(!seen.has(nx)){seen.add(nx);st.push(nx);}});}return seen;}
+
+function focusNode(key){
+  selected=key;
+  const up=cone(key,inAdj),down=cone(key,outAdj);
+  const active=new Set([key,...up,...down]);
+  const selStatus=nodeHealth(byKey[key]);
+  nodes.forEach(n=>{const g=document.getElementById(cssid(n.key));g.classList.toggle("dim",!active.has(n.key));});
+  edges.forEach((e,i)=>{const el=document.getElementById("e"+i);const hot=active.has(e.from)&&active.has(e.to);
+    el.classList.toggle("dim",!hot);el.classList.toggle("hot",hot);
+    el.classList.toggle("stale",hot && selStatus==="stale" && down.has(e.to));});
+  showDetail(byKey[key],{up,down});
+  history.replaceState(null,"","#"+encodeURIComponent(key));
+}
+function resetFocus(){selected=null;nodes.forEach(n=>document.getElementById(cssid(n.key)).classList.remove("dim"));
+  edges.forEach((e,i)=>{const el=document.getElementById("e"+i);el.classList.remove("dim","hot","stale");});
+  overview();history.replaceState(null,"","#");}
+
+function rowsFor(n,cones){
+  const d=n.d;const R=[];
+  const link=(p,t)=>`<a href="${esc(p)}" ${/^https?:/.test(p)?'target="_blank" rel="noopener"':""}>${esc(t||p)}</a>`;
+  const chip=(key,txt)=>byKey[key]?`<span class="chip" data-key="${esc(key)}">${esc(txt)}</span>`:`<span class="chip" style="opacity:.5;cursor:default">${esc(txt)} ?</span>`;
+  if(n.kind==="provider"){
+    if((d.links||[]).length)R.push(["Links",d.links.map(l=>link(l)).join("<br>")]);
+    const kids=(MAN.sources||[]).filter(s=>s.providerId===d.id);
+    R.push(["Datasets",`<div class="chips">${kids.map(s=>chip("source:"+s.id,s.name)).join("")}</div>`]);
+  }
+  if(n.kind==="source"){
+    if(d.providerId)R.push(["Provider",chipsHTML([["provider:"+d.providerId,(byKey["provider:"+d.providerId]||{}).label||d.providerId]])]);
+    if(d.binding)R.push(["Binding",`<b>${esc(d.binding)}</b> ${d.binding==="live"?"(fetched in-browser)":d.binding==="hybrid"?"(snapshot + live)":"(committed snapshot)"}`]);
+    if(d.cadence)R.push(["Cadence",esc(d.cadence)]);
+    if(d.endpoint)R.push(["Endpoint",link(d.endpoint)]);
+    if((d.columnsUsed||[]).length)R.push(["Columns used",`<div class="chips">${d.columnsUsed.map(c=>`<span class="chip" style="cursor:default">${esc(c)}</span>`).join("")}</div>`]);
+    if((d.columnsUnused||[]).length)R.push(["Not used",`<details><summary>${d.columnsUnused.length} available, unused</summary><div class="cols">${d.columnsUnused.map(esc).join("<br>")}</div></details>`]);
+    if(d.dictionary)R.push(["Dictionary",link(d.dictionary,basename(d.dictionary))]);
+  }
+  if(n.kind==="transform"){
+    R.push(["Runtime",`<b>${esc(d.runtime||"offline")}</b> ${d.runtime==="browser"?"(runs at page load)":"(offline / CI)"}`]);
+    if(d.schedule)R.push(["Schedule",esc(basename(d.schedule))]);
+    if(d.method)R.push(["Method",esc(d.method)]);
+    if((d.reads||[]).length)R.push(["Reads",`<div class="chips">${d.reads.map(r=>chip(dataById[r]||("?:"+r),r)).join("")}</div>`]);
+    if((d.writes||[]).length)R.push(["Writes",`<div class="chips">${d.writes.map(w=>chip("artifact:"+w,w)).join("")}</div>`]);
+    if(/\//.test(d.name||""))R.push(["Source",link(d.name,d.name)]);
+  }
+  if(n.kind==="artifact"){
+    const h=artHealth(n.id);
+    R.push(["Freshness",`<span class="statusline ${h.status}">${h.status.toUpperCase()}</span><br><span class="muted">${esc(h.basis)}</span>`]);
+    const f=FILES[n.id]||{};if(f.bytes)R.push(["Size",(f.bytes/1024).toFixed(f.bytes>1048576?0:1)+" KB"]);
+    if((d.producedBy||[]).length)R.push(["Built by",`<div class="chips">${d.producedBy.map(t=>chip("transform:"+t,t)).join("")}</div>`]);
+    const cons=(MAN.surfaces||[]).filter(su=>(su.reads||[]).includes(n.id));
+    if(cons.length)R.push(["Read by",`<div class="chips">${cons.map(su=>chip("surface:"+su.id,su.name)).join("")}</div>`]);
+    R.push(["File",link("data/"+n.id,"data/"+n.id)]);
+  }
+  if(n.kind==="surface"){
+    const h=surfHealth(d);
+    R.push(["Health",`<span class="statusline ${h}">${h.toUpperCase()}</span> <span class="muted">(worst of its inputs)</span>`]);
+    if(d.location)R.push(["Location",link(d.location,d.location)]);
+    if((d.reads||[]).length)R.push(["Reads",`<div class="chips">${d.reads.map(r=>chip(dataById[r]||("?:"+r),r)).join("")}</div>`]);
+  }
+  if(cones){R.push(["Upstream",`${cones.up.size} node(s)`]);R.push(["Downstream (impact)",`${cones.down.size} node(s)`]);}
+  return R;
+}
+function chipsHTML(pairs){return `<div class="chips">${pairs.map(([k,t])=>`<span class="chip" data-key="${esc(k)}">${esc(t)}</span>`).join("")}</div>`;}
+
+function showDetail(n,cones){
+  const p=document.getElementById("panel");
+  const kindLabel=(KINDS.find(x=>x.k===n.kind)||{}).label||n.kind;
+  const rows=rowsFor(n,cones).map(([k,v])=>`<div class="row"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`).join("");
+  p.innerHTML=`<span class="kindtag" style="background:${KCOLOR[n.kind]}">${esc(kindLabel)}</span>`
+    +`<h2>${esc(n.kind==="transform"||n.kind==="artifact"?basename(n.d.name||n.id):(n.d.name||n.id))}</h2>`
+    +(n.d.description?`<div class="desc">${esc(n.d.description)}</div>`:"")
+    +rows;
+  p.querySelectorAll(".chip[data-key]").forEach(c=>c.addEventListener("click",()=>focusNode(c.getAttribute("data-key"))));
+  p.scrollTop=0;
+}
+function overview(){
+  const p=document.getElementById("panel");
+  const arts=(MAN.artifacts||[]);
+  const tally={fresh:0,aging:0,stale:0,unknown:0};
+  arts.forEach(a=>{tally[artHealth(a.id).status]=(tally[artHealth(a.id).status]||0)+1;});
+  p.innerHTML=`<h2>Provenance Atlas</h2>`
+    +`<div class="desc">Click any node to trace its <b>upstream</b> (root cause) and <b>downstream</b> (impact) cone. Columns flow left→right: source → transform → built file → UI surface.</div>`
+    +`<div class="row"><span class="k">Artifacts</span><span class="v">`
+      +`<span class="statusline fresh">${tally.fresh} fresh</span> · `
+      +`<span class="statusline aging">${tally.aging} aging</span> · `
+      +`<span class="statusline stale">${tally.stale} stale</span> · `
+      +`<span class="statusline unknown">${tally.unknown} no-date</span></span></div>`
+    +`<div class="row"><span class="k">How health works</span><span class="v muted">Freshness is each built file's <code>dataAsOf</code> vs its source's cadence (from <code>data/manifest.json</code>), propagated to the surfaces that read it. Thresholds are a v1 heuristic.</span></div>`
+    +`<div class="row"><span class="k">Verified</span><span class="v muted">Structure is CI-checked by the Guardian (<code>verify_lineage.py</code>) on every push.</span></div>`;
+}
+
+function doSearch(q){
+  q=q.trim().toLowerCase();if(!q){resetFocus();return;}
+  const hit=nodes.find(n=>(n.label||"").toLowerCase().includes(q)||(n.id||"").toLowerCase().includes(q));
+  if(hit)focusNode(hit.key);
+}
+
+document.getElementById("reset").addEventListener("click",resetFocus);
+document.getElementById("graph").addEventListener("click",e=>{if(e.target.id==="svg"||e.target.id==="graph")resetFocus();});
+document.getElementById("search").addEventListener("input",e=>doSearch(e.target.value));
+
+Promise.all([
+  fetch("data/lineage.json").then(r=>r.ok?r.json():Promise.reject(0)),
+  fetch("data/manifest.json").then(r=>r.ok?r.json():{files:{}}).catch(()=>({files:{}}))
+]).then(([lin,man])=>{
+  build(Object.assign({},lin,{files:(man&&man.files)||{}}));
+  document.getElementById("verstamp").textContent = lin.schema?("· schema "+lin.schema):"";
+  const h=decodeURIComponent((location.hash||"").slice(1));
+  if(h&&byKey[h])focusNode(h);else overview();
+}).catch(()=>{
+  document.getElementById("panel").innerHTML="<h2>Couldn’t load lineage</h2><div class='desc'>This page must be served over http(s) (same-origin <code>data/lineage.json</code>), not opened as a file. Try <code>python3 -m http.server</code>.</div>";
+});
+</script>
+</body>
+</html>
