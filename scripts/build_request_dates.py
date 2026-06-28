@@ -251,9 +251,11 @@ def denial_crosscheck(inv, date2url):
 
 
 def fetch_declarations():
-    """R5 declared disasters since the archive start (one row per disasterNumber)."""
-    flt = ("declarationType eq 'DR' and fyDeclared ge 2022 and incidentType ne 'Biological' "
-           "and (" + " or ".join(f"state eq '{s}'" for s in sorted(R5)) + ")")
+    """NATIONAL declared disasters since the archive start (one row per
+    disasterNumber). Roadmap #2 extends matching beyond Region 5 so the
+    request->decision comparison works at National scope too; the UI filters by
+    region for the Region 5 / National clicker."""
+    flt = "declarationType eq 'DR' and fyDeclared ge 2022 and incidentType ne 'Biological'"
     sel = ("disasterNumber,state,declarationDate,incidentType,incidentBeginDate,"
            "declarationTitle,ihProgramDeclared,paProgramDeclared,hmProgramDeclared")
     by, skip = {}, 0
@@ -277,11 +279,12 @@ def fetch_declarations():
 
 
 def match_declarations(inv, date2url):
-    """CONSERVATIVE: attach a request date to a declared R5 disaster only when
-    exactly one brief request fits state + declared-in-(req, req+150d]."""
+    """CONSERVATIVE: attach a request date to a declared disaster (national) only
+    when exactly one brief request fits state + declared-in-(req, req+150d]."""
     decls = fetch_declarations()
-    print(f"\nR5 declared disasters (FY2022+): {len(decls)}")
-    reqs = [r for r in inv if r["state"] in R5 and r["requestDate"] and not r["appeal"]]
+    print(f"\nNational declared disasters (FY2022+): {len(decls)} "
+          f"({sum(1 for d in decls if d['state'] in R5)} in R5)")
+    reqs = [r for r in inv if r["requestDate"] and not r["appeal"]]
     by_disaster = {}
     for dcl in decls:
         dnum = daynum(dcl["declared"])
@@ -309,6 +312,7 @@ def match_declarations(inv, date2url):
         if pick:
             lag, r = pick
             by_disaster[str(dcl["dn"])] = {
+                "state": dcl["state"], "region": bp.STATE_REGION.get(dcl["state"]),
                 "requestDate": r["requestDate"], "requestedRaw": r["requestedRaw"],
                 "declared": dcl["declared"], "reqToDeclLagDays": lag,
                 "firstSeen": r["firstSeen"], "lastSeen": r["lastSeen"],
@@ -321,11 +325,11 @@ def match_declarations(inv, date2url):
                 "source": "FEMA Daily Operations Briefing (unofficial parse)",
             }
     matched = len(by_disaster)
-    lags = [v["reqToDeclLagDays"] for v in by_disaster.values()]
-    lags.sort()
+    r5m = sum(1 for v in by_disaster.values() if v["region"] == 5)
+    lags = sorted(v["reqToDeclLagDays"] for v in by_disaster.values())
     med = lags[len(lags) // 2] if lags else None
-    print(f"matched request dates -> {matched}/{len(decls)} R5 declared disasters "
-          f"(conservative single-candidate); median request->declaration lag {med}d")
+    print(f"matched request dates -> {matched}/{len(decls)} national declared disasters "
+          f"({r5m} in R5; conservative single-candidate); median request->declaration lag {med}d")
     return by_disaster, len(decls), len([r for r in inv if r["state"] in R5]), decls
 
 
@@ -497,8 +501,9 @@ def main():
         "coverage": {"briefsTotal": total, "briefsParsed": parsed_ok,
                      "from": dates[0] if dates else None, "to": dates[-1] if dates else None},
         "denialCrosscheck": cc,
-        "r5DeclaredConsidered": n_decl, "r5RequestsHarvested": n_r5_req,
+        "nationalDeclaredConsidered": n_decl, "r5RequestsHarvested": n_r5_req,
         "matchedDeclared": len(by_disaster),
+        "matchedDeclaredR5": sum(1 for v in by_disaster.values() if v.get("region") == 5),
         "withDesignatedCounties": sum(1 for v in by_disaster.values() if v.get("designatedPaCounties") or v.get("designatedIaCounties")),
         "withJpdaCounties": sum(1 for v in by_disaster.values() if v.get("jpdaPaReqCounties") or v.get("jpdaIaReqCounties")),
         "countyNote": ("designated*Counties = AUTHORITATIVE OpenFEMA designated county counts; "

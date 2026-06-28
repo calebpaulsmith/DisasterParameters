@@ -205,19 +205,23 @@
           "build_request_dates"
         ],
         "fipsCountyCode": [
-          "add_history"
+          "add_history",
+          "build_request_dates"
         ],
         "paProgramDeclared": [
           "add_history",
-          "patch_ia_flag"
+          "patch_ia_flag",
+          "build_request_dates"
         ],
         "ihProgramDeclared": [
           "add_history",
-          "patch_ia_flag"
+          "patch_ia_flag",
+          "build_request_dates"
         ],
         "iaProgramDeclared": [
           "add_history",
-          "patch_ia_flag"
+          "patch_ia_flag",
+          "build_request_dates"
         ],
         "hmProgramDeclared": [
           "add_history",

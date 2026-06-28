@@ -3232,28 +3232,34 @@ function renderReqDates(){
   if(REQDATES.error){body.innerHTML='<p class="thr-sub">Couldn\'t load the harvested request dates.</p>';if(sub)sub.textContent="";return;}
   if(DENIALS===null)dnLoad();  // denial side of the comparison comes from denials.json
   const cc=REQDATES.denialCrosscheck||{}, cov=REQDATES.coverage||{};
-  const appr=Object.values(REQDATES.byDisaster||{}).map(m=>m.reqToDeclLagDays).filter(v=>v!=null);
+  const nat=TL_SCOPE==="national", scopeLab=nat?"national":"Region&nbsp;5";
+  // approvals honor the Region 5 / National clicker (region==5 filter)
+  const allRows=Object.entries(REQDATES.byDisaster||{}).map(([dn,m])=>({dn,...m}));
+  const rows=(nat?allRows:allRows.filter(m=>m.region===5)).sort((a,b)=>b.declared.localeCompare(a.declared));
+  const appr=rows.map(m=>m.reqToDeclLagDays).filter(v=>v!=null);
   const apprMed=tlMedian(appr);
   const denL=rdDenialReqLags(); const denMed=tlMedian(denL);
-  if(sub)sub.innerHTML=`Region&nbsp;5 approvals · request dates parsed from the Daily Ops Brief (${cov.from||"?"} – ${cov.to||"?"}) · <a href="${DOB_SOURCE_URL}" target="_blank" rel="noopener" style="color:var(--navy);font-weight:700">source ↗</a>`;
+  if(sub)sub.innerHTML=`${scopeLab} approvals · request dates parsed from the Daily Ops Brief (${cov.from||"?"} – ${cov.to||"?"}) · <a href="${DOB_SOURCE_URL}" target="_blank" rel="noopener" style="color:var(--navy);font-weight:700">source ↗</a>`;
   const badge=`<div class="note" style="margin:0 0 14px;background:#eaf6ec;border-color:#bfe3c6"><span class="i" style="background:#1a7a3e">✓</span><span><b>Cross-check vs OpenFEMA ground truth:</b> of ${cc.denialsInWindow||0} denials whose request falls in the archive window, <b>${cc.matchedInBriefs||0}</b> were found in the briefs; the parsed request date matched OpenFEMA's <b>exactly for ${cc.exactDateAgree||0}</b> and within 3 days for ${cc.within3dAgree||0} (mean difference <b>${cc.meanAbsDiffDays} days</b>). This validates the harvested approval request dates.</span></div>`;
   const card=(lab,big,s2)=>`<div class="costcard"><div class="lab">${lab}</div><div class="big">${big}</div><span class="thr-sub">${s2}</span></div>`;
   const cards=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:14px">`
-    +card("Request → declaration",apprMed==null?"—":`${apprMed} days`,`median · ${appr.length} R5 approvals · Daily Ops Brief`)
-    +card("Request → denial",denMed==null?"…":`${denMed} days`,`median · ${denL.length} ${TL_SCOPE==="national"?"national":"R5"} denials · OpenFEMA`)
+    +card("Request → declaration",apprMed==null?"—":`${apprMed} days`,`median · ${appr.length} ${scopeLab} approvals · Daily Ops Brief`)
+    +card("Request → denial",denMed==null?"…":`${denMed} days`,`median · ${denL.length} ${nat?"national":"R5"} denials · OpenFEMA`)
     +(apprMed!=null&&denMed!=null?card("Approval vs denial",`${Math.abs(denMed-apprMed)} days`,denMed>=apprMed?"denials take longer to decide":"approvals take longer"):"")
     +`</div>`;
-  const rows=Object.entries(REQDATES.byDisaster||{}).map(([dn,m])=>({dn,...m})).sort((a,b)=>b.declared.localeCompare(a.declared));
   const nJpda=rows.filter(m=>m.countyCheck==="ok"&&(m.jpdaPaReqCounties||m.jpdaIaReqCounties)).length;
-  const list=rows.map(m=>{
+  const CAP=40, shown=rows.slice(0,CAP);
+  const list=shown.map(m=>{
     const burl=m.decisionUrl||m.firstSeenUrl;
     const brief=burl?` · <a href="${burl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="The actual Daily Ops Brief PDF" style="color:var(--navy)">brief ↗</a>`:"";
     const cc=[m.designatedPaCounties?`${m.designatedPaCounties} PA`:"",m.designatedIaCounties?`${m.designatedIaCounties} IA`:""].filter(Boolean).join("/");
     const ctyNote=cc?` · <span style="color:var(--ink-3)" title="designated counties (OpenFEMA)">${cc} counties</span>`:"";
-    return `<div class="declrow clickable" data-dn="${m.dn}"><span class="dk"><b style="color:var(--navy)">DR-${m.dn}</b> · ${esc(titleCase(m.incident))}${ctyNote}${brief}</span><span class="dv">req ${fmtDate(m.requestDate)} → decl ${fmtDate(m.declared)} · <b>${m.reqToDeclLagDays}d</b> ↗</span></div>`;}).join("");
+    const st=nat&&m.state?`<b style="color:var(--navy)">${esc(m.state)}</b> `:"";
+    return `<div class="declrow clickable" data-dn="${m.dn}"><span class="dk">${st}<b style="color:var(--navy)">DR-${m.dn}</b> · ${esc(titleCase(m.incident))}${ctyNote}${brief}</span><span class="dv">req ${fmtDate(m.requestDate)} → decl ${fmtDate(m.declared)} · <b>${m.reqToDeclLagDays}d</b> ↗</span></div>`;}).join("");
+  const consid=nat?(REQDATES.nationalDeclaredConsidered||"?"):16;
   body.innerHTML=badge+cards
-    +`<div class="declhd"><b>Region&nbsp;5 approvals with a harvested request date</b> — ${rows.length} · tap any for its full detail</div>${list}`
-    +`<p class="thr-sub" style="margin-top:8px">Approval request dates are parsed from the FEMA Daily Operations Briefing and matched <b>conservatively</b> to the OpenFEMA declaration — high-confidence only (${rows.length}/${REQDATES.r5DeclaredConsidered||"?"} of FY2022+ R5 declarations matched; ambiguous ones left out). <b>County counts</b> shown are OpenFEMA <b>designated</b> areas (authoritative); tap a disaster to also see the <b>counties under preliminary damage assessment</b> from the brief, shown only where they reconcile with the designated set (${nJpda} disasters). Denial request→decision is straight from OpenFEMA. Unofficial brief parse, <b>not</b> OpenFEMA.</p>`;
+    +`<div class="declhd"><b>${nat?"National":"Region&nbsp;5"} approvals with a harvested request date</b> — ${rows.length}${rows.length>CAP?` (showing newest ${CAP})`:""} · tap any for its full detail</div>${list}`
+    +`<p class="thr-sub" style="margin-top:8px">Approval request dates are parsed from the FEMA Daily Operations Briefing and matched <b>conservatively</b> to the OpenFEMA declaration — high-confidence only (${nat?`${rows.length}/${consid} of FY2022+ national`:`${rows.length}/16 of FY2022+ R5`} declarations matched; ambiguous ones left out). <b>County counts</b> shown are OpenFEMA <b>designated</b> areas (authoritative); tap a disaster to also see the <b>counties under preliminary damage assessment</b> from the brief, shown only where they reconcile with the designated set (${nJpda} of these). Denial request→decision is straight from OpenFEMA. Unofficial brief parse, <b>not</b> OpenFEMA.</p>`;
 }
 function openDenial(rn){mStack.push({t:"n",v:rn});renderModal();}
 function renderDenialDetail(rn){
@@ -3448,6 +3454,19 @@ function renderNationalDetail(d){
   el("mTitle").textContent=titleCase(d.title);
   const lagMeta=l==null?"":` &nbsp;·&nbsp; declared ${fmtDate(d.declared)} (${l} day${Math.abs(l)===1?"":"s"} after incident start)`;
   el("mMeta").innerHTML=`${fmtRange(d.begin,d.end)}${lagMeta} &nbsp;·&nbsp; ${d.incidentType||"—"} &nbsp;·&nbsp; ${d.state}`;
+  // request date + counties harvested from the Daily Ops Brief (OpenFEMA has neither for approvals)
+  const _rq=(REQDATES&&REQDATES.byDisaster)?REQDATES.byDisaster[String(d.disasterNumber)]:null;
+  const desigC=_rq?[_rq.designatedPaCounties?_rq.designatedPaCounties+" PA":"",_rq.designatedIaCounties?_rq.designatedIaCounties+" IA":""].filter(Boolean).join(" · "):"";
+  const jpdaC=(_rq&&_rq.countyCheck==="ok")?[_rq.jpdaPaReqCounties?_rq.jpdaPaReqCounties+" PA":"",_rq.jpdaIaReqCounties?_rq.jpdaIaReqCounties+" IA":""].filter(Boolean).join(" · "):"";
+  const rqSec=_rq?`<div class="sec-h" style="margin-top:22px">Request → decision<span class="src">Daily Ops Brief · unofficial</span></div>
+    <div class="parm">
+      <div class="parmcard"><div class="pv">${fmtDate(_rq.requestDate)}</div><div class="pl">Requested</div></div>
+      <div class="parmcard"><div class="pv">${_rq.reqToDeclLagDays} d</div><div class="pl">Request → declaration</div></div>
+      ${desigC?`<div class="parmcard"><div class="pv">${desigC}</div><div class="pl">Designated counties (OpenFEMA)</div></div>`:""}
+      ${jpdaC?`<div class="parmcard"><div class="pv">${jpdaC}</div><div class="pl">Under PDA (brief ✓)</div></div>`:""}
+      ${_rq.firstSeenUrl?`<a class="parmcard clickable" style="text-decoration:none" href="${_rq.firstSeenUrl}" target="_blank" rel="noopener"><div class="pv">request brief ↗</div><div class="pl">source PDF</div></a>`:""}
+      ${_rq.decisionUrl?`<a class="parmcard clickable" style="text-decoration:none" href="${_rq.decisionUrl}" target="_blank" rel="noopener"><div class="pv">approval brief ↗</div><div class="pl">decision PDF</div></a>`:""}
+    </div>`:"";
   el("sheet").innerHTML=`
     <div class="note" style="margin:2px 0 18px"><span class="i">!</span><span>This disaster is <b>outside the curated Region&nbsp;5 dataset</b>, so only its declaration timeline is shown — no measured hazards or obligation breakdown. Use the links below for the full federal record.</span></div>
     <div class="sec-h">Declaration timeline<span class="src">OpenFEMA</span></div>
@@ -3456,7 +3475,7 @@ function renderNationalDetail(d){
       <div class="parmcard"><div class="pv">${fmtDate(d.end)}</div><div class="pl">Incident end</div></div>
       <div class="parmcard"><div class="pv">${fmtDate(d.declared)}</div><div class="pl">Federal declaration</div></div>
       <div class="parmcard" style="border-left:4px solid ${tlColor(l)}"><div class="pv">${l} d</div><div class="pl">Declaration lag (from start)</div></div>
-    </div>
+    </div>${rqSec}
     <div class="sec-h" style="margin-top:22px">Verify</div>
     <div class="parm">
       <a class="parmcard clickable" style="text-decoration:none" href="https://www.fema.gov/disaster/${d.disasterNumber}" target="_blank" rel="noopener"><div class="pv">FEMA ↗</div><div class="pl">Official disaster page</div></a>
