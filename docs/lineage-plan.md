@@ -1,11 +1,14 @@
 # Data Lineage ("Provenance Atlas") — Plan & Living Spec
 
-**Status:** Phase 0 (manifest + builder + CI Guardian) **merged** (PR #83/#85). Phase 2
-(the `lineage.html` visual — tiered DAG, provenance cards, focus/impact mode, live
-freshness) **v1 shipped**. Phase 1 (health) folded into render-time, per the
-freshness-decoupling decision (§5). Next: Phase 3 (column-level UI) + visual polish.
-This doc is the source of truth; update it as phases land; do **not** let scope quietly
-shrink — see [§9 Scope guard](#9-scope-guard--deferred-but-do-not-drop).
+**Status:** Phase 0 (manifest + builder + CI Guardian) **merged**. Phase 2 (the
+`lineage.html` visual — tiered DAG, cards, focus/impact, live freshness) **merged**, plus
+a polish pass (barycenter crossing-reduction, program filters, isolate/trace, responsive).
+Phase 3 (column-level: click a field → consuming transforms → surfaces, with a
+"declared-used-but-unfound-in-any-script" slop flag) **v1 shipped**. Phase 1 (health)
+folded into render-time per §5. Next: outage/red-line mode (last-refresh-CI status),
+freshness coverage for no-date files, live-source column tracing. This doc is the source
+of truth; update it as phases land; do **not** let scope quietly shrink — see
+[§9 Scope guard](#9-scope-guard--deferred-but-do-not-drop).
 
 **Branch:** `claude/data-lineage-chart-odfw2b`
 
@@ -288,7 +291,7 @@ built, not forgotten. When a phase lands, revisit this list.
 
 | # | Deferred feature | Trigger to build | Notes / landmines |
 |---|---|---|---|
-| D1 | **Column-level lineage UI** — used vs unused per source; click a column → highlight which Surfaces use it | after Phase 2 ships | Needs annotation + static analysis across Python *and* JS. Dictionaries already committed → "unused" is computable now. |
+| D1 | ~~**Column-level lineage UI**~~ **v1 SHIPPED (Phase 3)** — click a source field → consuming transforms → surfaces it reaches; "available but unused" list; "declared-used-but-not-found-in-any-script" slop flag. Derived by grounded script-scan (`column_in` in `build_lineage.py`), deterministic. | — | Remaining: column tracing through *live* sources (index.html scan), and per-output-field propagation past a transform (currently column→transform→all that transform's outputs). |
 | D2 | **Code/visual export** — emit a portable bundle so a user can reproduce a Surface in **Power BI** (priority), a website, SharePoint, Databricks | after Phases 2–3 | **Semantic-mismatch trap:** pandas→JSON does NOT port to DAX/M. Realistically exportable = the **source query (OpenFEMA REST URL + columns)** + a **visual spec**, NOT the transform logic. Label honestly. |
 | D3 | **Manual refresh from the UI** — whole or per-source, showing timing/method/ramifications | after Phase 4 | **Backend-shaped:** a public static page can only re-pull the *live-fetchable* sources; committed-JSON refresh needs a GitHub Action trigger (token — can't be a public button) or the Cloudflare worker path. |
 | D4 | **Change diff** — "what changed since last refresh" | after D3 | Requires storing snapshots/history (data-retention design). |
