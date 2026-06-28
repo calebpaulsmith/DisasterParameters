@@ -4,11 +4,14 @@
 `lineage.html` visual — tiered DAG, cards, focus/impact, live freshness) **merged**, plus
 a polish pass (barycenter crossing-reduction, program filters, isolate/trace, responsive).
 Phase 3 (column-level: click a field → consuming transforms → surfaces, with a
-"declared-used-but-unfound-in-any-script" slop flag) **v1 shipped**. Phase 1 (health)
-folded into render-time per §5. Next: outage/red-line mode (last-refresh-CI status),
-freshness coverage for no-date files, live-source column tracing. This doc is the source
-of truth; update it as phases land; do **not** let scope quietly shrink — see
-[§9 Scope guard](#9-scope-guard--deferred-but-do-not-drop).
+"declared-used-but-unfound-in-any-script" slop flag) **v1 shipped**. Outage / red-line
+mode **shipped** — a "Pipeline health" toggle fetches each refresh workflow's last run
+from the public GitHub Actions API (CORS-open) and red-lines the impacted downstream
+cone (transforms → artifacts → at-risk surfaces), plus a "✓ manifest verified" badge
+from the Guardian's own run. Phase 1 (health) folded into render-time per §5. Next:
+freshness coverage for no-date files, live-source column tracing, live API probes. This
+doc is the source of truth; update it as phases land; do **not** let scope quietly shrink
+— see [§9 Scope guard](#9-scope-guard--deferred-but-do-not-drop).
 
 **Branch:** `claude/data-lineage-chart-odfw2b`
 
