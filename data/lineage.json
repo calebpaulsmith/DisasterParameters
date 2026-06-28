@@ -755,9 +755,35 @@
       "binding": "live",
       "cadence": "realtime",
       "dictionary": null,
-      "columnsUsed": [],
+      "columnsUsed": [
+        "timeSeries",
+        "sourceInfo",
+        "siteCode",
+        "values",
+        "value",
+        "dateTime"
+      ],
       "columnsUnused": [],
-      "columnUsage": {},
+      "columnUsage": {
+        "timeSeries": [
+          "watch"
+        ],
+        "sourceInfo": [
+          "watch"
+        ],
+        "siteCode": [
+          "watch"
+        ],
+        "values": [
+          "watch"
+        ],
+        "value": [
+          "watch"
+        ],
+        "dateTime": [
+          "watch"
+        ]
+      },
       "columnsDeclaredUnfound": [],
       "description": "USGS instantaneous-values service, fetched live in the browser to show current river gage heights on the Disaster Watch view.",
       "links": [
@@ -772,9 +798,39 @@
       "binding": "live",
       "cadence": "realtime",
       "dictionary": null,
-      "columnsUsed": [],
+      "columnsUsed": [
+        "event",
+        "severity",
+        "areaDesc",
+        "geocode",
+        "headline",
+        "expires",
+        "ends"
+      ],
       "columnsUnused": [],
-      "columnUsage": {},
+      "columnUsage": {
+        "event": [
+          "watch"
+        ],
+        "severity": [
+          "watch"
+        ],
+        "areaDesc": [
+          "watch"
+        ],
+        "geocode": [
+          "watch"
+        ],
+        "headline": [
+          "watch"
+        ],
+        "expires": [
+          "watch"
+        ],
+        "ends": [
+          "watch"
+        ]
+      },
       "columnsDeclaredUnfound": [],
       "description": "NWS active weather alerts, fetched live in the browser for the Disaster Watch view.",
       "links": [
@@ -1577,7 +1633,9 @@
       "reads": [
         "r5_counties.json",
         "county_declarations.json",
-        "disasters.json"
+        "disasters.json",
+        "nwsAlerts",
+        "usgsInstantaneousValues"
       ],
       "description": "Live NWS alerts + live USGS gage heights, with a declaration-history map; trips when a river approaches a past disaster's peak stage or warnings match an analog's hazards.",
       "links": [

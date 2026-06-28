@@ -244,6 +244,7 @@
       "endpoint": "https://waterservices.usgs.gov/nwis/iv/",
       "binding": "live",
       "cadence": "realtime",
+      "columnsUsed": ["timeSeries", "sourceInfo", "siteCode", "values", "value", "dateTime"],
       "description": "USGS instantaneous-values service, fetched live in the browser to show current river gage heights on the Disaster Watch view.",
       "links": ["https://waterservices.usgs.gov/rest/IV-Service.html"]
     },
@@ -254,6 +255,7 @@
       "endpoint": "https://api.weather.gov/alerts/active",
       "binding": "live",
       "cadence": "realtime",
+      "columnsUsed": ["event", "severity", "areaDesc", "geocode", "headline", "expires", "ends"],
       "description": "NWS active weather alerts, fetched live in the browser for the Disaster Watch view.",
       "links": ["https://api.weather.gov/"]
     },
@@ -603,7 +605,7 @@
       "id": "watch",
       "name": "Disaster Watch",
       "location": "index.html#view-watch",
-      "reads": ["r5_counties.json", "county_declarations.json", "disasters.json"],
+      "reads": ["r5_counties.json", "county_declarations.json", "disasters.json", "nwsAlerts", "usgsInstantaneousValues"],
       "description": "Live NWS alerts + live USGS gage heights, with a declaration-history map; trips when a river approaches a past disaster's peak stage or warnings match an analog's hazards.",
       "links": ["index.html"]
     },

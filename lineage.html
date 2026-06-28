@@ -61,6 +61,19 @@ a{color:var(--blue);}
 .edge.dim{opacity:.05;}
 .edge.hot{stroke:var(--gold-dark);stroke-width:2.1;}
 .edge.hot.stale{stroke:var(--red-vivid);}
+.node.out rect.box{stroke:var(--red-vivid)!important;stroke-width:2.6;}
+.edge.out{stroke:var(--red-vivid);stroke-width:2.4;stroke-dasharray:6 4;animation:dash 1s linear infinite;}
+@keyframes dash{to{stroke-dashoffset:-20;}}
+.banner{display:none;max-width:1500px;margin:0 auto;padding:8px 20px 0;}
+.banner.show{display:block;}
+.bannerbox{border-radius:10px;padding:10px 14px;font-size:13px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;border:1px solid;}
+.bannerbox.ok{background:#ecf6ec;border-color:#86c98a;color:var(--green-dark);}
+.bannerbox.bad{background:#fbeaea;border-color:#e6a6a6;color:var(--red);}
+.bannerbox.warn{background:#fdf5e2;border-color:#e8cf8a;color:var(--gold-dark);}
+.bannerbox a{color:inherit;}
+.verbadge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;white-space:nowrap;}
+.verbadge.ok{background:rgba(0,169,28,.2);color:#d6f8da;border:1px solid rgba(255,255,255,.22);}
+.verbadge.bad{background:rgba(228,29,61,.24);color:#ffd5dc;border:1px solid rgba(255,255,255,.22);}
 .panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:16px 17px;align-self:start;position:sticky;top:120px;max-height:78vh;overflow:auto;}
 .panel h2{font-size:15px;margin:0 0 3px;word-break:break-word;}
 .kindtag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:2px 8px;border-radius:20px;margin-bottom:8px;}
@@ -91,7 +104,7 @@ details summary{cursor:pointer;font-size:12.5px;color:var(--blue);font-weight:60
     <div>
       <div class="eyebrow">Provenance Atlas</div>
       <h1>Data Lineage</h1>
-      <p class="masthead__sub">Every source → transform → built file → UI surface, with live freshness. <span id="verstamp" class="muted"></span></p>
+      <p class="masthead__sub">Every source → transform → built file → UI surface, with live freshness. <span id="verstamp" class="muted"></span><span id="verbadge"></span></p>
     </div>
     <a class="back" href="index.html">← Back to Disaster Data</a>
   </div>
@@ -110,10 +123,12 @@ details summary{cursor:pointer;font-size:12.5px;color:var(--blue);font-weight:60
     <select id="trace" aria-label="Trace lineage for a surface"><option value="">Trace a UI surface…</option></select>
     <button class="btn" id="isolate" title="Hide everything outside the selected node's dependency cone">Isolate</button>
     <button class="btn" id="reset">Reset</button>
+    <button class="btn" id="outage" title="Check each refresh pipeline's last run and red-line the downstream impact">⚡ Pipeline health</button>
     <span class="muted" id="counts"></span>
   </div>
   <div class="barwrap"><div class="filters" id="filters"><span class="lbl">Programs:</span></div></div>
 </div>
+<div class="banner" id="banner"></div>
 
 <div class="wrap">
   <div class="graph" id="graph"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
@@ -157,6 +172,16 @@ const RANK={none:0,fresh:0,unknown:1,aging:2,stale:3};
 
 let MAN=null,FILES={},nodes=[],byKey={},dataById={},provById={},edges=[],outAdj={},inAdj={};
 let selected=null,isolateKey=null,activeGroups=new Set(GROUPS.map(g=>g[0]));
+// --- Outage / pipeline-health mode ---
+const REPO="calebpaulsmith/DisasterParameters";
+const WF={
+  ".github/workflows/refresh-daily.yml":"Daily refresh",
+  ".github/workflows/refresh-monthly.yml":"Monthly NFIP refresh",
+  ".github/workflows/refresh-pending.yml":"Pending declarations",
+  ".github/workflows/refresh-request-dates.yml":"Request-dates harvest",
+};
+const GUARDIAN_WF=".github/workflows/verify-lineage.yml";
+let outage={on:false,runs:null,impacted:new Set(),failed:[],atRisk:new Set()};
 
 function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function basename(p){const s=String(p||"");const i=s.lastIndexOf("/");return i<0?s:s.slice(i+1);}
@@ -235,10 +260,12 @@ function render(){
   KINDS.forEach((kd,c)=>{s+=`<text class="colhead" x="${LEFT+c*COLW}" y="34">${kd.label}</text>`;});
   edges.forEach((e,i)=>{if(!vis.has(e.from)||!vis.has(e.to))return;const a=byKey[e.from],b=byKey[e.to];
     const x1=a.x+NODEW,y1=a.y+NODEH/2,x2=b.x,y2=b.y+NODEH/2,dx=Math.max(40,Math.abs(x2-x1)*0.4);
-    s+=`<path class="edge" id="e${i}" d="M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}"/>`;});
+    const eo=(outage.on&&outage.impacted.has(e.from)&&outage.impacted.has(e.to))?" out":"";
+    s+=`<path class="edge${eo}" id="e${i}" d="M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}"/>`;});
   nodes.forEach(n=>{if(!vis.has(n.key))return;const hc=healthColor(nodeHealth(n)),stripe=hc||KCOLOR[n.kind];
     const lab=n.label.length>26?n.label.slice(0,25)+"…":n.label;
-    s+=`<g class="node" id="${cssid(n.key)}" data-key="${esc(n.key)}" transform="translate(${n.x},${n.y})">`
+    const oc=(outage.on&&outage.impacted.has(n.key))?" out":"";
+    s+=`<g class="node${oc}" id="${cssid(n.key)}" data-key="${esc(n.key)}" transform="translate(${n.x},${n.y})">`
       +`<rect class="box" width="${NODEW}" height="${NODEH}" fill="#fff" stroke="${KCOLOR[n.kind]}" stroke-width="1.4"/>`
       +`<rect width="5" height="${NODEH}" fill="${stripe}"/>`
       +`<text class="nm" x="12" y="${NODEH/2+4}">${esc(lab)}</text></g>`;});
@@ -276,7 +303,9 @@ function rowsFor(n){
     if((d.columnsUnused||[]).length)R.push(["Not used",`<details><summary>${d.columnsUnused.length} available, unused</summary><div class="cols">${d.columnsUnused.map(esc).join("<br>")}</div></details>`]);
     if(d.dictionary)R.push(["Dictionary",link(d.dictionary,basename(d.dictionary))]);}
   if(n.kind==="transform"){R.push(["Runtime",`<b>${esc(d.runtime||"offline")}</b> ${d.runtime==="browser"?"(runs at page load)":"(offline / CI)"}`]);
-    if(d.schedule)R.push(["Schedule",esc(basename(d.schedule))]);if(d.method)R.push(["Method",esc(d.method)]);
+    if(d.schedule)R.push(["Schedule",esc(basename(d.schedule))]);
+    if(outage.runs&&WF[d.schedule]){const r=outage.runs[d.schedule];if(r&&!r.error){const ok=r.conclusion==="success";R.push(["Pipeline",`<span class="statusline ${ok?"fresh":"stale"}">${esc(r.conclusion||r.status||"unknown")}</span> <a href="${esc(r.url)}" target="_blank" rel="noopener">last run ↗</a>`]);}}
+    if(d.method)R.push(["Method",esc(d.method)]);
     if((d.reads||[]).length)R.push(["Reads",`<div class="chips">${d.reads.map(r=>chip(dataById[r]||("?:"+r),r)).join("")}</div>`]);
     if((d.writes||[]).length)R.push(["Writes",`<div class="chips">${d.writes.map(w=>chip("artifact:"+w,w)).join("")}</div>`]);
     if(/\//.test(d.name||""))R.push(["Source",link(d.name,d.name)]);}
@@ -310,18 +339,21 @@ function handleColClick(srcKey,col,chipEl){
   const ft=document.getElementById("fieldTrace");
   if(same){activeCol=null;applyFocus(srcKey);if(ft)ft.innerHTML="Click a field to trace it downstream →.";return;}
   activeCol={src:srcKey,col};chipEl.classList.add("active");
-  const s=byKey[srcKey].d,tids=((s.columnUsage||{})[col])||[];
-  const tKeys=tids.map(t=>"transform:"+t).filter(k=>byKey[k]);
+  const s=byKey[srcKey].d,ids=((s.columnUsage||{})[col])||[];
+  // a usage target is a transform OR (for live/direct sources) a surface
+  const tKeys=ids.map(id=>byKey["transform:"+id]?"transform:"+id:(byKey["surface:"+id]?"surface:"+id:null)).filter(Boolean);
   const active=new Set([srcKey,...tKeys]),surfaces=new Set();
-  tKeys.forEach(k=>cone(k,outAdj).forEach(x=>{active.add(x);if(byKey[x].kind==="surface")surfaces.add(x);}));
+  tKeys.forEach(k=>{if(byKey[k].kind==="surface")surfaces.add(k);cone(k,outAdj).forEach(x=>{active.add(x);if(byKey[x].kind==="surface")surfaces.add(x);});});
+  const transformKeys=tKeys.filter(k=>byKey[k].kind==="transform");
   const vis=computeVisible();
   nodes.forEach(n=>{if(!vis.has(n.key))return;const g=document.getElementById(cssid(n.key));if(g){g.classList.toggle("dim",!active.has(n.key));g.classList.toggle("sel",n.key===srcKey);}});
   edges.forEach((e,i)=>{if(!vis.has(e.from)||!vis.has(e.to))return;const el=document.getElementById("e"+i);if(!el)return;const hot=active.has(e.from)&&active.has(e.to);el.classList.toggle("dim",!hot);el.classList.toggle("hot",hot);el.classList.remove("stale");});
   if(ft){
-    if(!tKeys.length)ft.innerHTML=`<b style="color:var(--orange)">No consuming script references “${esc(col)}”.</b> Declared used but unverified — candidate slop / stale mapping.`;
-    else{ft.innerHTML=`<div><b>${esc(col)}</b> → <b>${tKeys.length}</b> transform(s) → <b>${surfaces.size}</b> surface(s):</div>`
-      +`<div class="chips" style="margin-top:4px">${tKeys.map(k=>chip(k,basename(byKey[k].d.name||byKey[k].id))).join("")}</div>`
-      +(surfaces.size?`<div class="chips" style="margin-top:4px">${[...surfaces].map(k=>chip(k,byKey[k].d.name)).join("")}</div>`:"");
+    if(!tKeys.length)ft.innerHTML=`<b style="color:var(--orange)">No consuming script or surface references “${esc(col)}”.</b> Declared used but unverified — candidate slop / stale mapping.`;
+    else{const head=transformKeys.length?`→ <b>${transformKeys.length}</b> transform(s) → <b>${surfaces.size}</b> surface(s)`:`→ <b>${surfaces.size}</b> surface(s) <span class="muted">(read live)</span>`;
+      ft.innerHTML=`<div><b>${esc(col)}</b> ${head}:</div>`
+        +(transformKeys.length?`<div class="chips" style="margin-top:4px">${transformKeys.map(k=>chip(k,basename(byKey[k].d.name||byKey[k].id))).join("")}</div>`:"")
+        +(surfaces.size?`<div class="chips" style="margin-top:4px">${[...surfaces].map(k=>chip(k,byKey[k].d.name)).join("")}</div>`:"");
       ft.querySelectorAll(".chip[data-key]").forEach(c=>c.addEventListener("click",()=>{const k=c.getAttribute("data-key");selected=k;render();showDetailKey(k);}));}
   }
 }
@@ -339,6 +371,40 @@ function buildFilters(){const f=document.getElementById("filters");
     f.appendChild(el);});}
 function buildTrace(){const sel=document.getElementById("trace");
   (MAN.surfaces||[]).slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(su=>{const o=document.createElement("option");o.value="surface:"+su.id;o.textContent=su.name;sel.appendChild(o);});}
+
+// --- Outage / pipeline-health: last run of each refresh workflow (public GitHub API, CORS-open) ---
+async function ghRun(file){const url=`https://api.github.com/repos/${REPO}/actions/workflows/${file.split("/").pop()}/runs?branch=main&per_page=1`;
+  const r=await fetch(url,{headers:{Accept:"application/vnd.github+json"}});if(!r.ok)throw new Error("HTTP "+r.status);
+  const run=((await r.json()).workflow_runs||[])[0];return run?{conclusion:run.conclusion,status:run.status,at:run.created_at,url:run.html_url}:null;}
+async function checkPipelines(){const CK="atlas_pipe_v1";
+  try{const c=JSON.parse(sessionStorage.getItem(CK)||"null");if(c&&Date.now()-c.t<3e5)return c.d;}catch(e){}
+  const files=[...Object.keys(WF),GUARDIAN_WF],out={};
+  await Promise.all(files.map(async f=>{try{out[f]=await ghRun(f);}catch(e){out[f]={error:String(e.message||e)};}}));
+  try{sessionStorage.setItem(CK,JSON.stringify({t:Date.now(),d:out}));}catch(e){}return out;}
+function computeOutage(runs){const failed=[],impacted=new Set(),atRisk=new Set();
+  for(const [file,label] of Object.entries(WF)){const r=runs[file];if(!r||r.error||!r.conclusion)continue;
+    if(r.conclusion!=="success"&&r.conclusion!=="skipped"){failed.push({file,label,r});
+      nodes.filter(n=>n.kind==="transform"&&n.d.schedule===file).forEach(t=>{impacted.add(t.key);cone(t.key,outAdj).forEach(x=>{impacted.add(x);if(byKey[x].kind==="surface")atRisk.add(x);});});}}
+  return {failed,impacted,atRisk};}
+function setVerified(c){const el=document.getElementById("verbadge");if(!el)return;
+  if(c==="success"){el.className="verbadge ok";el.textContent="✓ manifest verified";}
+  else if(c){el.className="verbadge bad";el.textContent="✗ guardian "+c;}else{el.className="";el.textContent="";}}
+function showBanner(cls,html){const b=document.getElementById("banner");b.innerHTML=`<div class="bannerbox ${cls}">${html}</div>`;b.classList.add("show");}
+function renderBanner(){const errs=Object.values(outage.runs).filter(r=>r&&r.error).length;
+  if(outage.failed.length){
+    const surf=[...outage.atRisk].map(k=>`<span class="chip" data-key="${esc(k)}">${esc(byKey[k].d.name)}</span>`).join("");
+    const pipes=outage.failed.map(f=>`<a href="${esc(f.r.url)}" target="_blank" rel="noopener">${esc(f.label)}: ${esc(f.r.conclusion)} ↗</a>`).join(" · ");
+    showBanner("bad",`<b>⚠ ${outage.failed.length} pipeline(s) failing</b> → ${outage.atRisk.size} surface(s) at risk: <span class="chips">${surf}</span> &nbsp;·&nbsp; ${pipes}`);
+  }else{showBanner("ok",`<b>✓ All ${Object.keys(WF).length} automated pipelines healthy.</b> <span class="muted">Manual/weekly builders aren’t auto-checked.${errs?` ${errs} status fetch failed.`:""}</span>`);}
+  document.getElementById("banner").querySelectorAll(".chip[data-key]").forEach(c=>c.addEventListener("click",()=>{const k=c.getAttribute("data-key");selected=k;render();showDetailKey(k);document.getElementById(cssid(k))?.scrollIntoView({block:"center",inline:"center"});}));}
+async function toggleOutage(){const btn=document.getElementById("outage");
+  if(outage.on){outage.on=false;btn.classList.remove("on");document.getElementById("banner").classList.remove("show");render();return;}
+  btn.textContent="Checking…";btn.disabled=true;let runs=null;try{runs=await checkPipelines();}catch(e){}
+  btn.disabled=false;btn.textContent="⚡ Pipeline health";
+  if(!runs){showBanner("warn","Couldn’t reach the GitHub API (rate-limited or offline) — pipeline status unavailable.");return;}
+  const c=computeOutage(runs);outage={on:true,runs,failed:c.failed,impacted:c.impacted,atRisk:c.atRisk};
+  btn.classList.add("on");render();renderBanner();setVerified(runs[GUARDIAN_WF]&&!runs[GUARDIAN_WF].error?runs[GUARDIAN_WF].conclusion:null);}
+document.getElementById("outage").addEventListener("click",toggleOutage);
 
 document.getElementById("reset").addEventListener("click",()=>{selected=null;isolateKey=null;activeGroups=new Set(GROUPS.map(g=>g[0]));document.querySelectorAll(".fchip").forEach(c=>c.classList.remove("off"));document.getElementById("trace").value="";document.getElementById("isolate").classList.remove("on");render();clearFocus();overview();history.replaceState(null,"","#");});
 document.getElementById("isolate").addEventListener("click",function(){if(!selected){return;}isolateKey=isolateKey?null:selected;this.classList.toggle("on",!!isolateKey);render();if(selected)showDetailKey(selected);});

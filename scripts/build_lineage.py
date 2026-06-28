@@ -173,6 +173,15 @@ def build():
             if w in art_by_id:
                 art_by_id[w]["producedBy"].append(t["id"])
 
+    # index.html text — for attributing live-source columns to the surfaces that read
+    # them directly (no offline transform in between, e.g. NWS alerts / USGS gages).
+    index_txt = ""
+    _ip = os.path.join(ROOT, "index.html")
+    if os.path.exists(_ip):
+        with open(_ip, encoding="utf-8", errors="ignore") as f:
+            index_txt = f.read()
+    seed_surfaces = seed.get("surfaces", [])
+
     # --- sources: from seed; compute columnsUnused from the dictionary ---
     sources = []
     for s in seed.get("sources", []):
@@ -188,12 +197,16 @@ def build():
         # so it's deterministic + regenerable. Columns claimed used but found in NO
         # consuming script are flagged (columnsDeclaredUnfound) — a slop/staleness signal.
         consumers = [t for t in transforms if s["id"] in t["reads"] and "/" in t["name"]]
+        surf_consumers = [su for su in seed_surfaces if s["id"] in (su.get("reads") or [])]
         col_usage, col_unfound = {}, []
         for col in used:
             hits = [t["id"] for t in consumers if column_in(col, script_text(t["name"]))]
+            # live / direct sources: a surface reads the source straight from index.html
+            if surf_consumers and column_in(col, index_txt):
+                hits += [su["id"] for su in surf_consumers]
             if hits:
                 col_usage[col] = hits
-            elif consumers:           # only flag when there IS a script that could use it
+            elif consumers or surf_consumers:   # flag only when SOMETHING could consume it
                 col_unfound.append(col)
         sources.append({
             "id": s["id"],
