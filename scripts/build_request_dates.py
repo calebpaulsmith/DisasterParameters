@@ -466,6 +466,80 @@ def attach_counties(by_disaster, decls_by_dn, jpda_inv, designated):
     return jmatched, jok
 
 
+def extract_appeals(cache):
+    """Reconstruct APPEAL / RESUBMISSION cycles from the brief archive.
+
+    The Daily Ops Brief tags a resubmitted request "– Appeal"/"(Appeal)" while it
+    is in process, and tags the row "– Approved"/"– Denied" on the day it is
+    decided. OpenFEMA has NO appeal-outcome field (a successful appeal simply leaves
+    the DeclarationDenials set), so the brief is the only public trail of whether an
+    appeal was upheld. We key each request by entity+incident+type, mark the first
+    day it appeared as an appeal, and attribute the FIRST decision dated AT/AFTER
+    that appeal sighting (an earlier decision belongs to the original request cycle,
+    not the appeal). Unresolved-but-recent cycles are "in_process"; unresolved-and-
+    stale cycles are "unresolved" (dropped from the brief without a recorded
+    outcome). Conservative + fully sourced — every cycle links its actual briefs.
+    """
+    days = sorted(cache.keys())
+    latest = days[-1] if days else None
+    keys = {}
+    for day in days:
+        b = cache[day]
+        if b.get("error"):
+            continue
+        url = b.get("url")
+        for r in b.get("rows", []):
+            k = (r.get("entity"), norm_inc(r.get("incident")), r.get("type"))
+            e = keys.get(k)
+            if e is None:
+                e = keys[k] = {
+                    "entity": r.get("entity"), "entityName": r.get("entityName"),
+                    "state": r.get("state"), "region": r.get("region"),
+                    "type": r.get("type"), "incident": r.get("incident"),
+                    "firstSeen": day, "firstUrl": url,
+                    "appealSeen": None, "appealUrl": None,
+                    "outcome": None, "decisionDate": None, "decisionUrl": None,
+                    "lastSeen": day, "lastUrl": url,
+                }
+            e["lastSeen"] = day
+            e["lastUrl"] = url
+            if r.get("appeal") and not e["appealSeen"]:
+                e["appealSeen"] = day
+                e["appealUrl"] = url
+            if r.get("decision") and e["appealSeen"] and day >= e["appealSeen"]:
+                e["outcome"] = r["decision"]          # 'approved' | 'denied'
+                e["decisionDate"] = day
+                e["decisionUrl"] = url
+    cycles = []
+    for e in keys.values():
+        if not e["appealSeen"]:
+            continue
+        if not e["outcome"]:
+            # no decision recorded at/after the appeal sighting
+            stale = latest and (daynum(latest) - daynum(e["lastSeen"])) > 21  # days
+            e["outcome"] = "unresolved" if stale else "in_process"
+        cycles.append(e)
+    cycles.sort(key=lambda x: x["appealSeen"], reverse=True)
+    dec = [c for c in cycles if c["outcome"] in ("approved", "denied")]
+    summary = {
+        "cycles": len(cycles),
+        "decided": len(dec),
+        "approved": sum(1 for c in dec if c["outcome"] == "approved"),
+        "denied": sum(1 for c in dec if c["outcome"] == "denied"),
+        "inProcess": sum(1 for c in cycles if c["outcome"] == "in_process"),
+        "unresolved": sum(1 for c in cycles if c["outcome"] == "unresolved"),
+    }
+    return {
+        "note": ("Appeal/resubmission cycles tracked across the Daily Ops Brief archive. "
+                 "An appeal is a resubmitted request the brief tags '– Appeal'; outcome is the "
+                 "brief's '– Approved'/'– Denied' tag dated at/after the appeal sighting. "
+                 "OpenFEMA has no appeal-outcome field — this is the only public trail. "
+                 "Unofficial brief parse, NOT OpenFEMA."),
+        "summary": summary,
+        "cycles": cycles,
+    }
+
+
 def main():
     limit = None
     if "--limit" in sys.argv:
@@ -512,6 +586,7 @@ def main():
                        "countyCheck 'ok' = requested >= designated (sanity)."),
         "byDisaster": by_disaster,
         "denialBriefs": denial_briefs,  # OpenFEMA denial reqNum -> the brief(s) it appeared in
+        "appeals": extract_appeals(cache),  # appeal/resubmission cycles + outcomes from the brief archive
     }
     path = os.path.join(DATA, "request_dates.json")
     json.dump(out, open(path, "w"), separators=(",", ":"))

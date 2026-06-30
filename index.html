@@ -417,6 +417,7 @@ tr.clickable:hover td{background:#eef3f8;}
 .ptable tbody tr:hover{background:var(--blue-light);}
 .pchip{display:inline-block;font-size:10px;font-weight:800;padding:1px 5px;border-radius:4px;background:#eef2f6;color:var(--ink-2);margin-right:3px;}
 .abadge{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.03em;padding:1px 5px;border-radius:4px;background:#fde7c7;color:#8a4b00;}
+.apchip{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.02em;padding:1px 6px;border-radius:4px;}
 .declrow{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:5px 8px;border-radius:7px;}
 .declrow:nth-child(even){background:#f4f7fb;}
 .declrow:hover{background:var(--blue-light);}
@@ -855,6 +856,8 @@ tr.clickable:hover td{background:#eef3f8;}
     <div class="card"><div class="card__hd"><h2>Denials by group</h2>
         <div class="geogrp" id="dnBreakToggle" style="margin-bottom:0"><button data-dnbreak="type" class="active">By incident type</button><button data-dnbreak="state">By state</button><button data-dnbreak="program">By program</button></div></div>
       <div class="card__bd"><div id="dnBreakdown"></div></div></div>
+    <div class="card"><div class="card__hd"><h2>&#127942; By state: turndown rate &amp; decision speed</h2><span class="sub" id="dnStateSub">denial rate (denied &divide; denied+declared) and median decision lag, per state</span></div>
+      <div class="card__bd"><div id="dnStateTable"></div></div></div>
 
     <!-- ===== PENDING (Declaration Requests in Process — unofficial Daily Ops Brief parse) ===== -->
     <div class="note" id="pendIntro" style="margin:30px 0 14px"><span class="i">!</span><span><b>Still waiting: requests in process.</b> OpenFEMA has no feed of declaration requests that are <b>pending a decision</b> — FEMA lists those only in its <b>Daily Operations Briefing</b> (a PDF emailed each morning, not posted to a stable URL). Below is an <b>unofficial parse</b> of that briefing's "Declaration Requests in Process" table, sourced via the Data Liberation Project's daily archive — <b>this is NOT an OpenFEMA dataset</b>. Honors the Region 5 / National switch above. <b>Not endorsed by FEMA.</b></span></div>
@@ -865,6 +868,11 @@ tr.clickable:hover td{background:#eef3f8;}
     <div class="note" id="rdIntro" style="margin:30px 0 14px"><span class="i">!</span><span><b>Request → decision: how long from asking to an answer.</b> OpenFEMA publishes a declaration <b>request date</b> only for <b>denials</b> — never for approvals. So for approved Region&nbsp;5 disasters we <b>harvest the request date from the Daily Operations Briefing archive</b> (the same unofficial parse), then match it to the OpenFEMA declaration. That yields a true <b>request→declaration lag</b> OpenFEMA can't give. <b>Cross-checked against OpenFEMA's denial request dates</b> (ground truth) — see the badge below. <b>Not endorsed by FEMA.</b></span></div>
     <div class="card"><div class="card__hd"><h2>&#9201;&#65039; Request → decision timing</h2><span class="sub" id="rdSub"></span></div>
       <div class="card__bd"><div id="rdBody"></div></div></div>
+
+    <!-- ===== APPEALS / RESUBMISSIONS (outcome tracking from the Daily Ops Brief archive) ===== -->
+    <div class="note" id="apIntro" style="margin:30px 0 14px"><span class="i">!</span><span><b>Do turndowns get overturned?</b> When a request is denied, a governor or tribe can <b>appeal</b> (resubmit). OpenFEMA has <b>no appeal-outcome field</b> — a successful appeal simply disappears from the denials list — so the only public trail is the <b>Daily Operations Briefing</b>, which tags a resubmission "– Appeal" and later "– Approved"/"– Denied". Below we reconstruct each appeal cycle from the brief archive and follow it to its decision. Honors the Region 5 / National switch above. <b>Unofficial brief parse, not OpenFEMA.</b></span></div>
+    <div class="card"><div class="card__hd"><h2>&#128260; Appeals &amp; resubmissions</h2><span class="sub" id="apSub"></span></div>
+      <div class="card__bd"><div id="apBody"></div></div></div>
   </section>
 
   <!-- ============ GEOGRAPHY (state + county rollup: disasters · dollars · projects) ============ -->
@@ -2881,7 +2889,7 @@ function tlShowBucket(i){const box=el("tlHistPick"),b=TL_BUCKETS[i]; if(!box||!b
 function renderTimelines(){
   tlSyncScopeUI();
   renderTlHeadlines();renderTlTrend();renderTlLagTime();renderTlCumulative();renderTlHistogram();renderTlBreakdown();
-  renderDenials();renderPending();renderReqDates();
+  renderDenials();renderPending();renderReqDates();renderAppeals();
   const tp=el("tlTrendPick"); if(tp)tp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a year above to list the disasters declared that year.</div>';
   const hp=el("tlHistPick"); if(hp)hp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a bar above to list the disasters in that lag range.</div>';
 }
@@ -3046,7 +3054,7 @@ const DN_BUCKETS=[{lab:"0–14",f:v=>v>=0&&v<=14},{lab:"15–30",f:v=>v>=15&&v<=
 function dnLoad(){
   if(dnPending||DENIALS!==null)return; dnPending=true;
   fetch("data/denials.json").then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{
-    DENIALS=d; dnPending=false; const v=el("view-timelines"); if(v&&v.classList.contains("active")){renderDenials();if(REQDATES&&!REQDATES.error)renderReqDates();}
+    DENIALS=d; dnPending=false; const v=el("view-timelines"); if(v&&v.classList.contains("active")){renderDenials();renderPending();if(REQDATES&&!REQDATES.error)renderReqDates();}
   }).catch(()=>{dnPending=false; DENIALS=[]; renderDenials();});
 }
 function dnData(){const a=DENIALS||[]; return TL_SCOPE==="national"?a:a.filter(d=>d.region===5);}
@@ -3070,7 +3078,7 @@ function dnShowBucket(i){const box=el("dnDistPick"),b=DN_BUCKETS[i];if(!box||!b)
 function dnSetLag(b){if(b===dnLagBasis)return;dnLagBasis=b;const w=el("dnLagToggle");if(w)w.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x.dataset.dnlag===b));renderDnHeadlines();renderDnDist();renderDnBreakdown();const dp=el("dnDistPick");if(dp)dp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a bar above to list the turndowns in that range.</div>';}
 function renderDenials(){
   if(DENIALS===null){dnLoad();const h=el("dnHeadlines");if(h)h.innerHTML='<div class="skeleton"><span class="spin"></span> Loading denials…</div>';return;}
-  renderDnHeadlines();renderDnDist();renderDnTrend();renderDnBreakdown();
+  renderDnHeadlines();renderDnDist();renderDnTrend();renderDnBreakdown();renderDnStateTable();
   const tp=el("dnTrendPick");if(tp)tp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a year above to list that year\'s turndowns.</div>';
   const dp=el("dnDistPick");if(dp)dp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a bar above to list the turndowns in that range.</div>';
 }
@@ -3180,6 +3188,72 @@ function renderDnBreakdown(){
   box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${bars}</svg>`
     +`<p class="thr-sub" style="margin-top:6px">${isCount?"Number of turndowns whose request included each program (a request can span several).":`Median days from ${dnLagBasis==="request"?"request filed":"incident start"} to denial, longest first. n = turndowns in group; small n is noisy.`}${capped?` Showing ${CAP} of ${total}.`:""}</p>`;
 }
+/* ===== BY STATE: turndown rate & decision speed (declared vs denied, scope-aware) ===== */
+function renderDnStateTable(){
+  const box=el("dnStateTable");if(!box)return;
+  const den=dnData(), dec=tlData();  // both scope-aware (R5 or national)
+  if(!den.length&&!dec.length){box.innerHTML='<p class="thr-sub">No records for this scope.</p>';return;}
+  const nat=TL_SCOPE==="national";
+  const g={};  // state -> {dec:[lags], den:[lags], decN, denN}
+  const get=s=>(g[s]=g[s]||{dec:[],den:[],decN:0,denN:0});
+  dec.forEach(d=>{if(!d.state)return;const e=get(d.state);e.decN++;const l=tlLag(d);if(l!=null)e.dec.push(l);});
+  den.filter(d=>d.type==="DR").forEach(d=>{if(!d.state)return;const e=get(d.state);e.denN++;const l=dnLag(d);if(l!=null)e.den.push(l);});
+  // require a minimum of declared+denied requests so the rate isn't one-off noise
+  const MINREQ=nat?4:1;
+  let arr=Object.entries(g).map(([s,e])=>{const tot=e.decN+e.denN;return {s,tot,denN:e.denN,decN:e.decN,
+    rate:tot?e.denN/tot:0, apprMed:tlMedian(e.dec), denMed:tlMedian(e.den)};})
+    .filter(x=>x.tot>=MINREQ);
+  arr.sort((a,b)=>b.rate-a.rate||b.denN-a.denN||b.tot-a.tot);
+  if(!arr.length){box.innerHTML='<p class="thr-sub">Not enough requests in this scope to rank states.</p>';return;}
+  const CAP=nat?25:arr.length, capped=arr.length>CAP, total=arr.length; if(capped)arr=arr.slice(0,CAP);
+  const sub=el("dnStateSub");if(sub)sub.textContent=`denial rate (denied ÷ denied+declared, major-disaster requests) and median decision lag, per state · ${nat?"national":"Region 5"}`;
+  const nameOf=s=>nat?esc(s):esc(TL_STATES[s]||s);
+  const rateCol=p=>p>=.5?"#d7191c":p>=.25?"#e8590c":p>=.1?"#d4a017":"#1a9850";
+  const rows=arr.map(x=>{
+    const pct=Math.round(x.rate*100), bw=Math.round(x.rate*100);
+    const bar=`<div style="display:flex;align-items:center;gap:8px"><div style="flex:0 0 56px;height:9px;background:#eef2f6;border-radius:5px;overflow:hidden"><div style="width:${bw}%;height:100%;background:${rateCol(x.rate)}"></div></div><b style="color:${rateCol(x.rate)};font-variant-numeric:tabular-nums">${pct}%</b></div>`;
+    return `<tr><td><b>${nameOf(x.s)}</b></td><td style="text-align:right;font-variant-numeric:tabular-nums">${x.denN}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${x.decN}</td><td>${bar}</td>`
+      +`<td style="text-align:right;font-variant-numeric:tabular-nums">${x.apprMed==null?"—":x.apprMed+"d"}</td>`
+      +`<td style="text-align:right;font-variant-numeric:tabular-nums">${x.denMed==null?"—":x.denMed+"d"}</td></tr>`;}).join("");
+  box.innerHTML=`<div style="overflow-x:auto"><table class="ptable"><thead><tr><th>State</th><th style="text-align:right">Denied</th><th style="text-align:right">Declared</th><th>Denial rate</th><th style="text-align:right" title="median incident-start → declaration">Appr. lag</th><th style="text-align:right" title="median incident-start → denial">Denial lag</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    +`<p class="thr-sub" style="margin-top:8px"><b>Denial rate</b> = denied ÷ (denied + declared), major-disaster (DR) requests only. <b>Declared</b> counts come from ${nat?"the nationwide declaration set":"the Region&nbsp;5 ledger"}; <b>denied</b> from OpenFEMA DeclarationDenials. Lags are <b>incident start → decision</b> medians (— when none). Sorted by denial rate; states with fewer than ${MINREQ} total request${MINREQ===1?"":"s"} omitted${capped?` · showing top ${CAP} of ${total}`:""}.</p>`;
+}
+/* ===== APPEALS / RESUBMISSIONS (outcome tracking from the brief archive) ===== */
+const AP_OUT={approved:{lab:"Approved",col:"#1a9850",bg:"#eaf6ec"},denied:{lab:"Denied again",col:"#d7191c",bg:"#fdecea"},in_process:{lab:"In process",col:"#b5651d",bg:"#fdf1e3"},unresolved:{lab:"No recorded outcome",col:"#8a94a6",bg:"#eef2f6"}};
+function renderAppeals(){
+  const sub=el("apSub"), body=el("apBody"); if(!body)return;
+  if(REQDATES===null){rdLoad();body.innerHTML='<div class="skeleton"><span class="spin"></span> Loading appeal history…</div>';if(sub)sub.textContent="";return;}
+  if(REQDATES.error||!REQDATES.appeals){body.innerHTML='<p class="thr-sub">Appeal history isn\'t available in this dataset yet.</p>';if(sub)sub.textContent="";return;}
+  const ap=REQDATES.appeals, nat=TL_SCOPE==="national";
+  let cycles=(ap.cycles||[]).slice();
+  if(!nat)cycles=cycles.filter(c=>c.region===5);
+  if(sub)sub.innerHTML=`${cycles.length} ${nat?"national":"Region&nbsp;5"} appeal cycle${cycles.length===1?"":"s"} · parsed from the Daily Ops Brief archive · <a href="${DOB_SOURCE_URL}" target="_blank" rel="noopener" style="color:var(--navy);font-weight:700">source ↗</a>`;
+  if(!cycles.length){body.innerHTML=`<p class="thr-sub">No appeal/resubmission cycles found for this scope in the brief archive (Sept 2022 on). Switch to National above to see all ${(ap.cycles||[]).length}.</p>`;return;}
+  const cnt=o=>cycles.filter(c=>c.outcome===o).length;
+  const approved=cnt("approved"), denied=cnt("denied"), inproc=cnt("in_process"), unres=cnt("unresolved");
+  const decided=approved+denied;
+  const card=(lab,big,s2,col)=>`<div class="costcard"${col?` style="border-left:4px solid ${col}"`:""}><div class="lab">${lab}</div><div class="big">${big}</div><span class="thr-sub">${s2}</span></div>`;
+  const cards=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:14px">`
+    +card("Appeals decided",`${decided}`,`of ${cycles.length} tracked · ${inproc} in process${unres?`, ${unres} no outcome`:""}`)
+    +(decided?card("Upheld (denied again)",`${decided?Math.round(denied/decided*100):0}%`,`${denied} of ${decided} decided appeals`,"#d7191c"):"")
+    +(decided?card("Overturned (approved)",`${approved}`,`${decided?Math.round(approved/decided*100):0}% of decided appeals`,"#1a9850"):"")
+    +`</div>`;
+  const verdict=decided?`<div class="note" style="margin:0 0 14px;background:${denied>=approved?"#fdecea":"#eaf6ec"};border-color:${denied>=approved?"#f4c7c0":"#bfe3c6"}"><span class="i" style="background:${denied>=approved?"#b32218":"#1a7a3e"}">${denied>=approved?"!":"✓"}</span><span>${denied>=approved?`<b>Appeals rarely overturn a turndown.</b> Of ${decided} resubmitted ${nat?"national":"Region&nbsp;5"} requests FEMA decided, <b>${denied} were denied again</b> and only ${approved} were approved.`:`Of ${decided} decided ${nat?"national":"Region&nbsp;5"} appeals, <b>${approved} were approved</b> and ${denied} denied again.`} Appeal outcomes appear nowhere in OpenFEMA — this is reconstructed from the daily briefing.</span></div>`:"";
+  const ORDER={approved:0,denied:1,in_process:2,unresolved:3};
+  cycles.sort((a,b)=>(ORDER[a.outcome]-ORDER[b.outcome])||(b.appealSeen||"").localeCompare(a.appealSeen||""));
+  const list=cycles.map(c=>{
+    const o=AP_OUT[c.outcome]||AP_OUT.unresolved;
+    const ent=c.entityName?`${esc(c.entity||"")} · ${esc(c.entityName)}`:esc(c.entity||c.state||"—");
+    const st=nat&&c.state&&c.state!==c.entity?`<b style="color:var(--navy)">${esc(c.state)}</b> `:"";
+    const burl=c.decisionUrl||c.appealUrl||c.firstUrl;
+    const brief=burl?` · <a href="${esc(burl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="The actual Daily Ops Brief PDF" style="color:var(--navy)">brief ↗</a>`:"";
+    const when=c.decisionDate?`decided ${fmtDate(c.decisionDate)}`:`appealed ${fmtDate(c.appealSeen)}`;
+    return `<div class="declrow"><span class="dk">${st}<b>${ent}</b> · ${esc(titleCase(c.incident||""))}${brief}</span>`
+      +`<span class="dv"><span class="apchip" style="background:${o.bg};color:${o.col}">${o.lab}</span> · ${when}</span></div>`;}).join("");
+  body.innerHTML=verdict+cards
+    +`<div class="declhd"><b>${nat?"National":"Region&nbsp;5"} appeal cycles</b> — newest first, by outcome</div>${list}`
+    +`<p class="thr-sub" style="margin-top:8px">An <b>appeal</b> is a resubmitted request the briefing tags "– Appeal"; the <b>outcome</b> is the briefing's later "– Approved"/"– Denied" tag (dated at or after the appeal). <b>In process</b> = still appearing in recent briefs; <b>no recorded outcome</b> = dropped from the briefing without a decision tag. One incident can spawn more than one cycle (program splits). Unofficial Daily-Ops-Brief parse, <b>not</b> OpenFEMA.</p>`;
+}
 /* ===== PENDING declaration requests (unofficial FEMA Daily Ops Brief parse) ===== */
 let PENDING=null, pendPending=false;
 let REQDATES=null, rdPending=false;  // request dates harvested from the Daily Ops Brief archive
@@ -3194,6 +3268,23 @@ function pendDays(d){ // days waiting recomputed to "today" so it stays live bet
   if(!d.requestDate)return d.daysWaiting;
   return Math.max(0,Math.round((Date.now()-tlDayNum(d.requestDate))/86400000));
 }
+// Queue-position context: pool of historical request->decision lags (days), scope-aware —
+// harvested approvals (request->declaration) + OpenFEMA denials (request->denial). A pending
+// request's current wait is compared against this to show where it sits, purely descriptively.
+function decidedLagPool(){
+  const pool=[], nat=TL_SCOPE==="national";
+  if(REQDATES&&REQDATES.byDisaster)Object.values(REQDATES.byDisaster).forEach(m=>{
+    if(m.reqToDeclLagDays==null)return; if(!nat&&m.region!==5)return; pool.push(m.reqToDeclLagDays);});
+  if(DENIALS&&DENIALS.length)(nat?DENIALS:DENIALS.filter(d=>d.region===5)).forEach(d=>{
+    if(d.reqDate&&d.statusDate){const v=Math.round((tlDayNum(d.statusDate)-tlDayNum(d.reqDate))/86400000); if(v>=0)pool.push(v);}});
+  return pool.sort((a,b)=>a-b);
+}
+function pctileLE(sorted,v){ // share of pool <= v
+  if(!sorted.length)return null; let lo=0,hi=sorted.length;
+  while(lo<hi){const m=(lo+hi)>>1; if(sorted[m]<=v)lo=m+1; else hi=m;} return lo/sorted.length;
+}
+function pendPctLabel(p){const pc=Math.round(p*100);const col=p>=.9?"#d7191c":p>=.75?"#e8590c":"var(--ink-3)";
+  return `<span style="color:${col}">longer than ${pc}% decided</span>`;}
 function renderPending(){
   const sub=el("pendSub"), body=el("pendBody"); if(!body)return;
   if(PENDING===null){pendLoad();body.innerHTML='<div class="skeleton"><span class="spin"></span> Loading pending requests…</div>';if(sub)sub.textContent="";return;}
@@ -3203,23 +3294,28 @@ function renderPending(){
   if(sub)sub.innerHTML=`${rows.length} ${TL_SCOPE==="national"?"national":"Region&nbsp;5"} · as of ${brief}${PENDING.briefUrl?` · <a href="${esc(PENDING.briefUrl)}" target="_blank" rel="noopener" style="color:var(--navy);font-weight:700">source brief ↗</a>`:""}`;
   if(!rows.length){body.innerHTML=`<p class="thr-sub">No pending Region&nbsp;5 requests in the latest briefing (${brief}). Switch to National above to see all ${all.length}.</p>`;return;}
   rows.sort((a,b)=>(pendDays(b)||0)-(pendDays(a)||0));
+  // queue-position context: load the comparison datasets if absent, then build the lag pool
+  if(DENIALS===null)dnLoad(); if(REQDATES===null)rdLoad();
+  const pool=decidedLagPool(); const usePct=pool.length>=8;
   const prog=d=>[d.ia?"IA":"",d.pa?"PA":"",d.hm?"HM":""].filter(Boolean).map(p=>`<span class="pchip">${p}</span>`).join("")||"<span class='thr-sub'>—</span>";
   const items=rows.map(d=>{
     const ent=d.entityName?`${esc(d.entity)} · ${esc(d.entityName)}`:esc(d.entity);
     const wait=pendDays(d);
+    const pct=usePct&&wait!=null?pctileLE(pool,wait):null;
+    const waitSub=pct!=null?`<div class="thr-sub" style="font-weight:400">${pendPctLabel(pct)}</div>`:"";
     const reqCell=d.requestDate?`<span${d.requestYearInferred?' title="year inferred — the briefing prints only the month/day"':''}>${fmtDate(d.requestDate)}${d.requestYearInferred?' <span style="color:var(--ink-3)">·est</span>':''}</span>`:esc(d.requestedRaw||"—");
     let incCell=d.incidentPeriod?`<span title="from a per-request detail page in the briefing">${esc(d.incidentPeriod)}${d.daysSinceIncident!=null?` <span class="thr-sub">(${d.daysSinceIncident}d)</span>`:""}</span>`:'<span class="thr-sub">—</span>';
     if(d.countiesRequested){const cc=Object.entries(d.countiesRequested).map(([k,v])=>`${esc(k)} ${v==="Statewide"?"statewide":v}`).join(" · ");
       incCell+=`<div class="thr-sub" title="counties requested, from the briefing detail page">counties: ${cc}${PENDING.briefUrl?` <a href="${esc(PENDING.briefUrl)}" target="_blank" rel="noopener" style="color:var(--navy)">↗</a>`:""}</div>`;}
-    return `<tr><td><b>${ent}</b>${d.region===5?'':''}${d.appeal?' <span class="abadge">APPEAL</span>':""}</td><td>${esc(titleCase(d.incident))}</td><td>${d.type}</td><td>${prog(d)}</td><td>${reqCell}</td><td style="text-align:right;font-weight:700">${wait==null?"—":wait+"d"}</td><td>${incCell}</td></tr>`;}).join("");
+    return `<tr><td><b>${ent}</b>${d.region===5?'':''}${d.appeal?' <span class="abadge">APPEAL</span>':""}</td><td>${esc(titleCase(d.incident))}</td><td>${d.type}</td><td>${prog(d)}</td><td>${reqCell}</td><td style="text-align:right;font-weight:700">${wait==null?"—":wait+"d"}${waitSub}</td><td>${incCell}</td></tr>`;}).join("");
   body.innerHTML=`<div style="overflow-x:auto"><table class="ptable"><thead><tr><th>State / Tribe / Territory</th><th>Incident</th><th>Type</th><th>Programs</th><th>Requested</th><th style="text-align:right">Waiting</th><th>Incident period</th></tr></thead><tbody>${items}</tbody></table></div>`
-    +`<p class="thr-sub" style="margin-top:10px"><b>Waiting</b> = days since the request was filed (the briefing's "Requested" date), recomputed to today — <b>not</b> from the incident start, which the summary table doesn't carry. <b>Incident period</b> appears only when the briefing includes a per-request detail page (newly-filed requests); Phase&nbsp;2's daily harvest will backfill more. Request <b>year is inferred</b> (·est) where the briefing prints only "Mon Day"; long-pending appeals may be a year older. Type <b>DR</b> = Major Disaster, <b>EM</b> = Emergency; <b>IA/PA/HM</b> = programs requested. Source: FEMA Daily Operations Briefing (unofficial parse) · header-count cross-check ${PENDING.parsedCount}/${PENDING.headerCount} ✓.</p>`;
+    +`<p class="thr-sub" style="margin-top:10px"><b>Waiting</b> = days since the request was filed (the briefing's "Requested" date), recomputed to today — <b>not</b> from the incident start, which the summary table doesn't carry.${usePct?` The <b>"longer than X% decided"</b> line under each wait shows where that wait falls in the historical spread of <b>request→decision</b> times (${pool.length} past ${TL_SCOPE==="national"?"national":"R5"} approvals + denials) — purely descriptive context, <b>not</b> a prediction.`:""} <b>Incident period</b> appears only when the briefing includes a per-request detail page (newly-filed requests); Phase&nbsp;2's daily harvest will backfill more. Request <b>year is inferred</b> (·est) where the briefing prints only "Mon Day"; long-pending appeals may be a year older. Type <b>DR</b> = Major Disaster, <b>EM</b> = Emergency; <b>IA/PA/HM</b> = programs requested. Source: FEMA Daily Operations Briefing (unofficial parse) · header-count cross-check ${PENDING.parsedCount}/${PENDING.headerCount} ✓.</p>`;
 }
 /* ===== REQUEST → DECISION timing (request dates harvested from the Daily Ops Brief) ===== */
 function rdLoad(){
   if(rdPending||REQDATES!==null)return; rdPending=true;
   fetch("data/request_dates.json").then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{
-    REQDATES=d; rdPending=false; const v=el("view-timelines"); if(v&&v.classList.contains("active"))renderReqDates();
+    REQDATES=d; rdPending=false; const v=el("view-timelines"); if(v&&v.classList.contains("active")){renderReqDates();renderAppeals();renderPending();}
   }).catch(()=>{rdPending=false; REQDATES={error:1,byDisaster:{}}; renderReqDates();});
 }
 function rdDenialReqLags(){ // request→denial decision lag from OpenFEMA denials (scope-aware)
