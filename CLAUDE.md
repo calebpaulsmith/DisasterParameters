@@ -273,6 +273,20 @@ design rationale behind the NFIP and refresh items.
   predictive power of measured weather (extent/exposure drive obligations more than peak
   intensity — see the hazards note above) and about not being an eligibility determination.
   Logged here purely so the context + caveats aren't lost if it's picked up later.
+- **Denials / requests page — analytics cross-cuts.** Built so far on the Disaster Timelines
+  page (all scope-aware via the Region 5 / National clicker): **(1) Appeal-outcome tracking** —
+  `request_dates.json` carries an `appeals` block (`scripts/build_request_dates.py`
+  `extract_appeals()`) reconstructed from the brief archive: each resubmission tagged "– Appeal"
+  followed to its "– Approved"/"– Denied" outcome (the only public appeal-outcome trail; OpenFEMA
+  has none). Surfaced as the "Appeals & resubmissions" card. **(2) Queue-position percentile** —
+  each pending row shows where its current wait sits in the historical request→decision spread
+  (`decidedLagPool()`), purely descriptive. **(3) State league table** — denial rate + median
+  appr/denial lag per state ("By state: turndown rate & decision speed"). **PARKED for a future
+  version: an administration/era cross-cut** — denial rate + median lag sliced by presidential
+  administration or by year (policy posture on declarations shifts over time). Easy slice of data
+  already in hand (`reqDate`/`begin` → year → era); deferred only to avoid scope creep. Other
+  logged-but-unbuilt ideas: brief-archive coverage meter (what % of FY2007+ the Sept-2022+ archive
+  covers) and an incident-type denial-rate ranking.
 
 - **NFIP Phase 2 — claim-level drill-down.** Phase 1 (committed `data/nfip.json`) is a
   county×year rollup. Claim-level (`FimaNfipClaims` per-record: `dateOfLoss`, census-tract
