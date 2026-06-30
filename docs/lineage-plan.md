@@ -12,8 +12,14 @@ from the Guardian's own run. Live-source column tracing **shipped** — NWS/USGS
 sources are now wired to the Watch surface (no longer orphan nodes), carry their real
 fields, and a field click traces them "read live" to the surface via an `index.html`
 scan (`build_lineage.py` now attributes columns to surface consumers, not just
-transform scripts). Phase 1 (health) folded into render-time per §5. Next: freshness
-coverage for no-date files, live API up/down probes. This doc is the source of truth;
+transform scripts). Freshness coverage **shipped** — `build_manifest.py` now stamps a
+"covers-through" `dataAsOf` (explicit build/coverage field, else newest dated record) +
+an honest `sourceCadence` on every committed file; genuinely static/reference files
+(county geometry, the IHP rollup) render as a calm "reference" state instead of grey
+"no date", and the manifest describes itself. (Surfaced a real signal: the
+disasters/disasters_national snapshots read **stale** vs their daily source.) Phase 1
+(health) folded into render-time per §5. Next: live API up/down probes. This doc is the
+source of truth;
 update it as phases land; do **not** let scope quietly shrink
 — see [§9 Scope guard](#9-scope-guard--deferred-but-do-not-drop).
 

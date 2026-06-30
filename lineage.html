@@ -36,6 +36,7 @@ a{color:var(--blue);}
 .chip-h{display:inline-flex;align-items:center;gap:5px;}
 .sw{width:11px;height:11px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.15);}
 .sw.fresh{background:var(--green);}.sw.aging{background:var(--gold);}.sw.stale{background:var(--red-vivid);}
+.sw.static{background:#00bde3;}
 .sw.unknown{background:repeating-linear-gradient(45deg,#cfd3d8 0 4px,#eef0f2 4px 8px);}
 .toolbar input[type=search]{padding:7px 11px;border:1px solid var(--line-2);border-radius:7px;font-family:inherit;font-size:13px;min-width:150px;}
 .toolbar select{padding:7px 9px;border:1px solid var(--line-2);border-radius:7px;font-family:inherit;font-size:13px;background:var(--white);max-width:210px;}
@@ -82,7 +83,7 @@ a{color:var(--blue);}
 .row .k{color:var(--ink-3);min-width:84px;flex:none;font-weight:600;}
 .row .v{color:var(--ink);min-width:0;}
 .statusline{font-weight:800;}
-.statusline.fresh{color:var(--green-dark);}.statusline.aging{color:var(--gold-dark);}.statusline.stale{color:var(--red);}.statusline.unknown{color:var(--ink-3);}
+.statusline.fresh{color:var(--green-dark);}.statusline.aging{color:var(--gold-dark);}.statusline.stale{color:var(--red);}.statusline.static{color:#0096b7;}.statusline.unknown{color:var(--ink-3);}
 .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px;}
 .chip{font-size:11.5px;background:var(--bg-2);border:1px solid var(--line-2);border-radius:14px;padding:2px 9px;cursor:pointer;color:var(--navy);}
 .chip:hover{background:var(--blue-light);}
@@ -117,6 +118,7 @@ details summary{cursor:pointer;font-size:12.5px;color:var(--blue);font-weight:60
       <span class="chip-h"><span class="sw fresh"></span>fresh</span>
       <span class="chip-h"><span class="sw aging"></span>aging</span>
       <span class="chip-h"><span class="sw stale"></span>stale</span>
+      <span class="chip-h"><span class="sw static"></span>reference</span>
       <span class="chip-h"><span class="sw unknown"></span>no date</span>
     </div>
     <input type="search" id="search" placeholder="Find a node…" aria-label="Find a node" />
@@ -168,7 +170,7 @@ function groupOf(n){
 
 let NODEH=30,VGAP=40,TOP=64,LEFT=24,COLW=270,NODEW=196;
 function sizeConsts(){const w=window.innerWidth;if(w<760){COLW=182;NODEW=152;}else{COLW=270;NODEW=196;}}
-const RANK={none:0,fresh:0,unknown:1,aging:2,stale:3};
+const RANK={none:0,fresh:0,static:0,unknown:1,aging:2,stale:3};
 
 let MAN=null,FILES={},nodes=[],byKey={},dataById={},provById={},edges=[],outAdj={},inAdj={};
 let selected=null,isolateKey=null,activeGroups=new Set(GROUPS.map(g=>g[0]));
@@ -192,7 +194,8 @@ function cadenceDays(c){c=(c||"").toLowerCase();if(!c)return null;
   if(c.includes("quarter"))return 92;if(c.includes("year")||c.includes("annual"))return 366;return null;}
 function parseAsOf(s){if(!s)return null;if(/^\d{4}-\d{2}$/.test(s))return new Date(s+"-28T23:59:59Z");const d=new Date(s);return isNaN(d.getTime())?null:d;}
 function artHealth(id){const f=FILES[id]||{};const as=parseAsOf(f.dataAsOf),cd=cadenceDays(f.sourceCadence);
-  if(!as)return {status:"unknown",basis:f.sourceCadence?("cadence "+f.sourceCadence+", no as-of date"):"no freshness metadata"};
+  if(!as){if(f.sourceCadence&&/static|as[ -]?need|reference|stable/i.test(f.sourceCadence))return {status:"static",basis:f.sourceCadence+" — reference data, no refresh clock"};
+    return {status:"unknown",basis:f.sourceCadence?("cadence "+f.sourceCadence+", no as-of date"):"no freshness metadata"};}
   const ageD=(Date.now()-as.getTime())/864e5,asL="as of "+f.dataAsOf+(f.sourceCadence?(" · "+f.sourceCadence):"");
   if(cd==null)return {status:"fresh",basis:asL+" (no fixed cadence)"};
   if(ageD<=cd+Math.max(cd,7))return {status:"fresh",basis:asL};
@@ -201,7 +204,7 @@ function artHealth(id){const f=FILES[id]||{};const as=parseAsOf(f.dataAsOf),cd=c
 function isArtifact(id){return byKey["artifact:"+id]!==undefined;}
 function surfHealth(su){let worst="fresh";(su.reads||[]).forEach(r=>{if(FILES[r]!==undefined||isArtifact(r)){const h=artHealth(r).status;if(RANK[h]>RANK[worst])worst=h;}});return worst;}
 function nodeHealth(n){if(n.kind==="artifact")return artHealth(n.id).status;if(n.kind==="surface")return surfHealth(n.d);return "none";}
-function healthColor(s){return s==="fresh"?"#00a91c":s==="aging"?"#ffbe2e":s==="stale"?"#e41d3d":s==="unknown"?"#aeb4bb":null;}
+function healthColor(s){return s==="fresh"?"#00a91c":s==="aging"?"#ffbe2e":s==="stale"?"#e41d3d":s==="static"?"#00bde3":s==="unknown"?"#aeb4bb":null;}
 
 function build(man){
   MAN=man;FILES=(man.files||{});
@@ -357,10 +360,10 @@ function handleColClick(srcKey,col,chipEl){
       ft.querySelectorAll(".chip[data-key]").forEach(c=>c.addEventListener("click",()=>{const k=c.getAttribute("data-key");selected=k;render();showDetailKey(k);}));}
   }
 }
-function overview(){const p=document.getElementById("panel");const arts=(MAN.artifacts||[]);const t={fresh:0,aging:0,stale:0,unknown:0};
+function overview(){const p=document.getElementById("panel");const arts=(MAN.artifacts||[]);const t={fresh:0,aging:0,stale:0,static:0,unknown:0};
   arts.forEach(a=>{t[artHealth(a.id).status]++;});
   p.innerHTML=`<h2>Provenance Atlas</h2><div class="desc">Click any node to trace its <b>upstream</b> (root cause) and <b>downstream</b> (impact) cone. Use <b>Programs</b> to hide domains, <b>Trace a UI surface</b> or <b>Isolate</b> to focus one dependency chain.</div>`
-    +`<div class="row"><span class="k">Artifacts</span><span class="v"><span class="statusline fresh">${t.fresh} fresh</span> · <span class="statusline aging">${t.aging} aging</span> · <span class="statusline stale">${t.stale} stale</span> · <span class="statusline unknown">${t.unknown} no-date</span></span></div>`
+    +`<div class="row"><span class="k">Artifacts</span><span class="v"><span class="statusline fresh">${t.fresh} fresh</span> · <span class="statusline aging">${t.aging} aging</span> · <span class="statusline stale">${t.stale} stale</span> · <span class="statusline static">${t.static} reference</span>${t.unknown?` · <span class="statusline unknown">${t.unknown} no-date</span>`:""}</span></div>`
     +`<div class="row"><span class="k">Health</span><span class="v muted">Each file's <code>dataAsOf</code> vs its source cadence (<code>manifest.json</code>), propagated to the surfaces that read it. Thresholds are a v1 heuristic.</span></div>`
     +`<div class="row"><span class="k">Verified</span><span class="v muted">Structure is CI-checked by the Guardian (<code>verify_lineage.py</code>) on every push.</span></div>`;}
 
