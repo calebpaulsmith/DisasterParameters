@@ -249,32 +249,30 @@ Parked follow-ups, in rough priority order. None of these are required for the a
 work today — they're enhancements. See `docs/refresh-architecture.md` for the fuller
 design rationale behind the NFIP and refresh items.
 
-- **Pending declarations → Phase 2 (request-date harvest) + the capacity-call vision.**
-  `data/pending.json` (committed, from `scripts/build_pending.py`) is **Phase 1**: a parse of
-  the LATEST Daily Ops Brief's "Requests in Process" table, shown under Disaster Timelines.
-  The owner's stated intent for this surface (record it, don't lose it): for each pending
-  request, **assign/review parameters and form a judgment on whether the event is likely to
-  exceed state/local capacity** (the core Stafford-Act declaration question) — synthesizing
-  what we already have in **Watch** (live gages/alerts), the **Ledger** (analogous past
-  disasters + their obligations), and the **predictor/estimator** (base rates, triggers,
-  comparables). Caveat the owner flagged: our measured **weather data is not very predictive**
-  of obligations (extent/exposure matter more than peak intensity — see the hazards note above).
-  **Counties-requested** would sharpen this and is NOT as DOA as first feared: the brief's
-  per-request **detail pages** (incident period + counties by program) and the **Joint
-  Preliminary Damage Assessments** page (counties under assessment + event dates) carry it for
-  newly-active requests — Phase 1 already merges detail-page data when present.
-  **Phase 2** (separate, reviewed PR): harvest the historical brief archive (Data Liberation
-  Project feed → govdelivery PDFs, back to Sept 2022), dedup each request across the days it
-  recurs, and **conservatively (high-confidence only)** match requests to OpenFEMA
-  declarations/denials by state+incident-type+time-window. This yields the **request date for
-  DECLARED disasters** — which OpenFEMA never publishes (it carries request dates only for
-  denials) — enabling a true **request→declaration lag** and finally making the Denials chart's
-  request-basis toggle an apples-to-apples **denial-vs-approval** comparison. CROSS-CHECK the
-  harvested request dates against OpenFEMA's denial request dates (ground truth we already have)
-  + sanity (request ≤ decision, request ≥ incident begin). The wrinkle: one incident often has
-  MULTIPLE requests/declarations (program splits, denials→appeals — appeals are tagged
-  "– Appeal" in the brief), so keep matching conservative and label every derived figure as a
-  Daily-Ops-Brief parse, not OpenFEMA. Also backfill incident periods/counties for more requests.
+- ~~**Pending declarations → Phase 2 (request-date harvest).**~~ DONE — `data/pending.json`
+  (Phase 1, `scripts/build_pending.py`) parses the latest Daily Ops Brief's "Requests in
+  Process" table. `data/request_dates.json` (Phase 2, `scripts/build_request_dates.py`)
+  harvests the historical brief archive (Data Liberation Project, back to Sept 2022),
+  conservatively matches requests to OpenFEMA declarations/denials, and now covers
+  declared disasters **nationwide** (not just R5), cross-checked against OpenFEMA's denial
+  request dates (ground truth). Per-disaster designated + JPDA-reconciled county counts are
+  also wired in (`countyCheck`). All shown under Disaster Timelines.
+- **Capacity-judgment surface — PARKED, likely a separate product, not this app.** The
+  owner's original ask (record it, don't lose it): for each pending request, **form a
+  judgment on whether the event is likely to exceed state/local capacity** (the core
+  Stafford-Act declaration question) by synthesizing **Watch** (live gages/alerts), the
+  **Ledger** (analogous past disasters + obligations), and the **predictor/estimator** (base
+  rates, triggers, comparables). On scoping this out (see chat log), the conclusion was that
+  this is **too ambitious for a documentation tool** — it shades into an actual prediction
+  product (ingest live conditions, score against historical analogs, output a
+  judgment/likelihood) rather than a traceable-facts reference tool, which is this app's whole
+  premise. **Decision: do not build this inside DisasterParameters.** If pursued, it should be
+  a **separate, clearly-labeled product** built on top of the same public data (disasters.json,
+  gages.json, predictor/triggers, request_dates.json), explicitly framed as a predictive/
+  judgment tool rather than a facts ledger — with its own disclaimers about the weak
+  predictive power of measured weather (extent/exposure drive obligations more than peak
+  intensity — see the hazards note above) and about not being an eligibility determination.
+  Logged here purely so the context + caveats aren't lost if it's picked up later.
 
 - **NFIP Phase 2 — claim-level drill-down.** Phase 1 (committed `data/nfip.json`) is a
   county×year rollup. Claim-level (`FimaNfipClaims` per-record: `dateOfLoss`, census-tract
