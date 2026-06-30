@@ -118,7 +118,7 @@ details summary{cursor:pointer;font-size:12.5px;color:var(--blue);font-weight:60
       <span class="chip-h"><span class="sw fresh"></span>fresh</span>
       <span class="chip-h"><span class="sw aging"></span>aging</span>
       <span class="chip-h"><span class="sw stale"></span>stale</span>
-      <span class="chip-h"><span class="sw static"></span>reference</span>
+      <span class="chip-h"><span class="sw static"></span>snapshot</span>
       <span class="chip-h"><span class="sw unknown"></span>no date</span>
     </div>
     <input type="search" id="search" placeholder="Find a node…" aria-label="Find a node" />
@@ -193,14 +193,29 @@ function cadenceDays(c){c=(c||"").toLowerCase();if(!c)return null;
   if(c.includes("dai"))return 1;if(c.includes("week"))return 7;if(c.includes("month"))return 31;
   if(c.includes("quarter"))return 92;if(c.includes("year")||c.includes("annual"))return 366;return null;}
 function parseAsOf(s){if(!s)return null;if(/^\d{4}-\d{2}$/.test(s))return new Date(s+"-28T23:59:59Z");const d=new Date(s);return isNaN(d.getTime())?null:d;}
-function artHealth(id){const f=FILES[id]||{};const as=parseAsOf(f.dataAsOf),cd=cadenceDays(f.sourceCadence);
-  if(!as){if(f.sourceCadence&&/static|as[ -]?need|reference|stable/i.test(f.sourceCadence))return {status:"static",basis:f.sourceCadence+" — reference data, no refresh clock"};
-    return {status:"unknown",basis:f.sourceCadence?("cadence "+f.sourceCadence+", no as-of date"):"no freshness metadata"};}
-  const ageD=(Date.now()-as.getTime())/864e5,asL="as of "+f.dataAsOf+(f.sourceCadence?(" · "+f.sourceCadence):"");
-  if(cd==null)return {status:"fresh",basis:asL+" (no fixed cadence)"};
-  if(ageD<=cd+Math.max(cd,7))return {status:"fresh",basis:asL};
-  if(ageD<=cd*5)return {status:"aging",basis:asL+" — running behind cadence"};
-  return {status:"stale",basis:asL+" — well past cadence"};}
+// An artifact is "auto" if some transform that builds it runs on an automated refresh
+// workflow (the WF map). For those, dataAsOf == the last successful pull, so a behind-
+// cadence value means the PULL is failing. Manually-built files have no such clock.
+function isAutoArtifact(id){const a=byKey["artifact:"+id];if(!a)return false;
+  return (a.d.producedBy||[]).some(tid=>{const t=byKey["transform:"+tid];return t&&WF[t.d.schedule];});}
+function artHealth(id){
+  const f=FILES[id]||{},as=parseAsOf(f.dataAsOf),cd=cadenceDays(f.sourceCadence),cad=f.sourceCadence||"";
+  // STALE/AGING only for automated-pipeline files (where dataAsOf is the last pull, so a
+  // lag means the connection/pipeline is failing). Record age ≠ staleness: a quiet
+  // disaster season must NOT turn the ledger red.
+  if(isAutoArtifact(id)&&as){
+    const asL="refreshed "+f.dataAsOf+(cad?(" · "+cad):"");
+    if(cd==null)return {status:"fresh",basis:asL};
+    const ageD=(Date.now()-as.getTime())/864e5;
+    if(ageD<=cd+Math.max(cd,7))return {status:"fresh",basis:asL};
+    if(ageD<=cd*5)return {status:"aging",basis:asL+" — pipeline behind schedule"};
+    return {status:"stale",basis:asL+" — pipeline not refreshing (pull may be failing)"};
+  }
+  // Everything else: a point-in-time snapshot / reference, no refresh-rate alarm.
+  if(as)return {status:"static",basis:"covers through "+f.dataAsOf+(cad?(" · source "+cad):"")+" — manual snapshot (no automated pull)"};
+  if(cad)return {status:"static",basis:cad+" — reference data, no refresh clock"};
+  return {status:"unknown",basis:"no freshness metadata"};
+}
 function isArtifact(id){return byKey["artifact:"+id]!==undefined;}
 function surfHealth(su){let worst="fresh";(su.reads||[]).forEach(r=>{if(FILES[r]!==undefined||isArtifact(r)){const h=artHealth(r).status;if(RANK[h]>RANK[worst])worst=h;}});return worst;}
 function nodeHealth(n){if(n.kind==="artifact")return artHealth(n.id).status;if(n.kind==="surface")return surfHealth(n.d);return "none";}
@@ -363,8 +378,8 @@ function handleColClick(srcKey,col,chipEl){
 function overview(){const p=document.getElementById("panel");const arts=(MAN.artifacts||[]);const t={fresh:0,aging:0,stale:0,static:0,unknown:0};
   arts.forEach(a=>{t[artHealth(a.id).status]++;});
   p.innerHTML=`<h2>Provenance Atlas</h2><div class="desc">Click any node to trace its <b>upstream</b> (root cause) and <b>downstream</b> (impact) cone. Use <b>Programs</b> to hide domains, <b>Trace a UI surface</b> or <b>Isolate</b> to focus one dependency chain.</div>`
-    +`<div class="row"><span class="k">Artifacts</span><span class="v"><span class="statusline fresh">${t.fresh} fresh</span> · <span class="statusline aging">${t.aging} aging</span> · <span class="statusline stale">${t.stale} stale</span> · <span class="statusline static">${t.static} reference</span>${t.unknown?` · <span class="statusline unknown">${t.unknown} no-date</span>`:""}</span></div>`
-    +`<div class="row"><span class="k">Health</span><span class="v muted">Each file's <code>dataAsOf</code> vs its source cadence (<code>manifest.json</code>), propagated to the surfaces that read it. Thresholds are a v1 heuristic.</span></div>`
+    +`<div class="row"><span class="k">Artifacts</span><span class="v"><span class="statusline fresh">${t.fresh} fresh</span> · <span class="statusline aging">${t.aging} aging</span> · <span class="statusline stale">${t.stale} stale</span> · <span class="statusline static">${t.static} snapshot</span>${t.unknown?` · <span class="statusline unknown">${t.unknown} no-date</span>`:""}</span></div>`
+    +`<div class="row"><span class="k">Health</span><span class="v muted">Only <b>automated-pipeline</b> files carry a staleness clock — amber/red means the pull has fallen behind schedule (likely a broken feed), not that records are old. Manual snapshots &amp; reference data show "covers through" with no alarm. Use <b>Pipeline health</b> to check the pulls directly.</span></div>`
     +`<div class="row"><span class="k">Verified</span><span class="v muted">Structure is CI-checked by the Guardian (<code>verify_lineage.py</code>) on every push.</span></div>`;}
 
 function buildFilters(){const f=document.getElementById("filters");
