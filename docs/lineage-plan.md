@@ -14,12 +14,16 @@ fields, and a field click traces them "read live" to the surface via an `index.h
 scan (`build_lineage.py` now attributes columns to surface consumers, not just
 transform scripts). Freshness coverage **shipped** — `build_manifest.py` now stamps a
 "covers-through" `dataAsOf` (explicit build/coverage field, else newest dated record) +
-an honest `sourceCadence` on every committed file; genuinely static/reference files
-(county geometry, the IHP rollup) render as a calm "reference" state instead of grey
-"no date", and the manifest describes itself. (Surfaced a real signal: the
-disasters/disasters_national snapshots read **stale** vs their daily source.) Phase 1
-(health) folded into render-time per §5. Next: live API up/down probes. This doc is the
-source of truth;
+an honest `sourceCadence` on every committed file, and the manifest describes itself.
+**Staleness semantics corrected:** only **automated-pipeline** files (recent/newsreel/
+manifest/nfip/pending/request_dates) carry a staleness clock — for them `dataAsOf` is the
+last successful pull, so amber/red means the **pull is failing**. Manually-built files
+(the ledger, national, gages, county rollups) and static geometry render as a neutral
+**snapshot/reference** state showing "covers through …" — record age is NOT treated as
+staleness (a quiet disaster season must not turn the ledger red). `isAutoArtifact()` in
+`lineage.html` derives this from each artifact's producing-transform schedule. Phase 1
+(health) folded into render-time per §5. Next: live API up/down probes + a live
+behind-source check (our latest record vs the source's). This doc is the source of truth;
 update it as phases land; do **not** let scope quietly shrink
 — see [§9 Scope guard](#9-scope-guard--deferred-but-do-not-drop).
 
