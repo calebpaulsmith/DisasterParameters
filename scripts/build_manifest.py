@@ -33,6 +33,7 @@ SOURCE_CADENCE = {
     "pending.json": "daily (Daily Ops Brief)",
     "request_dates.json": "weekly (Daily Ops Brief harvest)",
     "disaster_county_ihp.json": "as-needed (IHP rollup)",
+    "disaster_drc.json": "as-needed (source updates hourly; pulled manually)",
     "event_nexus.json": "as-needed",
     "context.json": "as-needed",
     "r5_counties.json": "static (county geometry)",
