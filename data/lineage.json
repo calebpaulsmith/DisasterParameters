@@ -38,6 +38,14 @@
       "links": [
         "https://github.com/data-liberation-project/fema-daily-ops-email-to-rss"
       ]
+    },
+    {
+      "id": "femagis",
+      "name": "FEMA Geospatial Resource Center",
+      "links": [
+        "https://gis-fema.hub.arcgis.com/",
+        "https://gis.fema.gov/"
+      ]
     }
   ],
   "sources": [
@@ -870,6 +878,23 @@
       "links": [
         "https://github.com/data-liberation-project/fema-daily-ops-email-to-rss"
       ]
+    },
+    {
+      "id": "femaDrcFeatureServer",
+      "providerId": "femagis",
+      "name": "FEMA/DRC (ArcGIS FeatureServer)",
+      "endpoint": "https://gis.fema.gov/arcgis/rest/services/FEMA/DRC/FeatureServer",
+      "binding": "live-queryable",
+      "cadence": "hourly (FEMA's DRC Manager program)",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
+      "description": "FEMA's own facility-tracking GIS feed for Disaster Recovery Centers (walk-in survivor assistance sites) — layer 0 'Open DRC' (currently active) + layer 1 'Archive - Closed DRC Locations' (historical). Not OpenFEMA; a separate FEMA GIS system. Each record's primary_disaster/secondary_disaster is a FEMA disaster number.",
+      "links": [
+        "https://gis-fema.hub.arcgis.com/maps/FEMA::disaster-recovery-centers/about"
+      ]
     }
   ],
   "transforms": [
@@ -1374,6 +1399,24 @@
       "links": [
         "index.html"
       ]
+    },
+    {
+      "id": "build_disaster_drc",
+      "name": "scripts/build_disaster_drc.py",
+      "runtime": "offline",
+      "schedule": "manual",
+      "method": "Pulls FEMA/DRC FeatureServer layers 0 (Open) + 1 (Archive-Closed) filtered to Region 5 states, joins each record's primary_disaster/secondary_disaster to disasters.json's disasterNumber; unmatched disaster-number refs conserved in an audit block, never dropped.",
+      "reads": [
+        "disasters.json",
+        "femaDrcFeatureServer"
+      ],
+      "writes": [
+        "disaster_drc.json"
+      ],
+      "description": "Builds disaster_drc.json: per-disaster list of Disaster Recovery Centers (name/type/address/status/open-close dates/hours), for the IA-section DRC badge in Geography + the Ledger detail modal.",
+      "links": [
+        "scripts/build_disaster_drc.py"
+      ]
     }
   ],
   "artifacts": [
@@ -1447,6 +1490,19 @@
       ],
       "producedBy": [
         "build_disaster_county_ihp"
+      ]
+    },
+    {
+      "id": "disaster_drc.json",
+      "name": "data/disaster_drc.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Per-disaster list of Disaster Recovery Centers — name/type/address/status/open-close dates/hours — powering the IA-section DRC badge in Geography and the Ledger detail modal.",
+      "deprecated": false,
+      "links": [
+        "data/disaster_drc.json"
+      ],
+      "producedBy": [
+        "build_disaster_drc"
       ]
     },
     {
@@ -1619,9 +1675,10 @@
       "reads": [
         "disasters.json",
         "gages.json",
-        "timeline.json"
+        "timeline.json",
+        "disaster_drc.json"
       ],
-      "description": "The default facts-first view: every Region 5 disaster, sortable, with measured hazards + real PA (obligated) and IHP (approved) dollars, the per-disaster detail modal, and the hazard timeline chart.",
+      "description": "The default facts-first view: every Region 5 disaster, sortable, with measured hazards + real PA (obligated) and IHP (approved) dollars, the per-disaster detail modal (incl. a DRC badge in the survivor-assistance card), and the hazard timeline chart.",
       "links": [
         "index.html"
       ]
@@ -1650,9 +1707,10 @@
         "county_declarations.json",
         "nfip.json",
         "disaster_county_ihp.json",
-        "recent.json"
+        "recent.json",
+        "disaster_drc.json"
       ],
-      "description": "Program-first county/state choropleth + measure-driven timeline (PA / IA / HMGP / Non-disaster / NFIP / Recent activity), with desktop and mobile lenses.",
+      "description": "Program-first county/state choropleth + measure-driven timeline (PA / IA / HMGP / Non-disaster / NFIP / Recent activity), with desktop and mobile lenses, incl. a per-disaster DRC badge under the IA program.",
       "links": [
         "index.html"
       ]

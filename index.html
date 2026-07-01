@@ -1407,7 +1407,13 @@ function showCountyAlerts(fips){
     +sec("Declaration history")+dHtml;
 }
 /* ===== historical declaration-frequency choropleth (R5 counties) ===== */
-let DECL=null, NFIP=null, DCIHP=null;   // DCIHP = per-disaster × county IHP rollup (data/disaster_county_ihp.json)
+let DECL=null, NFIP=null, DCIHP=null, DRC=null;   // DCIHP = per-disaster × county IHP rollup (data/disaster_county_ihp.json); DRC = per-disaster Disaster Recovery Center list (data/disaster_drc.json)
+// small IA badge — Disaster Recovery Center count for a disaster, click opens the DRC modal (openDrc). Empty string if none.
+function drcBadgeHTML(dn){
+  const recs=(DRC&&DRC.byDisaster&&DRC.byDisaster[String(dn)])||null;
+  if(!recs||!recs.length)return "";
+  return `<span class="badge badge--ia clickable" data-drcdn="${dn}" title="Disaster Recovery Centers — walk-in survivor assistance sites for this disaster. Tap for addresses, hours, and open/close dates.">🏢 ${recs.length} DRC${recs.length===1?"":"s"}</span>`;
+}
 /* Merge the committed NFIP claims rollup (data/nfip.json) onto DECL by county FIPS so the
    "Flood insurance" program lens reuses the standard metric machinery (GEO_KEY/GEO_YEARKEY).
    Counties with NFIP claims but no FEMA declaration get a minimal synthetic entry so the map
@@ -1842,10 +1848,10 @@ function geoRenderDisasterDetail(dn){
 function geoExitDisaster(){const s=geoStateFilter; geoDisasterFocus=null; renderGeoStates();renderGeoMap();renderGeoBoard();renderGeoTimeline();geoFocus(true);
   if(s)showStateGeo(s); else el("geoPick").innerHTML=geoPickDefault(); syncHash();}
 function disasterDetailHTML(dn){
-  const d=disasterMeta(dn), c=d.costs||{}, nC=geoDisasterFips(dn).size;
+  const d=disasterMeta(dn), c=d.costs||{}, nC=geoDisasterFips(dn).size, drcB=drcBadgeHTML(dn);
   return `<div class="declhd"><b>DR-${dn} · ${d.state}</b> — ${d.title?d.title.replace(/\b\w/g,x=>x.toUpperCase()).slice(0,60):d.incidentType||""}<br>
     ${d.begin?fmtDate(d.begin):""}${d.incidentType?" · "+d.incidentType:""} · <b>${nC}</b> declared count${nC===1?"y":"ies"}<br>
-    PA <b>${fmtMoney(d.pa||0)}</b> · IHP <b>${fmtMoney(d.ihp||0)}</b> · <b>${fmtNum(c.paProjects||0)}</b> projects</div>
+    PA <b>${fmtMoney(d.pa||0)}</b> · IHP <b>${fmtMoney(d.ihp||0)}</b> · <b>${fmtNum(c.paProjects||0)}</b> projects${drcB?` · ${drcB}`:""}</div>
     <div class="declrow clickable" data-dn="${dn}"><span class="dk"><b style="color:var(--navy)">Full disaster details</b> · costs, hazards, gages</span><span class="dv">open ↗</span></div>
     <p class="thr-sub" style="margin-top:8px">Counties this disaster designated are highlighted on the map — tap any one for its own history. Applicants (left) are this disaster's <b>obligated federal share</b>, live from OpenFEMA.</p>
     ${geoDisCountyBreakdownHTML(dn)}
@@ -2656,11 +2662,12 @@ function gmRenderNonCounty(box){
   box.innerHTML=head+`<div class="gm-list">${rows||'<p class="thr-sub" style="padding:8px">None.</p>'}</div>`;
 }
 function gmRenderDisaster(box){
-  const dn=gmDisaster, d=disasterMeta(dn); const fset=geoDisasterFips(dn);
+  const dn=gmDisaster, d=disasterMeta(dn); const fset=geoDisasterFips(dn), drcB=drcBadgeHTML(dn);
   const head=`<div class="gm-head"><div class="gm-crumb"><span data-gmback="region">‹ Region 5</span> <span data-gmback="state">‹ ${d.state}</span></div>
       <div class="gm-title">DR-${dn} · ${d.state}</div>
       <div class="gm-sub">${d.begin?fmtDate(d.begin):""}${d.incidentType?" · "+d.incidentType:""} · ${(d.title||"").toLowerCase()}</div>
-      <div class="gm-stat"><span>${fset.size} counties</span><span>${fmtMoney(d.pa||0)} PA</span><span>${fmtMoney(d.ihp||0)} IHP</span><span>${fmtNum((d.costs||{}).paProjects||0)} projects</span></div></div>`;
+      <div class="gm-stat"><span>${fset.size} counties</span><span>${fmtMoney(d.pa||0)} PA</span><span>${fmtMoney(d.ihp||0)} IHP</span><span>${fmtNum((d.costs||{}).paProjects||0)} projects</span></div>
+      ${drcB?`<div style="margin-top:6px">${drcB}</div>`:""}</div>`;
   const fHi=fset.size?fset:new Set(COUNTIES.filter(c=>c.s===d.state).map(c=>c.f));
   const bb=geoMultiBBox(fset)||geoStateBBox(d.state);
   const mapHtml=bb?gmMiniMap(fHi,bb,true):"";
@@ -3655,13 +3662,14 @@ function renderTriggers(){
 /* modal stack so disaster <-> gage navigation has a back button */
 let mStack=[];
 function openDetail(dn){ mStack.push({t:"d",v:+dn}); renderModal(); }
+function openDrc(dn){ mStack.push({t:"drc",v:+dn}); renderModal(); }
 function openGage(id){ mStack.push({t:"g",v:id}); if(LIVE[id]===undefined) fetchGageLive(id); renderModal(); }
 function modalBack(){ mStack.pop(); if(!mStack.length) closeDetail(); else renderModal(); }
 function renderModal(){
   const top=mStack[mStack.length-1];
   el("modal").classList.add("open"); document.body.style.overflow="hidden";
   el("mBack").style.display=mStack.length>1?"":"none";
-  if(top.t==="d") renderDisasterDetail(top.v); else if(top.t==="n") renderDenialDetail(top.v); else renderGageDetail(top.v);
+  if(top.t==="d") renderDisasterDetail(top.v); else if(top.t==="n") renderDenialDetail(top.v); else if(top.t==="drc") renderDrcDetail(top.v); else renderGageDetail(top.v);
   el("sheet").scrollTop=0; el("modal").scrollTop=0;
 }
 function renderNationalDetail(d){
@@ -3762,6 +3770,8 @@ function renderDisasterDetail(dn){
       <div class="big" style="color:var(--ink-3)">—</div>
       <div class="brk"><div class="brk-row sub"><span class="k">No Individual Assistance or IHP authorization recorded.</span></div></div>`;
   }
+  const drcBadge=drcBadgeHTML(d.disasterNumber);
+  if(drcBadge)survivorCard+=`<div style="margin-top:8px">${drcBadge}</div>`;
 
   const costHtml=`
     <div class="sec-h">Federal assistance — actual figures for this disaster<span class="src">OpenFEMA</span></div>
@@ -3878,6 +3888,32 @@ async function fetchGageLive(id){
     LIVE[id]=ft!=null&&!isNaN(ft)?{ft,t}:null;
   }catch(e){LIVE[id]=null;}
   if(mStack.length&&mStack[mStack.length-1].t==="g"&&mStack[mStack.length-1].v===id) renderGageDetail(id);
+}
+function renderDrcDetail(dn){
+  const recs=((DRC&&DRC.byDisaster&&DRC.byDisaster[String(dn)])||[]).slice();
+  const d=disasterMeta(dn);
+  el("mDr").textContent=`DR-${dn}${d.state?`-${d.state}`:""}`;
+  el("mTitle").textContent="Disaster Recovery Centers";
+  el("mMeta").innerHTML=`${recs.length} walk-in survivor assistance site${recs.length===1?"":"s"} tied to this disaster <span class="thr-sub">· FEMA Geospatial Resource Center, not OpenFEMA</span>`;
+  const cards=recs.map(r=>{
+    const addr=[r.street,r.city&&r.county?`${r.city}, ${r.county} County`:r.city,r.state,r.zip].filter(Boolean).join(", ");
+    const dates=[r.open?`opened ${fmtDate(r.open)}`:"",r.close?`closed ${fmtDate(r.close)}`:(r.plannedClose?`planned close ${fmtDate(r.plannedClose)}`:"")].filter(Boolean).join(" · ");
+    const mapQ=[r.street,r.city,r.state,r.zip].filter(Boolean).join(" ");
+    const mapHref=mapQ?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQ)}`:"";
+    return `<div class="parmcard" style="text-align:left">
+      <div class="pv" style="font-size:15px">${esc(r.name||"(unnamed site)")}</div>
+      <div class="pl" style="text-transform:none;letter-spacing:0">${esc(r.type||"Disaster Recovery Center")}${r.status?` · <span style="color:${r.status==="Open"?"var(--green-dark)":"var(--ink-3)"}">${esc(r.status)}</span>`:""}</div>
+      <div class="psrc">${esc(addr)||"address not available"}${dates?`<br>${esc(dates)}`:""}${r.hours?`<br>${esc(r.hours)}`:""}${mapHref?`<br><a href="${mapHref}" target="_blank" rel="noopener" class="psrclink">↗ map</a>`:""}</div>
+    </div>`;
+  }).join("");
+  el("mBody").innerHTML=`
+    <div class="note" style="background:#eaf6ee;border-color:#b7e4b9"><span class="i" style="color:var(--green-dark)">◆</span><span>Disaster Recovery Centers are walk-in sites where survivors can register for FEMA Individual Assistance, check application status, and get help with SBA disaster loans in person. This is FEMA's own facility-tracking GIS feed (DRC Manager), a separate system from OpenFEMA's declaration/obligation datasets — dates, hours, and site status may lag real time.</span></div>
+    <div class="sec-h" style="margin-top:18px">${recs.length} site${recs.length===1?"":"s"}</div>
+    <div class="parm">${cards||`<p class="thr-sub">No DRC records found for this disaster.</p>`}</div>
+    <div class="sec-h" style="margin-top:22px">Verify</div>
+    <div class="parm">
+      <a class="parmcard clickable" style="text-decoration:none" href="https://gis-fema.hub.arcgis.com/maps/FEMA::disaster-recovery-centers/explore" target="_blank" rel="noopener"><div class="pv">FEMA GIS ↗</div><div class="pl">Disaster Recovery Centers map</div></a>
+    </div>`;
 }
 function renderGageDetail(id){
   const g=GAGES.find(x=>x.id===id); if(!g) return;
@@ -4073,6 +4109,7 @@ function wire(){
     const dyr=e.target.closest("[data-dnyear]"); if(dyr){dnShowYear(+dyr.getAttribute("data-dnyear"));return;}
     const dbk=e.target.closest("[data-dnbkt]"); if(dbk){dnShowBucket(+dbk.getAttribute("data-dnbkt"));return;}
     const dnr=e.target.closest("[data-dnreq]"); if(dnr){openDenial(dnr.getAttribute("data-dnreq"));return;}
+    const drc=e.target.closest("[data-drcdn]"); if(drc){openDrc(drc.getAttribute("data-drcdn"));return;}
     const t=e.target.closest("[data-dn]"); if(t)openDetail(t.getAttribute("data-dn"));
   });
   el("mClose").addEventListener("click",closeDetail);
@@ -4524,6 +4561,11 @@ async function loadData(){
     fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;if(d&&d.counties)for(const f in d.counties)d.counties[f].fips=f;applyNfip();geoSetYearBounds();renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
     fetch("data/nfip.json").then(r=>r.ok?r.json():null).then(n=>{NFIP=n;applyNfip();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
     fetch("data/disaster_county_ihp.json").then(r=>r.ok?r.json():null).then(d=>{DCIHP=d;if(isMobileGeo()&&gmLevel==="disaster"&&gmDisaster)renderGeoMobile();else if(geoDisasterFocus)geoRenderDisasterDetail(geoDisasterFocus);}).catch(()=>{});
+    fetch("data/disaster_drc.json").then(r=>r.ok?r.json():null).then(d=>{DRC=d;
+      if(isMobileGeo()&&gmLevel==="disaster"&&gmDisaster)renderGeoMobile();
+      else if(geoDisasterFocus)geoRenderDisasterDetail(geoDisasterFocus);
+      const top=mStack[mStack.length-1]; if(top&&(top.t==="d"||top.t==="drc"))renderModal();
+    }).catch(()=>{});
     // freshness stamp (footer): per-file "data as of" from data/manifest.json (built by build_manifest.py)
     fetch("data/manifest.json").then(r=>r.ok?r.json():null).then(mf=>{const el2=el("dataFresh"); if(!el2||!mf||!mf.files)return;
       const f=mf.files, pick=n=>(f[n]&&(f[n].dataAsOf||"")).slice(0,10);
