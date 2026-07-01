@@ -274,6 +274,18 @@ details.disc summary::after{content:"+";font-size:20px;color:var(--blue);}detail
 details.disc .inner{padding:0 16px 16px;font-size:13.5px;color:var(--ink-2);}
 details.disc .inner li{margin-bottom:5px;}
 .kbd{font-weight:700;color:var(--navy);}
+.eratl{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap;}
+.eratl .seg{flex:1 1 0;min-width:96px;border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:7px 10px;cursor:pointer;text-align:left;transition:.12s;font-family:inherit;}
+.eratl .seg:hover{border-color:var(--blue);}
+.eratl .seg.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+.eratl .seg .nm{font-size:12.5px;font-weight:800;color:var(--navy);}
+.eratl .seg.on .nm{color:#fff;}
+.eratl .seg .yr{font-size:10px;font-weight:600;color:var(--ink-3);}
+.eratl .seg.on .yr{color:#bcd3ee;}
+.eratl .seg .ct{font-size:11px;font-weight:700;margin-top:2px;color:var(--ink-2);}
+.eratl .seg.on .ct{color:#e6eefb;}
+#eraMap svg .eralbl{fill:#0b1c33;font-size:11px;font-weight:700;paint-order:stroke;stroke:#fff;stroke-width:.7px;stroke-linejoin:round;text-anchor:middle;dominant-baseline:middle;font-family:'Public Sans',sans-serif;pointer-events:none;}
+#eraMap svg .eralbl.dim{fill:#98a2b0;font-weight:600;}
 
 /* ===== Disaster detail modal ===== */
 .modal{position:fixed;inset:0;z-index:100;background:rgba(11,31,58,.55);display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto;}
@@ -873,6 +885,19 @@ tr.clickable:hover td{background:#eef3f8;}
     <div class="note" id="apIntro" style="margin:30px 0 14px"><span class="i">!</span><span><b>Do turndowns get overturned?</b> When a request is denied, a governor or tribe can <b>appeal</b> (resubmit). OpenFEMA has <b>no appeal-outcome field</b> — a successful appeal simply disappears from the denials list — so the only public trail is the <b>Daily Operations Briefing</b>, which tags a resubmission "– Appeal" and later "– Approved"/"– Denied". Below we reconstruct each appeal cycle from the brief archive and follow it to its decision. Honors the Region 5 / National switch above. <b>Unofficial brief parse, not OpenFEMA.</b></span></div>
     <div class="card"><div class="card__hd"><h2>&#128260; Appeals &amp; resubmissions</h2><span class="sub" id="apSub"></span></div>
       <div class="card__bd"><div id="apBody"></div></div></div>
+
+    <!-- ===== ERA CROSS-CUT (denial rate & speed by presidential administration — tucked in an expando) ===== -->
+    <details class="disc" id="eraDisc" style="margin-top:22px">
+      <summary>By presidential administration — state map, denial rate &amp; decision speed</summary>
+      <div class="inner">
+        <p class="thr-sub" style="margin:0 0 10px"><b>Region&nbsp;5 map — pick a term.</b> Click an administration to map its Region&nbsp;5 approvals (green) and denials (red); a state with both is striped. Per-state approval/denial counts, PA obligated, IHP approved, and IA registrations are below the map. (Per-disaster dollars &amp; registrations are published for R5 in this app; the nationwide set carries counts only, so this map stays Region&nbsp;5.)</p>
+        <div id="eraTl" class="eratl"></div>
+        <div id="eraMap" class="geomap" style="margin-bottom:6px"></div>
+        <div id="eraMapDetail"></div>
+        <div class="declhd" style="margin-top:20px"><b>Denial rate &amp; decision speed by administration</b> — honors the Region&nbsp;5 / National switch above</div>
+        <div id="eraBody"></div>
+      </div>
+    </details>
   </section>
 
   <!-- ============ GEOGRAPHY (state + county rollup: disasters · dollars · projects) ============ -->
@@ -2889,7 +2914,7 @@ function tlShowBucket(i){const box=el("tlHistPick"),b=TL_BUCKETS[i]; if(!box||!b
 function renderTimelines(){
   tlSyncScopeUI();
   renderTlHeadlines();renderTlTrend();renderTlLagTime();renderTlCumulative();renderTlHistogram();renderTlBreakdown();
-  renderDenials();renderPending();renderReqDates();renderAppeals();
+  renderDenials();renderPending();renderReqDates();renderAppeals();renderEra();
   const tp=el("tlTrendPick"); if(tp)tp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a year above to list the disasters declared that year.</div>';
   const hp=el("tlHistPick"); if(hp)hp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a bar above to list the disasters in that lag range.</div>';
 }
@@ -3054,7 +3079,7 @@ const DN_BUCKETS=[{lab:"0–14",f:v=>v>=0&&v<=14},{lab:"15–30",f:v=>v>=15&&v<=
 function dnLoad(){
   if(dnPending||DENIALS!==null)return; dnPending=true;
   fetch("data/denials.json").then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{
-    DENIALS=d; dnPending=false; const v=el("view-timelines"); if(v&&v.classList.contains("active")){renderDenials();renderPending();if(REQDATES&&!REQDATES.error)renderReqDates();}
+    DENIALS=d; dnPending=false; const v=el("view-timelines"); if(v&&v.classList.contains("active")){renderDenials();renderPending();renderEra();if(REQDATES&&!REQDATES.error)renderReqDates();}
   }).catch(()=>{dnPending=false; DENIALS=[]; renderDenials();});
 }
 function dnData(){const a=DENIALS||[]; return TL_SCOPE==="national"?a:a.filter(d=>d.region===5);}
@@ -3217,6 +3242,100 @@ function renderDnStateTable(){
       +`<td style="text-align:right;font-variant-numeric:tabular-nums">${x.denMed==null?"—":x.denMed+"d"}</td></tr>`;}).join("");
   box.innerHTML=`<div style="overflow-x:auto"><table class="ptable"><thead><tr><th>State</th><th style="text-align:right">Denied</th><th style="text-align:right">Declared</th><th>Denial rate</th><th style="text-align:right" title="median incident-start → declaration">Appr. lag</th><th style="text-align:right" title="median incident-start → denial">Denial lag</th></tr></thead><tbody>${rows}</tbody></table></div>`
     +`<p class="thr-sub" style="margin-top:8px"><b>Denial rate</b> = denied ÷ (denied + declared), major-disaster (DR) requests only. <b>Declared</b> counts come from ${nat?"the nationwide declaration set":"the Region&nbsp;5 ledger"}; <b>denied</b> from OpenFEMA DeclarationDenials. Lags are <b>incident start → decision</b> medians (— when none). Sorted by denial rate; states with fewer than ${MINREQ} total request${MINREQ===1?"":"s"} omitted${capped?` · showing top ${CAP} of ${total}`:""}.</p>`;
+}
+/* ===== ERA CROSS-CUT: denial rate & decision speed by presidential administration ===== */
+/* Buckets by the DECISION date (declared date for approvals, turndown date for denials) —
+   the administration in office when FEMA decided reflects the policy posture. Scope-aware. */
+const ADMINS=[{lab:"G.W. Bush",start:"2001-01-20"},{lab:"Obama",start:"2009-01-20"},{lab:"Trump I",start:"2017-01-20"},{lab:"Biden",start:"2021-01-20"},{lab:"Trump II",start:"2025-01-20"}];
+function adminOf(iso){if(!iso)return null;let cur=null;for(const a of ADMINS){if(iso>=a.start)cur=a.lab;else break;}return cur;}
+function adminYears(lab){const i=ADMINS.findIndex(a=>a.lab===lab);if(i<0)return"";const nx=ADMINS[i+1];return `${ADMINS[i].start.slice(0,4)}–${nx?nx.start.slice(0,4):"present"}`;}
+/* ===== ERA STATE MAP (Region 5 only — the only geometry + per-disaster $ we carry) ===== */
+const R5_ST=["IL","IN","MI","MN","OH","WI"];
+let eraSel=null, eraCentroids=null;
+function eraR5Agg(){ // {admin: {states:{st:{appr,den,pa,ihp,ha,ona,reg}}, appr,den,pa,ihp,reg}}
+  const out={}; ADMINS.forEach(a=>out[a.lab]={states:{},appr:0,den:0,pa:0,ihp:0,reg:0});
+  const cell=(o,s)=>(o.states[s]=o.states[s]||{appr:0,den:0,pa:0,ihp:0,ha:0,ona:0,reg:0});
+  (DATA||[]).filter(d=>d.declared).forEach(d=>{const a=adminOf(d.declared),o=out[a];if(!o)return;
+    const s=cell(o,d.state),c=d.costs||{};
+    s.appr++;o.appr++;
+    const pa=c.paTotal!=null?c.paTotal:(d.pa||0), ihp=c.ihpTotal!=null?c.ihpTotal:(d.ihp||0);
+    s.pa+=pa;o.pa+=pa; s.ihp+=ihp;o.ihp+=ihp; s.ha+=c.ihpHousing||0; s.ona+=c.ihpOna||0;
+    s.reg+=c.iaRegistrations||0; o.reg+=c.iaRegistrations||0;});
+  (DENIALS||[]).filter(d=>d.region===5).forEach(d=>{const a=adminOf(d.statusDate),o=out[a];if(!o)return;const s=cell(o,d.state);s.den++;o.den++;});
+  return out;
+}
+function eraStateCentroids(){ // projected bbox centre per R5 state (for the map labels)
+  if(eraCentroids)return eraCentroids; if(!MAPPROJ)projectCounties();
+  const {minx,maxy,k,s:sc,pad}=MAPPROJ, bb={};
+  COUNTIES.forEach(c=>c.g.forEach(p=>p.forEach(r=>r.forEach(pt=>{const X=pad+(pt[0]-minx)*k*sc,Y=pad+(maxy-pt[1])*sc;
+    const b=bb[c.s]=bb[c.s]||{x0:1e9,y0:1e9,x1:-1e9,y1:-1e9};if(X<b.x0)b.x0=X;if(X>b.x1)b.x1=X;if(Y<b.y0)b.y0=Y;if(Y>b.y1)b.y1=Y;}))));
+  eraCentroids=Object.entries(bb).map(([s,b])=>[s,(b.x0+b.x1)/2,(b.y0+b.y1)/2]); return eraCentroids;
+}
+function renderEra(){renderEraMap();renderEraTable();}
+function renderEraMap(){
+  const tl=el("eraTl"), mapBox=el("eraMap"), det=el("eraMapDetail"); if(!tl||!mapBox)return;
+  if(DENIALS===null)dnLoad();
+  const agg=eraR5Agg();
+  if(!eraSel||!agg[eraSel]||(!agg[eraSel].appr&&!agg[eraSel].den)){
+    const withData=ADMINS.map(a=>a.lab).filter(l=>agg[l].appr||agg[l].den);
+    eraSel=withData.length?withData[withData.length-1]:ADMINS[ADMINS.length-1].lab;
+  }
+  tl.innerHTML=ADMINS.map(a=>{const o=agg[a.lab],on=a.lab===eraSel;
+    return `<button type="button" class="seg${on?' on':''}" data-era="${esc(a.lab)}" aria-pressed="${on}"><div class="nm">${esc(a.lab)}</div><div class="yr">${adminYears(a.lab)}</div><div class="ct">&#10003;${o.appr} &#10007;${o.den}</div></button>`;}).join("");
+  renderEraMapSvg(mapBox, agg[eraSel]);
+  renderEraMapDetail(det, eraSel, agg[eraSel]);
+}
+function renderEraMapSvg(box, ad){
+  if(!COUNTIES.length){box.innerHTML='<div class="skeleton"><span class="spin"></span> Loading Region 5 map…</div>';return;}
+  if(!MAPPROJ)projectCounties();
+  const st=ad.states;
+  const fillOf=s=>{const o=st[s];if(!o||(!o.appr&&!o.den))return"#eef2f6";if(o.appr&&o.den)return"url(#eraStripe)";return o.appr?"#1a9850":"#d7191c";};
+  const paths=COUNTIES.map(c=>{const o=st[c.s]||{appr:0,den:0,pa:0,ihp:0,reg:0};
+    const tip=`${c.s} — ${o.appr} approval${o.appr===1?"":"s"}, ${o.den} denial${o.den===1?"":"s"}${o.appr?` · PA ${fmtMoney(o.pa)} · IHP ${fmtMoney(o.ihp)} · ${fmtNum(o.reg)} IA reg`:""}`;
+    return `<path d="${cpath(c)}" fill="${fillOf(c.s)}" stroke="#fff" stroke-width="0.4"><title>${tip.replace(/"/g,"&quot;")}</title></path>`;}).join("");
+  const labels=eraStateCentroids().map(([s,x,y])=>{const o=st[s];
+    if(!o||(!o.appr&&!o.den))return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" class="eralbl dim">${s}</text>`;
+    return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" class="eralbl">${s} &#10003;${o.appr} &#10007;${o.den}</text>`;}).join("");
+  const swatch='background:repeating-linear-gradient(45deg,#1a9850 0 4px,#d7191c 4px 8px)';
+  box.innerHTML=`<svg viewBox="0 0 ${MAPPROJ.W} ${MAPPROJ.H}" style="width:100%;height:auto;display:block;background:#f7f9fc;border-radius:8px"><defs><pattern id="eraStripe" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#1a9850"/><rect width="3.5" height="7" fill="#d7191c"/></pattern></defs>${paths}<g class="eralabels">${labels}</g></svg>`
+    +`<div class="maplegend"><span><i style="background:#1a9850"></i>approvals only</span><span><i style="background:#d7191c"></i>denials only</span><span><i style="${swatch}"></i>both</span><span><i style="background:#eef2f6"></i>none</span><span class="thr-sub" style="margin-left:auto">Region&nbsp;5 · hover a state for detail</span></div>`;
+}
+function renderEraMapDetail(box, sel, ad){
+  if(!box)return;
+  const yr=adminYears(sel);
+  const rows=R5_ST.map(s=>{const o=ad.states[s]||{appr:0,den:0,pa:0,ihp:0,reg:0};
+    return `<tr><td><b>${s}</b></td>`
+      +`<td style="text-align:right;color:#1a7a3e;font-weight:700">${o.appr||"—"}</td>`
+      +`<td style="text-align:right;color:#b32218;font-weight:700">${o.den||"—"}</td>`
+      +`<td style="text-align:right;font-variant-numeric:tabular-nums">${o.pa?fmtMoney(o.pa):"—"}</td>`
+      +`<td style="text-align:right;font-variant-numeric:tabular-nums">${o.ihp?fmtMoney(o.ihp):"—"}</td>`
+      +`<td style="text-align:right;font-variant-numeric:tabular-nums">${o.reg?fmtNum(o.reg):"—"}</td></tr>`;}).join("");
+  box.innerHTML=`<div class="declhd" style="margin-top:12px"><b>${esc(sel)} (${yr})</b> — Region&nbsp;5: <span style="color:#1a7a3e">${ad.appr} approval${ad.appr===1?"":"s"}</span>, <span style="color:#b32218">${ad.den} denial${ad.den===1?"":"s"}</span> · PA ${fmtMoney(ad.pa)} · IHP ${fmtMoney(ad.ihp)} · ${fmtNum(ad.reg)} IA registrations</div>`
+    +`<div style="overflow-x:auto"><table class="ptable"><thead><tr><th>State</th><th style="text-align:right">Approvals</th><th style="text-align:right">Denials</th><th style="text-align:right" title="PA obligated, summed over the term's approved disasters">PA obligated</th><th style="text-align:right" title="IHP approved (HA + ONA)">IHP approved</th><th style="text-align:right">IA registrations</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    +`<p class="thr-sub" style="margin-top:6px">Approvals = declared R5 disasters with a declaration date in the term; denials = OpenFEMA turndowns decided in the term. <b>PA obligated</b> / <b>IHP approved</b> (HA+ONA) / <b>IA registrations</b> are summed over that term's approved disasters (from the ledger's per-disaster costs). Dollars <b>lag and reconcile for years</b> after a disaster, so recent terms under-count. COVID-19 declarations are excluded (kept out of the ledger).</p>`;
+}
+function renderEraTable(){
+  const box=el("eraBody");if(!box)return;
+  if(DENIALS===null){dnLoad();box.innerHTML='<div class="skeleton"><span class="spin"></span> Loading…</div>';return;}
+  const nat=TL_SCOPE==="national";
+  const den=dnData().filter(d=>d.type==="DR"), dec=tlData();
+  if(!den.length&&!dec.length){box.innerHTML='<p class="thr-sub">No records for this scope.</p>';return;}
+  const g={}, get=k=>(g[k]=g[k]||{decN:0,denN:0,appr:[],deni:[]});
+  dec.forEach(d=>{const a=adminOf(d.declared);if(!a)return;const e=get(a);e.decN++;const l=tlLag(d);if(l!=null)e.appr.push(l);});
+  den.forEach(d=>{const a=adminOf(d.statusDate);if(!a)return;const e=get(a);e.denN++;if(d.begin&&d.statusDate){const l=Math.round((tlDayNum(d.statusDate)-tlDayNum(d.begin))/86400000);if(l>=0)e.deni.push(l);}});
+  const order=ADMINS.map(a=>a.lab);
+  let arr=Object.entries(g).map(([k,e])=>({k,tot:e.decN+e.denN,denN:e.denN,decN:e.decN,
+    rate:(e.decN+e.denN)?e.denN/(e.decN+e.denN):0,apprMed:tlMedian(e.appr),denMed:tlMedian(e.deni)}))
+    .filter(x=>x.tot>0).sort((a,b)=>order.indexOf(a.k)-order.indexOf(b.k));
+  if(!arr.length){box.innerHTML='<p class="thr-sub">No records for this scope.</p>';return;}
+  const rateCol=p=>p>=.5?"#d7191c":p>=.25?"#e8590c":p>=.1?"#d4a017":"#1a9850";
+  const rows=arr.map(x=>{const pct=Math.round(x.rate*100);
+    const bar=`<div style="display:flex;align-items:center;gap:8px"><div style="flex:0 0 56px;height:9px;background:#eef2f6;border-radius:5px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${rateCol(x.rate)}"></div></div><b style="color:${rateCol(x.rate)};font-variant-numeric:tabular-nums">${pct}%</b></div>`;
+    return `<tr><td><b>${esc(x.k)}</b></td><td style="text-align:right;font-variant-numeric:tabular-nums">${x.denN}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${x.decN}</td><td>${bar}</td>`
+      +`<td style="text-align:right;font-variant-numeric:tabular-nums">${x.apprMed==null?"—":x.apprMed+"d"}</td>`
+      +`<td style="text-align:right;font-variant-numeric:tabular-nums">${x.denMed==null?"—":x.denMed+"d"}</td></tr>`;}).join("");
+  box.innerHTML=`<div style="overflow-x:auto"><table class="ptable"><thead><tr><th>Administration</th><th style="text-align:right">Denied</th><th style="text-align:right">Declared</th><th>Denial rate</th><th style="text-align:right" title="median incident start → declaration">Appr. lag</th><th style="text-align:right" title="median incident start → denial">Denial lag</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    +`<p class="thr-sub" style="margin-top:8px">${nat?"National":"Region&nbsp;5"} · bucketed by the <b>decision date</b> (declaration date for approvals, turndown date for denials) — i.e. who was in office when FEMA decided. <b>Denial rate</b> = denied ÷ (denied + declared), major-disaster (DR) requests. Lags are <b>incident start → decision</b> medians. A cross-cut of policy posture over time; small denominators (early/late terms) are noisy. Denials: OpenFEMA; approvals: ${nat?"nationwide declaration set":"Region&nbsp;5 ledger"}. <b>Descriptive, not causal.</b></p>`;
 }
 /* ===== APPEALS / RESUBMISSIONS (outcome tracking from the brief archive) ===== */
 const AP_OUT={approved:{lab:"Approved",col:"#1a9850",bg:"#eaf6ec"},denied:{lab:"Denied again",col:"#d7191c",bg:"#fdecea"},in_process:{lab:"In process",col:"#b5651d",bg:"#fdf1e3"},unresolved:{lab:"No recorded outcome",col:"#8a94a6",bg:"#eef2f6"}};
@@ -3949,6 +4068,7 @@ function wire(){
     const tbk=e.target.closest("[data-tltbkt]"); if(tbk){tlShowBucket(+tbk.getAttribute("data-tltbkt"));return;}
     const dlt=e.target.closest("#dnLagToggle button[data-dnlag]"); if(dlt){dnSetLag(dlt.getAttribute("data-dnlag"));return;}
     const dbt=e.target.closest("#dnBreakToggle button[data-dnbreak]"); if(dbt){dnBreakBy=dbt.getAttribute("data-dnbreak");el("dnBreakToggle").querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===dbt));renderDnBreakdown();return;}
+    const eseg=e.target.closest("#eraTl button[data-era]"); if(eseg){eraSel=eseg.getAttribute("data-era");renderEraMap();return;}
     const dyr=e.target.closest("[data-dnyear]"); if(dyr){dnShowYear(+dyr.getAttribute("data-dnyear"));return;}
     const dbk=e.target.closest("[data-dnbkt]"); if(dbk){dnShowBucket(+dbk.getAttribute("data-dnbkt"));return;}
     const dnr=e.target.closest("[data-dnreq]"); if(dnr){openDenial(dnr.getAttribute("data-dnreq"));return;}
@@ -4399,7 +4519,7 @@ async function loadData(){
       fetch("data/gages.json").then(r=>{if(!r.ok)throw 0;return r.json();})
     ]);
     DISASTERS=dj;GAGES=gj;DATA=DISASTERS.slice();
-    fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;if(watchState.ready)renderAlertMap();renderDeclMap();}).catch(()=>{});
+    fetch("data/r5_counties.json").then(r=>r.ok?r.json():[]).then(c=>{COUNTIES=c;eraCentroids=null;if(watchState.ready)renderAlertMap();renderDeclMap();{const tv=el("view-timelines");if(tv&&tv.classList.contains("active"))renderEraMap();}}).catch(()=>{});
     fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).then(d=>{DECL=d;if(d&&d.counties)for(const f in d.counties)d.counties[f].fips=f;applyNfip();geoSetYearBounds();renderDeclMap();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
     fetch("data/nfip.json").then(r=>r.ok?r.json():null).then(n=>{NFIP=n;applyNfip();if(document.getElementById("view-geography").classList.contains("active"))geoRenderAll();}).catch(()=>{});
     fetch("data/disaster_county_ihp.json").then(r=>r.ok?r.json():null).then(d=>{DCIHP=d;if(isMobileGeo()&&gmLevel==="disaster"&&gmDisaster)renderGeoMobile();else if(geoDisasterFocus)geoRenderDisasterDetail(geoDisasterFocus);}).catch(()=>{});
