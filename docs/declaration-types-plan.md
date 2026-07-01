@@ -74,6 +74,13 @@ The only way "every surface" stays consistent and maintainable:
 - **Distinct styling everywhere:** DR = primary navy; **EM = a distinct "emergency" badge**
   (e.g. amber/outline); COVID = existing COVID styling. Every row/marker/detail carries its
   class badge so EM/COVID can never be read as a major disaster.
+- **Aggregates recompute from the toggled set (the core requirement).** Toggling a class on
+  folds its dollars **and** counts **into every aggregate** — per-state totals, per-county
+  totals, map coloring, timelines, headline sums — not just extra rows. Each location holds
+  **per-class buckets** and the displayed total = **sum of only the toggled-on classes**
+  (default `{dr}` = today's DR-only totals, byte-for-byte). This is exactly why the Geography
+  rollups (`county_declarations.json` + `*ByYear`) must be rebuilt per-class (Phase 3): today
+  they bake in DR-only sums, so EM/COVID can't be folded in/out without the split buckets.
 
 ---
 
