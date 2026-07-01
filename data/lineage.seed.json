@@ -672,6 +672,14 @@
       "reads": ["manifest.json"],
       "description": "This data-lineage view itself: renders lineage.json as a tiered Provider->Source->Transform->Artifact->Surface graph with focus/impact mode, and joins live freshness from manifest.json onto each artifact.",
       "links": ["lineage.html"]
+    },
+    {
+      "id": "planner",
+      "name": "Disaster Operations Planner",
+      "location": "planner.html",
+      "reads": ["r5_counties.json", "county_declarations.json"],
+      "description": "Standalone planning tool: select counties for a prospective PA/IA request on the R5 map, color by historical reference metrics from county_declarations.json, save/export the plan. User-authored (not a declaration); PDA-CSV import + embeddable export are later phases.",
+      "links": ["planner.html"]
     }
   ],
 
