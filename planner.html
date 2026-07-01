@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Disaster Operations Planner · Disaster Data</title>
+<meta name="description" content="Build a prospective PA/IA county plan for a pending disaster, attach historical reference metrics, and export an embeddable map. User-authored — not an official FEMA declaration or forecast." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy:#162e51;--navy-2:#0b1f3a;--blue:#005ea2;--blue-dark:#1a4480;--blue-light:#d9e8f6;
+  --gold:#ffbe2e;--gold-dark:#e5a000;--red:#b50909;--red-vivid:#e41d3d;--green:#00a91c;--green-dark:#008817;
+  --ink:#1b1b1b;--ink-2:#3d4551;--ink-3:#565c65;--line:#dfe1e2;--line-2:#c6cace;--bg:#f0f0ee;--bg-2:#f9f9f7;--white:#fff;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.08),0 1px 4px rgba(0,0,0,.06);--radius:8px;--radius-lg:14px;
+  --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+a{color:var(--blue);}
+.masthead{background:linear-gradient(120deg,var(--navy-2),var(--navy) 55%,var(--blue-dark) 130%);color:#fff;border-bottom:4px solid var(--gold);}
+.masthead__inner{max-width:1500px;margin:0 auto;padding:15px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);}
+.masthead h1{font-size:20px;margin:0;font-weight:900;}
+.masthead a.back{margin-left:auto;color:#fff;text-decoration:none;font-weight:700;font-size:13px;background:rgba(255,255,255,.12);padding:8px 13px;border-radius:8px;border:1px solid rgba(255,255,255,.18);}
+.plan-disc{background:#fff7e6;border-bottom:1px solid #f0d68a;color:#8a6100;font-size:12.5px;padding:8px 20px;text-align:center;}
+.plan-disc b{color:#6b4c00;}
+.wrap{max-width:1500px;margin:0 auto;padding:16px 20px 40px;display:grid;grid-template-columns:1fr 380px;gap:18px;}
+.mapcard,.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);}
+.mapcard{padding:10px;position:relative;}
+.mapcard svg{width:100%;height:auto;display:block;background:#f7f9fc;border-radius:8px;}
+.cty{cursor:pointer;stroke:#c6d0dc;stroke-width:.4;transition:fill .1s;}
+.cty:hover{stroke:#0b1f3a;stroke-width:1;}
+.cty.sel{stroke:var(--gold);stroke-width:2.2;}
+.cty.dim{opacity:.25;}
+.legend{position:absolute;left:18px;bottom:18px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11.5px;box-shadow:var(--shadow-sm);}
+.legend .bar{height:9px;width:150px;border-radius:2px;background:linear-gradient(90deg,#eaf2fb,#0b1f3a);margin:4px 0;}
+.legend .ends{display:flex;justify-content:space-between;color:var(--ink-3);}
+.panel{padding:15px 16px;align-self:start;position:sticky;top:14px;max-height:88vh;overflow:auto;}
+.panel h2{font-size:14px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);}
+.fld{margin-bottom:14px;}
+.fld label{display:block;font-size:11.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+input[type=text],select{width:100%;padding:8px 10px;font-size:14px;font-family:inherit;border:1px solid var(--line-2);border-radius:7px;background:var(--white);}
+.states{display:flex;flex-wrap:wrap;gap:6px;}
+.stchip{font-size:12.5px;font-weight:700;border:1px solid var(--line-2);border-radius:20px;padding:4px 12px;cursor:pointer;background:var(--white);color:var(--ink-2);}
+.stchip.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.btn{font-family:inherit;font-size:12.5px;font-weight:700;color:var(--navy);background:var(--bg-2);border:1px solid var(--line-2);border-radius:7px;padding:8px 12px;cursor:pointer;}
+.btn:hover{background:#eef0f2;}
+.btn.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;}
+.sel-list{border-top:1px solid var(--line);margin-top:4px;}
+.sel-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.sel-row .nm{flex:1;min-width:0;font-weight:600;}
+.sel-row .nm small{color:var(--ink-3);font-weight:400;}
+.paia{display:inline-flex;gap:4px;}
+.tg{font-size:11px;font-weight:800;border-radius:5px;padding:2px 7px;cursor:pointer;border:1px solid var(--line-2);color:var(--ink-3);background:var(--white);user-select:none;}
+.tg.pa.on{background:var(--blue);color:#fff;border-color:var(--blue);}
+.tg.ia.on{background:var(--green-dark);color:#fff;border-color:var(--green-dark);}
+.rm{color:var(--red);cursor:pointer;font-weight:800;border:0;background:none;font-size:15px;line-height:1;}
+.tally{font-size:12.5px;color:var(--ink-3);margin:6px 0;}
+.muted{color:var(--ink-3);font-size:12px;}
+.tip{position:fixed;pointer-events:none;background:var(--navy);color:#fff;font-size:12px;padding:5px 8px;border-radius:6px;opacity:0;transition:opacity .1s;z-index:50;white-space:nowrap;}
+.footer{max-width:1500px;margin:0 auto;padding:0 20px 34px;font-size:12px;color:var(--ink-3);}
+.footer .d{background:var(--white);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:10px 13px;}
+@media(max-width:1000px){.wrap{grid-template-columns:1fr;}.panel{position:static;max-height:none;}}
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead__inner">
+    <div>
+      <div class="eyebrow">Disaster Data</div>
+      <h1>Disaster Operations Planner</h1>
+    </div>
+    <a class="back" href="index.html">← Back to Disaster Data</a>
+  </div>
+</header>
+<div class="plan-disc"><b>PLAN — counties are selected by you.</b> Not an official FEMA declaration, damage estimate, or forecast. Historical figures are reference from prior Region&nbsp;5 disasters (OpenFEMA), not this event. Not endorsed by FEMA.</div>
+
+<div class="wrap">
+  <div class="mapcard" id="mapcard"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="legend" id="legend" style="display:none"></div>
+  </div>
+  <aside class="panel">
+    <div class="fld"><label>Plan name</label><input type="text" id="planName" placeholder="e.g. IN Winter Storm 2026 — PA/IA request"></div>
+    <div class="fld"><label>States in scope</label><div class="states" id="states"></div></div>
+    <div class="fld"><label>Background reference layer (color)</label>
+      <select id="layer"></select>
+      <div class="muted" id="layerNote" style="margin-top:4px">Historical figures from prior disasters — context only.</div>
+    </div>
+    <h2>Counties in plan <span id="tally" class="tally"></span></h2>
+    <div class="muted" style="margin:-2px 0 6px">Click a county on the map to add it; toggle PA / IA per county.</div>
+    <div class="sel-list" id="selList"></div>
+    <div class="fld" style="margin-top:16px">
+      <label>Save / load</label>
+      <div class="btnrow">
+        <button class="btn primary" id="save">Save plan</button>
+        <select id="loadSel" style="flex:1"><option value="">Load saved…</option></select>
+      </div>
+      <div class="btnrow" style="margin-top:8px">
+        <button class="btn" id="dl">Download JSON</button>
+        <button class="btn" id="imp">Import JSON</button>
+        <button class="btn" id="clear">Clear</button>
+        <input type="file" id="impFile" accept="application/json" style="display:none">
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="footer"><p class="d"><b>This is not a government website.</b> A planning aid built on FEMA OpenFEMA + Census county geometry — <b>not endorsed by FEMA</b>. Historical metrics are prior-disaster obligations/approvals for reference; a saved plan reflects user selections, not an official declaration. (P0: county selection + reference layers + save/load. PDA-CSV import and embeddable export are coming — see docs/operations-planner-plan.md.)</p></div>
+<div class="tip" id="tip"></div>
+
+<script>
+const R5=["IL","IN","MI","MN","OH","WI"];
+const LAYERS={
+  none:{label:"None (base map)"},
+  count:{label:"# prior declarations",fmt:"n",get:c=>c.count||0},
+  paObligated:{label:"PA obligated — historical total",fmt:"$",get:c=>c.paObligated||0},
+  paObligatedAvg:{label:"PA obligated — avg per disaster",fmt:"$",get:c=>c.count?(c.paObligated||0)/c.count:0},
+  paProjects:{label:"PA projects — historical total",fmt:"n",get:c=>c.paProjects||0},
+  paProjectsAvg:{label:"PA projects — avg per disaster",fmt:"n",get:c=>c.count?(c.paProjects||0)/c.count:0},
+  nApplicants:{label:"PA applicants — historical (distinct)",fmt:"n",get:c=>c.nApplicants||0},
+  ihpApproved:{label:"IHP approved — historical total",fmt:"$",get:c=>c.ihpApproved||0},
+  iaRegistrations:{label:"IA registrations — historical total",fmt:"n",get:c=>c.iaRegistrations||0},
+};
+const LS_KEY="planner_plans_v1";
+let COUNTIES=[], DECL=null, PROJ=null, plan={name:"",counties:{},layer:"none",states:[...R5]};
+
+function fmtVal(v,f){if(v==null)return"—";if(f==="$")return v>=1e6?"$"+(v/1e6).toFixed(1)+"M":v>=1e3?"$"+(v/1e3).toFixed(0)+"k":"$"+Math.round(v);return Math.round(v).toLocaleString();}
+function metrics(fips){return (DECL&&DECL.counties&&DECL.counties[fips])||{};}
+
+function project(){
+  let minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
+  COUNTIES.forEach(c=>c.g.forEach(p=>p.forEach(r=>r.forEach(pt=>{if(pt[0]<minx)minx=pt[0];if(pt[0]>maxx)maxx=pt[0];if(pt[1]<miny)miny=pt[1];if(pt[1]>maxy)maxy=pt[1];}))));
+  const k=Math.cos((miny+maxy)/2*Math.PI/180),W=900,pad=8,s=(W-2*pad)/((maxx-minx)*k);
+  PROJ={minx,maxy,k,s,pad,W,H:Math.ceil((maxy-miny)*s)+2*pad};
+}
+function cpath(c){const {minx,maxy,k,s,pad}=PROJ;let d="";
+  c.g.forEach(p=>p.forEach(r=>{d+="M"+r.map(pt=>`${(pad+(pt[0]-minx)*k*s).toFixed(1)},${(pad+(maxy-pt[1])*s).toFixed(1)}`).join("L")+"Z";}));return d;}
+function ramp(t){t=Math.max(0,Math.min(1,t));const a=[234,242,251],b=[11,31,58];return`rgb(${a.map((x,i)=>Math.round(x+(b[i]-x)*t)).join(",")})`;}
+
+let curMax=0;
+function render(){
+  const L=LAYERS[plan.layer];
+  curMax=0;
+  if(L&&L.get)COUNTIES.forEach(c=>{if(plan.states.includes(c.s)){const v=L.get(metrics(c.f));if(v>curMax)curMax=v;}});
+  let s="";
+  COUNTIES.forEach(c=>{
+    const inState=plan.states.includes(c.s), sel=!!plan.counties[c.f];
+    let fill="#e9eef4";
+    if(L&&L.get&&curMax>0){const v=L.get(metrics(c.f));fill=v>0?ramp(Math.sqrt(v/curMax)):"#eef2f6";}
+    const cls="cty"+(sel?" sel":"")+(inState?"":" dim");
+    s+=`<path class="${cls}" data-f="${c.f}" data-n="${c.n.replace(/"/g,'')}" data-s="${c.s}" d="${cpath(c)}" fill="${fill}"/>`;
+  });
+  const svg=document.getElementById("svg");
+  svg.setAttribute("viewBox",`0 0 ${PROJ.W} ${PROJ.H}`);svg.innerHTML=s;
+  const lg=document.getElementById("legend");
+  if(L&&L.get&&curMax>0){lg.style.display="block";lg.innerHTML=`<div>${L.label}</div><div class="bar"></div><div class="ends"><span>0</span><span>${fmtVal(curMax,L.fmt)}</span></div>`;}
+  else lg.style.display="none";
+  renderSel();
+}
+function renderSel(){
+  const box=document.getElementById("selList"),ks=Object.keys(plan.counties);
+  document.getElementById("tally").textContent=ks.length?`· ${ks.length} (${ks.filter(f=>plan.counties[f].pa).length} PA, ${ks.filter(f=>plan.counties[f].ia).length} IA)`:"";
+  if(!ks.length){box.innerHTML=`<div class="muted" style="padding:8px 0">No counties yet.</div>`;return;}
+  const byName=ks.map(f=>({f,c:COUNTIES.find(x=>x.f===f)})).sort((a,b)=>(a.c?.s+a.c?.n).localeCompare(b.c?.s+b.c?.n));
+  box.innerHTML=byName.map(({f,c})=>{const p=plan.counties[f],m=metrics(f);
+    return `<div class="sel-row"><span class="nm">${c?c.n:f} <small>${c?c.s:""} · ${m.count?m.count+" prior decl":"no prior decl"}</small></span>`
+      +`<span class="paia"><span class="tg pa ${p.pa?"on":""}" data-f="${f}" data-k="pa">PA</span><span class="tg ia ${p.ia?"on":""}" data-f="${f}" data-k="ia">IA</span></span>`
+      +`<button class="rm" data-rm="${f}" title="Remove">×</button></div>`;}).join("");
+  box.querySelectorAll(".tg").forEach(t=>t.onclick=()=>{const f=t.dataset.f,k=t.dataset.k;plan.counties[f][k]=!plan.counties[f][k];if(!plan.counties[f].pa&&!plan.counties[f].ia)delete plan.counties[f];render();});
+  box.querySelectorAll(".rm").forEach(b=>b.onclick=()=>{delete plan.counties[b.dataset.rm];render();});
+}
+function toggleCounty(f){if(plan.counties[f])delete plan.counties[f];else plan.counties[f]={pa:true,ia:true};render();}
+
+// interactions
+document.getElementById("svg").addEventListener("click",e=>{const p=e.target.closest(".cty");if(p&&!p.classList.contains("dim"))toggleCounty(p.dataset.f);});
+const tip=document.getElementById("tip");
+document.getElementById("svg").addEventListener("mousemove",e=>{const p=e.target.closest(".cty");if(!p){tip.style.opacity=0;return;}
+  const L=LAYERS[plan.layer],m=metrics(p.dataset.f);const val=(L&&L.get)?` · ${L.label.split(" — ")[0]}: ${fmtVal(L.get(m),L.fmt)}`:"";
+  tip.textContent=`${p.dataset.n}, ${p.dataset.s}${val}`;tip.style.opacity=1;tip.style.left=(e.clientX+12)+"px";tip.style.top=(e.clientY+12)+"px";});
+document.getElementById("svg").addEventListener("mouseleave",()=>tip.style.opacity=0);
+
+function renderStates(){document.getElementById("states").innerHTML=R5.map(s=>`<span class="stchip ${plan.states.includes(s)?"on":""}" data-s="${s}">${s}</span>`).join("");
+  document.querySelectorAll(".stchip").forEach(c=>c.onclick=()=>{const s=c.dataset.s,i=plan.states.indexOf(s);if(i<0)plan.states.push(s);else plan.states.splice(i,1);renderStates();render();});}
+function fillLayers(){document.getElementById("layer").innerHTML=Object.entries(LAYERS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join("");document.getElementById("layer").value=plan.layer;}
+document.getElementById("layer").onchange=e=>{plan.layer=e.target.value;render();};
+document.getElementById("planName").oninput=e=>plan.name=e.target.value;
+
+// save / load
+function savedPlans(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"{}");}catch(e){return{};}}
+function refreshLoad(){const sel=document.getElementById("loadSel"),ps=savedPlans();sel.innerHTML=`<option value="">Load saved…</option>`+Object.keys(ps).map(n=>`<option>${n.replace(/</g,"")}</option>`).join("");}
+document.getElementById("save").onclick=()=>{if(!plan.name.trim()){alert("Name the plan first.");return;}const ps=savedPlans();ps[plan.name.trim()]=JSON.parse(JSON.stringify(plan));localStorage.setItem(LS_KEY,JSON.stringify(ps));refreshLoad();};
+document.getElementById("loadSel").onchange=e=>{const ps=savedPlans(),p=ps[e.target.value];if(p){plan=Object.assign({name:"",counties:{},layer:"none",states:[...R5]},p);document.getElementById("planName").value=plan.name;renderStates();fillLayers();render();}};
+document.getElementById("clear").onclick=()=>{if(confirm("Clear the current plan?")){plan={name:"",counties:{},layer:"none",states:[...R5]};document.getElementById("planName").value="";renderStates();fillLayers();render();}};
+document.getElementById("dl").onclick=()=>{const blob=new Blob([JSON.stringify(plan,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(plan.name.trim()||"disaster-plan").replace(/[^\w.-]+/g,"_")+".json";a.click();};
+document.getElementById("imp").onclick=()=>document.getElementById("impFile").click();
+document.getElementById("impFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(r.result);plan=Object.assign({name:"",counties:{},layer:"none",states:[...R5]},p);document.getElementById("planName").value=plan.name||"";renderStates();fillLayers();render();}catch(err){alert("Not a valid plan JSON.");}};r.readAsText(f);};
+
+Promise.all([
+  fetch("data/r5_counties.json").then(r=>r.json()),
+  fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).catch(()=>null)
+]).then(([cty,decl])=>{
+  COUNTIES=cty;DECL=decl;project();renderStates();fillLayers();refreshLoad();render();
+}).catch(()=>{document.getElementById("mapcard").innerHTML="<p style='padding:20px'>Couldn’t load county data. Serve over http(s) (e.g. <code>python3 -m http.server</code>).</p>";});
+</script>
+</body>
+</html>
