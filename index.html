@@ -873,6 +873,12 @@ tr.clickable:hover td{background:#eef3f8;}
     <div class="note" id="apIntro" style="margin:30px 0 14px"><span class="i">!</span><span><b>Do turndowns get overturned?</b> When a request is denied, a governor or tribe can <b>appeal</b> (resubmit). OpenFEMA has <b>no appeal-outcome field</b> — a successful appeal simply disappears from the denials list — so the only public trail is the <b>Daily Operations Briefing</b>, which tags a resubmission "– Appeal" and later "– Approved"/"– Denied". Below we reconstruct each appeal cycle from the brief archive and follow it to its decision. Honors the Region 5 / National switch above. <b>Unofficial brief parse, not OpenFEMA.</b></span></div>
     <div class="card"><div class="card__hd"><h2>&#128260; Appeals &amp; resubmissions</h2><span class="sub" id="apSub"></span></div>
       <div class="card__bd"><div id="apBody"></div></div></div>
+
+    <!-- ===== ERA CROSS-CUT (denial rate & speed by presidential administration — tucked in an expando) ===== -->
+    <details class="disc" id="eraDisc" style="margin-top:22px">
+      <summary>Denial rate &amp; decision speed by presidential administration</summary>
+      <div class="inner"><div id="eraBody"></div></div>
+    </details>
   </section>
 
   <!-- ============ GEOGRAPHY (state + county rollup: disasters · dollars · projects) ============ -->
@@ -2889,7 +2895,7 @@ function tlShowBucket(i){const box=el("tlHistPick"),b=TL_BUCKETS[i]; if(!box||!b
 function renderTimelines(){
   tlSyncScopeUI();
   renderTlHeadlines();renderTlTrend();renderTlLagTime();renderTlCumulative();renderTlHistogram();renderTlBreakdown();
-  renderDenials();renderPending();renderReqDates();renderAppeals();
+  renderDenials();renderPending();renderReqDates();renderAppeals();renderEraTable();
   const tp=el("tlTrendPick"); if(tp)tp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a year above to list the disasters declared that year.</div>';
   const hp=el("tlHistPick"); if(hp)hp.innerHTML='<div class="thr-sub" style="margin-top:8px">Tap a bar above to list the disasters in that lag range.</div>';
 }
@@ -3054,7 +3060,7 @@ const DN_BUCKETS=[{lab:"0–14",f:v=>v>=0&&v<=14},{lab:"15–30",f:v=>v>=15&&v<=
 function dnLoad(){
   if(dnPending||DENIALS!==null)return; dnPending=true;
   fetch("data/denials.json").then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{
-    DENIALS=d; dnPending=false; const v=el("view-timelines"); if(v&&v.classList.contains("active")){renderDenials();renderPending();if(REQDATES&&!REQDATES.error)renderReqDates();}
+    DENIALS=d; dnPending=false; const v=el("view-timelines"); if(v&&v.classList.contains("active")){renderDenials();renderPending();renderEraTable();if(REQDATES&&!REQDATES.error)renderReqDates();}
   }).catch(()=>{dnPending=false; DENIALS=[]; renderDenials();});
 }
 function dnData(){const a=DENIALS||[]; return TL_SCOPE==="national"?a:a.filter(d=>d.region===5);}
@@ -3217,6 +3223,34 @@ function renderDnStateTable(){
       +`<td style="text-align:right;font-variant-numeric:tabular-nums">${x.denMed==null?"—":x.denMed+"d"}</td></tr>`;}).join("");
   box.innerHTML=`<div style="overflow-x:auto"><table class="ptable"><thead><tr><th>State</th><th style="text-align:right">Denied</th><th style="text-align:right">Declared</th><th>Denial rate</th><th style="text-align:right" title="median incident-start → declaration">Appr. lag</th><th style="text-align:right" title="median incident-start → denial">Denial lag</th></tr></thead><tbody>${rows}</tbody></table></div>`
     +`<p class="thr-sub" style="margin-top:8px"><b>Denial rate</b> = denied ÷ (denied + declared), major-disaster (DR) requests only. <b>Declared</b> counts come from ${nat?"the nationwide declaration set":"the Region&nbsp;5 ledger"}; <b>denied</b> from OpenFEMA DeclarationDenials. Lags are <b>incident start → decision</b> medians (— when none). Sorted by denial rate; states with fewer than ${MINREQ} total request${MINREQ===1?"":"s"} omitted${capped?` · showing top ${CAP} of ${total}`:""}.</p>`;
+}
+/* ===== ERA CROSS-CUT: denial rate & decision speed by presidential administration ===== */
+/* Buckets by the DECISION date (declared date for approvals, turndown date for denials) —
+   the administration in office when FEMA decided reflects the policy posture. Scope-aware. */
+const ADMINS=[{lab:"G.W. Bush",start:"2001-01-20"},{lab:"Obama",start:"2009-01-20"},{lab:"Trump I",start:"2017-01-20"},{lab:"Biden",start:"2021-01-20"},{lab:"Trump II",start:"2025-01-20"}];
+function adminOf(iso){if(!iso)return null;let cur=null;for(const a of ADMINS){if(iso>=a.start)cur=a.lab;else break;}return cur;}
+function renderEraTable(){
+  const box=el("eraBody");if(!box)return;
+  if(DENIALS===null){dnLoad();box.innerHTML='<div class="skeleton"><span class="spin"></span> Loading…</div>';return;}
+  const nat=TL_SCOPE==="national";
+  const den=dnData().filter(d=>d.type==="DR"), dec=tlData();
+  if(!den.length&&!dec.length){box.innerHTML='<p class="thr-sub">No records for this scope.</p>';return;}
+  const g={}, get=k=>(g[k]=g[k]||{decN:0,denN:0,appr:[],deni:[]});
+  dec.forEach(d=>{const a=adminOf(d.declared);if(!a)return;const e=get(a);e.decN++;const l=tlLag(d);if(l!=null)e.appr.push(l);});
+  den.forEach(d=>{const a=adminOf(d.statusDate);if(!a)return;const e=get(a);e.denN++;if(d.begin&&d.statusDate){const l=Math.round((tlDayNum(d.statusDate)-tlDayNum(d.begin))/86400000);if(l>=0)e.deni.push(l);}});
+  const order=ADMINS.map(a=>a.lab);
+  let arr=Object.entries(g).map(([k,e])=>({k,tot:e.decN+e.denN,denN:e.denN,decN:e.decN,
+    rate:(e.decN+e.denN)?e.denN/(e.decN+e.denN):0,apprMed:tlMedian(e.appr),denMed:tlMedian(e.deni)}))
+    .filter(x=>x.tot>0).sort((a,b)=>order.indexOf(a.k)-order.indexOf(b.k));
+  if(!arr.length){box.innerHTML='<p class="thr-sub">No records for this scope.</p>';return;}
+  const rateCol=p=>p>=.5?"#d7191c":p>=.25?"#e8590c":p>=.1?"#d4a017":"#1a9850";
+  const rows=arr.map(x=>{const pct=Math.round(x.rate*100);
+    const bar=`<div style="display:flex;align-items:center;gap:8px"><div style="flex:0 0 56px;height:9px;background:#eef2f6;border-radius:5px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${rateCol(x.rate)}"></div></div><b style="color:${rateCol(x.rate)};font-variant-numeric:tabular-nums">${pct}%</b></div>`;
+    return `<tr><td><b>${esc(x.k)}</b></td><td style="text-align:right;font-variant-numeric:tabular-nums">${x.denN}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${x.decN}</td><td>${bar}</td>`
+      +`<td style="text-align:right;font-variant-numeric:tabular-nums">${x.apprMed==null?"—":x.apprMed+"d"}</td>`
+      +`<td style="text-align:right;font-variant-numeric:tabular-nums">${x.denMed==null?"—":x.denMed+"d"}</td></tr>`;}).join("");
+  box.innerHTML=`<div style="overflow-x:auto"><table class="ptable"><thead><tr><th>Administration</th><th style="text-align:right">Denied</th><th style="text-align:right">Declared</th><th>Denial rate</th><th style="text-align:right" title="median incident start → declaration">Appr. lag</th><th style="text-align:right" title="median incident start → denial">Denial lag</th></tr></thead><tbody>${rows}</tbody></table></div>`
+    +`<p class="thr-sub" style="margin-top:8px">${nat?"National":"Region&nbsp;5"} · bucketed by the <b>decision date</b> (declaration date for approvals, turndown date for denials) — i.e. who was in office when FEMA decided. <b>Denial rate</b> = denied ÷ (denied + declared), major-disaster (DR) requests. Lags are <b>incident start → decision</b> medians. A cross-cut of policy posture over time; small denominators (early/late terms) are noisy. Denials: OpenFEMA; approvals: ${nat?"nationwide declaration set":"Region&nbsp;5 ledger"}. <b>Descriptive, not causal.</b></p>`;
 }
 /* ===== APPEALS / RESUBMISSIONS (outcome tracking from the brief archive) ===== */
 const AP_OUT={approved:{lab:"Approved",col:"#1a9850",bg:"#eaf6ec"},denied:{lab:"Denied again",col:"#d7191c",bg:"#fdecea"},in_process:{lab:"In process",col:"#b5651d",bg:"#fdf1e3"},unresolved:{lab:"No recorded outcome",col:"#8a94a6",bg:"#eef2f6"}};
