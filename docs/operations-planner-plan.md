@@ -159,15 +159,40 @@ v1 priority: **(A) self-contained HTML file + (B) CSV/JSON**.
 - **P0 — Planner core. ✅ SHIPPED (PR #98).** `planner.html`: state + county selection on the
   R5 map, PA/IA per county, historical reference layers, save/load/download/import plan
   (localStorage + JSON), masthead link.
-- **P1 — Layers + overlays + county cards.** Full background-metric picker (§4), per-county
-  detail popover, measure switcher, **+ the optional DRC point overlay (§4b) once its data
-  lands**.
-- **P2 — PDA CSV import** (firm; after owner's example) — map columns → per-county PDA fields,
-  distinct PDA layer, unmatched-row report.
-- **P3 — Export = self-contained HTML file** (§6A) + CSV/JSON. Everything inlined (geometry,
-  active layers, DRC overlay), read-only, no network. Deeper Geography/nav entry point.
-- **P4 — Polish.** Multiple saved plans, mobile, PNG/SVG, a short "embed in SharePoint" doc,
-  optional "when declared, auto-fill counties from OpenFEMA designated areas."
+- **P1 — Layers + county detail card. ✅ SHIPPED.** Reference-layer picker expanded to PA
+  (obligated/avg, projects/avg, applicants), IA/IHP (approved, HA, ONA, registrations), and
+  HMGP (obligated/avg, subrecipient count) — grouped `<optgroup>`s in the layer select.
+  Clicking a county now opens a **detail modal** (replacing the old instant-toggle click) with:
+  a full per-disaster breakdown (PA $, IHP $ split into HA/ONA via `disaster_county_ihp.json`
+  where available, DRC count via `disaster_drc.json`), the PA-applicant table, the HMGP
+  subrecipient table, and the Add-to-Plan PA/IA toggles + remove control. All of this reads
+  from already-committed data — **no live per-disaster-county fetch needed** (unlike
+  Geography's mobile drill-down, which fetches PA live); `county_declarations.json`'s
+  `disasters[]` array already carries per-disaster PA $ + IHP $ per county.
+- **P2 — PDA CSV import. ✅ SHIPPED (generic schema, pending owner's real example).** Tolerant
+  header-matching importer (`County/State/FIPS/Applicant/Category/Estimated PA $/Estimated IA
+  $/Notes`, with common synonyms recognized) matches rows to counties by FIPS or
+  name+state, aggregates to `plan.counties[fips].pda` (`paEst`, `iaEst`, `applicants[]`,
+  `byCategory`), and reports unmatched rows inline (never silently dropped). A
+  **downloadable CSV template** button lets the owner copy their PDA numbers in without
+  guessing the format. Rendered as its own distinctly-labeled "PDA — this event" section in
+  the county modal, plus 3 dedicated map layers (`pdaPaEst`/`pdaIaEst`/`pdaApplicants`). **Once
+  the owner's real PDA export is in hand, revisit the alias list / column order** — it was
+  built from a best guess, not the real file.
+- **P3 — Export = self-contained HTML file (§6A) + CSV/JSON. ✅ SHIPPED.** "Export
+  self-contained HTML" builds one downloadable file with county geometry (states-in-scope,
+  for regional context) + a **fully resolved snapshot** per plan county (historical figures +
+  every prior disaster's PA/IHP HA-ONA split + DRC counts + PA/HMGP applicant tables + PDA)
+  baked in as plain JSON — no fetch, no dependency on the live datasets, matching the "drop
+  into SharePoint" requirement. DRC entries are exported as a **count badge only** (not full
+  address/hours cards) to keep the export lean — full DRC detail stays in the live planner
+  (`disaster_drc.json`) and in Geography. "Export data CSV" gives one row per plan county
+  (historical + PDA fields) for Databricks/spreadsheets. Verified end-to-end with a headless
+  Playwright smoke test (map render, modal open, CSV import incl. an unmatched row, both
+  exports).
+- **P4 — Polish (not yet built).** Multiple saved plans, mobile layout pass, PNG/SVG snapshot,
+  a short "embed in SharePoint" doc, optional "when declared, auto-fill counties from
+  OpenFEMA designated areas."
 
 ---
 
@@ -182,6 +207,7 @@ v1 priority: **(A) self-contained HTML file + (B) CSV/JSON**.
 | P-E | **Shareable-URL / live embed hosting** (Cloudflare) — plan encoded in URL | after P3 | secondary to the confirmed self-contained-file export; deferred by owner. |
 | P-F | **Wire the DRC overlay** (§4b) to the real dataset | when DRC data merges to `main` | not on `main` yet; layer is stubbed until then. Reconcile fields. |
 | P-G | **More overlays** (gages, shelters, PODs) | as needed | same marker-layer machinery as DRCs. |
+| P-H | **PA Second Appeals Tracker** (OpenFEMA — FEMA's first/second-appeal outcomes for PA determinations, distinct from the declaration-request appeals already in `request_dates.json`) | when built | Owner's ask: county drill-down should eventually show PA appeal history. Scoped out of this revamp — **owner said this needs to land in the Geography tab first**, then the planner would read the same data. Not yet on `main`; dataset confirmed to exist (`fema-public-assistance-second-appeals-tracker`, migrating to OpenFEMA CSV/JSON/Parquet) but not yet pulled/committed here. |
 
 ---
 
@@ -190,11 +216,21 @@ v1 priority: **(A) self-contained HTML file + (B) CSV/JSON**.
 **Resolved (owner):**
 - **Export = a downloadable self-contained HTML file** (not iframe-to-hosted-URL). §6A.
 - **Standalone `planner.html`**, reachable from the app (shipped in P0). §1.
-- **DRC support** is required, as an **optional layer** (§4b). Owner reports merging DRC work,
-  but it is **not on `main`** here yet — wire on arrival (P-F).
+- **DRC support** is required, as an **optional layer** (§4b) — wired in the P1/P3 revamp via
+  a per-disaster DRC count badge (`disaster_drc.json`, now on `main`). Full DRC address/hours
+  detail is intentionally left out of the modal/export for now (available in Geography); could
+  be added later if wanted (P-G-style).
+- **County drill-down depth**: full per-disaster breakdown (not just aggregate totals) —
+  shipped in P1.
+- **PDA CSV**: build a generic importer now + a copy-paste-able template, refine once the
+  owner's real PDA export arrives — shipped in P2.
+- **"Appeals" in the county drill-down** = the **PA Second Appeals Tracker** (first/second
+  appeal outcomes on PA determinations), not the declaration-request appeals already covered
+  elsewhere. **Deferred** — logged as P-H above; owner wants it built in Geography first.
 
 **Still open:**
-- **The PDA CSV example** (blocks P2) — columns, county key (name vs FIPS), PA vs IA fields.
-  Owner can't provide yet; feature stays firmly in the plan.
-- The **DRC dataset's exact fields/location** (once it lands) — to bind the overlay.
+- **Real PDA CSV example** — once in hand, reconcile column names/order against the generic
+  importer's alias list (`PDA_ALIASES` in `planner.html`) and tighten it.
 - Scope: R5 only for v1 (assumed) or national?
+- P4 polish items (multiple saved plans, mobile pass, PNG/SVG, SharePoint embed doc) — not
+  started.
