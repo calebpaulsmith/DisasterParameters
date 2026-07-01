@@ -97,30 +97,51 @@ Reuses the same choropleth/legend machinery pattern as Geography (GEO_KEY-style 
 
 ---
 
-## 5. PDA CSV import (awaiting owner's example)
+## 4b. Optional overlays — points on top of the choropleth
+
+Beyond the county fill, the planner supports **toggleable marker overlays**, each independently
+switched on and carried into the saved plan + export:
+
+- **Disaster Recovery Centers (DRCs)** — plot open/planned DRC locations (lat/lon, name,
+  address, hours, associated disaster) as map markers, so a briefing map shows both the
+  **requested counties** and **where survivors get in-person help**. Toggle on/off; included
+  in the export when on; own legend.
+  - **Data dependency:** binds to the owner's DRC dataset (a committed `data/drc*.json`, or
+    OpenFEMA's DRC locations). **As of this writing that data is NOT yet on `main`** (searched
+    — no `drc`/"recovery center" file/feature landed here), so the layer is specced now and
+    **wired once the DRC data merges**; until then the toggle is a stub. Reconcile the exact
+    fields against the merged dataset.
+- Future overlays plug in the same way (gages, shelters, PODs, etc.) — see §9.
+
+---
+
+## 5. PDA CSV import (firm requirement — awaiting owner's example)
 
 The user imports the event's **Preliminary Damage Assessment** figures — per-county PA/IA
 **estimates + applicants**. Exact columns TBD from the owner's sample; design to be tolerant:
 - Match rows to counties by **county name + state** and/or **FIPS**; report unmatched rows.
 - Map a configurable set of columns → `county.pda.{paEst,iaEst,applicants,homesAffected,…}`.
 - PDA layer renders **distinctly** from historical reference (different legend/label).
-- Round-trips into the plan JSON + export. **Blocked on the example CSV.**
+- Round-trips into the plan JSON + export. **This is a committed feature, not optional** — it
+  stays in the plan; build waits only on the owner's example CSV to pin column names.
 
 ---
 
 ## 6. Export (the point of the tool)
 
 From a saved plan, produce:
-- **(A) Self-contained embeddable HTML** — one file with the plan + county geometry + a
-  minimal map renderer inlined; iframe-able into **SharePoint** (embed web part) or any
-  **website**. Also a **shareable URL** with the plan encoded (hash) pointing at the hosted
-  `planner.html` in view-only mode.
-- **(B) Data export** — **CSV/JSON** of the plan's counties + chosen metrics, for
+- **(A) Self-contained HTML FILE (the confirmed primary export).** One downloadable `.html`
+  with the plan + county geometry + active layers/overlays (incl. DRCs) + a minimal read-only
+  map renderer **all inlined** — no network, no dependencies. The user drops the file straight
+  into SharePoint (upload / file embed) or hosts it anywhere. **Owner decided: a downloadable
+  self-contained file, not an iframe-to-a-hosted-URL** (the shareable-URL path is deferred,
+  §9 P-E).
+- **(B) Data export** — **CSV/JSON** of the plan's counties + chosen metrics + PDA fields, for
   **Databricks** dashboards / spreadsheets.
 - **(C) Image** — PNG/SVG snapshot of the current map (stretch).
 - Every export carries the **PLAN / not-an-official-declaration** disclaimer + source note.
 
-v1 priority: **(A) embeddable HTML + (B) CSV/JSON**.
+v1 priority: **(A) self-contained HTML file + (B) CSV/JSON**.
 
 ---
 
@@ -135,16 +156,16 @@ v1 priority: **(A) embeddable HTML + (B) CSV/JSON**.
 
 ## 8. Phases (each ships something usable)
 
-- **P0 — Planner core.** `planner.html`: state + county selection on the R5 map, PA/IA per
-  county, one historical reference layer, save/load plan (localStorage + JSON). **Accept:**
-  select a handful of IN counties as PA+IA, save, reload → plan restored; map colors a
-  historical metric.
-- **P1 — Layers + county cards.** Full background-metric picker (§4) + per-county detail
-  popover; measure switcher.
-- **P2 — PDA CSV import** (after owner's example) — map columns → per-county PDA fields,
+- **P0 — Planner core. ✅ SHIPPED (PR #98).** `planner.html`: state + county selection on the
+  R5 map, PA/IA per county, historical reference layers, save/load/download/import plan
+  (localStorage + JSON), masthead link.
+- **P1 — Layers + overlays + county cards.** Full background-metric picker (§4), per-county
+  detail popover, measure switcher, **+ the optional DRC point overlay (§4b) once its data
+  lands**.
+- **P2 — PDA CSV import** (firm; after owner's example) — map columns → per-county PDA fields,
   distinct PDA layer, unmatched-row report.
-- **P3 — Export.** Self-contained embeddable HTML + shareable URL + CSV/JSON. Link from
-  Geography + nav.
+- **P3 — Export = self-contained HTML file** (§6A) + CSV/JSON. Everything inlined (geometry,
+  active layers, DRC overlay), read-only, no network. Deeper Geography/nav entry point.
 - **P4 — Polish.** Multiple saved plans, mobile, PNG/SVG, a short "embed in SharePoint" doc,
   optional "when declared, auto-fill counties from OpenFEMA designated areas."
 
@@ -158,14 +179,22 @@ v1 priority: **(A) embeddable HTML + (B) CSV/JSON**.
 | P-B | **Pre-fill requested counties from JPDA/brief** where available | after P2 | sparse coverage; a convenience seed for the picker. |
 | P-C | **National scope** (beyond R5) | when needed | needs national county geometry + rollups. |
 | P-D | **Estimate/analog auto-suggest** — predicted $ from comparables | later | crosses into prediction; keep clearly separated + labeled if ever built. |
-| P-E | **Live embed hosting** (Cloudflare) for the shareable URL | with P3 | vs pure downloadable HTML. |
+| P-E | **Shareable-URL / live embed hosting** (Cloudflare) — plan encoded in URL | after P3 | secondary to the confirmed self-contained-file export; deferred by owner. |
+| P-F | **Wire the DRC overlay** (§4b) to the real dataset | when DRC data merges to `main` | not on `main` yet; layer is stubbed until then. Reconcile fields. |
+| P-G | **More overlays** (gages, shelters, PODs) | as needed | same marker-layer machinery as DRCs. |
 
 ---
 
 ## 10. Open questions / needs from owner
 
+**Resolved (owner):**
+- **Export = a downloadable self-contained HTML file** (not iframe-to-hosted-URL). §6A.
+- **Standalone `planner.html`**, reachable from the app (shipped in P0). §1.
+- **DRC support** is required, as an **optional layer** (§4b). Owner reports merging DRC work,
+  but it is **not on `main`** here yet — wire on arrival (P-F).
+
+**Still open:**
 - **The PDA CSV example** (blocks P2) — columns, county key (name vs FIPS), PA vs IA fields.
-- Standalone `planner.html` (recommended) vs inlined into the Geography view — confirm.
-- Export priority: embeddable HTML first (assumed) — confirm SharePoint embed mechanism
-  (iframe web part vs file upload).
+  Owner can't provide yet; feature stays firmly in the plan.
+- The **DRC dataset's exact fields/location** (once it lands) — to bind the overlay.
 - Scope: R5 only for v1 (assumed) or national?
