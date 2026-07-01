@@ -331,3 +331,13 @@ design rationale behind the NFIP and refresh items.
   successor to the stale bulk export), and `recovery.fema.gov`'s Spending Explorer (tracks the
   SBA Disaster Loan Fund account alongside the FEMA Disaster Relief Fund since 2017). Do not
   build an SBA measure/layer off the data described in the doc without re-checking those first.
+- **PA Second Appeals Tracker (OpenFEMA) — PARKED, belongs in Geography first.** FEMA publishes
+  first/second-appeal outcomes on PA project determinations as its own dataset (the "FEMA Public
+  Assistance Second Appeals Tracker," migrating to OpenFEMA CSV/JSON/Parquet) — this is distinct
+  from the declaration-request appeals already surfaced on the Disaster Timelines view
+  (`request_dates.json`'s `appeals` block, sourced from the Daily Ops Brief archive). Not yet
+  pulled/committed here. Raised while scoping the Disaster Operations Planner's county
+  drill-down (owner wants per-county PA appeal history there too), but the owner explicitly
+  wants it built in the **Geography tab first** (a per-county/per-disaster appeal lens,
+  mirroring the existing HMGP/mitigation county pattern), with the planner then reading the
+  same data. Logged here so it isn't lost; not started.
