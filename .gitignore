@@ -32,3 +32,4 @@ data/_ia_flag_cache.json
 
 # Daily Ops Brief harvest cache (regenerable; pulled by scripts/build_request_dates.py)
 data/_request_cache.json
+data/_plannerappl_cache.json

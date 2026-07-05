@@ -293,6 +293,16 @@
       "cadence": "hourly (FEMA's DRC Manager program)",
       "description": "FEMA's own facility-tracking GIS feed for Disaster Recovery Centers (walk-in survivor assistance sites) — layer 0 'Open DRC' (currently active) + layer 1 'Archive - Closed DRC Locations' (historical). Not OpenFEMA; a separate FEMA GIS system. Each record's primary_disaster/secondary_disaster is a FEMA disaster number.",
       "links": ["https://gis-fema.hub.arcgis.com/maps/FEMA::disaster-recovery-centers/about"]
+    },
+    {
+      "id": "publicAssistanceApplicants",
+      "providerId": "openfema",
+      "name": "PublicAssistanceApplicants",
+      "endpoint": "https://www.fema.gov/api/open/v1/PublicAssistanceApplicants",
+      "binding": "live-queryable",
+      "cadence": "daily",
+      "description": "Per-disaster PA applicant roster: the (disasterNumber, applicantId) -> applicantName bridge. Used to attribute PA Funded Projects Details v2 rows (which carry only applicantId, no name) to the same applicant names the Summaries dataset uses.",
+      "links": ["https://www.fema.gov/openfema-data-page/public-assistance-applicants-v1"]
     }
   ],
 
@@ -615,6 +625,17 @@
       "writes": ["disaster_drc.json"],
       "description": "Builds disaster_drc.json: per-disaster list of Disaster Recovery Centers (name/type/address/status/open-close dates/hours), for the IA-section DRC badge in Geography + the Ledger detail modal.",
       "links": ["scripts/build_disaster_drc.py"]
+    },
+    {
+      "id": "build_planner_applicants",
+      "name": "scripts/build_planner_applicants.py",
+      "runtime": "offline",
+      "schedule": "manual (re-run after the county applicant pipeline)",
+      "method": "PA Summaries v1 kept at the applicant x county x DISASTER grain (same conservation bucketing as build_county_applicants: inCounty/statewide/undeclared/unmatched); damage categories from PA Details v2 per project worksheet, attributed to applicant names via the PublicAssistanceApplicants id->name bridge with normalize() from dedup_applicants.py; unattributable category $ conserved in the audit, never force-matched.",
+      "reads": ["publicAssistanceFundedProjectsSummaries", "publicAssistanceFundedProjectsDetails", "publicAssistanceApplicants", "disasters.json", "county_declarations.json", "r5_counties.json"],
+      "writes": ["planner_applicants.json"],
+      "description": "Builds planner_applicants.json: per-disaster PA applicant detail (which disasters, how much each, project counts, damage categories) powering the Operations Planner's applicant-history analysis. Display names canonicalized against the deduped county_declarations lists.",
+      "links": ["scripts/build_planner_applicants.py"]
     }
   ],
 
@@ -703,8 +724,8 @@
       "id": "planner",
       "name": "Disaster Operations Planner",
       "location": "planner.html",
-      "reads": ["r5_counties.json", "county_declarations.json"],
-      "description": "Standalone planning tool: select counties for a prospective PA/IA request on the R5 map, color by historical reference metrics from county_declarations.json, save/export the plan. User-authored (not a declaration); PDA-CSV import + embeddable export are later phases.",
+      "reads": ["r5_counties.json", "county_declarations.json", "disaster_drc.json", "disaster_county_ihp.json", "planner_applicants.json"],
+      "description": "Standalone planning tool: select counties (map or A-Z list) for a prospective PA/IA request, color by historical reference metrics, drill each county's history, analyze historical PA applicants per disaster (aggregate + by-county, statewide labeled, damage categories, expectation stats, CSV exports), import PDA estimates, save/export the plan. User-authored (not a declaration).",
       "links": ["planner.html"]
     }
   ],
@@ -727,6 +748,7 @@
     "event_nexus.json": { "description": "Per-disaster characterizing driver values placed in history (the Analyses view)." },
     "r5_counties.json": { "description": "Simplified Region 5 county polygons for the Watch declaration-history map." },
     "manifest.json": { "description": "Per-file freshness manifest (dataAsOf vs sourceCadence) for the footer staleness stamp." },
-    "disaster_drc.json": { "description": "Per-disaster list of Disaster Recovery Centers — name/type/address/status/open-close dates/hours — powering the IA-section DRC badge in Geography and the Ledger detail modal." }
+    "disaster_drc.json": { "description": "Per-disaster list of Disaster Recovery Centers — name/type/address/status/open-close dates/hours — powering the IA-section DRC badge in Geography and the Ledger detail modal." },
+    "planner_applicants.json": { "description": "Per-disaster PA applicant detail (applicant x county x disaster rows + damage-category rollups + conservation audit) for the Operations Planner's applicant-history analysis. Fetched lazily by planner.html only." }
   }
 }

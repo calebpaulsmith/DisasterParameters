@@ -190,9 +190,29 @@ v1 priority: **(A) self-contained HTML file + (B) CSV/JSON**.
   (historical + PDA fields) for Databricks/spreadsheets. Verified end-to-end with a headless
   Playwright smoke test (map render, modal open, CSV import incl. an unmatched row, both
   exports).
+- **P3b — A–Z picker + PA applicant history analysis. ✅ SHIPPED (owner's 2026-07 asks).**
+  (1) **A–Z county picker**: a searchable alphabetical list ("Add counties from A–Z list",
+  filtered to states-in-scope) alongside the map click; the counties-in-plan list was already
+  alphabetical. (2) **"PA applicant history — counties in plan" card** (below the map), backed
+  by a NEW committed artifact `data/planner_applicants.json` (`scripts/
+  build_planner_applicants.py`): PA Summaries kept at the applicant×county×**disaster** grain
+  (county_declarations only carries all-time rollups), plus per-(disaster,applicant) **damage
+  category** rollups from PA Details v2 joined via the `PublicAssistanceApplicants` id→name
+  bridge (Details carries no applicant name), display names canonicalized against the deduped
+  county lists, dollars conserved (c/s/u/x buckets + audit; unattributable category $ stay in
+  the audit). The card answers the owner's questions: **which applicants** in the selected
+  counties, **which disasters, how much each, which categories** — as **two drillable lists**
+  (Aggregated across selection · By county), with **statewide/state-agency (no-county) and
+  undeclared/unresolved applicants listed separately and labeled**, an **expectations block**
+  (median/mean applicants + projects per prior disaster touching the selection, with and
+  without statewide), and **three CSV exports** (aggregated applicant×disaster, by-county,
+  expectations). Selection basis = PA-flagged plan counties (falls back to all, labeled).
+  Guardian extended: surface fetch checks now resolve against each surface's own HTML file
+  (planner.html), not just index.html.
 - **P4 — Polish (not yet built).** Multiple saved plans, mobile layout pass, PNG/SVG snapshot,
   a short "embed in SharePoint" doc, optional "when declared, auto-fill counties from
-  OpenFEMA designated areas."
+  OpenFEMA designated areas." The applicant-history card is not yet folded into the
+  self-contained HTML export (P3's export predates it) — fold in on the next export pass.
 
 ---
 
@@ -207,6 +227,7 @@ v1 priority: **(A) self-contained HTML file + (B) CSV/JSON**.
 | P-E | **Shareable-URL / live embed hosting** (Cloudflare) — plan encoded in URL | after P3 | secondary to the confirmed self-contained-file export; deferred by owner. |
 | P-F | **Wire the DRC overlay** (§4b) to the real dataset | when DRC data merges to `main` | not on `main` yet; layer is stubbed until then. Reconcile fields. |
 | P-G | **More overlays** (gages, shelters, PODs) | as needed | same marker-layer machinery as DRCs. |
+| P-I | **PDA ↔ historical-applicant reconciliation** ("that's for later" — owner, 2026-07) | after P3b + a real PDA import | Compare the imported PDA's applicant list against the historical applicant roster for the selected counties (planner_applicants.json): how many expected applicants are already accounted for in the PDA, who's historically active but missing, who's new. Name-match via the same normalize() logic (port to JS or precompute normalized keys into planner_applicants.json). |
 | P-H | **PA Second Appeals Tracker** (OpenFEMA — FEMA's first/second-appeal outcomes for PA determinations, distinct from the declaration-request appeals already in `request_dates.json`) | when built | Owner's ask: county drill-down should eventually show PA appeal history. Scoped out of this revamp — **owner said this needs to land in the Geography tab first**, then the planner would read the same data. Not yet on `main`; dataset confirmed to exist (`fema-public-assistance-second-appeals-tracker`, migrating to OpenFEMA CSV/JSON/Parquet) but not yet pulled/committed here. |
 
 ---
