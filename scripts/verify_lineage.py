@@ -148,20 +148,36 @@ def main():
                          f"or it's reached indirectly via a cached intermediate).")
 
     # --- surfaces ---
-    fetched = set(re.findall(r"""fetch\(\s*["'`]data/([\w.]+\.json)""", index_txt))
+    # Each surface's fetches are checked against ITS OWN location HTML (planner.html,
+    # lineage.html, …), falling back to index.html — a standalone page's artifact reads
+    # must not pass merely because index.html happens to fetch the same file.
+    FETCH_RE = r"""fetch\(\s*["'`]data/([\w.]+\.json)"""
+    page_txt = {"index.html": index_txt}
+    def txt_for(loc):
+        loc = loc if loc and loc.endswith(".html") else "index.html"
+        if loc not in page_txt:
+            p = os.path.join(ROOT, loc)
+            page_txt[loc] = open(p, encoding="utf-8").read() if os.path.exists(p) else ""
+        return loc, page_txt[loc]
     for s in surfaces.values():
+        loc, txt = txt_for(s.get("location", "index.html"))
+        fetched_here = set(re.findall(FETCH_RE, txt))
         for r in s.get("reads", []):
             if r not in data_ids:
                 err(f"surface '{s['id']}': reads unknown id '{r}'.")
-            elif r in artifacts and index_txt and r not in fetched:
-                err(f"surface '{s['id']}': declares it reads '{r}' but index.html "
+            elif r in artifacts and txt and r not in fetched_here:
+                err(f"surface '{s['id']}': declares it reads '{r}' but {loc} "
                     f"never fetch()es data/{r}.")
-    # no untracked consumption
-    surface_reads = {r for s in surfaces.values() for r in s.get("reads", [])}
-    for fn in sorted(fetched - SELF_FILES):
-        if fn not in surface_reads:
-            err(f"UNTRACKED CONSUMPTION: index.html fetches data/{fn} but no surface "
-                f"declares it as a source.")
+    # no untracked consumption: every fetch on every surface page is declared by a
+    # surface that lives on that page
+    for loc, txt in page_txt.items():
+        reads_here = {r for s in surfaces.values()
+                      if txt_for(s.get("location", "index.html"))[0] == loc
+                      for r in s.get("reads", [])}
+        for fn in sorted(set(re.findall(FETCH_RE, txt)) - SELF_FILES):
+            if fn not in reads_here:
+                err(f"UNTRACKED CONSUMPTION: {loc} fetches data/{fn} but no surface "
+                    f"on that page declares it as a source.")
 
     # --- sources ---
     for s in sources.values():

@@ -292,11 +292,13 @@
           "build_county_byyear",
           "build_recent",
           "build_newsreel",
-          "build_covid"
+          "build_covid",
+          "build_planner_applicants"
         ],
         "county": [
           "build_recent",
-          "build_newsreel"
+          "build_newsreel",
+          "build_planner_applicants"
         ],
         "countyCode": [
           "build_county_map",
@@ -307,7 +309,8 @@
           "build_county_map",
           "build_county_byyear",
           "build_recent",
-          "build_newsreel"
+          "build_newsreel",
+          "build_planner_applicants"
         ],
         "lastObligationDate": [
           "build_county_byyear",
@@ -895,6 +898,23 @@
       "links": [
         "https://gis-fema.hub.arcgis.com/maps/FEMA::disaster-recovery-centers/about"
       ]
+    },
+    {
+      "id": "publicAssistanceApplicants",
+      "providerId": "openfema",
+      "name": "PublicAssistanceApplicants",
+      "endpoint": "https://www.fema.gov/api/open/v1/PublicAssistanceApplicants",
+      "binding": "live-queryable",
+      "cadence": "daily",
+      "dictionary": null,
+      "columnsUsed": [],
+      "columnsUnused": [],
+      "columnUsage": {},
+      "columnsDeclaredUnfound": [],
+      "description": "Per-disaster PA applicant roster: the (disasterNumber, applicantId) -> applicantName bridge. Used to attribute PA Funded Projects Details v2 rows (which carry only applicantId, no name) to the same applicant names the Summaries dataset uses.",
+      "links": [
+        "https://www.fema.gov/openfema-data-page/public-assistance-applicants-v1"
+      ]
     }
   ],
   "transforms": [
@@ -1417,6 +1437,28 @@
       "links": [
         "scripts/build_disaster_drc.py"
       ]
+    },
+    {
+      "id": "build_planner_applicants",
+      "name": "scripts/build_planner_applicants.py",
+      "runtime": "offline",
+      "schedule": "manual (re-run after the county applicant pipeline)",
+      "method": "PA Summaries v1 kept at the applicant x county x DISASTER grain (same conservation bucketing as build_county_applicants: inCounty/statewide/undeclared/unmatched); damage categories from PA Details v2 per project worksheet, attributed to applicant names via the PublicAssistanceApplicants id->name bridge with normalize() from dedup_applicants.py; unattributable category $ conserved in the audit, never force-matched.",
+      "reads": [
+        "publicAssistanceFundedProjectsSummaries",
+        "publicAssistanceFundedProjectsDetails",
+        "publicAssistanceApplicants",
+        "disasters.json",
+        "county_declarations.json",
+        "r5_counties.json"
+      ],
+      "writes": [
+        "planner_applicants.json"
+      ],
+      "description": "Builds planner_applicants.json: per-disaster PA applicant detail (which disasters, how much each, project counts, damage categories) powering the Operations Planner's applicant-history analysis. Display names canonicalized against the deduped county_declarations lists.",
+      "links": [
+        "scripts/build_planner_applicants.py"
+      ]
     }
   ],
   "artifacts": [
@@ -1615,6 +1657,19 @@
       ]
     },
     {
+      "id": "planner_applicants.json",
+      "name": "data/planner_applicants.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Per-disaster PA applicant detail (applicant x county x disaster rows + damage-category rollups + conservation audit) for the Operations Planner's applicant-history analysis. Fetched lazily by planner.html only.",
+      "deprecated": false,
+      "links": [
+        "data/planner_applicants.json"
+      ],
+      "producedBy": [
+        "build_planner_applicants"
+      ]
+    },
+    {
       "id": "r5_counties.json",
       "name": "data/r5_counties.json",
       "freshnessFrom": "data/manifest.json",
@@ -1810,9 +1865,12 @@
       "location": "planner.html",
       "reads": [
         "r5_counties.json",
-        "county_declarations.json"
+        "county_declarations.json",
+        "disaster_drc.json",
+        "disaster_county_ihp.json",
+        "planner_applicants.json"
       ],
-      "description": "Standalone planning tool: select counties for a prospective PA/IA request on the R5 map, color by historical reference metrics from county_declarations.json, save/export the plan. User-authored (not a declaration); PDA-CSV import + embeddable export are later phases.",
+      "description": "Standalone planning tool: select counties (map or A-Z list) for a prospective PA/IA request, color by historical reference metrics, drill each county's history, analyze historical PA applicants per disaster (aggregate + by-county, statewide labeled, damage categories, expectation stats, CSV exports), import PDA estimates, save/export the plan. User-authored (not a declaration).",
       "links": [
         "planner.html"
       ]

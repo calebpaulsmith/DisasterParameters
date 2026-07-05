@@ -36,6 +36,7 @@ SOURCE_CADENCE = {
     "disaster_drc.json": "as-needed (source updates hourly; pulled manually)",
     "event_nexus.json": "as-needed",
     "context.json": "as-needed",
+    "planner_applicants.json": "as-needed (re-run after the county applicant pipeline; PA sources update daily)",
     "r5_counties.json": "static (county geometry)",
 }
 

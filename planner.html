@@ -89,6 +89,26 @@ details.dcard .db{padding-top:8px;font-size:12.5px;color:var(--ink-2);}
 .tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
 .tbl th,.tbl td{text-align:left;padding:4px 6px;border-bottom:1px solid #eee;}
 .tbl th{color:var(--ink-3);font-weight:700;font-size:11px;text-transform:uppercase;}
+/* A–Z county picker */
+details.pick{border:1px solid var(--line-2);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--bg-2);}
+details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--navy);}
+.pick-list{max-height:230px;overflow:auto;border-top:1px solid var(--line);margin-top:8px;}
+.pick-row{display:flex;align-items:center;gap:8px;padding:5px 4px;border-bottom:1px solid #eee;font-size:12.5px;cursor:pointer;}
+.pick-row:hover{background:#eef3f9;}
+.pick-row small{color:var(--ink-3);}
+.pick-row .pick-add{margin-left:auto;font-size:11px;font-weight:800;color:var(--blue);white-space:nowrap;}
+.pick-row.on .pick-add{color:var(--green-dark);}
+/* applicant analysis card */
+.wrap2{max-width:1500px;margin:0 auto;padding:0 20px 18px;}
+.apanel{padding:16px 18px;}
+.apanel h2{font-size:14px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);}
+.atabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;}
+.atab{font-size:12px;font-weight:700;border:1px solid var(--line-2);border-radius:16px;padding:4px 12px;cursor:pointer;background:var(--white);color:var(--ink-2);}
+.atab.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.scopetag{font-size:10px;font-weight:800;border-radius:4px;padding:1px 5px;background:#eef0f2;color:var(--ink-3);text-transform:uppercase;letter-spacing:.03em;}
+.scopetag.sw{background:#fff2d6;color:#8a6100;}
+.scopetag.other{background:#fbe4e7;color:#8a1220;}
+.catchip{display:inline-block;font-size:11px;font-weight:700;background:#eaf2fb;color:var(--blue-dark);border-radius:4px;padding:1px 6px;margin:1px 3px 1px 0;}
 @media(max-width:1000px){.wrap{grid-template-columns:1fr;}.panel{position:static;max-height:none;}}
 </style>
 </head>
@@ -116,7 +136,12 @@ details.dcard .db{padding-top:8px;font-size:12.5px;color:var(--ink-2);}
       <div class="muted" id="layerNote" style="margin-top:4px">Historical figures from prior disasters — context only.</div>
     </div>
     <h2>Counties in plan <span id="tally" class="tally"></span></h2>
-    <div class="muted" style="margin:-2px 0 6px">Click a county on the map to open its full history and add it to the plan.</div>
+    <div class="muted" style="margin:-2px 0 6px">Click a county on the map to open its full history and add it to the plan — or pick from the list below.</div>
+    <details class="pick" id="pickWrap">
+      <summary>Add counties from A–Z list</summary>
+      <input type="text" id="pickSearch" placeholder="Type to filter counties…" style="margin-top:8px">
+      <div class="pick-list" id="pickList"></div>
+    </details>
     <div class="sel-list" id="selList"></div>
 
     <div class="fld" style="margin-top:16px">
@@ -152,6 +177,14 @@ details.dcard .db{padding-top:8px;font-size:12.5px;color:var(--ink-2);}
       <div class="muted" style="margin-top:4px">The HTML export is one file — map, county history, and PDA figures all inlined, no network — ready to drop into SharePoint or host anywhere.</div>
     </div>
   </aside>
+</div>
+
+<div class="wrap2" id="applWrap" style="display:none">
+  <section class="panel apanel" id="applCard">
+    <h2>PA applicant history — counties in plan</h2>
+    <div class="muted" id="applBasis"></div>
+    <div id="applBody"></div>
+  </section>
 </div>
 
 <div class="footer"><p class="d"><b>This is not a government website.</b> A planning aid built on FEMA OpenFEMA + Census county geometry — <b>not endorsed by FEMA</b>. Historical metrics are prior-disaster obligations/approvals for reference; a saved plan reflects user selections, not an official declaration.</p></div>
@@ -230,8 +263,26 @@ function render(){
   const lg=document.getElementById("legend");
   if(L&&L.get&&curMax>0){lg.style.display="block";lg.innerHTML=`<div>${L.label}</div><div class="bar"></div><div class="ends"><span>0</span><span>${fmtVal(curMax,L.fmt)}</span></div>`;}
   else lg.style.display="none";
-  renderSel();
+  renderSel();renderPicker();renderAppl();
 }
+// ---- A–Z county picker ----
+function renderPicker(){
+  const box=document.getElementById("pickList");if(!box||!COUNTIES.length)return;
+  const q=(document.getElementById("pickSearch").value||"").toLowerCase().trim();
+  const list=COUNTIES.filter(c=>plan.states.includes(c.s)&&(!q||c.n.toLowerCase().includes(q)))
+    .slice().sort((a,b)=>a.n.localeCompare(b.n)||a.s.localeCompare(b.s));
+  box.innerHTML=list.map(c=>{const sel=!!plan.counties[c.f];
+    return `<div class="pick-row ${sel?"on":""}" data-f="${c.f}">${esc(c.n)} <small>${c.s}${metrics(c.f).count?` · ${metrics(c.f).count} prior decl`:""}</small><span class="pick-add">${sel?"✓ in plan":"+ add"}</span></div>`;}).join("")
+    ||`<div class="muted" style="padding:8px 0">No counties match.</div>`;
+  box.querySelectorAll(".pick-row").forEach(r=>r.onclick=()=>{
+    const f=r.dataset.f;
+    if(plan.counties[f])delete plan.counties[f];
+    else plan.counties[f]={pa:true,ia:true};
+    render();
+  });
+}
+document.getElementById("pickSearch").oninput=()=>renderPicker();
+document.getElementById("pickSearch").onclick=e=>e.stopPropagation();
 function renderSel(){
   const box=document.getElementById("selList"),ks=Object.keys(plan.counties);
   document.getElementById("tally").textContent=ks.length?`· ${ks.length} (${ks.filter(f=>plan.counties[f].pa).length} PA, ${ks.filter(f=>plan.counties[f].ia).length} IA)`:"";
@@ -354,6 +405,180 @@ function fillLayers(){
 document.getElementById("layer").onchange=e=>{plan.layer=e.target.value;render();};
 document.getElementById("planName").oninput=e=>plan.name=e.target.value;
 
+// ---- PA applicant history — per-disaster detail (data/planner_applicants.json, lazy) ----
+const CAT_LABELS={A:"A · Debris removal",B:"B · Emergency protective measures",C:"C · Roads & bridges",D:"D · Water control facilities",E:"E · Public buildings & equipment",F:"F · Utilities",G:"G · Parks, recreation & other",Z:"Z · Management costs","?":"Uncategorized"};
+let PAPPL=null,PAPPL_ERR=false,papplPromise=null,applTab="agg",PIDX=null,FIPS2ST={},FIPS2NAME={};
+function ensurePappl(){
+  if(papplPromise)return papplPromise;
+  papplPromise=fetch("data/planner_applicants.json").then(r=>{if(!r.ok)throw 0;return r.json();})
+    .then(d=>{PAPPL=d;indexPappl();renderAppl();}).catch(()=>{PAPPL_ERR=true;renderAppl();});
+  return papplPromise;
+}
+function indexPappl(){
+  const byF={},byS={},byOther={};
+  PAPPL.rows.forEach(r=>{
+    const b=r[1],key=r[2];
+    if(b==="c")(byF[key]=byF[key]||[]).push(r);
+    else if(b==="s")(byS[key]=byS[key]||[]).push(r);
+    else{const st=b==="u"?(FIPS2ST[key]||"?"):String(key).split("|")[0];(byOther[st]=byOther[st]||[]).push(r);}
+  });
+  PIDX={byF,byS,byOther};
+}
+function median(a){if(!a.length)return 0;const s=a.slice().sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+function mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0;}
+function applSelection(){
+  const all=Object.keys(plan.counties),pa=all.filter(f=>plan.counties[f].pa);
+  return {fips:pa.length?pa:all,basis:pa.length?"counties flagged PA in the plan":"all counties in the plan (none flagged PA yet)"};
+}
+function aggApplRows(map,r,scope){
+  const ni=r[3],dn=r[0];
+  const a=map.get(ni)||{ni,scope,pa:0,pr:0,counties:new Set(),perDn:new Map()};
+  a.pa+=r[4];a.pr+=r[5];
+  const d=a.perDn.get(dn)||{pa:0,pr:0,counties:new Set()};
+  d.pa+=r[4];d.pr+=r[5];
+  if(r[1]==="c"){d.counties.add(r[2]);a.counties.add(r[2]);}
+  a.perDn.set(dn,d);map.set(ni,a);
+}
+function computeAppl(){
+  const sel=applSelection();
+  if(!PAPPL||!PIDX||!sel.fips.length)return null;
+  const cRows=[];sel.fips.forEach(f=>(PIDX.byF[f]||[]).forEach(r=>cRows.push(r)));
+  const dns=new Set(cRows.map(r=>r[0]));
+  const states=[...new Set(sel.fips.map(f=>FIPS2ST[f]).filter(Boolean))];
+  const agg=new Map(),sw=new Map(),other=new Map();
+  cRows.forEach(r=>aggApplRows(agg,r,"county"));
+  states.forEach(st=>{
+    (PIDX.byS[st]||[]).forEach(r=>{if(dns.has(r[0]))aggApplRows(sw,r,"statewide");});
+    (PIDX.byOther[st]||[]).forEach(r=>{if(dns.has(r[0]))aggApplRows(other,r,r[1]==="u"?"undeclared county":"unresolved county");});
+  });
+  const perDn=[...dns].map(dn=>{
+    const rows=cRows.filter(r=>r[0]===dn),meta=PAPPL.dnMeta[String(dn)]||[];
+    let swRows=[];states.forEach(st=>{swRows=swRows.concat((PIDX.byS[st]||[]).filter(r=>r[0]===dn));});
+    return {dn,st:meta[0]||"",fy:meta[1]||"",title:meta[2]||"",begin:meta[3]||"",
+      nAppl:new Set(rows.map(r=>r[3])).size,pr:rows.reduce((s,r)=>s+r[5],0),pa:rows.reduce((s,r)=>s+r[4],0),
+      swAppl:new Set(swRows.map(r=>r[3])).size,swPr:swRows.reduce((s,r)=>s+r[5],0),swPa:swRows.reduce((s,r)=>s+r[4],0)};
+  }).sort((a,b)=>String(b.begin).localeCompare(String(a.begin)));
+  return {sel,states,cRows,dns,agg,sw,other,perDn};
+}
+function catChipsHTML(dn,ni){
+  const c=PAPPL.cats[dn+"|"+ni];if(!c)return '<span class="muted">n/a</span>';
+  return Object.entries(c).sort((x,y)=>y[1][1]-x[1][1]).map(([k,v])=>`<span class="catchip" title="${esc(CAT_LABELS[k]||k)}">${esc(k)} ×${v[0]} · ${fmtVal(v[1],"$")}</span>`).join("");
+}
+function applicantCardHTML(a){
+  const name=PAPPL.names[a.ni]||"?";
+  const scopeTag=a.scope==="county"?"":(a.scope==="statewide"?'<span class="scopetag sw">statewide — no county</span>':`<span class="scopetag other">${esc(a.scope)}</span>`);
+  const dnRows=[...a.perDn.entries()].sort((x,y)=>y[1].pa-x[1].pa).map(([dn,d])=>{
+    const m=PAPPL.dnMeta[String(dn)]||[];
+    const cty=d.counties.size?[...d.counties].map(f=>esc(FIPS2NAME[f]||f)).join(", "):"—";
+    return `<tr><td style="white-space:nowrap">DR-${dn}</td><td>${esc(String(m[1]||""))}</td><td>${esc(m[2]||"")}</td><td>${cty}</td><td style="white-space:nowrap">${fmtMoneyFull(d.pa)}</td><td>${d.pr}</td><td>${catChipsHTML(dn,a.ni)}</td></tr>`;
+  }).join("");
+  return `<details class="dcard"><summary>${esc(name)} ${scopeTag} <span class="sub">· ${fmtMoneyFull(a.pa)} · ${a.pr} project${a.pr===1?"":"s"} · ${a.perDn.size} disaster${a.perDn.size===1?"":"s"}</span></summary>
+    <div class="db" style="overflow-x:auto"><table class="tbl"><thead><tr><th>Disaster</th><th>FY</th><th>Title</th><th>County (in selection)</th><th>PA $</th><th>Projects</th><th>Categories (whole disaster)</th></tr></thead><tbody>${dnRows}</tbody></table></div></details>`;
+}
+function renderAppl(){
+  const wrap=document.getElementById("applWrap");if(!wrap)return;
+  if(!Object.keys(plan.counties).length){wrap.style.display="none";return;}
+  wrap.style.display="block";
+  const body=document.getElementById("applBody"),basis=document.getElementById("applBasis");
+  if(!PAPPL){basis.textContent="";body.innerHTML=PAPPL_ERR?'<p class="muted">Couldn&#8217;t load data/planner_applicants.json — applicant history unavailable.</p>':'<p class="muted">Loading applicant history…</p>';ensurePappl();return;}
+  const A=computeAppl();
+  if(!A||!A.dns.size){basis.textContent="Basis: "+applSelection().basis+".";body.innerHTML='<p class="muted">No prior PA obligations on record for the selected counties.</p>';return;}
+  basis.innerHTML=`Historical PA applicants in <b>${A.sel.fips.length}</b> selected count${A.sel.fips.length===1?"y":"ies"} (basis: ${A.sel.basis}) across <b>${A.dns.size}</b> prior disaster${A.dns.size===1?"":"s"}. Statewide / state-agency applicants (no county alignment) are listed separately and labeled — they served the same disasters but their dollars aren&#8217;t attributable to your counties. Source: OpenFEMA PA Funded Projects Summaries v1 (rows) + Details v2 (categories).`;
+  const nA=A.perDn.map(d=>d.nAppl),nP=A.perDn.map(d=>d.pr);
+  const nAs=A.perDn.map(d=>d.nAppl+d.swAppl),nPs=A.perDn.map(d=>d.pr+d.swPr);
+  const f1=v=>(Math.round(v*10)/10).toLocaleString();
+  const stats=`<div class="msec"><h4>What to expect — applicants &amp; projects per disaster (prior disasters touching these counties)</h4>
+    <div class="chipgrid">
+      ${chip(A.perDn.length,"Prior disasters (PA in selected counties)")}
+      ${chip(f1(median(nA))+" med · "+f1(mean(nA))+" avg","Applicants / disaster — selected counties")}
+      ${chip(f1(median(nP))+" med · "+f1(mean(nP))+" avg","Projects / disaster — selected counties")}
+      ${chip(f1(median(nAs))+" med · "+f1(mean(nAs))+" avg","Applicants / disaster — incl. statewide")}
+      ${chip(f1(median(nPs))+" med · "+f1(mean(nPs))+" avg","Projects / disaster — incl. statewide")}
+    </div>
+    <details class="dcard" style="margin-top:8px"><summary>Per-disaster breakdown (${A.perDn.length})</summary><div class="db" style="overflow-x:auto">
+      <table class="tbl"><thead><tr><th>Disaster</th><th>FY</th><th>Title</th><th>Applicants (sel.)</th><th>Projects (sel.)</th><th>PA $ (sel.)</th><th>Statewide applicants</th><th>Statewide projects</th></tr></thead>
+      <tbody>${A.perDn.map(d=>`<tr><td style="white-space:nowrap">DR-${d.dn}</td><td>${esc(String(d.fy||""))}</td><td>${esc(d.title)}</td><td>${d.nAppl}</td><td>${d.pr}</td><td>${fmtMoneyFull(d.pa)}</td><td>${d.swAppl}</td><td>${d.swPr}</td></tr>`).join("")}</tbody></table>
+    </div></details></div>`;
+  const sortByPa=m=>[...m.values()].sort((x,y)=>y.pa-x.pa);
+  let listHTML="";
+  if(applTab==="agg"){
+    const county=sortByPa(A.agg),sw=sortByPa(A.sw),other=sortByPa(A.other);
+    listHTML=`<div class="msec"><h4>Applicants — aggregated across selected counties (${county.length})</h4>${county.map(applicantCardHTML).join("")||'<p class="muted">None.</p>'}</div>
+      <div class="msec"><h4>Statewide / state-agency applicants — no county alignment (${sw.length})</h4>${sw.map(applicantCardHTML).join("")||'<p class="muted">None.</p>'}</div>`
+      +(other.length?`<div class="msec"><h4>Other non-county-aligned — undeclared / unresolved counties (${other.length})</h4><div class="muted" style="margin-bottom:6px">Rows the source records in counties with no declaration record or unresolvable names (e.g. cross-border cooperatives) — conserved and labeled, never silently dropped.</div>${other.map(applicantCardHTML).join("")}</div>`:"");
+  }else{
+    listHTML=A.sel.fips.map(f=>({f,c:COUNTIES.find(x=>x.f===f)})).sort((a,b)=>(a.c?a.c.n:a.f).localeCompare(b.c?b.c.n:b.f)).map(({f,c})=>{
+      const m=new Map();(PIDX.byF[f]||[]).forEach(r=>aggApplRows(m,r,"county"));
+      const list=sortByPa(m);
+      return `<div class="msec"><h4>${esc(c?c.n:f)}, ${c?c.s:""} — ${list.length} applicant${list.length===1?"":"s"}</h4>${list.map(applicantCardHTML).join("")||'<p class="muted">No PA applicants on record.</p>'}</div>`;
+    }).join("");
+  }
+  body.innerHTML=`${stats}
+    <div class="atabs"><span class="atab ${applTab==="agg"?"on":""}" data-t="agg">Aggregated (selection total)</span><span class="atab ${applTab==="cty"?"on":""}" data-t="cty">Drill by county</span></div>
+    ${listHTML}
+    <div class="btnrow" style="margin-top:12px">
+      <button class="btn primary" id="expApplAgg">Export aggregated applicants (CSV)</button>
+      <button class="btn" id="expApplCty">Export by county (CSV)</button>
+      <button class="btn" id="expApplStats">Export expectations (CSV)</button>
+    </div>`;
+  body.querySelectorAll(".atab").forEach(t=>t.onclick=()=>{applTab=t.dataset.t;renderAppl();});
+  document.getElementById("expApplAgg").onclick=()=>exportApplCsv("agg");
+  document.getElementById("expApplCty").onclick=()=>exportApplCsv("cty");
+  document.getElementById("expApplStats").onclick=()=>exportApplCsv("stats");
+}
+function catCsv(dn,ni){
+  const c=PAPPL.cats[dn+"|"+ni];if(!c)return"";
+  return Object.entries(c).sort((x,y)=>y[1][1]-x[1][1]).map(([k,v])=>`${k} x${v[0]} $${v[1]}`).join(" | ");
+}
+function dlCsv(rows,suffix){
+  const csv=rows.map(r=>r.map(csvEscape).join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(plan.name.trim()||"disaster-plan").replace(/[^\w.-]+/g,"_")+suffix;a.click();
+}
+function exportApplCsv(kind){
+  const A=computeAppl();
+  if(!A||!A.dns.size){alert("No applicant history for the current selection.");return;}
+  const f1=v=>Math.round(v*10)/10;
+  if(kind==="stats"){
+    const head=["Disaster","FY","State","Title","Applicants (selected counties)","Projects (selected counties)","PA $ (selected counties)","Statewide applicants (no county)","Statewide projects","Statewide PA $"];
+    const rows=[head,...A.perDn.map(d=>[`DR-${d.dn}`,d.fy,d.st,d.title,d.nAppl,d.pr,d.pa,d.swAppl,d.swPr,d.swPa])];
+    const nA=A.perDn.map(d=>d.nAppl),nP=A.perDn.map(d=>d.pr);
+    rows.push([]);
+    rows.push(["MEAN (selected counties)","","","",f1(mean(nA)),f1(mean(nP)),Math.round(mean(A.perDn.map(d=>d.pa))),f1(mean(A.perDn.map(d=>d.swAppl))),f1(mean(A.perDn.map(d=>d.swPr))),Math.round(mean(A.perDn.map(d=>d.swPa)))]);
+    rows.push(["MEDIAN (selected counties)","","","",f1(median(nA)),f1(median(nP)),Math.round(median(A.perDn.map(d=>d.pa))),f1(median(A.perDn.map(d=>d.swAppl))),f1(median(A.perDn.map(d=>d.swPr))),Math.round(median(A.perDn.map(d=>d.swPa)))]);
+    rows.push(["MEAN incl. statewide","","","",f1(mean(A.perDn.map(d=>d.nAppl+d.swAppl))),f1(mean(A.perDn.map(d=>d.pr+d.swPr)))]);
+    rows.push(["MEDIAN incl. statewide","","","",f1(median(A.perDn.map(d=>d.nAppl+d.swAppl))),f1(median(A.perDn.map(d=>d.pr+d.swPr)))]);
+    dlCsv(rows,"_applicant_expectations.csv");return;
+  }
+  if(kind==="agg"){
+    const head=["Applicant","Scope","Counties (in selection)","Disaster","FY","Title","PA $ (this disaster)","Projects (this disaster)","Categories (whole disaster)","Applicant total PA $","Applicant total projects","# Disasters"];
+    const rows=[head];
+    const emit=(a,scopeLabel)=>{
+      const name=PAPPL.names[a.ni]||"?";
+      [...a.perDn.entries()].sort((x,y)=>y[1].pa-x[1].pa).forEach(([dn,d])=>{
+        const m=PAPPL.dnMeta[String(dn)]||[];
+        rows.push([name,scopeLabel,[...d.counties].map(f=>FIPS2NAME[f]||f).join("; "),`DR-${dn}`,m[1]||"",m[2]||"",d.pa,d.pr,catCsv(dn,a.ni),a.pa,a.pr,a.perDn.size]);
+      });
+    };
+    [...A.agg.values()].sort((x,y)=>y.pa-x.pa).forEach(a=>emit(a,"County"));
+    [...A.sw.values()].sort((x,y)=>y.pa-x.pa).forEach(a=>emit(a,"Statewide (no county)"));
+    [...A.other.values()].sort((x,y)=>y.pa-x.pa).forEach(a=>emit(a,"Non-county-aligned ("+a.scope+")"));
+    dlCsv(rows,"_applicants_aggregated.csv");return;
+  }
+  const head=["County","State","FIPS","Applicant","Disaster","FY","Title","PA $ (this disaster)","Projects (this disaster)","Categories (whole disaster)"];
+  const rows=[head];
+  A.sel.fips.map(f=>({f,c:COUNTIES.find(x=>x.f===f)})).sort((a,b)=>(a.c?a.c.n:a.f).localeCompare(b.c?b.c.n:b.f)).forEach(({f,c})=>{
+    const m=new Map();(PIDX.byF[f]||[]).forEach(r=>aggApplRows(m,r,"county"));
+    [...m.values()].sort((x,y)=>y.pa-x.pa).forEach(a=>{
+      const name=PAPPL.names[a.ni]||"?";
+      [...a.perDn.entries()].sort((x,y)=>y[1].pa-x[1].pa).forEach(([dn,d])=>{
+        const meta=PAPPL.dnMeta[String(dn)]||[];
+        rows.push([c?c.n:f,c?c.s:"",f,name,`DR-${dn}`,meta[1]||"",meta[2]||"",d.pa,d.pr,catCsv(dn,a.ni)]);
+      });
+    });
+  });
+  dlCsv(rows,"_applicants_by_county.csv");
+}
+
 // ---- PDA CSV import ----
 const PDA_ALIASES={
   county:["county","county name","cnty"],
@@ -367,7 +592,7 @@ const PDA_ALIASES={
 };
 function normHeader(h){return (h||"").toLowerCase().trim().replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();}
 function normCountyName(n){return (n||"").toLowerCase().replace(/\b(county|parish|borough|city and borough|census area)\b/g,"").replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();}
-function buildNameIndex(){NAME_INDEX={};COUNTIES.forEach(c=>{NAME_INDEX[c.s+"|"+normCountyName(c.n)]=c.f;});}
+function buildNameIndex(){NAME_INDEX={};COUNTIES.forEach(c=>{NAME_INDEX[c.s+"|"+normCountyName(c.n)]=c.f;FIPS2ST[c.f]=c.s;FIPS2NAME[c.f]=c.n;});}
 function buildFieldMap(headerRow){
   const norm=headerRow.map(normHeader), map={};
   Object.entries(PDA_ALIASES).forEach(([field,aliases])=>{
