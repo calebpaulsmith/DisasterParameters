@@ -169,7 +169,8 @@
           "patch_ia_flag",
           "build_county_map",
           "build_national",
-          "build_request_dates"
+          "build_request_dates",
+          "build_disaster_designations"
         ],
         "declarationDate": [
           "build_declared",
@@ -206,7 +207,8 @@
           "build_declared",
           "build_county_map",
           "build_national",
-          "build_request_dates"
+          "build_request_dates",
+          "build_disaster_designations"
         ],
         "region": [
           "enrich",
@@ -214,26 +216,31 @@
         ],
         "fipsCountyCode": [
           "add_history",
-          "build_request_dates"
+          "build_request_dates",
+          "build_disaster_designations"
         ],
         "paProgramDeclared": [
           "add_history",
           "patch_ia_flag",
-          "build_request_dates"
+          "build_request_dates",
+          "build_disaster_designations"
         ],
         "ihProgramDeclared": [
           "add_history",
           "patch_ia_flag",
-          "build_request_dates"
+          "build_request_dates",
+          "build_disaster_designations"
         ],
         "iaProgramDeclared": [
           "add_history",
           "patch_ia_flag",
-          "build_request_dates"
+          "build_request_dates",
+          "build_disaster_designations"
         ],
         "hmProgramDeclared": [
           "add_history",
-          "patch_ia_flag"
+          "patch_ia_flag",
+          "build_disaster_designations"
         ]
       },
       "columnsDeclaredUnfound": [],
@@ -1459,6 +1466,24 @@
       "links": [
         "scripts/build_planner_applicants.py"
       ]
+    },
+    {
+      "id": "build_disaster_designations",
+      "name": "scripts/build_disaster_designations.py",
+      "runtime": "offline",
+      "schedule": "manual (re-run when new disasters land in disasters.json)",
+      "method": "Per-state bulk pull of DisasterDeclarationsSummaries v2 filtered to the ledger's disaster-number range; per designated area records a PA/IA/HM program bitmask (IA bit = ihProgramDeclared OR iaProgramDeclared, matching the glossary's IA-authorized definition). Non-county designations (statewide/tribal) conserved per disaster in a nonCounty list, never dropped.",
+      "reads": [
+        "disasterDeclarationsSummaries",
+        "disasters.json"
+      ],
+      "writes": [
+        "disaster_designations.json"
+      ],
+      "description": "Builds disaster_designations.json: per-disaster x per-county program designation flags (which counties were designated PA vs IA vs HM on each declaration), powering the Operations Planner's 'start from a declared disaster' program-filtered county seeding.",
+      "links": [
+        "scripts/build_disaster_designations.py"
+      ]
     }
   ],
   "artifacts": [
@@ -1532,6 +1557,19 @@
       ],
       "producedBy": [
         "build_disaster_county_ihp"
+      ]
+    },
+    {
+      "id": "disaster_designations.json",
+      "name": "data/disaster_designations.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Per-disaster x per-county PA/IA/HM program designation bitmasks (+ conserved non-county designations) from DisasterDeclarationsSummaries, for the Operations Planner's start-from-a-declared-disaster program-filtered county seeding. Fetched by planner.html only.",
+      "deprecated": false,
+      "links": [
+        "data/disaster_designations.json"
+      ],
+      "producedBy": [
+        "build_disaster_designations"
       ]
     },
     {
@@ -1868,9 +1906,10 @@
         "county_declarations.json",
         "disaster_drc.json",
         "disaster_county_ihp.json",
-        "planner_applicants.json"
+        "planner_applicants.json",
+        "disaster_designations.json"
       ],
-      "description": "Standalone planning tool: select counties (map or A-Z list) for a prospective PA/IA request, color by historical reference metrics, drill each county's history, analyze historical PA applicants per disaster (aggregate + by-county, statewide labeled, damage categories, expectation stats, CSV exports), import PDA estimates, save/export the plan. User-authored (not a declaration).",
+      "description": "Standalone planning tool, program-first (PA / IA / HMGP lens): select counties (map, A-Z list, or seed from a declared disaster's program-filtered designated counties), get per-county expectations (applicants, $, projects, categories of work; registrations + IHP HA/ONA for IA) with live per-disaster exclusion (outliers suggested), divide counties among named teams (team-colored map + per-team workload), drill each county's history, import PDA estimates, save/export the plan (self-contained HTML, CSVs, SharePoint copy-paste fragment, map PNG). User-authored (not a declaration).",
       "links": [
         "planner.html"
       ]
