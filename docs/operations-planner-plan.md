@@ -209,10 +209,51 @@ v1 priority: **(A) self-contained HTML file + (B) CSV/JSON**.
   expectations). Selection basis = PA-flagged plan counties (falls back to all, labeled).
   Guardian extended: surface fetch checks now resolve against each surface's own HTML file
   (planner.html), not just index.html.
-- **P4 — Polish (not yet built).** Multiple saved plans, mobile layout pass, PNG/SVG snapshot,
-  a short "embed in SharePoint" doc, optional "when declared, auto-fill counties from
-  OpenFEMA designated areas." The applicant-history card is not yet folded into the
-  self-contained HTML export (P3's export predates it) — fold in on the next export pass.
+- **P4 — Program-first redesign + teams + disaster seeding + SharePoint export. ✅ SHIPPED
+  (owner's 2026-07 redesign ask).** Four pieces, all in `planner.html`:
+  1. **Program-first lens (replaces raw layer-picking as the primary control).** A PA / IA·IHP /
+     HMGP chip row drives everything: the map measure list is scoped to the program (with an
+     "Auto" headline measure — expected PA applicants for PA, expected IA registrations for IA),
+     and the bottom card becomes a program-scoped **Expectations** engine: top-level
+     median/mean per-disaster figures (PA: applicants, projects, $ — incl./excl. statewide;
+     IA: registrations, IHP $ with HA share; from registrant-level `disaster_county_ihp.json`,
+     NOT the disaster-level `disasters[].ihp` field), an **expected categories-of-work** mix
+     (share of historical PA $ by Category A–G/Z, whole-disaster grain — labeled, since a
+     per-county category split would be false precision), a **per-county expectations table**
+     (the "as granular as possible" ask), and the existing drillable applicant lists (PA).
+     **Live disaster exclusion:** every prior disaster in the math renders as a chip with ✕ /
+     ↩ — excluded DR numbers (`plan.excludedDns`) drop out of ALL expectation stats, map
+     `exp*` measures, exports, and the modal, in real time. **Outlier suggestion:** modified
+     z-score (median/MAD, >3.5 and >2× median, high side only) flags "outlier?" on chips.
+     HMGP intentionally stays all-time reference (no per-event expectation is honest — HMGP
+     reconciles for years; exclusions don't apply there and the card says so).
+  2. **Start from a declared disaster.** New committed artifact `data/disaster_designations.json`
+     (`scripts/build_disaster_designations.py`, from DisasterDeclarationsSummaries v2): per
+     disaster × county a PA/IA/HM program bitmask (IA bit = ih OR ia, per the glossary), with
+     statewide/tribal non-county designations conserved. The planner's "Start from a declared
+     disaster" picker seeds the plan with exactly the counties designated for the chosen
+     program(s) — the PA and IA designation lists genuinely differ (e.g. DR-4892: 3 IH counties,
+     0 PA counties). Sets `plan.basis`, auto-names the plan, and **auto-excludes the seeded
+     disaster from the expectation math** (it's the event being planned; restorable via chip).
+     This closes deferred item **P-A** (and the P4 "auto-fill counties" idea).
+  3. **Team divider.** `plan.teams` (name, members, auto-assigned color). Assign counties via
+     an armed "assign" mode (click counties on the map) or per-county dropdowns (list + modal).
+     "Color map by: Teams" fills counties by team color with a team legend; the Expectations
+     card gets a **team board**: per team, its counties + applicant workload from all three
+     sources, labeled — **PDA applicants** (imported), **applicants/registrations on the basis
+     disaster so far** (from `planner_applicants.json` / `disaster_county_ihp.json` when the
+     plan was seeded from a declaration), and **historical medians** summed across its counties.
+  4. **Exports for SharePoint** (see `docs/planner-sharepoint-export.md` for the full plan +
+     tenant constraints): **"Copy for SharePoint"** puts a script-free, inline-styled HTML
+     fragment (map as PNG data-URI, expectations/categories/team/county tables, disclaimer)
+     on the clipboard as `text/html` for direct paste into a Text web part (falls back to
+     downloading the fragment); **"Download map PNG"** for an Image web part; the
+     **self-contained HTML export** now bakes in program, expectation summary, exclusions,
+     team assignments + team-colored map fill, and per-county expected figures — this also
+     retires P3's "fold the applicant card into the export" note. Data CSV gained
+     Team/expectation columns; a new **IA expectations CSV** joins the three PA applicant CSVs.
+- **P5 — Polish (not yet built).** Multiple saved plans, mobile layout pass,
+  full-card (not just map) snapshot export.
 
 ---
 
@@ -220,7 +261,7 @@ v1 priority: **(A) self-contained HTML file + (B) CSV/JSON**.
 
 | # | Item | Trigger | Note |
 |---|---|---|---|
-| P-A | **Auto-fill counties from OpenFEMA** once the disaster is declared | after P3 | designated areas → FIPS; plan flips from "requested" to "declared". |
+| P-A | ~~**Auto-fill counties from OpenFEMA** once the disaster is declared~~ | ✅ DONE (P4) | `disaster_designations.json` + the "Start from a declared disaster" picker, program-filtered (PA vs IA designated counties differ). |
 | P-B | **Pre-fill requested counties from JPDA/brief** where available | after P2 | sparse coverage; a convenience seed for the picker. |
 | P-C | **National scope** (beyond R5) | when needed | needs national county geometry + rollups. |
 | P-D | **Estimate/analog auto-suggest** — predicted $ from comparables | later | crosses into prediction; keep clearly separated + labeled if ever built. |

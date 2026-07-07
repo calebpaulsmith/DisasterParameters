@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Disaster Operations Planner · Disaster Data</title>
-<meta name="description" content="Build a prospective PA/IA county plan for a pending disaster, attach historical reference metrics + import PDA estimates, and export an embeddable map. User-authored — not an official FEMA declaration or forecast." />
+<meta name="description" content="Build a prospective PA/IA county plan for a pending or declared disaster: program-first expectations (applicants, dollars, projects, categories of work) from prior disasters, a team divider, PDA import, and SharePoint-ready exports. User-authored — not an official FEMA declaration or forecast." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -26,7 +26,7 @@ a{color:var(--blue);}
 .masthead a.back{margin-left:auto;color:#fff;text-decoration:none;font-weight:700;font-size:13px;background:rgba(255,255,255,.12);padding:8px 13px;border-radius:8px;border:1px solid rgba(255,255,255,.18);}
 .plan-disc{background:#fff7e6;border-bottom:1px solid #f0d68a;color:#8a6100;font-size:12.5px;padding:8px 20px;text-align:center;}
 .plan-disc b{color:#6b4c00;}
-.wrap{max-width:1500px;margin:0 auto;padding:16px 20px 40px;display:grid;grid-template-columns:1fr 400px;gap:18px;}
+.wrap{max-width:1500px;margin:0 auto;padding:16px 20px 18px;display:grid;grid-template-columns:1fr 420px;gap:18px;}
 .mapcard,.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);}
 .mapcard{padding:10px;position:relative;}
 .mapcard svg{width:100%;height:auto;display:block;background:#f7f9fc;border-radius:8px;}
@@ -34,9 +34,12 @@ a{color:var(--blue);}
 .cty:hover{stroke:#0b1f3a;stroke-width:1;}
 .cty.sel{stroke:var(--gold);stroke-width:2.2;}
 .cty.dim{opacity:.25;}
-.legend{position:absolute;left:18px;bottom:18px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11.5px;box-shadow:var(--shadow-sm);}
+.legend{position:absolute;left:18px;bottom:18px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11.5px;box-shadow:var(--shadow-sm);max-width:280px;}
 .legend .bar{height:9px;width:150px;border-radius:2px;background:linear-gradient(90deg,#eaf2fb,#0b1f3a);margin:4px 0;}
 .legend .ends{display:flex;justify-content:space-between;color:var(--ink-3);}
+.legend .trow{display:flex;align-items:center;gap:6px;margin-top:3px;}
+.legend .dot{width:11px;height:11px;border-radius:3px;display:inline-block;flex:none;}
+.assignbar{position:absolute;right:18px;top:18px;background:#fff2d6;border:1px solid #f0d68a;color:#6b4c00;font-size:12px;font-weight:700;border-radius:8px;padding:6px 10px;box-shadow:var(--shadow-sm);display:none;}
 .panel{padding:15px 16px;align-self:start;position:sticky;top:14px;max-height:88vh;overflow:auto;}
 .panel h2{font-size:14px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);}
 .fld{margin-bottom:14px;}
@@ -45,12 +48,18 @@ input[type=text],select{width:100%;padding:8px 10px;font-size:14px;font-family:i
 .states{display:flex;flex-wrap:wrap;gap:6px;}
 .stchip{font-size:12.5px;font-weight:700;border:1px solid var(--line-2);border-radius:20px;padding:4px 12px;cursor:pointer;background:var(--white);color:var(--ink-2);}
 .stchip.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.progrow{display:flex;gap:6px;flex-wrap:wrap;}
+.pchip{font-size:13px;font-weight:800;border:1.5px solid var(--line-2);border-radius:8px;padding:6px 14px;cursor:pointer;background:var(--white);color:var(--ink-2);}
+.pchip.on{background:var(--blue-dark);color:#fff;border-color:var(--blue-dark);}
+.cbyrow{display:flex;gap:6px;margin-top:6px;}
+.cby{font-size:11.5px;font-weight:700;border:1px solid var(--line-2);border-radius:14px;padding:3px 10px;cursor:pointer;background:var(--white);color:var(--ink-3);}
+.cby.on{background:var(--navy);color:#fff;border-color:var(--navy);}
 .btn{font-family:inherit;font-size:12.5px;font-weight:700;color:var(--navy);background:var(--bg-2);border:1px solid var(--line-2);border-radius:7px;padding:8px 12px;cursor:pointer;}
 .btn:hover{background:#eef0f2;}
 .btn.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
 .btnrow{display:flex;gap:8px;flex-wrap:wrap;}
 .sel-list{border-top:1px solid var(--line);margin-top:4px;}
-.sel-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.sel-row{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px;}
 .sel-row .nm{flex:1;min-width:0;font-weight:600;cursor:pointer;}
 .sel-row .nm:hover{text-decoration:underline;}
 .sel-row .nm small{color:var(--ink-3);font-weight:400;}
@@ -59,14 +68,19 @@ input[type=text],select{width:100%;padding:8px 10px;font-size:14px;font-family:i
 .tg.pa.on{background:var(--blue);color:#fff;border-color:var(--blue);}
 .tg.ia.on{background:var(--green-dark);color:#fff;border-color:var(--green-dark);}
 .rm{color:var(--red);cursor:pointer;font-weight:800;border:0;background:none;font-size:15px;line-height:1;}
+.teamsel{width:auto;max-width:92px;padding:2px 4px;font-size:11px;border-radius:5px;border:1px solid var(--line-2);}
 .tally{font-size:12.5px;color:var(--ink-3);margin:6px 0;}
 .muted{color:var(--ink-3);font-size:12px;}
 .tip{position:fixed;pointer-events:none;background:var(--navy);color:#fff;font-size:12px;padding:5px 8px;border-radius:6px;opacity:0;transition:opacity .1s;z-index:50;white-space:nowrap;}
 .footer{max-width:1500px;margin:0 auto;padding:0 20px 34px;font-size:12px;color:var(--ink-3);}
 .footer .d{background:var(--white);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:10px 13px;}
-.pdabox{border:1px dashed var(--line-2);border-radius:8px;padding:10px;margin-top:6px;}
 .warn{background:#fff7e6;border:1px solid #f0d68a;color:#6b4c00;border-radius:8px;padding:8px 10px;font-size:12.5px;margin-top:8px;max-height:160px;overflow:auto;}
 .pdabadge{font-size:10.5px;font-weight:700;background:#fff2d6;color:#8a6100;border-radius:5px;padding:1px 6px;margin-left:5px;}
+.teamrow{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px;}
+.teamrow .dot{width:14px;height:14px;border-radius:4px;flex:none;border:1px solid rgba(0,0,0,.2);}
+.teamrow input{flex:1;min-width:0;padding:3px 6px;font-size:12.5px;}
+.teamrow .assign{font-size:10.5px;font-weight:800;border-radius:5px;padding:2px 7px;cursor:pointer;border:1px solid var(--line-2);color:var(--ink-3);background:var(--white);white-space:nowrap;}
+.teamrow .assign.on{background:var(--gold);border-color:var(--gold-dark);color:#4d3800;}
 /* modal */
 .modal-ov{position:fixed;inset:0;background:rgba(11,31,58,.55);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;}
 .modal-ov.on{display:flex;}
@@ -89,7 +103,7 @@ details.dcard .db{padding-top:8px;font-size:12.5px;color:var(--ink-2);}
 .tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
 .tbl th,.tbl td{text-align:left;padding:4px 6px;border-bottom:1px solid #eee;}
 .tbl th{color:var(--ink-3);font-weight:700;font-size:11px;text-transform:uppercase;}
-/* A–Z county picker */
+/* A–Z county picker + start-from-disaster */
 details.pick{border:1px solid var(--line-2);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--bg-2);}
 details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--navy);}
 .pick-list{max-height:230px;overflow:auto;border-top:1px solid var(--line);margin-top:8px;}
@@ -98,7 +112,8 @@ details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(-
 .pick-row small{color:var(--ink-3);}
 .pick-row .pick-add{margin-left:auto;font-size:11px;font-weight:800;color:var(--blue);white-space:nowrap;}
 .pick-row.on .pick-add{color:var(--green-dark);}
-/* applicant analysis card */
+.disprogs{display:flex;gap:10px;margin:8px 0;font-size:12.5px;font-weight:600;align-items:center;}
+/* expectations card */
 .wrap2{max-width:1500px;margin:0 auto;padding:0 20px 18px;}
 .apanel{padding:16px 18px;}
 .apanel h2{font-size:14px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);}
@@ -109,6 +124,17 @@ details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(-
 .scopetag.sw{background:#fff2d6;color:#8a6100;}
 .scopetag.other{background:#fbe4e7;color:#8a1220;}
 .catchip{display:inline-block;font-size:11px;font-weight:700;background:#eaf2fb;color:var(--blue-dark);border-radius:4px;padding:1px 6px;margin:1px 3px 1px 0;}
+.dnchips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.dnchip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;border:1px solid var(--line-2);border-radius:8px;padding:3px 8px;background:var(--white);}
+.dnchip .x{cursor:pointer;font-weight:900;color:var(--red);font-size:13px;line-height:1;}
+.dnchip.off{opacity:.45;text-decoration:line-through;background:var(--bg-2);}
+.dnchip.off .x{color:var(--green-dark);text-decoration:none;}
+.dnchip .outl{font-size:9.5px;font-weight:800;background:#fbe4e7;color:#8a1220;border-radius:4px;padding:0 4px;text-transform:uppercase;}
+.catmix{display:flex;height:16px;border-radius:4px;overflow:hidden;border:1px solid var(--line);margin:6px 0 2px;}
+.catmix span{display:block;height:100%;}
+.teamboard{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:8px;}
+.teamcard{border:1px solid var(--line);border-left-width:6px;border-radius:8px;padding:9px 11px;background:var(--bg-2);font-size:12.5px;}
+.teamcard b.tn{font-size:14px;}
 @media(max-width:1000px){.wrap{grid-template-columns:1fr;}.panel{position:static;max-height:none;}}
 </style>
 </head>
@@ -122,19 +148,40 @@ details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(-
     <a class="back" href="index.html">← Back to Disaster Data</a>
   </div>
 </header>
-<div class="plan-disc"><b>PLAN — counties are selected by you.</b> Not an official FEMA declaration, damage estimate, or forecast. Historical figures are reference from prior Region&nbsp;5 disasters (OpenFEMA), not this event. PDA figures are user-imported preliminary estimates, never obligations. Not endorsed by FEMA.</div>
+<div class="plan-disc"><b>PLAN — counties are selected by you (or seeded from a declaration you picked).</b> Not an official FEMA declaration, damage estimate, or forecast. Historical expectations are computed from prior Region&nbsp;5 disasters (OpenFEMA), not this event. PDA figures are user-imported preliminary estimates, never obligations. Not endorsed by FEMA.</div>
 
 <div class="wrap">
   <div class="mapcard" id="mapcard"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
     <div class="legend" id="legend" style="display:none"></div>
+    <div class="assignbar" id="assignbar"></div>
   </div>
   <aside class="panel">
     <div class="fld"><label>Plan name</label><input type="text" id="planName" placeholder="e.g. IN Winter Storm 2026 — PA/IA request"></div>
-    <div class="fld"><label>States in scope</label><div class="states" id="states"></div></div>
-    <div class="fld"><label>Map color-by (reference layer)</label>
-      <select id="layer"></select>
-      <div class="muted" id="layerNote" style="margin-top:4px">Historical figures from prior disasters — context only.</div>
+
+    <div class="fld"><label>Program lens</label>
+      <div class="progrow" id="progRow"></div>
+      <div class="muted" id="progNote" style="margin-top:4px"></div>
     </div>
+
+    <details class="pick" id="disWrap">
+      <summary>Start from a declared disaster</summary>
+      <div class="muted" style="margin-top:6px">Seeds the plan with the counties FEMA actually designated — filtered by program (a county can be IA-designated but not PA-designated on the same incident).</div>
+      <select id="disSel" style="margin-top:8px"><option value="">Choose a declared disaster…</option></select>
+      <div class="disprogs">
+        <label style="margin:0;display:inline-flex;gap:4px;align-items:center;text-transform:none;font-size:12.5px"><input type="checkbox" id="disPa" checked> PA-designated</label>
+        <label style="margin:0;display:inline-flex;gap:4px;align-items:center;text-transform:none;font-size:12.5px"><input type="checkbox" id="disIa" checked> IA-designated</label>
+      </div>
+      <div class="muted" id="disInfo"></div>
+      <div class="btnrow" style="margin-top:6px"><button class="btn primary" id="disLoad">Load designated counties</button></div>
+    </details>
+
+    <div class="fld"><label>States in scope</label><div class="states" id="states"></div></div>
+    <div class="fld"><label>Map color-by</label>
+      <div class="cbyrow"><span class="cby" data-c="metric" id="cbyMetric">Metric</span><span class="cby" data-c="team" id="cbyTeam">Teams</span></div>
+      <select id="layer" style="margin-top:6px"></select>
+      <div class="muted" id="layerNote" style="margin-top:4px">Expected values honor your disaster exclusions below.</div>
+    </div>
+
     <h2>Counties in plan <span id="tally" class="tally"></span></h2>
     <div class="muted" style="margin:-2px 0 6px">Click a county on the map to open its full history and add it to the plan — or pick from the list below.</div>
     <details class="pick" id="pickWrap">
@@ -143,6 +190,16 @@ details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(-
       <div class="pick-list" id="pickList"></div>
     </details>
     <div class="sel-list" id="selList"></div>
+
+    <div class="fld" style="margin-top:16px">
+      <label>Teams (divide the counties)</label>
+      <div id="teamList"></div>
+      <div class="btnrow" style="margin-top:6px">
+        <input type="text" id="teamName" placeholder="New team name" style="flex:1;min-width:120px">
+        <button class="btn" id="teamAdd">Add team</button>
+      </div>
+      <div class="muted" style="margin-top:4px">Tap <b>assign</b> on a team, then click counties on the map to give them to that team. Switch “Color map by” to <b>Teams</b> to see the split; the Expectations card shows each team’s applicant workload.</div>
+    </div>
 
     <div class="fld" style="margin-top:16px">
       <label>PDA import (this event)</label>
@@ -174,14 +231,19 @@ details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(-
         <button class="btn primary" id="expHtml">Export self-contained HTML</button>
         <button class="btn" id="expCsv">Export data CSV</button>
       </div>
-      <div class="muted" style="margin-top:4px">The HTML export is one file — map, county history, and PDA figures all inlined, no network — ready to drop into SharePoint or host anywhere.</div>
+      <div class="btnrow" style="margin-top:8px">
+        <button class="btn primary" id="expSp">Copy for SharePoint</button>
+        <button class="btn" id="expPng">Download map PNG</button>
+      </div>
+      <div class="muted" style="margin-top:4px">“Copy for SharePoint” puts a script-free, inline-styled snapshot (map image + expectation &amp; team tables) on the clipboard — paste straight into a SharePoint Text web part. The HTML export is one self-contained file for a document library. See <code>docs/planner-sharepoint-export.md</code>.</div>
+      <div class="warn" id="spReport" style="display:none"></div>
     </div>
   </aside>
 </div>
 
 <div class="wrap2" id="applWrap" style="display:none">
   <section class="panel apanel" id="applCard">
-    <h2>PA applicant history — counties in plan</h2>
+    <h2 id="expTitle">Expectations</h2>
     <div class="muted" id="applBasis"></div>
     <div id="applBody"></div>
   </section>
@@ -204,8 +266,10 @@ details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(-
 <script>
 const R5=["IL","IN","MI","MN","OH","WI"];
 const LS_KEY="planner_plans_v1";
-const DEFAULT_PLAN=()=>({name:"",counties:{},layer:"none",states:[...R5]});
-let COUNTIES=[], NAME_INDEX={}, DECL=null, DRC=null, DCIHP=null, PROJ=null, plan=DEFAULT_PLAN();
+const TEAM_COLORS=["#e41d3d","#005ea2","#00a91c","#8168b3","#e5a000","#0f8c9c","#b04abd","#755b48","#3e4ded","#607f35"];
+const DEFAULT_PLAN=()=>({name:"",counties:{},layer:"auto",colorBy:"metric",program:"pa",states:[...R5],excludedDns:[],teams:[],basis:null});
+let COUNTIES=[], NAME_INDEX={}, DECL=null, DRC=null, DCIHP=null, DESIG=null, PROJ=null, plan=DEFAULT_PLAN();
+let assignTeam=null; // team id while "assign by map click" is armed
 
 function metrics(fips){return (DECL&&DECL.counties&&DECL.counties[fips])||{};}
 function pdaOf(fips){return (plan.counties[fips]&&plan.counties[fips].pda)||null;}
@@ -213,27 +277,79 @@ function fmtVal(v,f){if(v==null)return"—";if(f==="$")return v>=1e6?"$"+(v/1e6)
 function fmtMoneyFull(v){return "$"+Math.round(v||0).toLocaleString();}
 function fmtDate(s){if(!s)return"";const d=new Date(s+"T00:00:00");return isNaN(d)?s:d.toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"});}
 function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function median(a){if(!a.length)return 0;const s=a.slice().sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+function mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0;}
+const f1=v=>(Math.round(v*10)/10).toLocaleString();
 
-const LAYERS={
-  none:{label:"None (base map)",group:"Map"},
-  count:{label:"# prior declarations",fmt:"n",group:"General",get:f=>metrics(f).count||0},
-  paObligated:{label:"PA obligated — historical total",fmt:"$",group:"Public Assistance (historical)",get:f=>metrics(f).paObligated||0},
-  paObligatedAvg:{label:"PA obligated — avg per disaster",fmt:"$",group:"Public Assistance (historical)",get:f=>{const m=metrics(f);return m.count?(m.paObligated||0)/m.count:0;}},
-  paProjects:{label:"PA projects — historical total",fmt:"n",group:"Public Assistance (historical)",get:f=>metrics(f).paProjects||0},
-  paProjectsAvg:{label:"PA projects — avg per disaster",fmt:"n",group:"Public Assistance (historical)",get:f=>{const m=metrics(f);return m.count?(m.paProjects||0)/m.count:0;}},
-  nApplicants:{label:"PA applicants — historical (distinct)",fmt:"n",group:"Public Assistance (historical)",get:f=>metrics(f).nApplicants||0},
-  ihpApproved:{label:"IHP approved — historical total",fmt:"$",group:"Individual Assistance / IHP (historical)",get:f=>metrics(f).ihpApproved||0},
-  ihpHousing:{label:"IHP Housing (HA) — historical total",fmt:"$",group:"Individual Assistance / IHP (historical)",get:f=>metrics(f).ihpHousing||0},
-  ihpOna:{label:"IHP Other Needs (ONA) — historical total",fmt:"$",group:"Individual Assistance / IHP (historical)",get:f=>metrics(f).ihpOna||0},
-  iaRegistrations:{label:"IA registrations — historical total",fmt:"n",group:"Individual Assistance / IHP (historical)",get:f=>metrics(f).iaRegistrations||0},
-  hmgpObligated:{label:"HMGP obligated — historical total",fmt:"$",group:"Hazard Mitigation (HMGP, historical)",get:f=>metrics(f).hmgpObligated||0},
-  hmgpObligatedAvg:{label:"HMGP obligated — avg per disaster",fmt:"$",group:"Hazard Mitigation (HMGP, historical)",get:f=>{const m=metrics(f);return m.count?(m.hmgpObligated||0)/m.count:0;}},
-  hmgpSubs:{label:"HMGP subrecipients — historical count",fmt:"n",group:"Hazard Mitigation (HMGP, historical)",get:f=>metrics(f).nHmgpApplicants||0},
-  pdaPaEst:{label:"PDA — estimated PA $ (this event)",fmt:"$",group:"PDA import (this event)",get:f=>{const p=pdaOf(f);return p?p.paEst||0:0;}},
-  pdaIaEst:{label:"PDA — estimated IA $ (this event)",fmt:"$",group:"PDA import (this event)",get:f=>{const p=pdaOf(f);return p?p.iaEst||0:0;}},
-  pdaApplicants:{label:"PDA — # applicants (this event)",fmt:"n",group:"PDA import (this event)",get:f=>{const p=pdaOf(f);return p&&p.applicants?p.applicants.length:0;}},
+// ---- programs ----
+const PROGRAMS={
+  pa:{label:"PA — Public Assistance",note:"Expected applicants, obligations, projects & categories of work from prior PA disasters in the selected counties.",auto:"expPaAppl"},
+  ia:{label:"IA / IHP — Individual Assistance",note:"Expected registrations and IHP approved $ (HA/ONA) from prior IA disasters in the selected counties. Dollars are IHP (the IA program with public $).",auto:"expIaRegs"},
+  hmgp:{label:"HMGP — Hazard Mitigation",note:"Historical HMGP obligations & subrecipients for the selected counties. HMGP reconciles years after a disaster — figures are all-time reference, not per-event expectations.",auto:"hmgpObligated"},
 };
-const GROUP_ORDER=["Map","General","Public Assistance (historical)","Individual Assistance / IHP (historical)","Hazard Mitigation (HMGP, historical)","PDA import (this event)"];
+function teamOf(fips){const t=plan.counties[fips]&&plan.counties[fips].team;return t?plan.teams.find(x=>x.id===t)||null:null;}
+
+// ---- layers (scoped by program; exp* honor plan.excludedDns) ----
+const LAYERS={
+  auto:{label:"Auto (program headline)",fmt:"n",progs:["pa","ia","hmgp"]},
+  expPaAppl:{label:"Expected PA applicants / disaster (median)",fmt:"n",progs:["pa"],get:f=>{const h=paCountyHistory(f);return median(h.map(d=>d.appl.size));}},
+  expPaDollars:{label:"Expected PA $ / disaster (median)",fmt:"$",progs:["pa"],get:f=>{const h=paCountyHistory(f);return median(h.map(d=>d.pa));}},
+  expPaProjects:{label:"Expected PA projects / disaster (median)",fmt:"n",progs:["pa"],get:f=>{const h=paCountyHistory(f);return median(h.map(d=>d.pr));}},
+  paObligated:{label:"PA obligated — historical total",fmt:"$",progs:["pa"],get:f=>metrics(f).paObligated||0},
+  paObligatedAvg:{label:"PA obligated — avg per disaster",fmt:"$",progs:["pa"],get:f=>{const m=metrics(f);return m.count?(m.paObligated||0)/m.count:0;}},
+  paProjects:{label:"PA projects — historical total",fmt:"n",progs:["pa"],get:f=>metrics(f).paProjects||0},
+  nApplicants:{label:"PA applicants — historical (distinct)",fmt:"n",progs:["pa"],get:f=>metrics(f).nApplicants||0},
+  pdaPaEst:{label:"PDA — estimated PA $ (this event)",fmt:"$",progs:["pa"],get:f=>{const p=pdaOf(f);return p?p.paEst||0:0;}},
+  pdaApplicants:{label:"PDA — # applicants (this event)",fmt:"n",progs:["pa","ia"],get:f=>{const p=pdaOf(f);return p&&p.applicants?p.applicants.length:0;}},
+  expIaRegs:{label:"Expected IA registrations / disaster (median)",fmt:"n",progs:["ia"],get:f=>{const h=iaCountyHistory(f);return median(h.map(d=>d.regs));}},
+  expIhpDollars:{label:"Expected IHP $ / disaster (median)",fmt:"$",progs:["ia"],get:f=>{const h=iaCountyHistory(f);return median(h.map(d=>d.ihp));}},
+  ihpApproved:{label:"IHP approved — historical total",fmt:"$",progs:["ia"],get:f=>metrics(f).ihpApproved||0},
+  ihpHousing:{label:"IHP Housing (HA) — historical total",fmt:"$",progs:["ia"],get:f=>metrics(f).ihpHousing||0},
+  ihpOna:{label:"IHP Other Needs (ONA) — historical total",fmt:"$",progs:["ia"],get:f=>metrics(f).ihpOna||0},
+  iaRegistrations:{label:"IA registrations — historical total",fmt:"n",progs:["ia"],get:f=>metrics(f).iaRegistrations||0},
+  pdaIaEst:{label:"PDA — estimated IA $ (this event)",fmt:"$",progs:["ia"],get:f=>{const p=pdaOf(f);return p?p.iaEst||0:0;}},
+  hmgpObligated:{label:"HMGP obligated — historical total",fmt:"$",progs:["hmgp"],get:f=>metrics(f).hmgpObligated||0},
+  hmgpObligatedAvg:{label:"HMGP obligated — avg per disaster",fmt:"$",progs:["hmgp"],get:f=>{const m=metrics(f);return m.count?(m.hmgpObligated||0)/m.count:0;}},
+  hmgpSubs:{label:"HMGP subrecipients — historical count",fmt:"n",progs:["hmgp"],get:f=>metrics(f).nHmgpApplicants||0},
+  count:{label:"# prior declarations",fmt:"n",progs:["pa","ia","hmgp"],get:f=>metrics(f).count||0},
+};
+function activeLayer(){
+  let k=plan.layer;
+  if(k==="auto")k=PROGRAMS[plan.program].auto;
+  const L=LAYERS[k];
+  return (L&&L.progs.includes(plan.program))?{key:k,...L}:{key:k,...LAYERS[PROGRAMS[plan.program].auto]};
+}
+
+// ---- per-county program history (the granular grain; honors exclusions) ----
+function excluded(dn){return plan.excludedDns.includes(+dn);}
+function paCountyHistory(f,withExcluded){
+  if(!PIDX)return[];
+  const byDn=new Map();
+  (PIDX.byF[f]||[]).forEach(r=>{const dn=r[0];
+    if(!withExcluded&&excluded(dn))return;
+    const d=byDn.get(dn)||{dn,appl:new Set(),pa:0,pr:0};
+    d.appl.add(r[3]);d.pa+=r[4];d.pr+=r[5];byDn.set(dn,d);});
+  return [...byDn.values()];
+}
+function iaCountyHistory(f,withExcluded){
+  if(!DCIHP||!DCIHP.byDisaster)return[];
+  const out=[];
+  Object.entries(DCIHP.byDisaster).forEach(([dn,m])=>{
+    const rec=m[f];if(!rec)return;
+    if(!withExcluded&&excluded(dn))return;
+    out.push({dn:+dn,ihp:rec[0]||0,ha:rec[1]||0,ona:rec[2]||0,regs:rec[3]||0});});
+  return out;
+}
+// outlier suggestion: modified z-score (median/MAD), high side only
+function suggestOutliers(perDn,val){
+  const vs=perDn.map(val);if(vs.length<4)return new Set();
+  const med=median(vs),mad=median(vs.map(v=>Math.abs(v-med)));
+  const out=new Set();
+  perDn.forEach((d,i)=>{const v=vs[i];
+    if(mad>0){if(0.6745*(v-med)/mad>3.5&&v>2*med)out.add(+d.dn);}
+    else if(med>0&&v>5*med)out.add(+d.dn);});
+  return out;
+}
 
 function project(){
   let minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
@@ -246,25 +362,53 @@ function cpath(c){const {minx,maxy,k,s,pad}=PROJ;let d="";
 function ramp(t){t=Math.max(0,Math.min(1,t));const a=[234,242,251],b=[11,31,58];return`rgb(${a.map((x,i)=>Math.round(x+(b[i]-x)*t)).join(",")})`;}
 
 let curMax=0;
+function countyFill(f,L){
+  if(plan.colorBy==="team"){
+    const sel=!!plan.counties[f];
+    if(!sel)return "#e9eef4";
+    const t=teamOf(f);
+    return t?t.color:"#c9d2dc";
+  }
+  if(L&&L.get&&curMax>0){const v=L.get(f);return v>0?ramp(Math.sqrt(v/curMax)):"#eef2f6";}
+  return "#e9eef4";
+}
 function render(){
-  const L=LAYERS[plan.layer];
+  const L=plan.colorBy==="metric"?activeLayer():null;
   curMax=0;
   if(L&&L.get)COUNTIES.forEach(c=>{if(plan.states.includes(c.s)){const v=L.get(c.f);if(v>curMax)curMax=v;}});
   let s="";
   COUNTIES.forEach(c=>{
     const inState=plan.states.includes(c.s), sel=!!plan.counties[c.f];
-    let fill="#e9eef4";
-    if(L&&L.get&&curMax>0){const v=L.get(c.f);fill=v>0?ramp(Math.sqrt(v/curMax)):"#eef2f6";}
     const cls="cty"+(sel?" sel":"")+(inState?"":" dim");
-    s+=`<path class="${cls}" data-f="${c.f}" data-n="${c.n.replace(/"/g,'')}" data-s="${c.s}" d="${cpath(c)}" fill="${fill}"/>`;
+    s+=`<path class="${cls}" data-f="${c.f}" data-n="${c.n.replace(/"/g,'')}" data-s="${c.s}" d="${cpath(c)}" fill="${countyFill(c.f,L)}"/>`;
   });
   const svg=document.getElementById("svg");
   svg.setAttribute("viewBox",`0 0 ${PROJ.W} ${PROJ.H}`);svg.innerHTML=s;
   const lg=document.getElementById("legend");
-  if(L&&L.get&&curMax>0){lg.style.display="block";lg.innerHTML=`<div>${L.label}</div><div class="bar"></div><div class="ends"><span>0</span><span>${fmtVal(curMax,L.fmt)}</span></div>`;}
+  if(plan.colorBy==="team"){
+    if(plan.teams.length){lg.style.display="block";
+      lg.innerHTML=`<div><b>Teams</b></div>`+plan.teams.map(t=>`<div class="trow"><span class="dot" style="background:${t.color}"></span>${esc(t.name)}${t.members?` <span class="muted">· ${esc(t.members)}</span>`:""}</div>`).join("")
+        +`<div class="trow"><span class="dot" style="background:#c9d2dc"></span><span class="muted">in plan, unassigned</span></div>`;}
+    else lg.style.display="none";
+  }else if(L&&L.get&&curMax>0){lg.style.display="block";lg.innerHTML=`<div>${L.label}</div><div class="bar"></div><div class="ends"><span>0</span><span>${fmtVal(curMax,L.fmt)}</span></div>`;}
   else lg.style.display="none";
-  renderSel();renderPicker();renderAppl();
+  const ab=document.getElementById("assignbar");
+  const at=assignTeam?plan.teams.find(t=>t.id===assignTeam):null;
+  if(at){ab.style.display="block";ab.textContent=`Assign mode: click counties → ${at.name} (click "assign" again to stop)`;}
+  else ab.style.display="none";
+  renderSel();renderPicker();renderTeams();renderProgRow();renderExpect();
 }
+// ---- program row ----
+function renderProgRow(){
+  document.getElementById("progRow").innerHTML=Object.entries(PROGRAMS).map(([k,p])=>`<span class="pchip ${plan.program===k?"on":""}" data-p="${k}">${p.label.split(" — ")[0]}</span>`).join("");
+  document.getElementById("progNote").textContent=PROGRAMS[plan.program].note;
+  document.querySelectorAll(".pchip").forEach(c=>c.onclick=()=>{plan.program=c.dataset.p;plan.layer="auto";fillLayers();render();});
+  document.getElementById("cbyMetric").classList.toggle("on",plan.colorBy==="metric");
+  document.getElementById("cbyTeam").classList.toggle("on",plan.colorBy==="team");
+}
+document.getElementById("cbyMetric").onclick=()=>{plan.colorBy="metric";render();};
+document.getElementById("cbyTeam").onclick=()=>{plan.colorBy="team";render();};
+
 // ---- A–Z county picker ----
 function renderPicker(){
   const box=document.getElementById("pickList");if(!box||!COUNTIES.length)return;
@@ -283,19 +427,56 @@ function renderPicker(){
 }
 document.getElementById("pickSearch").oninput=()=>renderPicker();
 document.getElementById("pickSearch").onclick=e=>e.stopPropagation();
+function teamSelectHTML(f){
+  if(!plan.teams.length)return "";
+  const cur=(plan.counties[f]&&plan.counties[f].team)||"";
+  return `<select class="teamsel" data-team-f="${f}"><option value="">no team</option>${plan.teams.map(t=>`<option value="${t.id}" ${t.id===cur?"selected":""}>${esc(t.name)}</option>`).join("")}</select>`;
+}
 function renderSel(){
   const box=document.getElementById("selList"),ks=Object.keys(plan.counties);
   document.getElementById("tally").textContent=ks.length?`· ${ks.length} (${ks.filter(f=>plan.counties[f].pa).length} PA, ${ks.filter(f=>plan.counties[f].ia).length} IA)`:"";
   if(!ks.length){box.innerHTML=`<div class="muted" style="padding:8px 0">No counties yet.</div>`;return;}
   const byName=ks.map(f=>({f,c:COUNTIES.find(x=>x.f===f)})).sort((a,b)=>(a.c?.s+a.c?.n).localeCompare(b.c?.s+b.c?.n));
-  box.innerHTML=byName.map(({f,c})=>{const p=plan.counties[f],m=metrics(f),pda=pdaOf(f);
-    return `<div class="sel-row"><span class="nm" data-open="${f}">${c?c.n:f} <small>${c?c.s:""} · ${m.count?m.count+" prior decl":"no prior decl"}</small>${pda?`<span class="pdabadge">PDA</span>`:""}</span>`
+  box.innerHTML=byName.map(({f,c})=>{const p=plan.counties[f],m=metrics(f),pda=pdaOf(f),t=teamOf(f);
+    return `<div class="sel-row"><span class="nm" data-open="${f}">${t?`<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${t.color};margin-right:3px"></span>`:""}${c?c.n:f} <small>${c?c.s:""} · ${m.count?m.count+" prior decl":"no prior decl"}</small>${pda?`<span class="pdabadge">PDA</span>`:""}</span>`
+      +teamSelectHTML(f)
       +`<span class="paia"><span class="tg pa ${p.pa?"on":""}" data-f="${f}" data-k="pa">PA</span><span class="tg ia ${p.ia?"on":""}" data-f="${f}" data-k="ia">IA</span></span>`
       +`<button class="rm" data-rm="${f}" title="Remove">×</button></div>`;}).join("");
   box.querySelectorAll(".tg").forEach(t=>t.onclick=()=>{const f=t.dataset.f,k=t.dataset.k;plan.counties[f][k]=!plan.counties[f][k];if(!plan.counties[f].pa&&!plan.counties[f].ia&&!plan.counties[f].pda)delete plan.counties[f];render();});
   box.querySelectorAll(".rm").forEach(b=>b.onclick=()=>{delete plan.counties[b.dataset.rm];render();});
   box.querySelectorAll("[data-open]").forEach(el=>el.onclick=()=>openCounty(el.dataset.open));
+  box.querySelectorAll(".teamsel").forEach(s=>s.onchange=()=>{plan.counties[s.dataset.teamF].team=s.value||null;render();});
 }
+
+// ---- teams ----
+function renderTeams(){
+  const box=document.getElementById("teamList");
+  if(!plan.teams.length){box.innerHTML=`<div class="muted" style="padding:4px 0">No teams yet — add one below.</div>`;return;}
+  box.innerHTML=plan.teams.map(t=>{
+    const n=Object.keys(plan.counties).filter(f=>plan.counties[f].team===t.id).length;
+    return `<div class="teamrow"><span class="dot" style="background:${t.color}"></span>
+      <input type="text" value="${esc(t.name)}" data-tn="${t.id}" title="Team name">
+      <input type="text" value="${esc(t.members||"")}" placeholder="members…" data-tm="${t.id}" title="Members (free text)">
+      <span class="muted" style="white-space:nowrap">${n} cty</span>
+      <span class="assign ${assignTeam===t.id?"on":""}" data-ta="${t.id}">assign</span>
+      <button class="rm" data-td="${t.id}" title="Delete team">×</button></div>`;
+  }).join("");
+  box.querySelectorAll("[data-tn]").forEach(i=>i.onchange=()=>{const t=plan.teams.find(x=>x.id===i.dataset.tn);if(t)t.name=i.value.trim()||t.name;render();});
+  box.querySelectorAll("[data-tm]").forEach(i=>i.onchange=()=>{const t=plan.teams.find(x=>x.id===i.dataset.tm);if(t)t.members=i.value.trim();render();});
+  box.querySelectorAll("[data-ta]").forEach(b=>b.onclick=()=>{assignTeam=assignTeam===b.dataset.ta?null:b.dataset.ta;if(assignTeam)plan.colorBy="team";render();});
+  box.querySelectorAll("[data-td]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.td;
+    plan.teams=plan.teams.filter(t=>t.id!==id);
+    Object.values(plan.counties).forEach(c=>{if(c.team===id)c.team=null;});
+    if(assignTeam===id)assignTeam=null;
+    render();});
+}
+document.getElementById("teamAdd").onclick=()=>{
+  const nm=document.getElementById("teamName").value.trim()||("Team "+(plan.teams.length+1));
+  plan.teams.push({id:"t"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:nm,color:TEAM_COLORS[plan.teams.length%TEAM_COLORS.length],members:""});
+  document.getElementById("teamName").value="";
+  render();
+};
 
 // ---- county detail modal ----
 function drcCountForDn(dn){return ((DRC&&DRC.byDisaster&&DRC.byDisaster[String(dn)])||[]).length;}
@@ -303,9 +484,10 @@ function ihpSplitForDnFips(dn,fips){const rec=DCIHP&&DCIHP.byDisaster&&DCIHP.byD
 function buildCountySnapshot(fips){
   const m=metrics(fips), c=COUNTIES.find(x=>x.f===fips), p=plan.counties[fips]||{};
   const disasters=(m.disasters||[]).map(d=>({...d,drcCount:drcCountForDn(d.dn),ihpSplit:ihpSplitForDnFips(d.dn,fips)})).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const t=teamOf(fips);
   return {
     fips,name:c?c.n:(m.name||fips),state:c?c.s:(m.state||""),
-    pa:!!p.pa,ia:!!p.ia,
+    pa:!!p.pa,ia:!!p.ia,team:t?t.name:"",teamColor:t?t.color:"",
     count:m.count||0,paObligated:m.paObligated||0,paProjects:m.paProjects||0,nApplicants:m.nApplicants||0,
     ihpApproved:m.ihpApproved||0,ihpHousing:m.ihpHousing||0,ihpOna:m.ihpOna||0,iaRegistrations:m.iaRegistrations||0,
     hmgpObligated:m.hmgpObligated||0,nHmgpApplicants:m.nHmgpApplicants||0,
@@ -313,16 +495,23 @@ function buildCountySnapshot(fips){
     applicants:(m.applicants||[]).slice().sort((a,b)=>(b.pa||0)-(a.pa||0)),
     hmgpApplicants:(m.hmgpApplicants||[]).slice().sort((a,b)=>(b.hmgp||0)-(a.hmgp||0)),
     pda:p.pda||null,
+    expPaAppl:median(paCountyHistory(fips).map(d=>d.appl.size)),
+    expPaDollars:median(paCountyHistory(fips).map(d=>d.pa)),
+    expPaProjects:median(paCountyHistory(fips).map(d=>d.pr)),
+    expIaRegs:median(iaCountyHistory(fips).map(d=>d.regs)),
+    expIhpDollars:median(iaCountyHistory(fips).map(d=>d.ihp)),
   };
 }
 function chip(v,l){return `<div class="chip"><div class="v">${v}</div><div class="l">${l}</div></div>`;}
 function disasterRowHTML(d){
-  const ihpLine=d.ihpSplit?`HA ${fmtMoneyFull(d.ihpSplit.ha)} · ONA ${fmtMoneyFull(d.ihpSplit.ona)} · ${(d.ihpSplit.regs||0).toLocaleString()} registrations`:(d.ihp?`${fmtMoneyFull(d.ihp)} total (HA/ONA split not available)`:"no IHP $");
-  return `<details class="dcard"><summary>DR-${d.dn} · ${esc(d.title||d.it||"")} <span class="sub">${fmtDate(d.date)}${d.end&&d.end!==d.date?"–"+fmtDate(d.end):""} · ${(d.tags||[]).join(", ")}</span></summary>
+  const ihpLine=d.ihpSplit?`HA ${fmtMoneyFull(d.ihpSplit.ha)} · ONA ${fmtMoneyFull(d.ihpSplit.ona)} · ${(d.ihpSplit.regs||0).toLocaleString()} registrations`:(d.ihp?`disaster-total IHP ${fmtMoneyFull(d.ihp)} (county split not available)`:"no IHP $");
+  const ex=excluded(d.dn);
+  return `<details class="dcard"><summary>DR-${d.dn} · ${esc(d.title||d.it||"")} <span class="sub">${fmtDate(d.date)}${d.end&&d.end!==d.date?"–"+fmtDate(d.end):""} · ${(d.tags||[]).join(", ")}${ex?" · <b>excluded from expectations</b>":""}</span></summary>
     <div class="db">
-      <div>PA obligated: <b>${fmtMoneyFull(d.pa)}</b> &nbsp;·&nbsp; IHP approved: <b>${fmtMoneyFull(d.ihp)}</b></div>
-      <div>${ihpLine}</div>
+      <div>PA obligated (this county): <b>${fmtMoneyFull(d.pa)}</b></div>
+      <div>IHP: ${ihpLine}</div>
       <div>${d.drcCount?`🏢 ${d.drcCount} Disaster Recovery Center${d.drcCount===1?"":"s"} for this disaster`:"No DRC records for this disaster"}</div>
+      <div style="margin-top:6px"><button class="btn" data-exdn="${d.dn}">${ex?"Include in expectations":"Exclude from expectations"}</button></div>
     </div></details>`;
 }
 function applicantsTableHTML(list,dollarKey,label){
@@ -344,15 +533,27 @@ function pdaSectionHTML(pda){
 function openCounty(fips){
   const s=buildCountySnapshot(fips);
   document.getElementById("mhName").textContent=`${s.name}, ${s.state}`;
-  document.getElementById("mhBadges").innerHTML=`<span class="pdabadge" style="margin-left:0">${s.count} prior declaration${s.count===1?"":"s"}</span>${s.pda?`<span class="pdabadge">PDA imported</span>`:""}`;
+  document.getElementById("mhBadges").innerHTML=`<span class="pdabadge" style="margin-left:0">${s.count} prior declaration${s.count===1?"":"s"}</span>${s.pda?`<span class="pdabadge">PDA imported</span>`:""}${s.team?`<span class="pdabadge" style="background:${s.teamColor}22;color:${s.teamColor}">${esc(s.team)}</span>`:""}`;
   const body=document.getElementById("mBody");
+  const expChips=PIDX?`
+        ${chip(f1(s.expPaAppl),"Expected PA applicants / disaster (med)")}
+        ${chip(fmtVal(s.expPaDollars,"$"),"Expected PA $ / disaster (med)")}
+        ${chip(f1(s.expPaProjects),"Expected PA projects / disaster (med)")}`:"";
   body.innerHTML=`
     <div class="msec">
       <h4>Add to plan</h4>
       <div class="btnrow">
         <span class="tg pa ${s.pa?"on":""}" id="mPa" style="padding:6px 12px">PA</span>
         <span class="tg ia ${s.ia?"on":""}" id="mIa" style="padding:6px 12px">IA</span>
+        ${plan.teams.length?`<span style="align-self:center">${teamSelectHTML(fips)}</span>`:""}
         <button class="btn" id="mRemove" style="${s.pa||s.ia?"":"display:none"}">Remove from plan</button>
+      </div>
+    </div>
+    <div class="msec"><h4>What to expect here (per disaster, honoring exclusions)</h4>
+      <div class="chipgrid">
+        ${expChips}
+        ${chip(f1(s.expIaRegs),"Expected IA registrations / disaster (med)")}
+        ${chip(fmtVal(s.expIhpDollars,"$"),"Expected IHP $ / disaster (med)")}
       </div>
     </div>
     <div class="msec"><h4>Historical reference (all prior disasters)</h4>
@@ -380,38 +581,133 @@ function openCounty(fips){
   document.getElementById("mPa").onclick=()=>setFlag("pa",!(plan.counties[fips]&&plan.counties[fips].pa));
   document.getElementById("mIa").onclick=()=>setFlag("ia",!(plan.counties[fips]&&plan.counties[fips].ia));
   document.getElementById("mRemove").onclick=()=>{const pda=plan.counties[fips]&&plan.counties[fips].pda;delete plan.counties[fips];if(pda){plan.counties[fips]={pa:false,ia:false,pda};}render();openCounty(fips);};
+  body.querySelectorAll(".teamsel").forEach(sel=>sel.onchange=()=>{plan.counties[fips]=plan.counties[fips]||{pa:false,ia:false};plan.counties[fips].team=sel.value||null;render();openCounty(fips);});
+  body.querySelectorAll("[data-exdn]").forEach(b=>b.onclick=()=>{toggleExcludeDn(+b.dataset.exdn);openCounty(fips);});
   document.getElementById("modalOv").classList.add("on");
 }
 document.getElementById("mhClose").onclick=()=>document.getElementById("modalOv").classList.remove("on");
 document.getElementById("modalOv").addEventListener("click",e=>{if(e.target.id==="modalOv")document.getElementById("modalOv").classList.remove("on");});
+function toggleExcludeDn(dn){const i=plan.excludedDns.indexOf(dn);if(i<0)plan.excludedDns.push(dn);else plan.excludedDns.splice(i,1);render();}
 
 // interactions
-document.getElementById("svg").addEventListener("click",e=>{const p=e.target.closest(".cty");if(p&&!p.classList.contains("dim"))openCounty(p.dataset.f);});
+document.getElementById("svg").addEventListener("click",e=>{
+  const p=e.target.closest(".cty");if(!p||p.classList.contains("dim"))return;
+  const f=p.dataset.f;
+  if(assignTeam){
+    const t=plan.teams.find(x=>x.id===assignTeam);
+    if(!t){assignTeam=null;render();return;}
+    if(!plan.counties[f])plan.counties[f]={pa:true,ia:true};
+    plan.counties[f].team=plan.counties[f].team===assignTeam?null:assignTeam;
+    render();return;
+  }
+  openCounty(f);
+});
 const tip=document.getElementById("tip");
 document.getElementById("svg").addEventListener("mousemove",e=>{const p=e.target.closest(".cty");if(!p){tip.style.opacity=0;return;}
-  const L=LAYERS[plan.layer];const val=(L&&L.get)?` · ${L.label.split(" — ")[0]}: ${fmtVal(L.get(p.dataset.f),L.fmt)}`:"";
+  let val="";
+  if(plan.colorBy==="team"){const t=teamOf(p.dataset.f);val=t?` · ${t.name}`:(plan.counties[p.dataset.f]?" · unassigned":"");}
+  else{const L=activeLayer();if(L&&L.get)val=` · ${L.label.split(" — ")[0]}: ${fmtVal(L.get(p.dataset.f),L.fmt)}`;}
   tip.textContent=`${p.dataset.n}, ${p.dataset.s}${val}`;tip.style.opacity=1;tip.style.left=(e.clientX+12)+"px";tip.style.top=(e.clientY+12)+"px";});
 document.getElementById("svg").addEventListener("mouseleave",()=>tip.style.opacity=0);
 
 function renderStates(){document.getElementById("states").innerHTML=R5.map(s=>`<span class="stchip ${plan.states.includes(s)?"on":""}" data-s="${s}">${s}</span>`).join("");
   document.querySelectorAll(".stchip").forEach(c=>c.onclick=()=>{const s=c.dataset.s,i=plan.states.indexOf(s);if(i<0)plan.states.push(s);else plan.states.splice(i,1);renderStates();render();});}
 function fillLayers(){
-  document.getElementById("layer").innerHTML=GROUP_ORDER.map(g=>{
-    const opts=Object.entries(LAYERS).filter(([,v])=>v.group===g).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join("");
-    return opts?`<optgroup label="${g}">${opts}</optgroup>`:"";
-  }).join("");
-  document.getElementById("layer").value=plan.layer;
+  const sel=document.getElementById("layer");
+  const opts=Object.entries(LAYERS).filter(([,v])=>v.progs.includes(plan.program));
+  sel.innerHTML=opts.map(([k,v])=>`<option value="${k}">${v.label}</option>`).join("");
+  if(!opts.some(([k])=>k===plan.layer))plan.layer="auto";
+  sel.value=plan.layer;
 }
-document.getElementById("layer").onchange=e=>{plan.layer=e.target.value;render();};
+document.getElementById("layer").onchange=e=>{plan.layer=e.target.value;plan.colorBy="metric";render();};
 document.getElementById("planName").oninput=e=>plan.name=e.target.value;
 
-// ---- PA applicant history — per-disaster detail (data/planner_applicants.json, lazy) ----
+// ---- start from a declared disaster ----
+let DINDEX=null; // dn -> {title,date,it,states:Set}
+function buildDindex(){
+  DINDEX={};
+  if(DECL&&DECL.counties)Object.entries(DECL.counties).forEach(([f,c])=>{
+    (c.disasters||[]).forEach(d=>{
+      const e=DINDEX[d.dn]=DINDEX[d.dn]||{dn:d.dn,title:d.title||d.it||"",date:d.date||"",it:d.it||"",states:new Set()};
+      e.states.add(c.state);
+      if(!e.date||((d.date||"")<e.date))e.date=d.date||e.date;
+    });
+  });
+  // designations may know disasters that never touched a mapped county (statewide-only)
+  if(DESIG&&DESIG.byDisaster)Object.keys(DESIG.byDisaster).forEach(dn=>{
+    if(!DINDEX[dn])DINDEX[dn]={dn:+dn,title:"",date:"",it:"",states:new Set()};
+  });
+}
+function desigCounts(dn){
+  const b=DESIG&&DESIG.byDisaster&&DESIG.byDisaster[String(dn)];
+  if(!b)return null;
+  let pa=0,ia=0;
+  Object.values(b.counties).forEach(m=>{if(m&1)pa++;if(m&2)ia++;});
+  return {pa,ia,nonCounty:(b.nonCounty||[]).length};
+}
+function fillDisasters(){
+  const wrap=document.getElementById("disWrap"),sel=document.getElementById("disSel");
+  if(!DESIG||!DINDEX){wrap.style.display="none";return;}
+  const list=Object.values(DINDEX).filter(d=>DESIG.byDisaster[String(d.dn)]).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  sel.innerHTML=`<option value="">Choose a declared disaster…</option>`+list.map(d=>{
+    const c=desigCounts(d.dn)||{pa:0,ia:0};
+    const st=[...d.states].join("/")||"";
+    return `<option value="${d.dn}">DR-${d.dn} · ${st} · ${fmtDate(d.date)} · ${esc((d.title||"").slice(0,60))} — PA:${c.pa} / IA:${c.ia} cty</option>`;
+  }).join("");
+  sel.onchange=updateDisInfo;
+  document.getElementById("disPa").onchange=updateDisInfo;
+  document.getElementById("disIa").onchange=updateDisInfo;
+  updateDisInfo();
+}
+function updateDisInfo(){
+  const dn=+document.getElementById("disSel").value||0,info=document.getElementById("disInfo");
+  if(!dn){info.textContent="";return;}
+  const c=desigCounts(dn),wantPa=document.getElementById("disPa").checked,wantIa=document.getElementById("disIa").checked;
+  const n=seedCounties(dn,wantPa,wantIa).length;
+  info.innerHTML=`Designated: <b>${c.pa}</b> PA / <b>${c.ia}</b> IA counties${c.nonCounty?` · ${c.nonCounty} non-county designation${c.nonCounty===1?"":"s"} (statewide/tribal — not mappable)`:""}. Your filter loads <b>${n}</b> count${n===1?"y":"ies"}.`;
+}
+function seedCounties(dn,wantPa,wantIa){
+  const b=DESIG&&DESIG.byDisaster&&DESIG.byDisaster[String(dn)];
+  if(!b)return [];
+  const out=[];
+  Object.entries(b.counties).forEach(([f,m])=>{
+    const pa=!!(m&1),ia=!!(m&2);
+    if((wantPa&&pa)||(wantIa&&ia))out.push({f,pa:wantPa&&pa,ia:wantIa&&ia});
+  });
+  return out;
+}
+document.getElementById("disLoad").onclick=()=>{
+  const dn=+document.getElementById("disSel").value||0;
+  if(!dn){alert("Choose a disaster first.");return;}
+  const wantPa=document.getElementById("disPa").checked,wantIa=document.getElementById("disIa").checked;
+  if(!wantPa&&!wantIa){alert("Check at least one program.");return;}
+  const seed=seedCounties(dn,wantPa,wantIa);
+  if(!seed.length){alert("No counties designated for the chosen program(s) — this disaster may be statewide/tribal-only.");return;}
+  if(Object.keys(plan.counties).length&&!confirm("Replace the current county selection with this disaster's designated counties?"))return;
+  plan.counties={};
+  const sts=new Set();
+  seed.forEach(({f,pa,ia})=>{
+    const c=COUNTIES.find(x=>x.f===f);
+    if(c)sts.add(c.s);
+    plan.counties[f]={pa,ia};
+  });
+  if(sts.size)plan.states=[...sts];
+  const d=DINDEX[dn]||{};
+  plan.basis={type:"disaster",dn,programs:[wantPa?"pa":null,wantIa?"ia":null].filter(Boolean),title:d.title||"",date:d.date||""};
+  if(!plan.name)document.getElementById("planName").value=plan.name=`DR-${dn} ${d.title||""}`.trim().slice(0,80);
+  if(!plan.excludedDns.includes(dn))plan.excludedDns.push(dn); // don't count the event being planned as its own history
+  plan.program=wantPa&&!wantIa?"pa":(!wantPa&&wantIa?"ia":plan.program);
+  fillLayers();renderStates();render();
+};
+
+// ---- PA applicant data (data/planner_applicants.json, lazy) ----
 const CAT_LABELS={A:"A · Debris removal",B:"B · Emergency protective measures",C:"C · Roads & bridges",D:"D · Water control facilities",E:"E · Public buildings & equipment",F:"F · Utilities",G:"G · Parks, recreation & other",Z:"Z · Management costs","?":"Uncategorized"};
+const CAT_COLORS={A:"#8168b3",B:"#e41d3d",C:"#005ea2",D:"#0f8c9c",E:"#e5a000",F:"#00a91c",G:"#b04abd",Z:"#565c65","?":"#c6cace"};
 let PAPPL=null,PAPPL_ERR=false,papplPromise=null,applTab="agg",PIDX=null,FIPS2ST={},FIPS2NAME={};
 function ensurePappl(){
   if(papplPromise)return papplPromise;
   papplPromise=fetch("data/planner_applicants.json").then(r=>{if(!r.ok)throw 0;return r.json();})
-    .then(d=>{PAPPL=d;indexPappl();renderAppl();}).catch(()=>{PAPPL_ERR=true;renderAppl();});
+    .then(d=>{PAPPL=d;indexPappl();render();}).catch(()=>{PAPPL_ERR=true;renderExpect();});
   return papplPromise;
 }
 function indexPappl(){
@@ -424,11 +720,11 @@ function indexPappl(){
   });
   PIDX={byF,byS,byOther};
 }
-function median(a){if(!a.length)return 0;const s=a.slice().sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;}
-function mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0;}
 function applSelection(){
-  const all=Object.keys(plan.counties),pa=all.filter(f=>plan.counties[f].pa);
-  return {fips:pa.length?pa:all,basis:pa.length?"counties flagged PA in the plan":"all counties in the plan (none flagged PA yet)"};
+  const all=Object.keys(plan.counties);
+  const key=plan.program==="ia"?"ia":"pa";
+  const flagged=all.filter(f=>plan.counties[f][key]);
+  return {fips:flagged.length?flagged:all,basis:flagged.length?`counties flagged ${key.toUpperCase()} in the plan`:`all counties in the plan (none flagged ${key.toUpperCase()} yet)`};
 }
 function aggApplRows(map,r,scope){
   const ni=r[3],dn=r[0];
@@ -445,20 +741,127 @@ function computeAppl(){
   const cRows=[];sel.fips.forEach(f=>(PIDX.byF[f]||[]).forEach(r=>cRows.push(r)));
   const dns=new Set(cRows.map(r=>r[0]));
   const states=[...new Set(sel.fips.map(f=>FIPS2ST[f]).filter(Boolean))];
+  const inclRows=cRows.filter(r=>!excluded(r[0]));
   const agg=new Map(),sw=new Map(),other=new Map();
-  cRows.forEach(r=>aggApplRows(agg,r,"county"));
+  inclRows.forEach(r=>aggApplRows(agg,r,"county"));
   states.forEach(st=>{
-    (PIDX.byS[st]||[]).forEach(r=>{if(dns.has(r[0]))aggApplRows(sw,r,"statewide");});
-    (PIDX.byOther[st]||[]).forEach(r=>{if(dns.has(r[0]))aggApplRows(other,r,r[1]==="u"?"undeclared county":"unresolved county");});
+    (PIDX.byS[st]||[]).forEach(r=>{if(dns.has(r[0])&&!excluded(r[0]))aggApplRows(sw,r,"statewide");});
+    (PIDX.byOther[st]||[]).forEach(r=>{if(dns.has(r[0])&&!excluded(r[0]))aggApplRows(other,r,r[1]==="u"?"undeclared county":"unresolved county");});
   });
   const perDn=[...dns].map(dn=>{
     const rows=cRows.filter(r=>r[0]===dn),meta=PAPPL.dnMeta[String(dn)]||[];
     let swRows=[];states.forEach(st=>{swRows=swRows.concat((PIDX.byS[st]||[]).filter(r=>r[0]===dn));});
-    return {dn,st:meta[0]||"",fy:meta[1]||"",title:meta[2]||"",begin:meta[3]||"",
+    return {dn,st:meta[0]||"",fy:meta[1]||"",title:meta[2]||"",begin:meta[3]||"",excluded:excluded(dn),
       nAppl:new Set(rows.map(r=>r[3])).size,pr:rows.reduce((s,r)=>s+r[5],0),pa:rows.reduce((s,r)=>s+r[4],0),
       swAppl:new Set(swRows.map(r=>r[3])).size,swPr:swRows.reduce((s,r)=>s+r[5],0),swPa:swRows.reduce((s,r)=>s+r[4],0)};
   }).sort((a,b)=>String(b.begin).localeCompare(String(a.begin)));
-  return {sel,states,cRows,dns,agg,sw,other,perDn};
+  const inclDn=perDn.filter(d=>!d.excluded);
+  // category mix across included disasters (whole-disaster grain; distinct dn|applicant pairs)
+  const catMix={},seenPair=new Set();
+  inclRows.forEach(r=>{
+    const key=r[0]+"|"+r[3];
+    if(seenPair.has(key))return;seenPair.add(key);
+    const c=PAPPL.cats[key];if(!c)return;
+    Object.entries(c).forEach(([k,v])=>{const e=catMix[k]=catMix[k]||[0,0];e[0]+=v[0];e[1]+=v[1];});
+  });
+  const outliers=suggestOutliers(perDn,d=>d.pa); // full set, so excluded disasters keep their badge
+  return {sel,states,cRows,dns,agg,sw,other,perDn,inclDn,catMix,outliers};
+}
+// IA selection-level: per-dn sums of DCIHP over selected counties
+function computeIa(){
+  const sel=applSelection();
+  if(!DCIHP||!DCIHP.byDisaster||!sel.fips.length)return null;
+  const perDnMap=new Map();
+  Object.entries(DCIHP.byDisaster).forEach(([dnS,m])=>{
+    const dn=+dnS;
+    sel.fips.forEach(f=>{
+      const rec=m[f];if(!rec)return;
+      const d=perDnMap.get(dn)||{dn,ihp:0,ha:0,ona:0,regs:0,counties:0};
+      d.ihp+=rec[0]||0;d.ha+=rec[1]||0;d.ona+=rec[2]||0;d.regs+=rec[3]||0;d.counties++;
+      perDnMap.set(dn,d);
+    });
+  });
+  const perDn=[...perDnMap.values()].map(d=>{
+    const meta=DINDEX&&DINDEX[d.dn]||{};
+    return {...d,title:meta.title||"",date:meta.date||"",excluded:excluded(d.dn)};
+  }).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const inclDn=perDn.filter(d=>!d.excluded);
+  const outliers=suggestOutliers(perDn,d=>d.ihp);
+  return {sel,perDn,inclDn,outliers};
+}
+function dnChipsHTML(perDn,valLabel,val,outliers){
+  return `<div class="dnchips">`+perDn.map(d=>{
+    const out=outliers.has(+d.dn);
+    return `<span class="dnchip ${d.excluded?"off":""}" title="${d.excluded?"Excluded — click ↩ to restore":"Included — click ✕ to exclude"}">DR-${d.dn}${d.title?` · ${esc(String(d.title).slice(0,32))}`:""} · ${val(d)} ${valLabel}${out?`<span class="outl" title="Statistical outlier vs the other disasters (modified z-score) — consider excluding">outlier?</span>`:""}<span class="x" data-xdn="${d.dn}">${d.excluded?"↩":"✕"}</span></span>`;
+  }).join("")+`</div>`;
+}
+function catMixHTML(catMix){
+  const entries=Object.entries(catMix).sort((a,b)=>b[1][1]-a[1][1]);
+  const tot=entries.reduce((s,[,v])=>s+v[1],0);
+  if(!tot)return "";
+  const bar=entries.map(([k,v])=>`<span style="width:${(100*v[1]/tot).toFixed(1)}%;background:${CAT_COLORS[k]||"#c6cace"}" title="${esc(CAT_LABELS[k]||k)} — ${fmtVal(v[1],"$")} (${(100*v[1]/tot).toFixed(0)}%)"></span>`).join("");
+  const legend=entries.map(([k,v])=>`<span class="catchip" style="background:${(CAT_COLORS[k]||"#c6cace")}22;color:${CAT_COLORS[k]||"#565c65"}" title="${esc(CAT_LABELS[k]||k)}">${esc(k)} ${(100*v[1]/tot).toFixed(0)}% · ${fmtVal(v[1],"$")} · ${v[0]} proj</span>`).join("");
+  return `<div class="msec"><h4>Expected categories of work (share of historical PA $ — included disasters, whole-disaster grain)</h4><div class="catmix">${bar}</div><div>${legend}</div>
+    <div class="muted">Category rollups are per disaster×applicant across counties (a per-county category split would be false precision — see data notes).</div></div>`;
+}
+function teamBoardHTML(){
+  if(!plan.teams.length)return "";
+  const baseDn=plan.basis&&plan.basis.dn;
+  const cards=plan.teams.map(t=>{
+    const fips=Object.keys(plan.counties).filter(f=>plan.counties[f].team===t.id);
+    const names=fips.map(f=>{const c=COUNTIES.find(x=>x.f===f);return c?c.n:f;}).sort();
+    let expA=0,expR=0,pdaA=0,disA=null,disR=null;
+    fips.forEach(f=>{
+      expA+=median(paCountyHistory(f).map(d=>d.appl.size));
+      expR+=median(iaCountyHistory(f).map(d=>d.regs));
+      const p=pdaOf(f);if(p&&p.applicants)pdaA+=p.applicants.length;
+    });
+    if(baseDn){
+      if(PIDX){const s=new Set();fips.forEach(f=>(PIDX.byF[f]||[]).forEach(r=>{if(r[0]===baseDn)s.add(r[3]);}));disA=s.size;}
+      if(DCIHP&&DCIHP.byDisaster[String(baseDn)]){disR=0;fips.forEach(f=>{const rec=DCIHP.byDisaster[String(baseDn)][f];if(rec)disR+=rec[3]||0;});}
+    }
+    const lines=[];
+    if(pdaA)lines.push(`<b>${pdaA}</b> PDA applicants (imported)`);
+    if(disA!=null)lines.push(`<b>${disA}</b> PA applicants on DR-${baseDn} so far`);
+    if(disR!=null)lines.push(`<b>${disR.toLocaleString()}</b> IA registrations on DR-${baseDn}`);
+    lines.push(`<b>${f1(expA)}</b> expected PA applicants (hist. median/disaster, summed)`);
+    lines.push(`<b>${f1(expR)}</b> expected IA registrations (hist. median/disaster, summed)`);
+    return `<div class="teamcard" style="border-left-color:${t.color}"><b class="tn">${esc(t.name)}</b>${t.members?` <span class="muted">· ${esc(t.members)}</span>`:""}
+      <div class="muted" style="margin:2px 0">${fips.length} count${fips.length===1?"y":"ies"}: ${names.map(esc).join(", ")||"—"}</div>
+      <div>${lines.join("<br>")}</div></div>`;
+  }).join("");
+  const un=Object.keys(plan.counties).filter(f=>!plan.counties[f].team).length;
+  return `<div class="msec"><h4>Team divider — who covers what</h4><div class="teamboard">${cards}</div>${un?`<div class="muted" style="margin-top:4px">${un} count${un===1?"y":"ies"} in the plan unassigned.</div>`:""}</div>`;
+}
+function perCountyPaTable(sel){
+  const rows=sel.fips.map(f=>{
+    const c=COUNTIES.find(x=>x.f===f);
+    const h=paCountyHistory(f);
+    const cats={};const seen=new Set();
+    (PIDX.byF[f]||[]).forEach(r=>{if(excluded(r[0]))return;const key=r[0]+"|"+r[3];if(seen.has(key))return;seen.add(key);
+      const cc=PAPPL.cats[key];if(cc)Object.entries(cc).forEach(([k,v])=>{cats[k]=(cats[k]||0)+v[1];});});
+    const topCats=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>k).join(" ");
+    return {f,name:c?c.n:f,st:c?c.s:"",n:h.length,
+      aMed:median(h.map(d=>d.appl.size)),aMean:mean(h.map(d=>d.appl.size)),
+      pMed:median(h.map(d=>d.pr)),dMed:median(h.map(d=>d.pa)),dMean:mean(h.map(d=>d.pa)),topCats};
+  }).sort((a,b)=>b.aMed-a.aMed);
+  return `<div class="msec"><h4>Per-county expectations (PA — included disasters only)</h4>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>County</th><th>Prior PA disasters (incl.)</th><th>Applicants / disaster (med · avg)</th><th>Projects / disaster (med)</th><th>PA $ / disaster (med · avg)</th><th>Top categories</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr><td><b>${esc(r.name)}</b>, ${r.st}</td><td>${r.n}</td><td>${f1(r.aMed)} · ${f1(r.aMean)}</td><td>${f1(r.pMed)}</td><td>${fmtVal(r.dMed,"$")} · ${fmtVal(r.dMean,"$")}</td><td>${esc(r.topCats||"—")}</td></tr>`).join("")}</tbody></table></div></div>`;
+}
+function perCountyIaTable(sel){
+  const rows=sel.fips.map(f=>{
+    const c=COUNTIES.find(x=>x.f===f);
+    const h=iaCountyHistory(f);
+    const ha=h.reduce((s,d)=>s+d.ha,0),tot=h.reduce((s,d)=>s+d.ihp,0);
+    return {f,name:c?c.n:f,st:c?c.s:"",n:h.length,
+      rMed:median(h.map(d=>d.regs)),rMean:mean(h.map(d=>d.regs)),
+      dMed:median(h.map(d=>d.ihp)),dMean:mean(h.map(d=>d.ihp)),
+      haShare:tot?100*ha/tot:null};
+  }).sort((a,b)=>b.rMed-a.rMed);
+  return `<div class="msec"><h4>Per-county expectations (IA / IHP — included disasters only)</h4>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>County</th><th>Prior IA disasters (incl.)</th><th>Registrations / disaster (med · avg)</th><th>IHP $ / disaster (med · avg)</th><th>HA share of $</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr><td><b>${esc(r.name)}</b>, ${r.st}</td><td>${r.n}</td><td>${f1(r.rMed)} · ${f1(r.rMean)}</td><td>${fmtVal(r.dMed,"$")} · ${fmtVal(r.dMean,"$")}</td><td>${r.haShare==null?"—":r.haShare.toFixed(0)+"%"}</td></tr>`).join("")}</tbody></table></div></div>`;
 }
 function catChipsHTML(dn,ni){
   const c=PAPPL.cats[dn+"|"+ni];if(!c)return '<span class="muted">n/a</span>';
@@ -475,45 +878,53 @@ function applicantCardHTML(a){
   return `<details class="dcard"><summary>${esc(name)} ${scopeTag} <span class="sub">· ${fmtMoneyFull(a.pa)} · ${a.pr} project${a.pr===1?"":"s"} · ${a.perDn.size} disaster${a.perDn.size===1?"":"s"}</span></summary>
     <div class="db" style="overflow-x:auto"><table class="tbl"><thead><tr><th>Disaster</th><th>FY</th><th>Title</th><th>County (in selection)</th><th>PA $</th><th>Projects</th><th>Categories (whole disaster)</th></tr></thead><tbody>${dnRows}</tbody></table></div></details>`;
 }
-function renderAppl(){
+// ---- Expectations card (program-scoped) ----
+function renderExpect(){
   const wrap=document.getElementById("applWrap");if(!wrap)return;
   if(!Object.keys(plan.counties).length){wrap.style.display="none";return;}
   wrap.style.display="block";
+  document.getElementById("expTitle").textContent=`Expectations — ${PROGRAMS[plan.program].label}`;
   const body=document.getElementById("applBody"),basis=document.getElementById("applBasis");
-  if(!PAPPL){basis.textContent="";body.innerHTML=PAPPL_ERR?'<p class="muted">Couldn&#8217;t load data/planner_applicants.json — applicant history unavailable.</p>':'<p class="muted">Loading applicant history…</p>';ensurePappl();return;}
+  const basisLine=plan.basis&&plan.basis.dn?`<b>Plan basis: DR-${plan.basis.dn}</b> (${esc(plan.basis.title||"")}) — its designated ${plan.basis.programs.map(p=>p.toUpperCase()).join("+")} counties were loaded, and it is excluded from historical expectations by default (restore it via its chip if you want it counted). `:"";
+  if(plan.program==="hmgp"){renderExpectHmgp(body,basis,basisLine);return;}
+  if(plan.program==="ia"){renderExpectIa(body,basis,basisLine);return;}
+  if(!PAPPL){basis.innerHTML=basisLine;body.innerHTML=PAPPL_ERR?'<p class="muted">Couldn&#8217;t load data/planner_applicants.json — applicant history unavailable.</p>':'<p class="muted">Loading applicant history…</p>';ensurePappl();return;}
   const A=computeAppl();
-  if(!A||!A.dns.size){basis.textContent="Basis: "+applSelection().basis+".";body.innerHTML='<p class="muted">No prior PA obligations on record for the selected counties.</p>';return;}
-  basis.innerHTML=`Historical PA applicants in <b>${A.sel.fips.length}</b> selected count${A.sel.fips.length===1?"y":"ies"} (basis: ${A.sel.basis}) across <b>${A.dns.size}</b> prior disaster${A.dns.size===1?"":"s"}. Statewide / state-agency applicants (no county alignment) are listed separately and labeled — they served the same disasters but their dollars aren&#8217;t attributable to your counties. Source: OpenFEMA PA Funded Projects Summaries v1 (rows) + Details v2 (categories).`;
-  const nA=A.perDn.map(d=>d.nAppl),nP=A.perDn.map(d=>d.pr);
-  const nAs=A.perDn.map(d=>d.nAppl+d.swAppl),nPs=A.perDn.map(d=>d.pr+d.swPr);
-  const f1=v=>(Math.round(v*10)/10).toLocaleString();
-  const stats=`<div class="msec"><h4>What to expect — applicants &amp; projects per disaster (prior disasters touching these counties)</h4>
+  if(!A||!A.dns.size){basis.innerHTML=basisLine+"Basis: "+applSelection().basis+".";body.innerHTML='<p class="muted">No prior PA obligations on record for the selected counties.</p>';return;}
+  basis.innerHTML=basisLine+`Historical PA applicants in <b>${A.sel.fips.length}</b> selected count${A.sel.fips.length===1?"y":"ies"} (basis: ${A.sel.basis}) across <b>${A.dns.size}</b> prior disaster${A.dns.size===1?"":"s"} (<b>${A.inclDn.length}</b> included). Statewide / state-agency applicants (no county alignment) are listed separately and labeled. Source: OpenFEMA PA Funded Projects Summaries v1 (rows) + Details v2 (categories).`;
+  const nA=A.inclDn.map(d=>d.nAppl),nP=A.inclDn.map(d=>d.pr),nD=A.inclDn.map(d=>d.pa);
+  const nAs=A.inclDn.map(d=>d.nAppl+d.swAppl),nPs=A.inclDn.map(d=>d.pr+d.swPr);
+  const stats=`<div class="msec"><h4>What to expect — per disaster, across the selection (${A.inclDn.length} of ${A.perDn.length} prior disasters included)</h4>
     <div class="chipgrid">
-      ${chip(A.perDn.length,"Prior disasters (PA in selected counties)")}
       ${chip(f1(median(nA))+" med · "+f1(mean(nA))+" avg","Applicants / disaster — selected counties")}
       ${chip(f1(median(nP))+" med · "+f1(mean(nP))+" avg","Projects / disaster — selected counties")}
+      ${chip(fmtVal(median(nD),"$")+" med · "+fmtVal(mean(nD),"$")+" avg","PA $ / disaster — selected counties")}
       ${chip(f1(median(nAs))+" med · "+f1(mean(nAs))+" avg","Applicants / disaster — incl. statewide")}
       ${chip(f1(median(nPs))+" med · "+f1(mean(nPs))+" avg","Projects / disaster — incl. statewide")}
-    </div>
-    <details class="dcard" style="margin-top:8px"><summary>Per-disaster breakdown (${A.perDn.length})</summary><div class="db" style="overflow-x:auto">
-      <table class="tbl"><thead><tr><th>Disaster</th><th>FY</th><th>Title</th><th>Applicants (sel.)</th><th>Projects (sel.)</th><th>PA $ (sel.)</th><th>Statewide applicants</th><th>Statewide projects</th></tr></thead>
-      <tbody>${A.perDn.map(d=>`<tr><td style="white-space:nowrap">DR-${d.dn}</td><td>${esc(String(d.fy||""))}</td><td>${esc(d.title)}</td><td>${d.nAppl}</td><td>${d.pr}</td><td>${fmtMoneyFull(d.pa)}</td><td>${d.swAppl}</td><td>${d.swPr}</td></tr>`).join("")}</tbody></table>
-    </div></details></div>`;
+    </div></div>`;
+  const chips=`<div class="msec"><h4>Prior disasters in the math — click ✕ to exclude one (e.g. an outlier), ↩ to restore</h4>
+    ${dnChipsHTML(A.perDn,"PA $ (sel.)",d=>fmtVal(d.pa,"$"),A.outliers)}
+    ${A.outliers.size?`<div class="muted">⚠ ${A.outliers.size} disaster${A.outliers.size===1?" looks":"s look"} like a statistical outlier vs the rest of this selection's history (modified z-score &gt; 3.5 on PA $). Consider excluding.</div>`:""}
+  </div>`;
+  const perDisaster=`<details class="dcard" style="margin-top:8px"><summary>Per-disaster breakdown (${A.perDn.length})</summary><div class="db" style="overflow-x:auto">
+      <table class="tbl"><thead><tr><th>Disaster</th><th>FY</th><th>Title</th><th>In math?</th><th>Applicants (sel.)</th><th>Projects (sel.)</th><th>PA $ (sel.)</th><th>Statewide applicants</th><th>Statewide projects</th></tr></thead>
+      <tbody>${A.perDn.map(d=>`<tr style="${d.excluded?"opacity:.45":""}"><td style="white-space:nowrap">DR-${d.dn}</td><td>${esc(String(d.fy||""))}</td><td>${esc(d.title)}</td><td>${d.excluded?"excluded":"✓"}</td><td>${d.nAppl}</td><td>${d.pr}</td><td>${fmtMoneyFull(d.pa)}</td><td>${d.swAppl}</td><td>${d.swPr}</td></tr>`).join("")}</tbody></table>
+    </div></details>`;
   const sortByPa=m=>[...m.values()].sort((x,y)=>y.pa-x.pa);
   let listHTML="";
   if(applTab==="agg"){
     const county=sortByPa(A.agg),sw=sortByPa(A.sw),other=sortByPa(A.other);
-    listHTML=`<div class="msec"><h4>Applicants — aggregated across selected counties (${county.length})</h4>${county.map(applicantCardHTML).join("")||'<p class="muted">None.</p>'}</div>
+    listHTML=`<div class="msec"><h4>Applicants — aggregated across selected counties (${county.length}; included disasters only)</h4>${county.map(applicantCardHTML).join("")||'<p class="muted">None.</p>'}</div>
       <div class="msec"><h4>Statewide / state-agency applicants — no county alignment (${sw.length})</h4>${sw.map(applicantCardHTML).join("")||'<p class="muted">None.</p>'}</div>`
       +(other.length?`<div class="msec"><h4>Other non-county-aligned — undeclared / unresolved counties (${other.length})</h4><div class="muted" style="margin-bottom:6px">Rows the source records in counties with no declaration record or unresolvable names (e.g. cross-border cooperatives) — conserved and labeled, never silently dropped.</div>${other.map(applicantCardHTML).join("")}</div>`:"");
   }else{
     listHTML=A.sel.fips.map(f=>({f,c:COUNTIES.find(x=>x.f===f)})).sort((a,b)=>(a.c?a.c.n:a.f).localeCompare(b.c?b.c.n:b.f)).map(({f,c})=>{
-      const m=new Map();(PIDX.byF[f]||[]).forEach(r=>aggApplRows(m,r,"county"));
+      const m=new Map();(PIDX.byF[f]||[]).forEach(r=>{if(!excluded(r[0]))aggApplRows(m,r,"county");});
       const list=sortByPa(m);
       return `<div class="msec"><h4>${esc(c?c.n:f)}, ${c?c.s:""} — ${list.length} applicant${list.length===1?"":"s"}</h4>${list.map(applicantCardHTML).join("")||'<p class="muted">No PA applicants on record.</p>'}</div>`;
     }).join("");
   }
-  body.innerHTML=`${stats}
+  body.innerHTML=`${chips}${stats}${catMixHTML(A.catMix)}${perCountyPaTable(A.sel)}${teamBoardHTML()}${perDisaster}
     <div class="atabs"><span class="atab ${applTab==="agg"?"on":""}" data-t="agg">Aggregated (selection total)</span><span class="atab ${applTab==="cty"?"on":""}" data-t="cty">Drill by county</span></div>
     ${listHTML}
     <div class="btnrow" style="margin-top:12px">
@@ -521,11 +932,64 @@ function renderAppl(){
       <button class="btn" id="expApplCty">Export by county (CSV)</button>
       <button class="btn" id="expApplStats">Export expectations (CSV)</button>
     </div>`;
-  body.querySelectorAll(".atab").forEach(t=>t.onclick=()=>{applTab=t.dataset.t;renderAppl();});
+  body.querySelectorAll(".atab").forEach(t=>t.onclick=()=>{applTab=t.dataset.t;renderExpect();});
+  body.querySelectorAll("[data-xdn]").forEach(x=>x.onclick=()=>toggleExcludeDn(+x.dataset.xdn));
   document.getElementById("expApplAgg").onclick=()=>exportApplCsv("agg");
   document.getElementById("expApplCty").onclick=()=>exportApplCsv("cty");
   document.getElementById("expApplStats").onclick=()=>exportApplCsv("stats");
 }
+function renderExpectIa(body,basis,basisLine){
+  ensurePappl(); // team board uses PA history too
+  const A=computeIa();
+  if(!A||!A.perDn.length){basis.innerHTML=basisLine+"Basis: "+applSelection().basis+".";body.innerHTML='<p class="muted">No prior IHP registrations on record for the selected counties (source: registrant-level IHP valid registrations).</p>';return;}
+  basis.innerHTML=basisLine+`Registrant-level IHP history for <b>${A.sel.fips.length}</b> selected count${A.sel.fips.length===1?"y":"ies"} (basis: ${A.sel.basis}) across <b>${A.perDn.length}</b> prior IA disaster${A.perDn.length===1?"":"s"} (<b>${A.inclDn.length}</b> included). Dollars are <b>IHP approved</b> (HA + ONA), a different accounting stage than PA obligations. Source: OpenFEMA IndividualsAndHouseholdsProgramValidRegistrations.`;
+  const regs=A.inclDn.map(d=>d.regs),ihp=A.inclDn.map(d=>d.ihp);
+  const haTot=A.inclDn.reduce((s,d)=>s+d.ha,0),ihpTot=A.inclDn.reduce((s,d)=>s+d.ihp,0);
+  const chips=`<div class="msec"><h4>Prior IA disasters in the math — click ✕ to exclude one, ↩ to restore</h4>
+    ${dnChipsHTML(A.perDn,"IHP (sel.)",d=>fmtVal(d.ihp,"$"),A.outliers)}
+    ${A.outliers.size?`<div class="muted">⚠ ${A.outliers.size} disaster${A.outliers.size===1?" looks":"s look"} like a statistical outlier on IHP $ vs the rest. Consider excluding.</div>`:""}
+  </div>`;
+  const stats=`<div class="msec"><h4>What to expect — per disaster, across the selection (${A.inclDn.length} of ${A.perDn.length} included)</h4>
+    <div class="chipgrid">
+      ${chip(f1(median(regs))+" med · "+f1(mean(regs))+" avg","IA registrations / disaster")}
+      ${chip(fmtVal(median(ihp),"$")+" med · "+fmtVal(mean(ihp),"$")+" avg","IHP approved $ / disaster")}
+      ${chip(ihpTot?(100*haTot/ihpTot).toFixed(0)+"% HA":"—","Housing share of IHP $ (incl. disasters)")}
+      ${chip(f1(median(A.inclDn.map(d=>d.counties))),"Selected counties hit / disaster (med)")}
+    </div></div>`;
+  const perDisaster=`<details class="dcard" style="margin-top:8px"><summary>Per-disaster breakdown (${A.perDn.length})</summary><div class="db" style="overflow-x:auto">
+      <table class="tbl"><thead><tr><th>Disaster</th><th>Date</th><th>Title</th><th>In math?</th><th>Registrations (sel.)</th><th>IHP $ (sel.)</th><th>HA $</th><th>ONA $</th><th>Counties hit</th></tr></thead>
+      <tbody>${A.perDn.map(d=>`<tr style="${d.excluded?"opacity:.45":""}"><td style="white-space:nowrap">DR-${d.dn}</td><td>${fmtDate(d.date)}</td><td>${esc(d.title)}</td><td>${d.excluded?"excluded":"✓"}</td><td>${d.regs.toLocaleString()}</td><td>${fmtMoneyFull(d.ihp)}</td><td>${fmtMoneyFull(d.ha)}</td><td>${fmtMoneyFull(d.ona)}</td><td>${d.counties}</td></tr>`).join("")}</tbody></table>
+    </div></details>`;
+  body.innerHTML=`${chips}${stats}${perCountyIaTable(A.sel)}${teamBoardHTML()}${perDisaster}
+    <div class="btnrow" style="margin-top:12px"><button class="btn primary" id="expIaCsv">Export IA expectations (CSV)</button></div>`;
+  body.querySelectorAll("[data-xdn]").forEach(x=>x.onclick=()=>toggleExcludeDn(+x.dataset.xdn));
+  document.getElementById("expIaCsv").onclick=exportIaCsv;
+}
+function renderExpectHmgp(body,basis,basisLine){
+  const sel=applSelection();
+  basis.innerHTML=basisLine+`All-time HMGP reference for <b>${sel.fips.length}</b> selected count${sel.fips.length===1?"y":"ies"}. HMGP obligations reconcile for years after a disaster, so there is no honest per-event expectation here — this is reference, and disaster exclusions do not apply. Source: OpenFEMA HazardMitigationAssistanceProjects v4.`;
+  let tot=0,subs=new Map();
+  const rows=sel.fips.map(f=>{
+    const m=metrics(f),c=COUNTIES.find(x=>x.f===f);
+    tot+=m.hmgpObligated||0;
+    (m.hmgpApplicants||[]).forEach(a=>{
+      const e=subs.get(a.name)||{name:a.name,hmgp:0,projects:0,dns:new Set(),types:a.types||[]};
+      e.hmgp+=a.hmgp||0;e.projects+=a.projects||0;(a.dns||[]).forEach(dn=>e.dns.add(dn));subs.set(a.name,e);});
+    return {name:c?c.n:f,st:c?c.s:"",hmgp:m.hmgpObligated||0,n:m.nHmgpApplicants||0,decl:m.count||0};
+  }).sort((a,b)=>b.hmgp-a.hmgp);
+  const subList=[...subs.values()].sort((a,b)=>b.hmgp-a.hmgp);
+  const dnsAll=new Set();subList.forEach(s=>s.dns.forEach(dn=>dnsAll.add(dn)));
+  body.innerHTML=`<div class="msec"><h4>HMGP — selection totals</h4>
+    <div class="chipgrid">${chip(fmtVal(tot,"$"),"HMGP obligated (all-time)")}${chip(subList.length,"Distinct subrecipients")}${chip(dnsAll.size,"Disasters with HMGP grants here")}${chip(fmtVal(dnsAll.size?tot/dnsAll.size:0,"$"),"HMGP $ per granting disaster (avg)")}</div></div>
+    <div class="msec"><h4>Per-county HMGP</h4><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>County</th><th>HMGP obligated</th><th>Subrecipients</th><th>Prior declarations</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr><td><b>${esc(r.name)}</b>, ${r.st}</td><td>${fmtMoneyFull(r.hmgp)}</td><td>${r.n}</td><td>${r.decl}</td></tr>`).join("")}</tbody></table></div></div>
+    <div class="msec"><h4>Top subrecipients across the selection</h4><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Subrecipient</th><th>HMGP $</th><th>Projects</th><th># disasters</th><th>Types</th></tr></thead>
+    <tbody>${subList.slice(0,25).map(s=>`<tr><td>${esc(s.name)}</td><td>${fmtMoneyFull(s.hmgp)}</td><td>${s.projects}</td><td>${s.dns.size}</td><td>${(s.types||[]).slice(0,3).map(esc).join(", ")}</td></tr>`).join("")}</tbody></table>${subList.length>25?`<div class="muted">+${subList.length-25} more not shown</div>`:""}</div></div>
+    ${teamBoardHTML()}`;
+}
+</script>
+<script>
+// ---- CSV exports (applicants + IA + plan data) ----
 function catCsv(dn,ni){
   const c=PAPPL.cats[dn+"|"+ni];if(!c)return"";
   return Object.entries(c).sort((x,y)=>y[1][1]-x[1][1]).map(([k,v])=>`${k} x${v[0]} $${v[1]}`).join(" | ");
@@ -537,16 +1001,16 @@ function dlCsv(rows,suffix){
 function exportApplCsv(kind){
   const A=computeAppl();
   if(!A||!A.dns.size){alert("No applicant history for the current selection.");return;}
-  const f1=v=>Math.round(v*10)/10;
+  const f1r=v=>Math.round(v*10)/10;
   if(kind==="stats"){
-    const head=["Disaster","FY","State","Title","Applicants (selected counties)","Projects (selected counties)","PA $ (selected counties)","Statewide applicants (no county)","Statewide projects","Statewide PA $"];
-    const rows=[head,...A.perDn.map(d=>[`DR-${d.dn}`,d.fy,d.st,d.title,d.nAppl,d.pr,d.pa,d.swAppl,d.swPr,d.swPa])];
-    const nA=A.perDn.map(d=>d.nAppl),nP=A.perDn.map(d=>d.pr);
+    const head=["Disaster","FY","State","Title","Included in expectations","Applicants (selected counties)","Projects (selected counties)","PA $ (selected counties)","Statewide applicants (no county)","Statewide projects","Statewide PA $"];
+    const rows=[head,...A.perDn.map(d=>[`DR-${d.dn}`,d.fy,d.st,d.title,d.excluded?"NO (excluded)":"yes",d.nAppl,d.pr,d.pa,d.swAppl,d.swPr,d.swPa])];
+    const nA=A.inclDn.map(d=>d.nAppl),nP=A.inclDn.map(d=>d.pr);
     rows.push([]);
-    rows.push(["MEAN (selected counties)","","","",f1(mean(nA)),f1(mean(nP)),Math.round(mean(A.perDn.map(d=>d.pa))),f1(mean(A.perDn.map(d=>d.swAppl))),f1(mean(A.perDn.map(d=>d.swPr))),Math.round(mean(A.perDn.map(d=>d.swPa)))]);
-    rows.push(["MEDIAN (selected counties)","","","",f1(median(nA)),f1(median(nP)),Math.round(median(A.perDn.map(d=>d.pa))),f1(median(A.perDn.map(d=>d.swAppl))),f1(median(A.perDn.map(d=>d.swPr))),Math.round(median(A.perDn.map(d=>d.swPa)))]);
-    rows.push(["MEAN incl. statewide","","","",f1(mean(A.perDn.map(d=>d.nAppl+d.swAppl))),f1(mean(A.perDn.map(d=>d.pr+d.swPr)))]);
-    rows.push(["MEDIAN incl. statewide","","","",f1(median(A.perDn.map(d=>d.nAppl+d.swAppl))),f1(median(A.perDn.map(d=>d.pr+d.swPr)))]);
+    rows.push(["MEAN (included, selected counties)","","","","",f1r(mean(nA)),f1r(mean(nP)),Math.round(mean(A.inclDn.map(d=>d.pa))),f1r(mean(A.inclDn.map(d=>d.swAppl))),f1r(mean(A.inclDn.map(d=>d.swPr))),Math.round(mean(A.inclDn.map(d=>d.swPa)))]);
+    rows.push(["MEDIAN (included, selected counties)","","","","",f1r(median(nA)),f1r(median(nP)),Math.round(median(A.inclDn.map(d=>d.pa))),f1r(median(A.inclDn.map(d=>d.swAppl))),f1r(median(A.inclDn.map(d=>d.swPr))),Math.round(median(A.inclDn.map(d=>d.swPa)))]);
+    rows.push(["MEAN incl. statewide","","","","",f1r(mean(A.inclDn.map(d=>d.nAppl+d.swAppl))),f1r(mean(A.inclDn.map(d=>d.pr+d.swPr)))]);
+    rows.push(["MEDIAN incl. statewide","","","","",f1r(median(A.inclDn.map(d=>d.nAppl+d.swAppl))),f1r(median(A.inclDn.map(d=>d.pr+d.swPr)))]);
     dlCsv(rows,"_applicant_expectations.csv");return;
   }
   if(kind==="agg"){
@@ -567,7 +1031,7 @@ function exportApplCsv(kind){
   const head=["County","State","FIPS","Applicant","Disaster","FY","Title","PA $ (this disaster)","Projects (this disaster)","Categories (whole disaster)"];
   const rows=[head];
   A.sel.fips.map(f=>({f,c:COUNTIES.find(x=>x.f===f)})).sort((a,b)=>(a.c?a.c.n:a.f).localeCompare(b.c?b.c.n:b.f)).forEach(({f,c})=>{
-    const m=new Map();(PIDX.byF[f]||[]).forEach(r=>aggApplRows(m,r,"county"));
+    const m=new Map();(PIDX.byF[f]||[]).forEach(r=>{if(!excluded(r[0]))aggApplRows(m,r,"county");});
     [...m.values()].sort((x,y)=>y.pa-x.pa).forEach(a=>{
       const name=PAPPL.names[a.ni]||"?";
       [...a.perDn.entries()].sort((x,y)=>y[1].pa-x[1].pa).forEach(([dn,d])=>{
@@ -577,6 +1041,16 @@ function exportApplCsv(kind){
     });
   });
   dlCsv(rows,"_applicants_by_county.csv");
+}
+function exportIaCsv(){
+  const A=computeIa();
+  if(!A||!A.perDn.length){alert("No IA history for the current selection.");return;}
+  const head=["Disaster","Date","Title","Included in expectations","Registrations (selected counties)","IHP $ (selected counties)","HA $","ONA $","Counties hit"];
+  const rows=[head,...A.perDn.map(d=>[`DR-${d.dn}`,d.date,d.title,d.excluded?"NO (excluded)":"yes",d.regs,d.ihp,d.ha,d.ona,d.counties])];
+  rows.push([]);
+  rows.push(["MEDIAN (included)","","","",Math.round(median(A.inclDn.map(d=>d.regs))),Math.round(median(A.inclDn.map(d=>d.ihp))),Math.round(median(A.inclDn.map(d=>d.ha))),Math.round(median(A.inclDn.map(d=>d.ona)))]);
+  rows.push(["MEAN (included)","","","",Math.round(mean(A.inclDn.map(d=>d.regs))),Math.round(mean(A.inclDn.map(d=>d.ihp))),Math.round(mean(A.inclDn.map(d=>d.ha))),Math.round(mean(A.inclDn.map(d=>d.ona)))]);
+  dlCsv(rows,"_ia_expectations.csv");
 }
 
 // ---- PDA CSV import ----
@@ -683,7 +1157,15 @@ document.getElementById("pdaTpl").onclick=()=>{
 // ---- save / load / import-export plan JSON ----
 function savedPlans(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"{}");}catch(e){return{};}}
 function refreshLoad(){const sel=document.getElementById("loadSel"),ps=savedPlans();sel.innerHTML=`<option value="">Load saved…</option>`+Object.keys(ps).map(n=>`<option>${n.replace(/</g,"")}</option>`).join("");}
-function loadPlanObj(p){plan=Object.assign(DEFAULT_PLAN(),p);document.getElementById("planName").value=plan.name||"";renderStates();fillLayers();document.getElementById("pdaReport").style.display="none";render();}
+function loadPlanObj(p){
+  plan=Object.assign(DEFAULT_PLAN(),p);
+  plan.excludedDns=(plan.excludedDns||[]).map(Number);
+  plan.teams=plan.teams||[];
+  if(!PROGRAMS[plan.program])plan.program="pa";
+  assignTeam=null;
+  document.getElementById("planName").value=plan.name||"";
+  renderStates();fillLayers();document.getElementById("pdaReport").style.display="none";render();
+}
 document.getElementById("save").onclick=()=>{if(!plan.name.trim()){alert("Name the plan first.");return;}const ps=savedPlans();ps[plan.name.trim()]=JSON.parse(JSON.stringify(plan));localStorage.setItem(LS_KEY,JSON.stringify(ps));refreshLoad();};
 document.getElementById("loadSel").onchange=e=>{const ps=savedPlans(),p=ps[e.target.value];if(p)loadPlanObj(p);};
 document.getElementById("clear").onclick=()=>{if(confirm("Clear the current plan?"))loadPlanObj({});};
@@ -696,22 +1178,42 @@ function csvEscape(v){v=v==null?"":String(v);return /[",\n]/.test(v)?'"'+v.repla
 function exportDataCsv(){
   const fipsList=Object.keys(plan.counties);
   if(!fipsList.length){alert("No counties in the plan yet.");return;}
-  const head=["County","State","FIPS","PA","IA","Prior Declarations","PA Obligated (hist)","PA Projects (hist)","PA Applicants (hist)","IHP Approved (hist)","IHP Housing HA (hist)","IHP ONA (hist)","IA Registrations (hist)","HMGP Obligated (hist)","HMGP Subrecipients (hist)","PDA Estimated PA $","PDA Estimated IA $","PDA Applicants"];
-  const rows=fipsList.map(f=>{const s=buildCountySnapshot(f);
-    return [s.name,s.state,s.fips,s.pa?"Y":"N",s.ia?"Y":"N",s.count,s.paObligated,s.paProjects,s.nApplicants,s.ihpApproved,s.ihpHousing,s.ihpOna,s.iaRegistrations,s.hmgpObligated,s.nHmgpApplicants,s.pda?s.pda.paEst:"",s.pda?s.pda.iaEst:"",s.pda?s.pda.applicants.length:""];
+  const head=["County","State","FIPS","PA","IA","Team","Team members","Prior Declarations",
+    "Expected PA applicants/disaster (med)","Expected PA $/disaster (med)","Expected PA projects/disaster (med)",
+    "Expected IA registrations/disaster (med)","Expected IHP $/disaster (med)",
+    "PA Obligated (hist)","PA Projects (hist)","PA Applicants (hist)","IHP Approved (hist)","IHP Housing HA (hist)","IHP ONA (hist)","IA Registrations (hist)","HMGP Obligated (hist)","HMGP Subrecipients (hist)","PDA Estimated PA $","PDA Estimated IA $","PDA Applicants"];
+  const rows=fipsList.map(f=>{const s=buildCountySnapshot(f);const t=teamOf(f);
+    return [s.name,s.state,s.fips,s.pa?"Y":"N",s.ia?"Y":"N",t?t.name:"",t?t.members||"":"",s.count,
+      Math.round(s.expPaAppl*10)/10,Math.round(s.expPaDollars),Math.round(s.expPaProjects*10)/10,
+      Math.round(s.expIaRegs*10)/10,Math.round(s.expIhpDollars),
+      s.paObligated,s.paProjects,s.nApplicants,s.ihpApproved,s.ihpHousing,s.ihpOna,s.iaRegistrations,s.hmgpObligated,s.nHmgpApplicants,s.pda?s.pda.paEst:"",s.pda?s.pda.iaEst:"",s.pda?s.pda.applicants.length:""];
   });
   const csv=[head,...rows].map(r=>r.map(csvEscape).join(",")).join("\n");
   const blob=new Blob([csv],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(plan.name.trim()||"disaster-plan").replace(/[^\w.-]+/g,"_")+"_data.csv";a.click();
 }
 document.getElementById("expCsv").onclick=exportDataCsv;
 
+function expectationSummary(){
+  // program-scoped headline numbers baked into exports
+  const out={program:plan.program,excludedDns:plan.excludedDns.slice(),basis:plan.basis};
+  if(plan.program!=="hmgp"&&PAPPL){const A=computeAppl();if(A){out.pa={disasters:A.perDn.length,included:A.inclDn.length,
+    applMed:median(A.inclDn.map(d=>d.nAppl)),applMean:mean(A.inclDn.map(d=>d.nAppl)),
+    projMed:median(A.inclDn.map(d=>d.pr)),dollarsMed:median(A.inclDn.map(d=>d.pa)),dollarsMean:mean(A.inclDn.map(d=>d.pa)),catMix:A.catMix};}}
+  const I=computeIa();if(I)out.ia={disasters:I.perDn.length,included:I.inclDn.length,
+    regsMed:median(I.inclDn.map(d=>d.regs)),regsMean:mean(I.inclDn.map(d=>d.regs)),
+    ihpMed:median(I.inclDn.map(d=>d.ihp)),ihpMean:mean(I.inclDn.map(d=>d.ihp))};
+  return out;
+}
 function exportSelfContainedHtml(){
   const fipsList=Object.keys(plan.counties);
   if(!fipsList.length){alert("No counties in the plan yet.");return;}
-  const L=LAYERS[plan.layer];
+  const L=plan.colorBy==="metric"?activeLayer():null;
   const snaps=fipsList.map(f=>{const s=buildCountySnapshot(f);s.layerValue=(L&&L.get)?L.get(f):null;return s;});
-  const geom=COUNTIES.filter(c=>plan.states.includes(c.s)).map(c=>({f:c.f,n:c.n,s:c.s,g:c.g,sel:!!plan.counties[c.f]}));
-  const payload={name:plan.name||"Untitled plan",layer:plan.layer,layerLabel:L?L.label:"",layerFmt:L?L.fmt:"n",states:plan.states,counties:snaps};
+  const geom=COUNTIES.filter(c=>plan.states.includes(c.s)).map(c=>({f:c.f,n:c.n,s:c.s,g:c.g,sel:!!plan.counties[c.f],fill:countyFill(c.f,L)}));
+  const payload={name:plan.name||"Untitled plan",program:PROGRAMS[plan.program].label,colorBy:plan.colorBy,
+    layerLabel:L?L.label:"Team assignments",layerFmt:L?L.fmt:"n",states:plan.states,
+    teams:plan.teams.map(t=>({name:t.name,color:t.color,members:t.members,counties:Object.keys(plan.counties).filter(f=>plan.counties[f].team===t.id).map(f=>{const c=COUNTIES.find(x=>x.f===f);return c?c.n+", "+c.s:f;})})),
+    basis:plan.basis,excludedDns:plan.excludedDns.slice(),expect:expectationSummary(),counties:snaps};
   const html=buildExportDoc(payload,geom);
   const blob=new Blob([html],{type:"text/html"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(plan.name.trim()||"disaster-plan").replace(/[^\w.-]+/g,"_")+".html";a.click();
 }
@@ -743,14 +1245,19 @@ summary{cursor:pointer;font-weight:600;font-size:13.5px}
 .chip .v{font-size:15px;font-weight:800;color:var(--navy)}.chip .l{font-size:10px;color:var(--ink-3);text-transform:uppercase}
 .badge{font-size:10.5px;font-weight:700;border-radius:5px;padding:1px 6px}
 .pa{background:#d9e8f6;color:var(--blue-dark)}.ia{background:#dff2e1;color:#008817}
+.tc{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle}
+h3.sec{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);border-bottom:1px solid var(--line);padding-bottom:5px;margin:22px 0 8px}
 .foot{font-size:12px;color:var(--ink-3);margin-top:24px}
 </style></head><body>
 <div class="mh"><div class="e">Disaster Data — Operations Plan (exported)</div><h1>${esc(payload.name)}</h1></div>
-<div class="disc"><b>PLAN — counties were selected by the plan's author.</b> Not an official FEMA declaration, damage estimate, or forecast. Historical figures are reference from prior Region 5 disasters (OpenFEMA); PDA figures are user-imported preliminary estimates, never obligations. Not endorsed by FEMA.</div>
+<div class="disc"><b>PLAN — counties were selected by the plan's author${payload.basis&&payload.basis.dn?` (seeded from DR-${payload.basis.dn}'s designated counties)`:""}.</b> Not an official FEMA declaration, damage estimate, or forecast. Historical figures are reference from prior Region 5 disasters (OpenFEMA); PDA figures are user-imported preliminary estimates, never obligations. Not endorsed by FEMA.</div>
 <div class="wrap">
 <div class="mapcard"><svg id="svg" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg"></svg><div class="legend" id="legend" style="display:none"></div></div>
+<div id="expect"></div>
+<div id="teams"></div>
+<h3 class="sec" id="listHd">Counties in plan</h3>
 <div id="list"></div>
-<div class="foot">Exported from the Disaster Operations Planner. Source data: FEMA OpenFEMA (PublicAssistanceFundedProjectsSummaries/Details, FemaWebDisasterSummaries, IndividualsAndHouseholdsProgramValidRegistrations, HazardMitigationAssistanceProjects) + FEMA DRC Manager (Geospatial Resource Center). Not endorsed by FEMA.</div>
+<div class="foot">Exported from the Disaster Operations Planner. Program lens at export: ${esc(payload.program)}.${payload.excludedDns&&payload.excludedDns.length?" Disasters excluded from expectation math: "+payload.excludedDns.map(d=>"DR-"+d).join(", ")+".":""} Source data: FEMA OpenFEMA (PublicAssistanceFundedProjectsSummaries/Details, FemaWebDisasterSummaries, IndividualsAndHouseholdsProgramValidRegistrations, HazardMitigationAssistanceProjects, DisasterDeclarationsSummaries) + FEMA DRC Manager (Geospatial Resource Center). Not endorsed by FEMA.</div>
 </div>
 <script>
 const DATA=${dataJson};const GEOM=${geomJson};
@@ -758,7 +1265,7 @@ function fmtMoney(v){return "$"+Math.round(v||0).toLocaleString();}
 function fmtVal(v,f){if(v==null)return"—";if(f==="$")return v>=1e6?"$"+(v/1e6).toFixed(1)+"M":v>=1e3?"$"+(v/1e3).toFixed(0)+"k":"$"+Math.round(v);return Math.round(v).toLocaleString();}
 function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function fmtDate(s){if(!s)return"";const d=new Date(s+"T00:00:00");return isNaN(d)?s:d.toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"});}
-function ramp(t){t=Math.max(0,Math.min(1,t));const a=[234,242,251],b=[11,31,58];return "rgb("+a.map((x,i)=>Math.round(x+(b[i]-x)*t)).join(",")+")";}
+const f1=v=>(Math.round(v*10)/10).toLocaleString();
 let minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
 GEOM.forEach(c=>c.g.forEach(p=>p.forEach(r=>r.forEach(pt=>{if(pt[0]<minx)minx=pt[0];if(pt[0]>maxx)maxx=pt[0];if(pt[1]<miny)miny=pt[1];if(pt[1]>maxy)maxy=pt[1];}))));
 const k=Math.cos((miny+maxy)/2*Math.PI/180),W=900,pad=8,s=(W-2*pad)/((maxx-minx)*k),H=Math.ceil((maxy-miny)*s)+2*pad;
@@ -768,15 +1275,34 @@ const byFips={};DATA.counties.forEach(c=>byFips[c.fips]=c);
 let curMax=0;DATA.counties.forEach(c=>{if(c.layerValue>curMax)curMax=c.layerValue;});
 let svgHtml="";
 GEOM.forEach(c=>{
-  const sel=!!byFips[c.f];let fill="#e9eef4";
-  if(sel&&curMax>0&&byFips[c.f].layerValue>0)fill=ramp(Math.sqrt(byFips[c.f].layerValue/curMax));
-  svgHtml+='<path stroke="#c6d0dc" stroke-width="'+(sel?2.2:.4)+'" d="'+cpath(c)+'" fill="'+fill+'"'+(sel?' stroke="#ffbe2e"':'')+'/>';
+  const sel=!!byFips[c.f];
+  svgHtml+='<path stroke="'+(sel?'#ffbe2e':'#c6d0dc')+'" stroke-width="'+(sel?2.2:.4)+'" d="'+cpath(c)+'" fill="'+(c.fill||'#e9eef4')+'"/>';
 });
 svg.innerHTML=svgHtml;
-if(curMax>0){const lg=document.getElementById("legend");lg.style.display="block";lg.innerHTML="<div>"+esc(DATA.layerLabel)+"</div><div class='bar'></div><div class='ends'><span>0</span><span>"+fmtVal(curMax,DATA.layerFmt)+"</span></div>";}
+const lg=document.getElementById("legend");
+if(DATA.colorBy==="team"&&DATA.teams.length){lg.style.display="block";lg.innerHTML="<div><b>Teams</b></div>"+DATA.teams.map(t=>'<div><span class="tc" style="background:'+t.color+'"></span>'+esc(t.name)+(t.members?' <span style="color:#565c65">· '+esc(t.members)+"</span>":"")+"</div>").join("");}
+else if(curMax>0){lg.style.display="block";lg.innerHTML="<div>"+esc(DATA.layerLabel)+"</div><div class='bar'></div><div class='ends'><span>0</span><span>"+fmtVal(curMax,DATA.layerFmt)+"</span></div>";}
+const E=DATA.expect||{};
+let expectHtml="";
+if(E.pa)expectHtml+='<h3 class="sec">Expectations — PA (per prior disaster touching the selection; '+E.pa.included+' of '+E.pa.disasters+' disasters included)</h3><div class="chipgrid">'
+  +'<div class="chip"><div class="v">'+f1(E.pa.applMed)+' med · '+f1(E.pa.applMean)+' avg</div><div class="l">PA applicants / disaster</div></div>'
+  +'<div class="chip"><div class="v">'+f1(E.pa.projMed)+'</div><div class="l">PA projects / disaster (med)</div></div>'
+  +'<div class="chip"><div class="v">'+fmtVal(E.pa.dollarsMed,"$")+' med · '+fmtVal(E.pa.dollarsMean,"$")+' avg</div><div class="l">PA $ / disaster</div></div></div>';
+if(E.ia)expectHtml+='<h3 class="sec">Expectations — IA / IHP ('+E.ia.included+' of '+E.ia.disasters+' prior IA disasters included)</h3><div class="chipgrid">'
+  +'<div class="chip"><div class="v">'+f1(E.ia.regsMed)+' med · '+f1(E.ia.regsMean)+' avg</div><div class="l">IA registrations / disaster</div></div>'
+  +'<div class="chip"><div class="v">'+fmtVal(E.ia.ihpMed,"$")+' med · '+fmtVal(E.ia.ihpMean,"$")+' avg</div><div class="l">IHP approved $ / disaster</div></div></div>';
+document.getElementById("expect").innerHTML=expectHtml;
+if(DATA.teams.length)document.getElementById("teams").innerHTML='<h3 class="sec">Team divider</h3><table><thead><tr><th>Team</th><th>Members</th><th>Counties</th></tr></thead><tbody>'
+  +DATA.teams.map(t=>'<tr><td><span class="tc" style="background:'+t.color+'"></span><b>'+esc(t.name)+'</b></td><td>'+esc(t.members||"—")+'</td><td>'+t.counties.map(esc).join("; ")+'</td></tr>').join("")+'</tbody></table>';
 document.getElementById("list").innerHTML=DATA.counties.slice().sort((a,b)=>(a.state+a.name).localeCompare(b.state+b.name)).map(c=>{
-  const badges=(c.pa?'<span class="badge pa">PA</span> ':'')+(c.ia?'<span class="badge ia">IA</span>':'');
+  const badges=(c.pa?'<span class="badge pa">PA</span> ':'')+(c.ia?'<span class="badge ia">IA</span> ':'')+(c.team?'<span class="badge" style="background:'+c.teamColor+'22;color:'+c.teamColor+'">'+esc(c.team)+'</span>':'');
   const pda=c.pda?('<div class="chipgrid"><div class="chip"><div class="v">'+fmtMoney(c.pda.paEst)+'</div><div class="l">PDA est. PA $</div></div><div class="chip"><div class="v">'+fmtMoney(c.pda.iaEst)+'</div><div class="l">PDA est. IA $</div></div><div class="chip"><div class="v">'+(c.pda.applicants||[]).length+'</div><div class="l">PDA applicants</div></div></div>'):'';
+  const exp='<div class="chipgrid">'
+    +'<div class="chip"><div class="v">'+f1(c.expPaAppl)+'</div><div class="l">Expected PA applicants / disaster</div></div>'
+    +'<div class="chip"><div class="v">'+fmtVal(c.expPaDollars,"$")+'</div><div class="l">Expected PA $ / disaster</div></div>'
+    +'<div class="chip"><div class="v">'+f1(c.expIaRegs)+'</div><div class="l">Expected IA registrations / disaster</div></div>'
+    +'<div class="chip"><div class="v">'+fmtVal(c.expIhpDollars,"$")+'</div><div class="l">Expected IHP $ / disaster</div></div>'
+    +'</div>';
   const chips='<div class="chipgrid">'
     +'<div class="chip"><div class="v">'+fmtMoney(c.paObligated)+'</div><div class="l">PA obligated (hist)</div></div>'
     +'<div class="chip"><div class="v">'+c.paProjects.toLocaleString()+'</div><div class="l">PA projects (hist)</div></div>'
@@ -788,12 +1314,13 @@ document.getElementById("list").innerHTML=DATA.counties.slice().sort((a,b)=>(a.s
     +'<div class="chip"><div class="v">'+fmtMoney(c.hmgpObligated)+'</div><div class="l">HMGP obligated (hist)</div></div>'
     +'</div>';
   const disasters=c.disasters.map(d=>{
-    const ihpLine=d.ihpSplit?('HA '+fmtMoney(d.ihpSplit.ha)+' · ONA '+fmtMoney(d.ihpSplit.ona)+' · '+(d.ihpSplit.regs||0).toLocaleString()+' registrations'):(d.ihp?(fmtMoney(d.ihp)+' total (HA/ONA split not available)'):'no IHP $');
-    return '<details><summary>DR-'+d.dn+' · '+esc(d.title||d.it||'')+' — '+fmtDate(d.date)+'</summary><div style="padding-top:8px;font-size:13px">PA obligated: <b>'+fmtMoney(d.pa)+'</b> · IHP approved: <b>'+fmtMoney(d.ihp)+'</b><br>'+ihpLine+'<br>'+(d.drcCount?('🏢 '+d.drcCount+' Disaster Recovery Center'+(d.drcCount===1?'':'s')+' for this disaster'):'No DRC records for this disaster')+'</div></details>';
+    const ihpLine=d.ihpSplit?('HA '+fmtMoney(d.ihpSplit.ha)+' · ONA '+fmtMoney(d.ihpSplit.ona)+' · '+(d.ihpSplit.regs||0).toLocaleString()+' registrations'):(d.ihp?('disaster-total IHP '+fmtMoney(d.ihp)+' (county split not available)'):'no IHP $');
+    return '<details><summary>DR-'+d.dn+' · '+esc(d.title||d.it||'')+' — '+fmtDate(d.date)+'</summary><div style="padding-top:8px;font-size:13px">PA obligated (this county): <b>'+fmtMoney(d.pa)+'</b><br>'+ihpLine+'<br>'+(d.drcCount?('🏢 '+d.drcCount+' Disaster Recovery Center'+(d.drcCount===1?'':'s')+' for this disaster'):'No DRC records for this disaster')+'</div></details>';
   }).join("")||'<p>No prior declarations on record.</p>';
   const appl=(list,key)=>!list.length?'<p>None on record.</p>':('<table><thead><tr><th>Applicant</th><th>$</th><th>Projects</th></tr></thead><tbody>'+list.slice(0,25).map(a=>'<tr><td>'+esc(a.name)+'</td><td>'+fmtMoney(a[key])+'</td><td>'+(a.projects!=null?a.projects:'—')+'</td></tr>').join('')+'</tbody></table>'+(list.length>25?'<div style="font-size:12px;color:#565c65">+'+(list.length-25)+' more not shown</div>':''));
   return '<details style="margin-bottom:12px"><summary>'+esc(c.name)+', '+esc(c.state)+' '+badges+'</summary><div style="padding-top:10px">'
-    +chips+pda
+    +'<h4 style="margin:8px 0 6px">What to expect (per disaster, from prior history)</h4>'+exp+pda
+    +'<h4 style="margin:14px 0 6px">Historical totals</h4>'+chips
     +'<h4 style="margin:14px 0 6px">Prior disasters ('+c.disasters.length+')</h4>'+disasters
     +'<h4 style="margin:14px 0 6px">PA applicants — historical</h4>'+appl(c.applicants,'pa')
     +'<h4 style="margin:14px 0 6px">HMGP subrecipients — historical</h4>'+appl(c.hmgpApplicants,'hmgp')
@@ -803,14 +1330,111 @@ document.getElementById("list").innerHTML=DATA.counties.slice().sort((a,b)=>(a.s
 </body></html>`;
 }
 
+// ---- SharePoint copy-paste export (script-free, inline-styled fragment) ----
+function mapPngDataUrl(scale){
+  return new Promise((resolve,reject)=>{
+    const svgEl=document.getElementById("svg");
+    const xml=new XMLSerializer().serializeToString(svgEl);
+    const img=new Image();
+    const W=PROJ.W*(scale||1.5),H=PROJ.H*(scale||1.5);
+    img.onload=()=>{
+      const cv=document.createElement("canvas");cv.width=W;cv.height=H;
+      const ctx=cv.getContext("2d");ctx.fillStyle="#f7f9fc";ctx.fillRect(0,0,W,H);
+      ctx.drawImage(img,0,0,W,H);
+      resolve(cv.toDataURL("image/png"));
+    };
+    img.onerror=reject;
+    img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(xml);
+  });
+}
+const SP={td:'padding:5px 8px;border:1px solid #dfe1e2;font-size:13px;text-align:left;vertical-align:top;',
+  th:'padding:5px 8px;border:1px solid #dfe1e2;font-size:11px;text-transform:uppercase;color:#565c65;background:#f9f9f7;text-align:left;'};
+function spTable(head,rows){
+  return `<table style="border-collapse:collapse;width:100%;margin:6px 0 14px"><thead><tr>${head.map(h=>`<th style="${SP.th}">${esc(h)}</th>`).join("")}</tr></thead><tbody>${
+    rows.map(r=>`<tr>${r.map(c=>`<td style="${SP.td}">${c}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+async function buildSharePointFragment(){
+  const fipsList=Object.keys(plan.counties);
+  const E=expectationSummary();
+  let png="";
+  try{png=await mapPngDataUrl(1.5);}catch(e){png="";}
+  const teamsRows=plan.teams.map(t=>{
+    const fips=fipsList.filter(f=>plan.counties[f].team===t.id);
+    const names=fips.map(f=>{const c=COUNTIES.find(x=>x.f===f);return c?c.n:f;}).sort().join("; ");
+    let expA=0,expR=0,pdaA=0;
+    fips.forEach(f=>{expA+=median(paCountyHistory(f).map(d=>d.appl.size));expR+=median(iaCountyHistory(f).map(d=>d.regs));const p=pdaOf(f);if(p&&p.applicants)pdaA+=p.applicants.length;});
+    return [`<span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:${t.color};margin-right:5px"></span><b>${esc(t.name)}</b>`,esc(t.members||"—"),String(fips.length),esc(names||"—"),f1(expA),f1(expR),pdaA?String(pdaA):"—"];
+  });
+  const ctyRows=fipsList.map(f=>({f,s:buildCountySnapshot(f),t:teamOf(f)}))
+    .sort((a,b)=>(a.s.state+a.s.name).localeCompare(b.s.state+b.s.name))
+    .map(({f,s,t})=>[
+      `<b>${esc(s.name)}</b>, ${s.state}`,
+      (s.pa?"PA ":"")+(s.ia?"IA":"")||"—",
+      t?`<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${t.color};margin-right:4px"></span>${esc(t.name)}`:"—",
+      String(s.count),
+      f1(s.expPaAppl),fmtVal(s.expPaDollars,"$"),f1(s.expPaProjects),
+      f1(s.expIaRegs),fmtVal(s.expIhpDollars,"$"),
+      s.pda?`${(s.pda.applicants||[]).length} appl · PA ${fmtVal(s.pda.paEst,"$")} · IA ${fmtVal(s.pda.iaEst,"$")}`:"—",
+    ]);
+  const expBits=[];
+  if(E.pa)expBits.push(`<b>PA (per prior disaster, ${E.pa.included} of ${E.pa.disasters} included):</b> ${f1(E.pa.applMed)} applicants (median; avg ${f1(E.pa.applMean)}), ${f1(E.pa.projMed)} projects (median), ${fmtVal(E.pa.dollarsMed,"$")} obligated (median; avg ${fmtVal(E.pa.dollarsMean,"$")})`);
+  if(E.ia)expBits.push(`<b>IA / IHP (per prior IA disaster, ${E.ia.included} of ${E.ia.disasters} included):</b> ${f1(E.ia.regsMed)} registrations (median; avg ${f1(E.ia.regsMean)}), ${fmtVal(E.ia.ihpMed,"$")} IHP approved (median; avg ${fmtVal(E.ia.ihpMean,"$")})`);
+  const catRows=E.pa&&E.pa.catMix?Object.entries(E.pa.catMix).sort((a,b)=>b[1][1]-a[1][1]).map(([k,v])=>{
+    const tot=Object.values(E.pa.catMix).reduce((s,x)=>s+x[1],0);
+    return [esc(CAT_LABELS[k]||k),fmtVal(v[1],"$"),tot?(100*v[1]/tot).toFixed(0)+"%":"—",String(v[0])];
+  }):[];
+  return `<div style="font-family:'Segoe UI',system-ui,Arial,sans-serif;color:#1b1b1b;max-width:1100px">
+<h2 style="margin:0 0 2px">${esc(plan.name||"Disaster operations plan")}</h2>
+<p style="margin:2px 0 10px;padding:8px 10px;background:#fff7e6;border:1px solid #f0d68a;color:#6b4c00;font-size:12.5px"><b>PLAN — counties selected by the plan's author${plan.basis&&plan.basis.dn?` (seeded from DR-${plan.basis.dn}'s designated counties)`:""}.</b> Not an official FEMA declaration, damage estimate, or forecast. Historical figures are reference from prior Region 5 disasters (OpenFEMA); PDA figures are preliminary estimates. Not endorsed by FEMA.</p>
+${png?`<img src="${png}" alt="Plan map" style="max-width:100%;border:1px solid #dfe1e2;border-radius:6px" width="${Math.round(PROJ.W*1.5)}">`:""}
+${expBits.length?`<h3 style="margin:14px 0 4px">Top-level expectations</h3><p style="margin:2px 0">${expBits.join("<br>")}</p>`:""}
+${plan.excludedDns.length?`<p style="font-size:12px;color:#565c65">Excluded from expectation math: ${plan.excludedDns.map(d=>"DR-"+d).join(", ")}.</p>`:""}
+${catRows.length?`<h3 style="margin:14px 0 4px">Expected categories of work (share of historical PA $)</h3>${spTable(["Category","Historical PA $","Share","Projects"],catRows)}`:""}
+${teamsRows.length?`<h3 style="margin:14px 0 4px">Team divider</h3>${spTable(["Team","Members","# Counties","Counties","Expected PA applicants (hist. median, summed)","Expected IA registrations (hist. median, summed)","PDA applicants"],teamsRows)}`:""}
+<h3 style="margin:14px 0 4px">Counties in plan (${fipsList.length})</h3>
+${spTable(["County","Programs","Team","Prior decl.","Exp. PA applicants /dis (med)","Exp. PA $ /dis (med)","Exp. PA projects /dis (med)","Exp. IA registrations /dis (med)","Exp. IHP $ /dis (med)","PDA (this event)"],ctyRows)}
+<p style="font-size:11.5px;color:#565c65">Exported ${new Date().toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"})} from the Disaster Operations Planner. Source: FEMA OpenFEMA (PA Funded Projects Summaries/Details, FemaWebDisasterSummaries, IHP Valid Registrations, Hazard Mitigation Assistance Projects, Disaster Declarations Summaries). PA is <i>obligated</i>; IHP is <i>approved</i> — different accounting stages. Not endorsed by FEMA.</p>
+</div>`;
+}
+async function copyForSharePoint(){
+  const rep=document.getElementById("spReport");
+  if(!Object.keys(plan.counties).length){alert("No counties in the plan yet.");return;}
+  rep.style.display="block";rep.textContent="Building snapshot…";
+  try{
+    const html=await buildSharePointFragment();
+    const text=(plan.name||"Disaster operations plan")+" — plan snapshot (paste target didn't accept rich HTML; use the self-contained HTML export instead).";
+    if(navigator.clipboard&&window.ClipboardItem){
+      await navigator.clipboard.write([new ClipboardItem({"text/html":new Blob([html],{type:"text/html"}),"text/plain":new Blob([text],{type:"text/plain"})})]);
+      rep.innerHTML="<b>Copied.</b> In SharePoint: edit the page → add a <b>Text</b> web part → paste. Tables and colors survive; if the map image is stripped by your tenant, use “Download map PNG” and add it with an Image web part.";
+    }else{
+      throw new Error("Clipboard API unavailable");
+    }
+  }catch(e){
+    try{
+      const html=await buildSharePointFragment();
+      const blob=new Blob([html],{type:"text/html"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(plan.name.trim()||"disaster-plan").replace(/[^\w.-]+/g,"_")+"_sharepoint_fragment.html";a.click();
+      rep.innerHTML="Clipboard copy was blocked ("+esc(e.message||e)+") — downloaded the fragment instead. Open it, select-all, copy, and paste into a SharePoint Text web part.";
+    }catch(e2){rep.textContent="Couldn't build the snapshot: "+(e2.message||e2);}
+  }
+}
+document.getElementById("expSp").onclick=copyForSharePoint;
+document.getElementById("expPng").onclick=async()=>{
+  try{
+    const png=await mapPngDataUrl(2);
+    const a=document.createElement("a");a.href=png;a.download=(plan.name.trim()||"disaster-plan").replace(/[^\w.-]+/g,"_")+"_map.png";a.click();
+  }catch(e){alert("Couldn't rasterize the map: "+(e.message||e));}
+};
+
 Promise.all([
   fetch("data/r5_counties.json").then(r=>r.json()),
   fetch("data/county_declarations.json").then(r=>r.ok?r.json():null).catch(()=>null),
   fetch("data/disaster_drc.json").then(r=>r.ok?r.json():null).catch(()=>null),
   fetch("data/disaster_county_ihp.json").then(r=>r.ok?r.json():null).catch(()=>null),
-]).then(([cty,decl,drc,dcihp])=>{
-  COUNTIES=cty;DECL=decl;DRC=drc;DCIHP=dcihp;
-  buildNameIndex();project();renderStates();fillLayers();refreshLoad();render();
+  fetch("data/disaster_designations.json").then(r=>r.ok?r.json():null).catch(()=>null),
+]).then(([cty,decl,drc,dcihp,desig])=>{
+  COUNTIES=cty;DECL=decl;DRC=drc;DCIHP=dcihp;DESIG=desig;
+  buildNameIndex();buildDindex();project();renderStates();fillLayers();fillDisasters();refreshLoad();render();
+  ensurePappl(); // expectations + auto layer need it; small enough to load up front
 }).catch(()=>{document.getElementById("mapcard").innerHTML="<p style='padding:20px'>Couldn't load county data. Serve over http(s) (e.g. <code>python3 -m http.server</code>).</p>";});
 </script>
 </body>
