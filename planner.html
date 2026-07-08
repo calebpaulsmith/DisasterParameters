@@ -135,6 +135,19 @@ details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(-
 .teamboard{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:8px;}
 .teamcard{border:1px solid var(--line);border-left-width:6px;border-radius:8px;padding:9px 11px;background:var(--bg-2);font-size:12.5px;}
 .teamcard b.tn{font-size:14px;}
+.loadbar{height:9px;background:#e9eef4;border-radius:5px;overflow:hidden;margin:6px 0 3px;}
+.loadbar span{display:block;height:100%;border-radius:5px;}
+.loadnum{font-size:13px;}
+.devtag{font-size:9.5px;font-weight:800;border-radius:4px;padding:1px 5px;margin-left:auto;}
+.devtag.hi{background:#fbe4e7;color:#8a1220;}
+.devtag.lo{background:#e6f2e8;color:#1a6b2e;}
+/* roll-up band */
+.rollup{background:linear-gradient(120deg,#f4f8fd,#eef3f9);border:1px solid var(--line-2);border-radius:12px;padding:14px 16px;margin-bottom:6px;}
+.rollup-hd{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.rollup .chip .v{color:var(--blue-dark);}
+.scopenote{font-size:10px;font-weight:700;background:#eef0f2;color:var(--ink-3);border-radius:5px;padding:2px 7px;text-transform:none;letter-spacing:0;}
+.vspast{margin-top:10px;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 11px;}
+.vspast b{color:var(--navy);}
 @media(max-width:1000px){.wrap{grid-template-columns:1fr;}.panel{position:static;max-height:none;}}
 </style>
 </head>
@@ -270,6 +283,11 @@ const TEAM_COLORS=["#e41d3d","#005ea2","#00a91c","#8168b3","#e5a000","#0f8c9c","
 const DEFAULT_PLAN=()=>({name:"",counties:{},layer:"auto",colorBy:"metric",program:"pa",states:[...R5],excludedDns:[],teams:[],basis:null});
 let COUNTIES=[], NAME_INDEX={}, DECL=null, DRC=null, DCIHP=null, DESIG=null, PROJ=null, plan=DEFAULT_PLAN();
 let assignTeam=null; // team id while "assign by map click" is armed
+// COVID-19 (Biological) R5 declarations — ALWAYS excluded from every calculation
+// (they're ~7x weather PA and live in a separate dataset). Belt-and-suspenders:
+// they're already absent from the planner's data files, but guard + label anyway.
+const COVID_DNS=new Set([4489,4494,4507,4515,4520,4531]);
+function isCovid(dn){return COVID_DNS.has(+dn);}
 
 function metrics(fips){return (DECL&&DECL.counties&&DECL.counties[fips])||{};}
 function pdaOf(fips){return (plan.counties[fips]&&plan.counties[fips].pda)||null;}
@@ -326,6 +344,7 @@ function paCountyHistory(f,withExcluded){
   if(!PIDX)return[];
   const byDn=new Map();
   (PIDX.byF[f]||[]).forEach(r=>{const dn=r[0];
+    if(isCovid(dn))return;
     if(!withExcluded&&excluded(dn))return;
     const d=byDn.get(dn)||{dn,appl:new Set(),pa:0,pr:0};
     d.appl.add(r[3]);d.pa+=r[4];d.pr+=r[5];byDn.set(dn,d);});
@@ -336,6 +355,7 @@ function iaCountyHistory(f,withExcluded){
   const out=[];
   Object.entries(DCIHP.byDisaster).forEach(([dn,m])=>{
     const rec=m[f];if(!rec)return;
+    if(isCovid(dn))return;
     if(!withExcluded&&excluded(dn))return;
     out.push({dn:+dn,ihp:rec[0]||0,ha:rec[1]||0,ona:rec[2]||0,regs:rec[3]||0});});
   return out;
@@ -483,7 +503,7 @@ function drcCountForDn(dn){return ((DRC&&DRC.byDisaster&&DRC.byDisaster[String(d
 function ihpSplitForDnFips(dn,fips){const rec=DCIHP&&DCIHP.byDisaster&&DCIHP.byDisaster[String(dn)]&&DCIHP.byDisaster[String(dn)][fips];return rec?{ihp:rec[0],ha:rec[1],ona:rec[2],regs:rec[3]}:null;}
 function buildCountySnapshot(fips){
   const m=metrics(fips), c=COUNTIES.find(x=>x.f===fips), p=plan.counties[fips]||{};
-  const disasters=(m.disasters||[]).map(d=>({...d,drcCount:drcCountForDn(d.dn),ihpSplit:ihpSplitForDnFips(d.dn,fips)})).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const disasters=(m.disasters||[]).filter(d=>!isCovid(d.dn)).map(d=>({...d,drcCount:drcCountForDn(d.dn),ihpSplit:ihpSplitForDnFips(d.dn,fips)})).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
   const t=teamOf(fips);
   return {
     fips,name:c?c.n:(m.name||fips),state:c?c.s:(m.state||""),
@@ -628,6 +648,7 @@ function buildDindex(){
   DINDEX={};
   if(DECL&&DECL.counties)Object.entries(DECL.counties).forEach(([f,c])=>{
     (c.disasters||[]).forEach(d=>{
+      if(isCovid(d.dn))return;
       const e=DINDEX[d.dn]=DINDEX[d.dn]||{dn:d.dn,title:d.title||d.it||"",date:d.date||"",it:d.it||"",states:new Set()};
       e.states.add(c.state);
       if(!e.date||((d.date||"")<e.date))e.date=d.date||e.date;
@@ -635,6 +656,7 @@ function buildDindex(){
   });
   // designations may know disasters that never touched a mapped county (statewide-only)
   if(DESIG&&DESIG.byDisaster)Object.keys(DESIG.byDisaster).forEach(dn=>{
+    if(isCovid(dn))return;
     if(!DINDEX[dn])DINDEX[dn]={dn:+dn,title:"",date:"",it:"",states:new Set()};
   });
 }
@@ -738,7 +760,7 @@ function aggApplRows(map,r,scope){
 function computeAppl(){
   const sel=applSelection();
   if(!PAPPL||!PIDX||!sel.fips.length)return null;
-  const cRows=[];sel.fips.forEach(f=>(PIDX.byF[f]||[]).forEach(r=>cRows.push(r)));
+  const cRows=[];sel.fips.forEach(f=>(PIDX.byF[f]||[]).forEach(r=>{if(!isCovid(r[0]))cRows.push(r);}));
   const dns=new Set(cRows.map(r=>r[0]));
   const states=[...new Set(sel.fips.map(f=>FIPS2ST[f]).filter(Boolean))];
   const inclRows=cRows.filter(r=>!excluded(r[0]));
@@ -753,6 +775,7 @@ function computeAppl(){
     let swRows=[];states.forEach(st=>{swRows=swRows.concat((PIDX.byS[st]||[]).filter(r=>r[0]===dn));});
     return {dn,st:meta[0]||"",fy:meta[1]||"",title:meta[2]||"",begin:meta[3]||"",excluded:excluded(dn),
       nAppl:new Set(rows.map(r=>r[3])).size,pr:rows.reduce((s,r)=>s+r[5],0),pa:rows.reduce((s,r)=>s+r[4],0),
+      nCty:new Set(rows.map(r=>r[2])).size,
       swAppl:new Set(swRows.map(r=>r[3])).size,swPr:swRows.reduce((s,r)=>s+r[5],0),swPa:swRows.reduce((s,r)=>s+r[4],0)};
   }).sort((a,b)=>String(b.begin).localeCompare(String(a.begin)));
   const inclDn=perDn.filter(d=>!d.excluded);
@@ -774,6 +797,7 @@ function computeIa(){
   const perDnMap=new Map();
   Object.entries(DCIHP.byDisaster).forEach(([dnS,m])=>{
     const dn=+dnS;
+    if(isCovid(dn))return;
     sel.fips.forEach(f=>{
       const rec=m[f];if(!rec)return;
       const d=perDnMap.get(dn)||{dn,ihp:0,ha:0,ona:0,regs:0,counties:0};
@@ -804,12 +828,37 @@ function catMixHTML(catMix){
   return `<div class="msec"><h4>Expected categories of work (share of historical PA $ — included disasters, whole-disaster grain)</h4><div class="catmix">${bar}</div><div>${legend}</div>
     <div class="muted">Category rollups are per disaster×applicant across counties (a per-county category split would be false precision — see data notes).</div></div>`;
 }
+// roll-up band: plan totals + typical-event baseline + closest named analogs
+function rollupHTML(A){
+  const sel=A.sel;
+  let expA=0,expP=0,expD=0;
+  sel.fips.forEach(f=>{const h=paCountyHistory(f);expA+=median(h.map(d=>d.appl.size));expP+=median(h.map(d=>d.pr));expD+=median(h.map(d=>d.pa));});
+  const evAppl=A.inclDn.map(d=>d.nAppl);
+  const tMed=median(evAppl),tMin=evAppl.length?Math.min(...evAppl):0,tMax=evAppl.length?Math.max(...evAppl):0;
+  const analogs=A.perDn.filter(d=>!d.excluded&&d.nCty>0).slice().sort((a,b)=>b.nCty-a.nCty||b.nAppl-a.nAppl).slice(0,5);
+  const nCty=sel.fips.length, nTeam=plan.teams.length, un=sel.fips.filter(f=>!(plan.counties[f]&&plan.counties[f].team)).length;
+  const analogHTML=analogs.length?`<div style="margin-top:10px"><div class="muted" style="margin-bottom:4px">Closest past events by county-footprint overlap:</div>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Event</th><th>Counties hit (of ${nCty})</th><th>Applicants</th><th>PA $</th></tr></thead><tbody>
+    ${analogs.map(d=>`<tr><td style="white-space:nowrap"><b>DR-${d.dn}</b> ${esc(String(d.title||"").slice(0,42))}</td><td>${d.nCty}</td><td>${d.nAppl}</td><td>${fmtMoneyFull(d.pa)}</td></tr>`).join("")}
+    </tbody></table></div></div>`:"";
+  return `<div class="rollup">
+    <div class="rollup-hd">Plan roll-up — Public Assistance <span class="scopenote">weather disasters only · COVID-19 excluded</span></div>
+    <div class="chipgrid">
+      ${chip('<span style="font-size:23px">'+f1(expA)+'</span>',"Expected PA applicants — plan total")}
+      ${chip(f1(expP),"Expected PA projects — plan total")}
+      ${chip(fmtVal(expD,"$"),"Expected PA $ — plan total")}
+      ${chip(nCty,"Counties (PA)")}
+      ${chip(nTeam?`${nTeam} · ${un} unassigned`:"none yet","Teams")}
+    </div>
+    <div class="vspast"><b>vs past events:</b> a typical prior disaster that hit these counties drew <b>${f1(tMed)}</b> PA applicants (range ${f1(tMin)}–${f1(tMax)}) across <b>${A.inclDn.length}</b> event${A.inclDn.length===1?"":"s"}. This plan's expected total (<b>${f1(expA)}</b>) sums each county's historical median.</div>
+    ${analogHTML}
+  </div>`;
+}
 function teamBoardHTML(){
-  if(!plan.teams.length)return "";
+  if(!plan.teams.length)return `<div class="msec"><h4>Team divider</h4><div class="muted">No teams yet. Add teams in the side panel, then click <b>assign</b> on a team and tap counties on the map (or use the per-county dropdowns) to divide the work. Each team's expected PA applicant load and a balance meter show up here.</div></div>`;
   const baseDn=plan.basis&&plan.basis.dn;
-  const cards=plan.teams.map(t=>{
+  const info=plan.teams.map(t=>{
     const fips=Object.keys(plan.counties).filter(f=>plan.counties[f].team===t.id);
-    const names=fips.map(f=>{const c=COUNTIES.find(x=>x.f===f);return c?c.n:f;}).sort();
     let expA=0,expR=0,pdaA=0,disA=null,disR=null;
     fips.forEach(f=>{
       expA+=median(paCountyHistory(f).map(d=>d.appl.size));
@@ -820,18 +869,31 @@ function teamBoardHTML(){
       if(PIDX){const s=new Set();fips.forEach(f=>(PIDX.byF[f]||[]).forEach(r=>{if(r[0]===baseDn)s.add(r[3]);}));disA=s.size;}
       if(DCIHP&&DCIHP.byDisaster[String(baseDn)]){disR=0;fips.forEach(f=>{const rec=DCIHP.byDisaster[String(baseDn)][f];if(rec)disR+=rec[3]||0;});}
     }
-    const lines=[];
-    if(pdaA)lines.push(`<b>${pdaA}</b> PDA applicants (imported)`);
-    if(disA!=null)lines.push(`<b>${disA}</b> PA applicants on DR-${baseDn} so far`);
-    if(disR!=null)lines.push(`<b>${disR.toLocaleString()}</b> IA registrations on DR-${baseDn}`);
-    lines.push(`<b>${f1(expA)}</b> expected PA applicants (hist. median/disaster, summed)`);
-    lines.push(`<b>${f1(expR)}</b> expected IA registrations (hist. median/disaster, summed)`);
-    return `<div class="teamcard" style="border-left-color:${t.color}"><b class="tn">${esc(t.name)}</b>${t.members?` <span class="muted">· ${esc(t.members)}</span>`:""}
-      <div class="muted" style="margin:2px 0">${fips.length} count${fips.length===1?"y":"ies"}: ${names.map(esc).join(", ")||"—"}</div>
-      <div>${lines.join("<br>")}</div></div>`;
+    const names=fips.map(f=>{const c=COUNTIES.find(x=>x.f===f);return c?c.n:f;}).sort();
+    return {t,fips,names,expA,expR,pdaA,disA,disR};
+  });
+  const loads=info.map(x=>x.expA), maxL=Math.max(1,...loads);
+  const assigned=info.filter(x=>x.fips.length), avg=assigned.length?mean(assigned.map(x=>x.expA)):0;
+  const cards=info.map(x=>{
+    const t=x.t, pct=100*x.expA/maxL, dev=avg?((x.expA-avg)/avg*100):0;
+    const devTag=x.fips.length&&assigned.length>1&&Math.abs(dev)>=25?`<span class="devtag ${dev>0?"hi":"lo"}">${dev>0?"+":""}${dev.toFixed(0)}% vs avg</span>`:"";
+    const extra=[];
+    if(x.pdaA)extra.push(`<b>${x.pdaA}</b> PDA applicants`);
+    if(x.disA!=null)extra.push(`<b>${x.disA}</b> on DR-${baseDn} so far`);
+    if(x.disR!=null)extra.push(`<b>${x.disR.toLocaleString()}</b> IA regs on DR-${baseDn}`);
+    return `<div class="teamcard" style="border-left-color:${t.color}">
+      <div style="display:flex;align-items:center;gap:6px"><b class="tn">${esc(t.name)}</b>${t.members?`<span class="muted">· ${esc(t.members)}</span>`:""}${devTag}</div>
+      <div class="loadbar"><span style="width:${pct.toFixed(1)}%;background:${t.color}"></span></div>
+      <div class="loadnum"><b>${f1(x.expA)}</b> expected PA applicants <span class="muted">· ${x.fips.length} count${x.fips.length===1?"y":"ies"}</span></div>
+      <div class="muted" style="margin:2px 0">${x.names.map(esc).join(", ")||"— no counties assigned —"}</div>
+      ${extra.length?`<div class="muted">${extra.join(" · ")}</div>`:""}
+    </div>`;
   }).join("");
   const un=Object.keys(plan.counties).filter(f=>!plan.counties[f].team).length;
-  return `<div class="msec"><h4>Team divider — who covers what</h4><div class="teamboard">${cards}</div>${un?`<div class="muted" style="margin-top:4px">${un} count${un===1?"y":"ies"} in the plan unassigned.</div>`:""}</div>`;
+  const nz=assigned.map(x=>x.expA).filter(v=>v>0);
+  const spread=nz.length>1?`Busiest team ≈ ${(Math.max(...nz)/Math.min(...nz)).toFixed(1)}× the lightest by expected applicants.`:"";
+  return `<div class="msec"><h4>Team divider — expected PA applicant load per team</h4><div class="teamboard">${cards}</div>
+    <div class="muted" style="margin-top:6px">${un?`<b>${un}</b> county${un===1?"":"ies"} still unassigned. `:""}${spread} Bars scale to the busiest team.</div></div>`;
 }
 function perCountyPaTable(sel){
   const rows=sel.fips.map(f=>{
@@ -894,22 +956,17 @@ function renderExpect(){
   basis.innerHTML=basisLine+`Historical PA applicants in <b>${A.sel.fips.length}</b> selected count${A.sel.fips.length===1?"y":"ies"} (basis: ${A.sel.basis}) across <b>${A.dns.size}</b> prior disaster${A.dns.size===1?"":"s"} (<b>${A.inclDn.length}</b> included). Statewide / state-agency applicants (no county alignment) are listed separately and labeled. Source: OpenFEMA PA Funded Projects Summaries v1 (rows) + Details v2 (categories).`;
   const nA=A.inclDn.map(d=>d.nAppl),nP=A.inclDn.map(d=>d.pr),nD=A.inclDn.map(d=>d.pa);
   const nAs=A.inclDn.map(d=>d.nAppl+d.swAppl),nPs=A.inclDn.map(d=>d.pr+d.swPr);
-  const stats=`<div class="msec"><h4>What to expect — per disaster, across the selection (${A.inclDn.length} of ${A.perDn.length} prior disasters included)</h4>
-    <div class="chipgrid">
+  // --- deep detail (tucked behind disclosures) ---
+  const excludeInner=`${dnChipsHTML(A.perDn,"PA $ (sel.)",d=>fmtVal(d.pa,"$"),A.outliers)}
+    ${A.outliers.size?`<div class="muted">⚠ ${A.outliers.size} disaster${A.outliers.size===1?" looks":"s look"} like a statistical outlier vs the rest of this selection's history (modified z-score &gt; 3.5 on PA $). Consider excluding — it recomputes every number above.</div>`:""}
+    <div style="overflow-x:auto;margin-top:8px"><table class="tbl"><thead><tr><th>Disaster</th><th>FY</th><th>Title</th><th>In math?</th><th>Applicants (sel.)</th><th>Projects (sel.)</th><th>PA $ (sel.)</th><th>Statewide applicants</th></tr></thead>
+      <tbody>${A.perDn.map(d=>`<tr style="${d.excluded?"opacity:.45":""}"><td style="white-space:nowrap">DR-${d.dn}</td><td>${esc(String(d.fy||""))}</td><td>${esc(d.title)}</td><td>${d.excluded?"excluded":"✓"}</td><td>${d.nAppl}</td><td>${d.pr}</td><td>${fmtMoneyFull(d.pa)}</td><td>${d.swAppl}</td></tr>`).join("")}</tbody></table></div>`;
+  const stats=`<div class="chipgrid">
       ${chip(f1(median(nA))+" med · "+f1(mean(nA))+" avg","Applicants / disaster — selected counties")}
       ${chip(f1(median(nP))+" med · "+f1(mean(nP))+" avg","Projects / disaster — selected counties")}
       ${chip(fmtVal(median(nD),"$")+" med · "+fmtVal(mean(nD),"$")+" avg","PA $ / disaster — selected counties")}
       ${chip(f1(median(nAs))+" med · "+f1(mean(nAs))+" avg","Applicants / disaster — incl. statewide")}
-      ${chip(f1(median(nPs))+" med · "+f1(mean(nPs))+" avg","Projects / disaster — incl. statewide")}
-    </div></div>`;
-  const chips=`<div class="msec"><h4>Prior disasters in the math — click ✕ to exclude one (e.g. an outlier), ↩ to restore</h4>
-    ${dnChipsHTML(A.perDn,"PA $ (sel.)",d=>fmtVal(d.pa,"$"),A.outliers)}
-    ${A.outliers.size?`<div class="muted">⚠ ${A.outliers.size} disaster${A.outliers.size===1?" looks":"s look"} like a statistical outlier vs the rest of this selection's history (modified z-score &gt; 3.5 on PA $). Consider excluding.</div>`:""}
-  </div>`;
-  const perDisaster=`<details class="dcard" style="margin-top:8px"><summary>Per-disaster breakdown (${A.perDn.length})</summary><div class="db" style="overflow-x:auto">
-      <table class="tbl"><thead><tr><th>Disaster</th><th>FY</th><th>Title</th><th>In math?</th><th>Applicants (sel.)</th><th>Projects (sel.)</th><th>PA $ (sel.)</th><th>Statewide applicants</th><th>Statewide projects</th></tr></thead>
-      <tbody>${A.perDn.map(d=>`<tr style="${d.excluded?"opacity:.45":""}"><td style="white-space:nowrap">DR-${d.dn}</td><td>${esc(String(d.fy||""))}</td><td>${esc(d.title)}</td><td>${d.excluded?"excluded":"✓"}</td><td>${d.nAppl}</td><td>${d.pr}</td><td>${fmtMoneyFull(d.pa)}</td><td>${d.swAppl}</td><td>${d.swPr}</td></tr>`).join("")}</tbody></table>
-    </div></details>`;
+    </div>`;
   const sortByPa=m=>[...m.values()].sort((x,y)=>y.pa-x.pa);
   let listHTML="";
   if(applTab==="agg"){
@@ -919,19 +976,27 @@ function renderExpect(){
       +(other.length?`<div class="msec"><h4>Other non-county-aligned — undeclared / unresolved counties (${other.length})</h4><div class="muted" style="margin-bottom:6px">Rows the source records in counties with no declaration record or unresolvable names (e.g. cross-border cooperatives) — conserved and labeled, never silently dropped.</div>${other.map(applicantCardHTML).join("")}</div>`:"");
   }else{
     listHTML=A.sel.fips.map(f=>({f,c:COUNTIES.find(x=>x.f===f)})).sort((a,b)=>(a.c?a.c.n:a.f).localeCompare(b.c?b.c.n:b.f)).map(({f,c})=>{
-      const m=new Map();(PIDX.byF[f]||[]).forEach(r=>{if(!excluded(r[0]))aggApplRows(m,r,"county");});
+      const m=new Map();(PIDX.byF[f]||[]).forEach(r=>{if(!excluded(r[0])&&!isCovid(r[0]))aggApplRows(m,r,"county");});
       const list=sortByPa(m);
       return `<div class="msec"><h4>${esc(c?c.n:f)}, ${c?c.s:""} — ${list.length} applicant${list.length===1?"":"s"}</h4>${list.map(applicantCardHTML).join("")||'<p class="muted">No PA applicants on record.</p>'}</div>`;
     }).join("");
   }
-  body.innerHTML=`${chips}${stats}${catMixHTML(A.catMix)}${perCountyPaTable(A.sel)}${teamBoardHTML()}${perDisaster}
-    <div class="atabs"><span class="atab ${applTab==="agg"?"on":""}" data-t="agg">Aggregated (selection total)</span><span class="atab ${applTab==="cty"?"on":""}" data-t="cty">Drill by county</span></div>
-    ${listHTML}
-    <div class="btnrow" style="margin-top:12px">
-      <button class="btn primary" id="expApplAgg">Export aggregated applicants (CSV)</button>
-      <button class="btn" id="expApplCty">Export by county (CSV)</button>
-      <button class="btn" id="expApplStats">Export expectations (CSV)</button>
-    </div>`;
+  body.innerHTML=`
+    ${rollupHTML(A)}
+    ${teamBoardHTML()}
+    ${perCountyPaTable(A.sel)}
+    <details class="dcard" style="margin-top:10px" ${A.outliers.size||plan.excludedDns.length?"open":""}><summary>Past events feeding these numbers — ${A.inclDn.length} of ${A.perDn.length} included${A.outliers.size?` · ⚠ ${A.outliers.size} possible outlier${A.outliers.size===1?"":"s"}`:""} (click ✕ / ↩ to adjust)</summary><div class="db">${excludeInner}</div></details>
+    <details class="dcard"><summary>Applicant roster, categories of work & CSV export (detail)</summary><div class="db">
+      ${stats}
+      ${catMixHTML(A.catMix)}
+      <div class="atabs"><span class="atab ${applTab==="agg"?"on":""}" data-t="agg">Aggregated (selection total)</span><span class="atab ${applTab==="cty"?"on":""}" data-t="cty">Drill by county</span></div>
+      ${listHTML}
+      <div class="btnrow" style="margin-top:12px">
+        <button class="btn primary" id="expApplAgg">Export aggregated applicants (CSV)</button>
+        <button class="btn" id="expApplCty">Export by county (CSV)</button>
+        <button class="btn" id="expApplStats">Export expectations (CSV)</button>
+      </div>
+    </div></details>`;
   body.querySelectorAll(".atab").forEach(t=>t.onclick=()=>{applTab=t.dataset.t;renderExpect();});
   body.querySelectorAll("[data-xdn]").forEach(x=>x.onclick=()=>toggleExcludeDn(+x.dataset.xdn));
   document.getElementById("expApplAgg").onclick=()=>exportApplCsv("agg");

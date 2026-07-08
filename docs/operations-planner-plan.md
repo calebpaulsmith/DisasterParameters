@@ -252,8 +252,33 @@ v1 priority: **(A) self-contained HTML file + (B) CSV/JSON**.
      team assignments + team-colored map fill, and per-county expected figures — this also
      retires P3's "fold the applicant card into the export" note. Data CSV gained
      Team/expectation columns; a new **IA expectations CSV** joins the three PA applicant CSVs.
-- **P5 — Polish (not yet built).** Multiple saved plans, mobile layout pass,
-  full-card (not just map) snapshot export.
+- **P5 — Declutter + PA-first + roll-up + COVID guard. ✅ SHIPPED (owner's 2026-07 follow-up).**
+  The P4 expectations card stacked ~8 sections at once and read as a tangle. Restructured to a
+  clear **3-tier PA-first** layout (owner: "divide & staff the work, but give me a roll-up + a
+  comparison to previous events"; headline metric = **expected PA applicants per county**; IA
+  becomes its own view later):
+  1. **Roll-up band** (`rollupHTML`) — the answer at a glance: plan-total expected PA applicants
+     / projects / $ (sum of per-county medians), a **vs-past-events** baseline (a typical prior
+     disaster that hit these counties drew *median* applicants, *range* min–max, across N events),
+     and **closest named analogs** ranked by county-footprint overlap (`perDn.nCty`). Covers the
+     owner's "roll-up" + "comparison to previous events" asks (they picked **both** flavors).
+  2. **Team divider promoted** — each team gets an expected-PA-applicant **load bar + balance
+     meter** (±% vs the average, busiest-vs-lightest spread) so imbalance is obvious without
+     auto-assigning (owner picked "show load + a balance meter", not auto-split).
+  3. **Per-county expectations table** — the field-team-facing granular row (applicants / projects
+     / $ / top categories per county).
+  Applicant rosters, category mix, and the exclusion + per-disaster tables moved **behind
+  `<details>` disclosures** (kept, just out of the main flow; the exclusion panel auto-opens when
+  outliers or manual exclusions exist). **COVID-19 is now explicitly guarded out of every
+  calculation** (`COVID_DNS`/`isCovid()` across `paCountyHistory`/`iaCountyHistory`/`computeAppl`/
+  `computeIa`/`buildDindex`/`buildCountySnapshot`) and **labeled** in the roll-up header — the six
+  R5 COVID declarations were already absent from the planner's data files, so this is
+  belt-and-suspenders + honest labeling, not a data fix. Verified with the headless smoke test
+  (now 38 checks, incl. roll-up render, vs-past-events, load bars, and a COVID-absence assertion).
+- **P6 — Polish (not yet built).** The **IA "diff view"** (owner wants a separate by-county
+  *registrations* view — data is ready via `disaster_county_ihp.json`), multiple saved plans,
+  mobile layout pass, full-card (not just map) snapshot export, and folding the roll-up + team
+  load into the SharePoint/HTML exports.
 
 ---
 
