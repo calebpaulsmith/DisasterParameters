@@ -969,7 +969,7 @@ tr.clickable:hover td{background:#eef3f8;}
 
   <!-- ============ NEWSREEL (latest obligations, PA + Hazard Mitigation) ============ -->
   <section class="view" id="view-newsreel">
-    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>What FEMA just paid out.</b> The most recent and the largest <b>obligations</b> across Region&nbsp;5 for the two programs that publish a per-item obligation date: <b>Public Assistance</b> (infrastructure/emergency work) and <b>Hazard Mitigation</b> (HMGP + FMA/BRIC/PDM). Each is a real OpenFEMA project, tap-through to its disaster where it's in the ledger. <b>COVID-19 is excluded</b> (it has its own view). "Latest" tracks the latest obligation <i>activity</i>, which can include downward adjustments. Real OpenFEMA figures &mdash; <b>not endorsed by FEMA</b>. PA is <b>obligated</b>.</span></div>
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>What FEMA just paid out.</b> The most recent and the largest <b>obligations</b> across Region&nbsp;5: <b>Public Assistance</b> (infrastructure/emergency work), <b>Hazard Mitigation</b> (&sect;404 HMGP + FMA/BRIC/PDM), and <b>Section&nbsp;406 mitigation</b> &mdash; the hardening built <i>into</i> PA repairs (a subset of the PA obligation, not new money). Each is a real OpenFEMA project, tap-through to its disaster where it's in the ledger. <b>COVID-19 is excluded</b> (it has its own view). "Latest" tracks the latest obligation <i>activity</i>, which can include downward adjustments. Real OpenFEMA figures &mdash; <b>not endorsed by FEMA</b>. PA is <b>obligated</b>.</span></div>
     <div id="newsBody"><div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading latest obligations…</div></div>
   </section>
 
@@ -2776,8 +2776,10 @@ function newsRow(r){
   const desc=(r.title||"").trim()||r.category||r.programArea||"Obligation";
   const who=r.program==="HM"?(r.recipient||r.county||""):(r.county||"");
   const tag=r.program==="HM"?(r.programArea||"HMA"):(r.category||"PA");
+  // §406: the headline dollar is the mitigation portion; show the parent PA repair total.
+  const ctx=r.program==="M406"&&r.paShare?` · <span class="thr-sub">of ${fmtMoney(r.paShare)} repair</span>`:"";
   const meta=`<b style="color:var(--navy)">DR-${r.dn}</b> · ${r.state}${who?" · "+who:""} · <span class="thr-sub">${r.date}</span>`;
-  const inner=`<span class="dk"><div>${esc(desc)}</div><div style="margin-top:2px">${meta} · <span class="thr-sub">${esc(tag)}</span></div></span><span class="dv">${fmtMoney(r.amount)}${inLedger?" ↗":""}</span>`;
+  const inner=`<span class="dk"><div>${esc(desc)}</div><div style="margin-top:2px">${meta} · <span class="thr-sub">${esc(tag)}</span>${ctx}</div></span><span class="dv">${fmtMoney(r.amount)}${inLedger?" ↗":""}</span>`;
   return inLedger
     ? `<div class="declrow clickable" data-dn="${r.dn}">${inner}</div>`
     : `<a class="declrow" href="https://www.fema.gov/disaster/${r.dn}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">${inner}</a>`;
@@ -2786,7 +2788,8 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","
 function newsCard(p){
   const latest=(p.latest||[]).map(newsRow).join("")||`<span class="thr-sub">No recent obligations.</span>`;
   const biggest=(p.biggest||[]).map(newsRow).join("")||`<span class="thr-sub">None in the last 6 months.</span>`;
-  return `<div class="card"><div class="card__hd"><h2>${p.label}</h2><span class="sub">obligated federal share · Region 5</span></div>
+  const sub=p.sub||"obligated federal share · Region 5";
+  return `<div class="card"><div class="card__hd"><h2>${esc(p.label)}</h2><span class="sub">${esc(sub)}</span></div>
     <div class="card__bd">
       <div class="sec-h" style="margin-top:0">Latest obligated</div>${latest}
       <div class="sec-h" style="margin-top:18px">Biggest in the last 6 months</div>${biggest}
@@ -2796,7 +2799,7 @@ function renderNewsreel(){
   const box=el("newsBody"); if(!box)return;
   if(!NEWS){box.innerHTML=`<div class="skeleton"><span class="spin"></span> Loading…</div>`;return;}
   const P=NEWS.programs||{};
-  box.innerHTML=(P.PA?newsCard(P.PA):"")+(P.HM?newsCard(P.HM):"")
+  box.innerHTML=(P.PA?newsCard(P.PA):"")+(P.HM?newsCard(P.HM):"")+(P.M406?newsCard(P.M406):"")
     +`<p class="thr-sub" style="margin-top:12px">${esc(NEWS.note||"")} Generated ${esc(NEWS.generated||"")} from OpenFEMA — figures are provisional and reconcile over the life of each project.</p>`;
 }
 /* ===== one hazard timeline overlaid with declarations (ledger view) ===== */
