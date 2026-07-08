@@ -319,6 +319,17 @@ design rationale behind the NFIP and refresh items.
   has a program chip row (`.gm-progbar`/GM_PROGS) scoping the measure chips, so the Recent
   (with mobile window chips), Flood-insurance, and state-only Non-disaster lenses (EMPG/AFG/prep
   families) are all selectable on mobile, matching desktop's program→measure pair.
+- **The Briefing — evolve the Newsreel into a scope-aware "charted news article" (PLANNED,
+  spec at `docs/briefing-plan.md`).** National/Region 1–10/state+territory scope selector; each
+  scope renders the same 5-chapter article (what's moving / history / composition incl. Cat Z
+  with on-screen reconciliation / recipients / watch), re-lensed per audience (regional
+  leadership, states, private sector). COVID toggle everywhere (default excluded). Feasibility
+  probed 2026-07-08: FemaWebDisasterSummaries is only 3,972 rows national (Cat Z derivable for
+  every US disaster — bakes small); DisasterDeclarationsSummaries carries `region`; PA applicant
+  Summaries (195K rows) fetched live per scope, never baked. Build order: P1 foundation
+  (build_briefing.py + scope bar + nationalized newsreel strips) → P2 State Briefing
+  (centerpiece) → P2b non-federal share (offline PA Details aggregation) → P3 recipients/watch
+  → P4 region+national comparative boards.
 - **Refresh failure alerting.** The daily/monthly refresh workflows are best-effort + commit-
   on-change; add an Actions failure notification so a silently-failing pull (stale data looking
   fresh) is surfaced.
