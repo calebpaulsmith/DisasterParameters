@@ -275,10 +275,28 @@ v1 priority: **(A) self-contained HTML file + (B) CSV/JSON**.
   R5 COVID declarations were already absent from the planner's data files, so this is
   belt-and-suspenders + honest labeling, not a data fix. Verified with the headless smoke test
   (now 38 checks, incl. roll-up render, vs-past-events, load bars, and a COVID-absence assertion).
-- **P6 — Polish (not yet built).** The **IA "diff view"** (owner wants a separate by-county
+- **P6 — Caseload board: Task Forces → PDMGs → applicants. ✅ SHIPPED (owner's 2026-07 ask).**
+  A staffing UI implementing the FEMA PA delivery org (owner: "assign a number of PDMGs to
+  specific TFLs, then assign applicants to PDMGs; show applicants' previous PA info + expected $").
+  - **TFLs = the existing county-teams, renamed** (owner: "TFLs own counties — usually multiple").
+    Auto-named "Task Force A/B/C" (renameable); the side-panel "Teams" control is relabeled
+    "Task Forces (TFL)". The `members` field is the TFL lead's name.
+  - **PDMGs** nest under each task force (`team.pdmgs[]`), auto-named "PDMG 1/2/3", created
+    **by count** ("Add N PDMGs") *or* singly ("Add one"), renameable, deletable (owner: "both").
+  - **Applicants** come from the **historical roster** (named past PA applicants for the plan's
+    counties, from `computeAppl` — each already carries prior PA $, # disasters, and an expected
+    $/disaster = per-disaster average) **and/or an imported PDA** (owner: "could be PDA, could be
+    real"), switchable via a source toggle; PDA applicants are name-matched to history
+    (`normApplName`) so their prior-PA figures show too. Each applicant is **assigned to a PDMG**
+    (`plan.caseload{applicantKey→pdmgId}`), **reassignable to any task force** (a dropdown lists
+    every TFL▸PDMG); the unassigned pool suggests the task force that owns most of the applicant's
+    counties. Per-PDMG and per-TFL rollups (count + expected $), a name filter, and a **caseload
+    CSV export**. COVID-19 excluded throughout (same guards). New smoke coverage (49 checks total).
+- **P7 — Polish (not yet built).** The **IA "diff view"** (owner wants a separate by-county
   *registrations* view — data is ready via `disaster_county_ihp.json`), multiple saved plans,
-  mobile layout pass, full-card (not just map) snapshot export, and folding the roll-up + team
-  load into the SharePoint/HTML exports.
+  mobile layout pass, full-card (not just map) snapshot export, folding the roll-up + team load +
+  caseload into the SharePoint/HTML exports, and PDA↔historical-applicant reconciliation (P-I) now
+  that the caseload board already does light name-matching.
 
 ---
 
