@@ -115,11 +115,13 @@ labeled is a core design point.
   (`ihpAudit`, `paApplicantAudit`) to the article surface.
 - Every figure keeps a verify link to its raw OpenFEMA query.
 - **Non-federal share** (the state's bill): NOT computable from
-  FemaWebDisasterSummaries (federal-only). Phase 2b bakes per-disaster
-  `nonFederal = Σ(projectAmount − federalShareObligated)` from an offline
-  national PA Details aggregation (resumable cache). v1 ships **without** it,
-  labeled "federal share only — state/local match not shown" rather than
-  estimating from an assumed 75%.
+  FemaWebDisasterSummaries (federal-only). Phase 2b (BUILT —
+  `scripts/build_nonfed.py` → `data/nonfed.json` → briefing `pc/pf/pn` columns)
+  bakes per-disaster `nonFederal = Σ(projectAmount − federalShareObligated)`
+  from an offline national PA Details sweep (resumable cache, weekly refresh).
+  Surfaced as the composition chapter's "non-federal bill" line + a per-disaster
+  modal row — both labeled **estimate**, with the cross-dataset delta vs the
+  authoritative summary federal total footnoted on-screen, never hidden.
 - PA is **obligated**; IHP is **approved** — labels never conflate (glossary rule).
 
 ## 7. UI — the State Briefing article (first build)

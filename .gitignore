@@ -36,3 +36,4 @@ data/_plannerappl_cache.json
 
 # Per-disaster designation pull cache (regenerable; pulled by scripts/build_disaster_designations.py)
 data/_desig_cache.json
+data/_nonfed_cache.json

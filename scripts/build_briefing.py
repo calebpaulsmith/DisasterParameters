@@ -142,6 +142,16 @@ def main():
             d.append(v)
         return d.index(v)
 
+    # phase 2b: per-disaster project-level sums (implied non-federal share) from
+    # data/nonfed.json (scripts/build_nonfed.py — run it FIRST; optional join,
+    # columns stay null if the snapshot is absent)
+    nonfed = {}
+    try:
+        nonfed = json.load(open(os.path.join(DATA, "nonfed.json"))).get("byDisaster", {})
+        print(f"  joining nonfed.json: project-level sums for {len(nonfed)} disasters")
+    except Exception:
+        print("  nonfed.json absent — pc/pf/pn columns will be null (run scripts/build_nonfed.py first)")
+
     rows, neg_z = [], 0
     withCosts = 0
     for dn in sorted(ident):
@@ -158,8 +168,10 @@ def main():
                 neg_z += 1
         else:
             costs = [None] * 8
+        nf = nonfed.get(str(dn))
+        proj = [nf[0], nf[1], nf[2]] if nf else [None, None, None]
         rows.append([dn, e["st"], e["rg"], idx(it_dict, e["it"] or "—"), idx(dt_dict, e["dt"]),
-                     e["ti"][:90], e["bg"], e["dc"], *costs, covid, 1 if e["tr"] else 0])
+                     e["ti"][:90], e["bg"], e["dc"], *costs, covid, 1 if e["tr"] else 0, *proj])
 
     orphans = [dn for dn in fwds if dn not in ident]
     print(f"  ledger {len(rows)} rows ({withCosts} with costs, {len(rows)-withCosts} declared/no public cost rollup)")
@@ -206,7 +218,7 @@ def main():
                 "obligation activity incl. downward adjustments). Not endorsed by FEMA.",
         "cols": ["dn", "st", "rg", "it", "dt", "title", "begin", "declared",
                  "paTotal", "paAB", "paCG", "ihpTotal", "ihpHA", "ihpONA", "hmgp", "iaRegs",
-                 "covid", "tribal"],
+                 "covid", "tribal", "pc", "pf", "pn"],
         "it": it_dict, "dt": dt_dict, "states": states, "d": rows,
         "activity": {"cutoff": cutoff, "months": months, "byState": act},
         "audit": {
