@@ -967,10 +967,16 @@ tr.clickable:hover td{background:#eef3f8;}
     <div id="covidBody"><div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading COVID-19 figures…</div></div>
   </section>
 
-  <!-- ============ NEWSREEL (latest obligations, PA + Hazard Mitigation) ============ -->
+  <!-- ============ NEWSREEL / BRIEFING (scope-aware: nation, region, state) ============ -->
   <section class="view" id="view-newsreel">
-    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>What FEMA just paid out.</b> The most recent and the largest <b>obligations</b> across Region&nbsp;5: <b>Public Assistance</b> (infrastructure/emergency work), <b>Hazard Mitigation</b> (&sect;404 HMGP + FMA/BRIC/PDM), and <b>Section&nbsp;406 mitigation</b> &mdash; the hardening built <i>into</i> PA repairs (a subset of the PA obligation, not new money). Each is a real OpenFEMA project, tap-through to its disaster where it's in the ledger. <b>COVID-19 is excluded</b> (it has its own view). "Latest" tracks the latest obligation <i>activity</i>, which can include downward adjustments. Real OpenFEMA figures &mdash; <b>not endorsed by FEMA</b>. PA is <b>obligated</b>.</span></div>
-    <div id="newsBody"><div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading latest obligations…</div></div>
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>The Briefing — one article, any altitude.</b> Pick a scope (nation &middot; FEMA region &middot; state/territory) and read the same five questions top to bottom: <b>what's moving</b> (latest &amp; biggest obligations: PA, &sect;404 Hazard Mitigation, &sect;406 mitigation built into PA repairs), <b>what has happened</b> (every DR/EM/FM declaration with real dollars), and <b>where the money goes</b> (PA composition <b>including Category&nbsp;Z</b>, reconciling on-screen). PA is <b>obligated</b>; IHP is <b>approved</b>; federal share only. <b>COVID-19 is excluded by default</b> (toggle it in — it's ~⅓ of all PA ever). Real OpenFEMA figures &mdash; <b>not endorsed by FEMA</b>.</span></div>
+    <div class="geotoggle" style="border-radius:8px">
+      <b style="font-size:13px;color:var(--navy)">Scope</b>
+      <select id="briSel" style="font:inherit;font-size:13px;padding:4px 6px;border:1px solid var(--line-2);border-radius:4px;background:#fff;max-width:280px"><option value="US">United States (national)</option></select>
+      <label class="covtog" title="Include the COVID-19 (Biological) declarations — about a third of all PA ever obligated"><input type="checkbox" id="briCovidTog"> incl. COVID-19</label>
+      <span class="thr-sub" id="briScopeNote"></span>
+    </div>
+    <div id="newsBody"><div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading the briefing…</div></div>
   </section>
 
   <!-- ============ CONDITIONS IN CONTEXT (state-first, multi-hazard) ============ -->
@@ -2772,13 +2778,13 @@ function renderCovid(){
 /* ===== newsreel — latest & biggest obligations (PA + Hazard Mitigation) ===== */
 let NEWS=null;
 function newsRow(r){
-  const inLedger=DATA&&DATA.some(d=>d.disasterNumber===+r.dn);
+  const inLedger=(DATA&&DATA.some(d=>d.disasterNumber===+r.dn))||!!briFind(r.dn);
   const desc=(r.title||"").trim()||r.category||r.programArea||"Obligation";
   const who=r.program==="HM"?(r.recipient||r.county||""):(r.county||"");
   const tag=r.program==="HM"?(r.programArea||"HMA"):(r.category||"PA");
   // §406: the headline dollar is the mitigation portion; show the parent PA repair total.
   const ctx=r.program==="M406"&&r.paShare?` · <span class="thr-sub">of ${fmtMoney(r.paShare)} repair</span>`:"";
-  const meta=`<b style="color:var(--navy)">DR-${r.dn}</b> · ${r.state}${who?" · "+who:""} · <span class="thr-sub">${r.date}</span>`;
+  const meta=`<b style="color:var(--navy)">DR-${r.dn}</b> · ${r.state}${who?" · "+esc(who):""} · <span class="thr-sub">${r.date}</span>`;
   const inner=`<span class="dk"><div>${esc(desc)}</div><div style="margin-top:2px">${meta} · <span class="thr-sub">${esc(tag)}</span>${ctx}</div></span><span class="dv">${fmtMoney(r.amount)}${inLedger?" ↗":""}</span>`;
   return inLedger
     ? `<div class="declrow clickable" data-dn="${r.dn}">${inner}</div>`
@@ -2788,19 +2794,186 @@ function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","
 function newsCard(p){
   const latest=(p.latest||[]).map(newsRow).join("")||`<span class="thr-sub">No recent obligations.</span>`;
   const biggest=(p.biggest||[]).map(newsRow).join("")||`<span class="thr-sub">None in the last 6 months.</span>`;
-  const sub=p.sub||"obligated federal share · Region 5";
+  const sub=p.sub||"obligated federal share";
   return `<div class="card"><div class="card__hd"><h2>${esc(p.label)}</h2><span class="sub">${esc(sub)}</span></div>
     <div class="card__bd">
       <div class="sec-h" style="margin-top:0">Latest obligated</div>${latest}
       <div class="sec-h" style="margin-top:18px">Biggest in the last 6 months</div>${biggest}
     </div></div>`;
 }
+
+/* ===== the Briefing — one article grammar at any altitude (nation / region / state) =====
+   BRI = data/briefing.json: ONE canonical per-disaster national ledger (DR+EM+FM, all
+   history) — every rollup below is derived from it client-side, so units sum to wholes
+   BY CONSTRUCTION. Scope: "US" | "R1".."R10" | state/territory code. COVID excluded by
+   default (briCovid). Chapters: lede → what's moving (strips, live per scope; baked
+   national default) → history (declaration timeline + ledger) → composition (PA
+   A-B/C-G/Z reconciling on-screen + IHP HA/ONA). */
+let BRI=null,briPend=false,briScope="US",briCovid=false,briShowAll=false;
+const briStripsCache={};
+const B={dn:0,st:1,rg:2,it:3,dt:4,ti:5,bg:6,dc:7,pa:8,ab:9,cg:10,ihp:11,ha:12,ona:13,hmgp:14,regs:15,cv:16,tr:17};
+function briFind(dn){return BRI?BRI.d.find(r=>r[B.dn]===+dn):null;}
+function briCovidSet(){if(!BRI)return new Set();if(!BRI._cv)BRI._cv=new Set(BRI.d.filter(r=>r[B.cv]).map(r=>r[B.dn]));return BRI._cv;}
+function briAbbr(name){if(!BRI)return name;if(!BRI._n2a){BRI._n2a={};Object.entries(BRI.states).forEach(([k,v])=>BRI._n2a[v.n]=k);}return BRI._n2a[name]||name;}
+function briLoad(){
+  if(briPend||BRI)return; briPend=true;
+  fetch("data/briefing.json").then(r=>{if(!r.ok)throw 0;return r.json();}).then(b=>{BRI=b;briPend=false;briFillSel();renderNewsreel();})
+    .catch(()=>{briPend=false;const box=el("newsBody");if(box)box.innerHTML=`<div class="note"><span class="i">!</span><span>Couldn't load the national briefing ledger — showing the baked national obligation strips only.</span></div><div id="briStrips"></div>`+(NEWS?"":"");if(NEWS&&el("briStrips"))el("briStrips").innerHTML=briStripCards(NEWS.programs);});
+}
+function briFillSel(){
+  const s=el("briSel"); if(!s||s.options.length>1||!BRI)return;
+  let h=`<option value="US">United States (national)</option>`;
+  for(let r=1;r<=10;r++){const sts=Object.entries(BRI.states).filter(([,v])=>v.r===r).map(([k])=>k);
+    if(sts.length)h+=`<option value="R${r}">Region ${r} — ${sts.join(" · ")}</option>`;}
+  h+=`<option disabled>— states &amp; territories —</option>`;
+  Object.entries(BRI.states).sort((a,b)=>a[1].n.localeCompare(b[1].n)).forEach(([k,v])=>{h+=`<option value="${k}">${esc(v.n)}</option>`;});
+  s.innerHTML=h; s.value=briScope;
+}
+function briScopeLabel(){
+  if(briScope==="US")return "United States";
+  if(/^R\d+$/.test(briScope))return "FEMA Region "+briScope.slice(1);
+  return BRI&&BRI.states[briScope]?BRI.states[briScope].n:briScope;
+}
+function briRows(){
+  if(!BRI)return [];
+  let rows=BRI.d;
+  if(/^R\d+$/.test(briScope)){const rg=+briScope.slice(1);rows=rows.filter(r=>r[B.rg]===rg);}
+  else if(briScope!=="US")rows=rows.filter(r=>r[B.st]===briScope);
+  return briCovid?rows:rows.filter(r=>!r[B.cv]);
+}
+function briScopeStates(){ // null = national
+  if(briScope==="US")return null;
+  if(/^R\d+$/.test(briScope)){const rg=+briScope.slice(1);return Object.keys(BRI.states).filter(s=>BRI.states[s].r===rg);}
+  return [briScope];
+}
+/* ---- lede ---- */
+function briTypeCounts(rows){const c={};rows.forEach(r=>{const t=BRI.dt[r[B.dt]];c[t]=(c[t]||0)+1;});return ["DR","EM","FM"].filter(k=>c[k]).map(k=>`${fmtNum(c[k])} ${k}`).join(" · ")||"—";}
+function briLede(rows){
+  const pa=rows.reduce((s,r)=>s+(r[B.pa]||0),0),ihp=rows.reduce((s,r)=>s+(r[B.ihp]||0),0);
+  const cut=new Date(Date.now()-2*365.25*864e5).toISOString().slice(0,10);
+  const recent=rows.filter(r=>(r[B.bg]||r[B.dc]||"")>=cut).length;
+  const noCost=rows.filter(r=>r[B.pa]==null).length;
+  return `<div class="ctx-cost" style="margin-top:2px">
+    <div class="c"><div class="lab">PA obligated · all time</div><div class="big">${fmtMoney(pa)}</div><div class="thr-sub">federal share only${briCovid?" · incl. COVID":""}</div></div>
+    <div class="c"><div class="lab">IHP approved · all time</div><div class="big">${fmtMoney(ihp)}</div><div class="thr-sub">HA + ONA, to households</div></div>
+    <div class="c"><div class="lab">Declarations</div><div class="big">${fmtNum(rows.length)}</div><div class="thr-sub">${briTypeCounts(rows)}</div></div>
+    <div class="c"><div class="lab">Last 24 months</div><div class="big">${fmtNum(recent)}</div><div class="thr-sub">${noCost?fmtNum(noCost)+" older rows lack a public cost rollup":"declared"}</div></div></div>`;
+}
+/* ---- chapter 1: activity chart (trailing 12mo, baked per state) ---- */
+function briActivityChart(){
+  const a=BRI.activity; if(!a||!a.months||!a.months.length)return "";
+  const sts=briScopeStates()||Object.keys(a.byState);
+  const v=a.months.map((_,i)=>{let x=0;sts.forEach(s=>{const m=a.byState[s];if(m&&m[i])x+=m[i][0]+(briCovid?m[i][1]:0);});return x;});
+  if(!v.some(x=>x>0))return "";
+  const W=920,H=130,pl=8,pr=8,pt=16,pb=18,iw=W-pl-pr,ih=H-pt-pb,n=v.length;
+  const mx=Math.max(1,...v),bw=iw/n*0.7;
+  let bars="";
+  v.forEach((x,i)=>{const bx=pl+i*iw/n+(iw/n-bw)/2,h=Math.max(0,x)/mx*ih,y=pt+ih-h;
+    bars+=`<rect x="${bx.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="var(--navy,#1a4480)" opacity="0.88"><title>${a.months[i]} — ${fmtMoney(x)}</title></rect>`;
+    bars+=`<text x="${(bx+bw/2).toFixed(1)}" y="${H-5}" font-size="8.5" fill="#8a94a6" text-anchor="middle">${a.months[i].slice(2).replace("-","/")}</text>`;});
+  bars+=`<text x="${pl}" y="10" font-size="9" fill="#565c65">peak month ${fmtMoney(mx)}</text>`;
+  return `<div class="card"><div class="card__hd"><h2>PA obligation activity — trailing 12 months</h2><span class="sub">${esc(briScopeLabel())} · monthly</span></div>
+    <div class="card__bd"><svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${bars}</svg>
+    <p class="thr-sub" style="margin-top:6px">$ on projects whose <b>latest obligation activity</b> landed that month (lastObligationDate — includes downward adjustments), not newly-awarded totals. ${briCovid?"Includes":"Excludes"} COVID-19.</p></div></div>`;
+}
+/* ---- chapter 2: history (declaration timeline + ledger table) ---- */
+function briHistChart(rows){
+  const by={};
+  rows.forEach(r=>{const y=+((r[B.bg]||r[B.dc]||"").slice(0,4));if(!y)return;const e=by[y]=by[y]||{w:0,c:0,n:0};e.n++;const p=r[B.pa]||0;if(r[B.cv])e.c+=p;else e.w+=p;});
+  const years=Object.keys(by).map(Number).sort((a,b)=>a-b); if(!years.length)return "";
+  const y0=years[0],y1=years[years.length-1],span=y1-y0+1;
+  const W=920,H=180,pl=8,pr=8,pt=16,pb=20,iw=W-pl-pr,ih=H-pt-pb;
+  const mx=Math.max(1,...years.map(y=>by[y].w+by[y].c));
+  const bw=Math.max(1.5,iw/span*0.8);
+  let bars="",grid="";
+  for(let y=y0;y<=y1;y++){const e=by[y];if(!e)continue;const x=pl+(y-y0)*iw/span;
+    const hW=e.w/mx*ih,hC=e.c/mx*ih,tip=`${y} — ${fmtNum(e.n)} declaration${e.n===1?"":"s"} · PA ${fmtMoney(e.w+e.c)}${e.c?` (COVID ${fmtMoney(e.c)})`:""}`;
+    bars+=`<rect x="${x.toFixed(1)}" y="${(pt+ih-hW).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(hW,e.n?0.8:0).toFixed(1)}" fill="var(--navy,#1a4480)" opacity="0.9"><title>${tip}</title></rect>`;
+    if(hC>0)bars+=`<rect x="${x.toFixed(1)}" y="${(pt+ih-hW-hC).toFixed(1)}" width="${bw.toFixed(1)}" height="${hC.toFixed(1)}" fill="#b50909" opacity="0.55"><title>${y} — COVID-19 PA ${fmtMoney(e.c)}</title></rect>`;}
+  for(let y=Math.ceil(y0/10)*10;y<=y1;y+=10){const x=pl+(y-y0)*iw/span;
+    grid+=`<line x1="${x.toFixed(1)}" y1="${pt}" x2="${x.toFixed(1)}" y2="${pt+ih}" stroke="#eef0f2"/><text x="${x.toFixed(1)}" y="${H-6}" font-size="9" fill="#8a94a6">${y}</text>`;}
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${grid}${bars}</svg>
+    <p class="thr-sub" style="margin-top:4px">Bars = PA obligated per <b>incident year</b> (hover for the year's declaration count)${briCovid?`; <span style="color:#b50909">red</span> = COVID-19`:""}. Dollars keep reconciling for years after an event — recent years under-count. This is the <b>event</b> timeline; the monthly chart above is the <b>money-movement</b> timeline. They answer different questions.</p>`;
+}
+function briLedgerTable(rows){
+  const sorted=rows.slice().sort((a,b)=>((b[B.pa]||0)-(a[B.pa]||0))||String(b[B.bg]||"").localeCompare(String(a[B.bg]||"")));
+  const shown=briShowAll?sorted:sorted.slice(0,12);
+  const isState=briScopeStates()&&briScopeStates().length===1;
+  const tr=shown.map(r=>{const y=(r[B.bg]||r[B.dc]||"").slice(0,4);
+    return `<tr class="clickable" data-dn="${r[B.dn]}"><td><b style="color:var(--navy)">${BRI.dt[r[B.dt]]}-${r[B.dn]}</b>${r[B.tr]?' <span class="thr-sub">tribal</span>':""}</td><td>${y}</td>${isState?"":`<td>${r[B.st]||""}</td>`}<td>${esc(BRI.it[r[B.it]])}</td><td>${esc(titleCase(r[B.ti]||""))}</td><td style="text-align:right;white-space:nowrap">${r[B.pa]==null?'<span class="thr-sub">n/a</span>':fmtMoney(r[B.pa])}</td><td style="text-align:right;white-space:nowrap">${r[B.ihp]==null?'<span class="thr-sub">n/a</span>':fmtMoney(r[B.ihp])}</td></tr>`;}).join("");
+  return `<div class="tablewrap" style="margin-top:14px"><table class="dis"><thead><tr><th>Decl.</th><th>Year</th>${isState?"":"<th>St</th>"}<th>Type</th><th>Title</th><th style="text-align:right">PA obligated</th><th style="text-align:right">IHP approved</th></tr></thead><tbody>${tr}</tbody></table></div>
+    ${sorted.length>12?`<button class="gm-fulllink" data-briexpand="1" style="margin-top:10px">${briShowAll?"Show top 12 only":`Show all ${fmtNum(sorted.length)} declarations`}</button>`:""}
+    <p class="thr-sub" style="margin-top:6px">Sorted by PA obligated; tap a row for that disaster's breakdown. <b>n/a</b> = declared, but no public cost rollup exists in FemaWebDisasterSummaries (common for FM and older EM declarations) — counted, never invented.</p>`;
+}
+/* ---- chapter 3: composition (PA A-B / C-G / Z + IHP HA/ONA), identity on-screen ---- */
+function briComposition(rows){
+  const cost=rows.filter(r=>r[B.pa]!=null);
+  const S=k=>cost.reduce((s,r)=>s+(r[k]||0),0);
+  const paT=S(B.pa),ab=S(B.ab),cg=S(B.cg),z=paT-ab-cg;             // Z = exact remainder → identity holds by construction
+  const ihp=S(B.ihp),ha=S(B.ha),ona=S(B.ona),ihpGap=ihp-ha-ona;
+  if(paT<=0&&ihp<=0)return `<p class="thr-sub">No published dollars in this scope yet.</p>`;
+  const negz=cost.filter(r=>(r[B.pa]||0)-(r[B.ab]||0)-(r[B.cg]||0)<0).length;
+  const seg=(v,c,l)=>v>0?`<div style="flex:${Math.max(1,Math.round(v/paT*1000))};background:${c}" title="${l}: ${fmtMoney(v)}"></div>`:"";
+  const chip=(c,l,v)=>`<span style="white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;background:${c};border-radius:2px;margin-right:4px"></span>${l} <b>${fmtMoney(v)}</b></span>`;
+  const paSec=paT>0?`<div style="display:flex;height:26px;border-radius:4px;overflow:hidden;border:1px solid var(--line-2)">${seg(ab,"var(--gold,#d5a022)","Category A–B (emergency work)")}${seg(cg,"var(--navy,#1a4480)","Category C–G (permanent work)")}${seg(Math.max(0,z),"#8a94a6","Category Z (management)")}</div>
+    <div class="thr-sub" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px">${chip("var(--gold,#d5a022)","A–B emergency",ab)}${chip("var(--navy,#1a4480)","C–G permanent",cg)}${chip("#8a94a6","Z management",z)}</div>
+    <p style="margin-top:8px;font-size:13px"><b>Reconciliation:</b> ${fmtMoneyFull(ab)} (A–B) + ${fmtMoneyFull(cg)} (C–G) + ${fmtMoneyFull(z)} (Z) = <b>${fmtMoneyFull(paT)}</b> PA obligated — exact, by construction (Z is the source's remainder).${negz?` <span class="thr-sub">${fmtNum(negz)} of ${fmtNum(cost.length)} underlying disasters currently post A–B + C–G above their PA total (source-data timing); the remainder absorbs it, nothing is hidden.</span>`:""}</p>`:"";
+  const ihpSec=ihp>0?`<div class="sec-h" style="margin-top:18px">IHP approved — households<span class="src">HA + ONA</span></div>
+    <p style="font-size:13px">${fmtMoneyFull(ha)} Housing (HA) + ${fmtMoneyFull(ona)} Other Needs (ONA)${Math.abs(ihpGap)>0?` + ${fmtMoneyFull(ihpGap)} unsplit in source`:""} = <b>${fmtMoneyFull(ihp)}</b> IHP approved.</p>`:"";
+  return paSec+ihpSec+`<p class="thr-sub" style="margin-top:8px">Federal share only — the 10–25% state/local match is not in this dataset (planned follow-up). PA is <b>obligated</b>; IHP is <b>approved</b> — different accounting stages, never conflated.</p>`;
+}
+/* ---- chapter 1 strips: baked national / live scoped ---- */
+function briStripCards(P){return (P.PA?newsCard(P.PA):"")+(P.HM?newsCard(P.HM):"")+(P.M406?newsCard(P.M406):"");}
+async function briFetchStrips(){
+  const sts=briScopeStates(),cv=briCovidSet();
+  const orPA=sts?`(${sts.map(s=>`stateAbbreviation eq '${s}'`).join(" or ")}) and `:"";
+  const orHM=sts?`(${sts.map(s=>`state eq '${(BRI.states[s]||{}).n||s}'`).join(" or ")}) and `:"";
+  const cut=new Date(Date.now()-183*864e5).toISOString().slice(0,10)+"T00:00:00.000Z";
+  const PAU="https://www.fema.gov/api/open/v2/PublicAssistanceFundedProjectsDetails",HMU="https://www.fema.gov/api/open/v4/HazardMitigationAssistanceProjects";
+  const paSel="disasterNumber,stateAbbreviation,applicationTitle,damageCategoryDescrip,county,federalShareObligated,lastObligationDate";
+  const mSel=paSel+",mitigationAmount",hmSel="disasterNumber,state,programArea,projectType,subrecipient,recipient,county,federalShareObligated,initialObligationDate";
+  const q=async(base,flt,ob,s,k)=>{const r=await fetch(`${base}?$filter=${encodeURIComponent(flt)}&$orderby=${encodeURIComponent(ob)}&$select=${encodeURIComponent(s)}&$top=40&$format=json&$metadata=off`);if(!r.ok)throw 0;return (await r.json())[k]||[];};
+  const [paL,paB,hmL,hmB,mL,mB]=await Promise.all([
+    q(PAU,orPA+"incidentType ne 'Biological'","lastObligationDate desc",paSel,"PublicAssistanceFundedProjectsDetails"),
+    q(PAU,`lastObligationDate ge '${cut}' and ${orPA}incidentType ne 'Biological'`,"federalShareObligated desc",paSel,"PublicAssistanceFundedProjectsDetails"),
+    q(HMU,orHM+"initialObligationDate ne null","initialObligationDate desc",hmSel,"HazardMitigationAssistanceProjects"),
+    q(HMU,`${orHM}initialObligationDate ge '${cut}'`,"federalShareObligated desc",hmSel,"HazardMitigationAssistanceProjects"),
+    q(PAU,orPA+"mitigationAmount gt 0 and incidentType ne 'Biological'","lastObligationDate desc",mSel,"PublicAssistanceFundedProjectsDetails"),
+    q(PAU,`lastObligationDate ge '${cut}' and ${orPA}mitigationAmount gt 0 and incidentType ne 'Biological'`,"mitigationAmount desc",mSel,"PublicAssistanceFundedProjectsDetails")]);
+  const paRow=r=>({program:"PA",dn:r.disasterNumber,state:r.stateAbbreviation,title:(r.applicationTitle||"").trim(),category:r.damageCategoryDescrip,county:r.county,amount:Math.round(r.federalShareObligated||0),date:(r.lastObligationDate||"").slice(0,10)});
+  const mRow=r=>Object.assign(paRow(r),{program:"M406",amount:Math.round(r.mitigationAmount||0),paShare:Math.round(r.federalShareObligated||0)});
+  const hmRow=r=>({program:"HM",programArea:r.programArea,dn:r.disasterNumber,state:briAbbr(r.state),title:(r.projectType||"").trim(),recipient:r.subrecipient||r.recipient,county:r.county,amount:Math.round(r.federalShareObligated||0),date:(r.initialObligationDate||"").slice(0,10)});
+  const ok=a=>a.filter(x=>!cv.has(x.dn));
+  return {PA:{label:"Public Assistance",latest:ok(paL.map(paRow)).slice(0,5),biggest:ok(paB.map(paRow)).slice(0,5)},
+          HM:{label:"Hazard Mitigation",latest:ok(hmL.map(hmRow)).slice(0,5),biggest:ok(hmB.map(hmRow).filter(x=>x.amount>0)).slice(0,5)},
+          M406:{label:"Section 406 mitigation",sub:"hardening built into PA repairs",latest:ok(mL.map(mRow)).slice(0,5),biggest:ok(mB.map(mRow)).slice(0,5)}};
+}
+function briRenderStrips(){
+  const mount=el("briStrips"); if(!mount)return;
+  const key=briScope;
+  if(key==="US"){mount.innerHTML=NEWS?briStripCards(NEWS.programs)+`<p class="thr-sub" style="margin-top:8px">National strips baked ${esc(NEWS.generated||"")} (refreshed at deploy); COVID-19 always excluded here.</p>`:`<div class="skeleton"><span class="spin"></span> Loading…</div>`;return;}
+  if(briStripsCache[key]){mount.innerHTML=briStripCards(briStripsCache[key])+`<p class="thr-sub" style="margin-top:8px">Fetched live from OpenFEMA just now; COVID-19 always excluded here.</p>`;return;}
+  mount.innerHTML=`<div class="skeleton"><span class="spin"></span> Fetching this scope's latest obligations live from OpenFEMA…</div>`;
+  briFetchStrips().then(p=>{briStripsCache[key]=p;if(briScope===key)briRenderStrips();})
+    .catch(()=>{if(briScope===key)mount.innerHTML=`<p class="thr-sub">Couldn't fetch live obligations for this scope right now (OpenFEMA hiccup) — try again shortly, or use the verify links below.</p>`;});
+}
+/* ---- the article ---- */
 function renderNewsreel(){
   const box=el("newsBody"); if(!box)return;
-  if(!NEWS){box.innerHTML=`<div class="skeleton"><span class="spin"></span> Loading…</div>`;return;}
-  const P=NEWS.programs||{};
-  box.innerHTML=(P.PA?newsCard(P.PA):"")+(P.HM?newsCard(P.HM):"")+(P.M406?newsCard(P.M406):"")
-    +`<p class="thr-sub" style="margin-top:12px">${esc(NEWS.note||"")} Generated ${esc(NEWS.generated||"")} from OpenFEMA — figures are provisional and reconcile over the life of each project.</p>`;
+  if(!BRI){briLoad();box.innerHTML=`<div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading the briefing…</div>`;return;}
+  const rows=briRows(),lbl=briScopeLabel();
+  const note=el("briScopeNote"); if(note)note.textContent=`${lbl} · ${rows.length.toLocaleString()} declarations · ${briCovid?"incl. COVID-19":"COVID-19 excluded"}`;
+  const vf=`https://www.fema.gov/api/open/v1/FemaWebDisasterSummaries?$format=jsona`;
+  box.innerHTML=
+    briLede(rows)
+    +briActivityChart()
+    +`<div id="briStrips" style="margin-top:2px"></div>`
+    +`<div class="card"><div class="card__hd"><h2>What has happened — ${esc(lbl)}</h2><span class="sub">every DR · EM · FM declaration, all history</span></div>
+      <div class="card__bd">${briHistChart(rows)}${briLedgerTable(rows)}</div></div>`
+    +`<div class="card"><div class="card__hd"><h2>Where the money goes — ${esc(lbl)}</h2><span class="sub">PA by category · IHP by program</span></div>
+      <div class="card__bd">${briComposition(rows)}</div></div>`
+    +`<p class="thr-sub" style="margin-top:12px">Ledger baked ${esc(BRI.generated||"")} from ${esc((BRI.source||"").split(" + ")[0]||"OpenFEMA")} + DisasterDeclarationsSummaries; obligation strips ${briScope==="US"?"baked at deploy":"live"}. Figures are provisional and reconcile over the life of each disaster. <a href="${vf}" target="_blank" rel="noopener">Verify the cost source ↗</a> · not endorsed by FEMA.</p>`;
+  briRenderStrips();
 }
 /* ===== one hazard timeline overlaid with declarations (ledger view) ===== */
 let TML=null;
@@ -3694,7 +3867,7 @@ function renderNationalDetail(d){
       ${_rq.firstSeenUrl?`<a class="parmcard clickable" style="text-decoration:none" href="${_rq.firstSeenUrl}" target="_blank" rel="noopener"><div class="pv">request brief ↗</div><div class="pl">source PDF</div></a>`:""}
       ${_rq.decisionUrl?`<a class="parmcard clickable" style="text-decoration:none" href="${_rq.decisionUrl}" target="_blank" rel="noopener"><div class="pv">approval brief ↗</div><div class="pl">decision PDF</div></a>`:""}
     </div>`:"";
-  el("sheet").innerHTML=`
+  el("mBody").innerHTML=`
     <div class="note" style="margin:2px 0 18px"><span class="i">!</span><span>This disaster is <b>outside the curated Region&nbsp;5 dataset</b>, so only its declaration timeline is shown — no measured hazards or obligation breakdown. Use the links below for the full federal record.</span></div>
     <div class="sec-h">Declaration timeline<span class="src">OpenFEMA</span></div>
     <div class="parm">
@@ -3709,9 +3882,54 @@ function renderNationalDetail(d){
       <a class="parmcard clickable" style="text-decoration:none" href="https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries?$filter=disasterNumber%20eq%20${d.disasterNumber}" target="_blank" rel="noopener"><div class="pv">OpenFEMA ↗</div><div class="pl">Declarations API</div></a>
     </div>`;
 }
+function renderBriefingDetail(r){
+  const dtL=BRI.dt[r[B.dt]],lag=(r[B.bg]&&r[B.dc])?Math.round((new Date(r[B.dc])-new Date(r[B.bg]))/864e5):null;
+  el("mDr").textContent=`${dtL}-${r[B.dn]}${r[B.st]?"-"+r[B.st]:""}`;
+  el("mTitle").textContent=titleCase(r[B.ti]||"")||BRI.it[r[B.it]];
+  el("mMeta").innerHTML=`${r[B.bg]?fmtDate(r[B.bg]):""}${r[B.dc]?` &nbsp;·&nbsp; declared ${fmtDate(r[B.dc])}`:""} &nbsp;·&nbsp; ${esc(BRI.it[r[B.it]])} &nbsp;·&nbsp; ${r[B.st]||""}${r[B.rg]?" · Region "+r[B.rg]:""}${r[B.tr]?" · tribal":""}${r[B.cv]?" · COVID-19":""}`;
+  const paT=r[B.pa],ab=r[B.ab]||0,cg=r[B.cg]||0,z=paT!=null?paT-ab-cg:null;
+  const row=(k,v,sub)=>`<div class="brk-row${sub?" sub":""}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  const money=paT==null
+    ?`<p class="thr-sub">Declared, but <b>no public cost rollup</b> exists for this declaration in FemaWebDisasterSummaries (common for FM and older EM declarations). Counted in declaration totals; never estimated.</p>`
+    :row(`<b>PA obligated (federal share)</b>`,`<b>${fmtMoneyFull(paT)}</b>`)
+      +(ab?row("Category A–B (emergency work / debris)",fmtMoneyFull(ab),1):"")
+      +(cg?row("Category C–G (permanent work)",fmtMoneyFull(cg),1):"")
+      +(z?row(`Category Z (management costs)${z<0?' <span class="thr-sub">— negative: A–B + C–G currently post above the PA total in the source</span>':""}`,fmtMoneyFull(z),1):"")
+      +(r[B.ihp]>0?row(`<b style="margin-top:6px;display:inline-block">IHP approved</b>`,`<b>${fmtMoneyFull(r[B.ihp])}</b>`)
+        +row("Housing (HA) / Other Needs (ONA)",`${fmtMoneyFull(r[B.ha]||0)} / ${fmtMoneyFull(r[B.ona]||0)}`,1):"")
+      +(r[B.hmgp]>0?row("Hazard Mitigation (§404 HMGP) obligated",fmtMoneyFull(r[B.hmgp])):"")
+      +(r[B.regs]>0?row("IA registrations approved",fmtNum(r[B.regs])):"")
+      +`<p class="thr-sub" style="margin-top:8px">A–B + C–G + Z = PA total, exactly (Z is the source's remainder). Federal share only. PA is <b>obligated</b>; IHP is <b>approved</b>.</p>`;
+  // request→decision context harvested from the Daily Ops Brief archive, when available (same block as the national modal)
+  const _rq=(typeof REQDATES!=="undefined"&&REQDATES&&REQDATES.byDisaster)?REQDATES.byDisaster[String(r[B.dn])]:null;
+  const rqSec=(_rq&&_rq.requestDate)?`<div class="sec-h" style="margin-top:22px">Request → decision<span class="src">Daily Ops Brief · unofficial</span></div>
+    <div class="parm">
+      <div class="parmcard"><div class="pv">${fmtDate(_rq.requestDate)}</div><div class="pl">Requested</div></div>
+      ${_rq.reqToDeclLagDays!=null?`<div class="parmcard"><div class="pv">${_rq.reqToDeclLagDays} d</div><div class="pl">Request → declaration</div></div>`:""}
+      ${_rq.firstSeenUrl?`<a class="parmcard clickable" style="text-decoration:none" href="${_rq.firstSeenUrl}" target="_blank" rel="noopener"><div class="pv">request brief ↗</div><div class="pl">source PDF</div></a>`:""}
+      ${_rq.decisionUrl?`<a class="parmcard clickable" style="text-decoration:none" href="${_rq.decisionUrl}" target="_blank" rel="noopener"><div class="pv">decision brief ↗</div><div class="pl">source PDF</div></a>`:""}
+    </div>`:"";
+  el("mBody").innerHTML=`
+    <div class="note" style="margin:2px 0 18px"><span class="i">!</span><span>This disaster is outside the curated Region&nbsp;5 dataset — figures come from the <b>national briefing ledger</b> (real OpenFEMA dollars; no measured hazards).</span></div>
+    <div class="sec-h">Declaration timeline<span class="src">OpenFEMA</span></div>
+    <div class="parm">
+      <div class="parmcard"><div class="pv">${r[B.bg]?fmtDate(r[B.bg]):"—"}</div><div class="pl">Incident begin</div></div>
+      <div class="parmcard"><div class="pv">${r[B.dc]?fmtDate(r[B.dc]):"—"}</div><div class="pl">Federal declaration</div></div>
+      ${lag!=null?`<div class="parmcard"><div class="pv">${lag} d</div><div class="pl">Declaration lag (from start)</div></div>`:""}
+    </div>
+    <div class="sec-h" style="margin-top:22px">Federal assistance — actual figures<span class="src">FemaWebDisasterSummaries</span></div>
+    ${money}${rqSec}
+    <div class="sec-h" style="margin-top:22px">Verify</div>
+    <div class="parm">
+      <a class="parmcard clickable" style="text-decoration:none" href="https://www.fema.gov/disaster/${r[B.dn]}" target="_blank" rel="noopener"><div class="pv">FEMA ↗</div><div class="pl">Official disaster page</div></a>
+      <a class="parmcard clickable" style="text-decoration:none" href="https://www.fema.gov/api/open/v1/FemaWebDisasterSummaries?$filter=disasterNumber%20eq%20${r[B.dn]}" target="_blank" rel="noopener"><div class="pv">Costs ↗</div><div class="pl">FemaWebDisasterSummaries</div></a>
+      <a class="parmcard clickable" style="text-decoration:none" href="https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries?$filter=disasterNumber%20eq%20${r[B.dn]}" target="_blank" rel="noopener"><div class="pv">Declaration ↗</div><div class="pl">Declarations API</div></a>
+    </div>`;
+}
 function renderDisasterDetail(dn){
   const d=DATA.find(x=>x.disasterNumber===+dn);
-  if(!d){const nd=(NATIONAL||[]).find(x=>x.disasterNumber===+dn); if(nd){renderNationalDetail(nd);return;} return;}
+  if(!d){const br=briFind(dn); if(br){renderBriefingDetail(br);return;}
+         const nd=(NATIONAL||[]).find(x=>x.disasterNumber===+dn); if(nd){renderNationalDetail(nd);return;} return;}
   const c=d.costs||{}; const hz=d.hz||{};
   el("mDr").textContent=`DR-${d.disasterNumber}-${d.state}`;
   el("mTitle").textContent=titleCase(d.title);
@@ -4014,6 +4232,7 @@ const VALID_VIEWS=["history","timelines","geography","newsreel","covid","context
 function curView(){const b=document.querySelector(".nav button.active");return b?b.dataset.view:"history";}
 function syncHash(){let h=curView();
   if(h==="geography"){ if(geoCountyFocus)h+="/"+geoStateFilter+"/"+geoCountyFocus; else if(geoStateFilter)h+="/"+geoStateFilter; }
+  if(h==="newsreel"&&briScope!=="US")h+="/"+briScope;
   if((location.hash||"").replace(/^#/,"")!==h) history.replaceState(null,"","#"+h);}
 let navOpenScrollY=0;
 function navIsOpen(){const ni=document.querySelector(".nav__inner");return!!(ni&&ni.classList.contains("open"));}
@@ -4042,6 +4261,7 @@ function routeFromHash(){
     geoStateFilter=parts[1]?parts[1].toUpperCase():null;
     geoCountyFocus=(parts[2]&&DECL&&DECL.counties[parts[2]])?parts[2]:null;
   }
+  if(v==="newsreel"&&parts[1]){const p=parts[1].toUpperCase(); if(p==="US"||/^R([1-9]|10)$/.test(p)||/^[A-Z]{2}$/.test(p)){briScope=p; const s=el("briSel"); if(s&&[...s.options].some(o=>o.value===p))s.value=p;}}
   showView(v,true);
 }
 window.addEventListener("hashchange",routeFromHash);
@@ -4060,6 +4280,10 @@ function wire(){
   el("resetBtn").addEventListener("click",()=>{selectedDisaster=null;el("preset").value="";el("state").value="MI";el("incident").value="Flood";el("popNum").value=250000;el("tornado").value="";setSlider("wind",75);setSlider("hail",1);setSlider("flood",15);setSlider("rain",5);render();});
   el("refreshBtn").addEventListener("click",()=>location.reload());
   el("watchRefresh").addEventListener("click",loadWatch);
+  // Briefing (newsreel) scope + COVID toggle + expand-all (delegated — the body re-renders)
+  if(el("briSel"))el("briSel").addEventListener("change",e=>{briScope=e.target.value;briShowAll=false;renderNewsreel();syncHash();});
+  if(el("briCovidTog"))el("briCovidTog").addEventListener("change",e=>{briCovid=e.target.checked;renderNewsreel();});
+  if(el("newsBody"))el("newsBody").addEventListener("click",e=>{const b=e.target.closest("[data-briexpand]");if(b){briShowAll=!briShowAll;renderNewsreel();}});
   document.querySelectorAll("table.dis th[data-sort]").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=(k==="state"||k==="tagstr")?1:-1;}renderLedger();}));
   if(el("groupState"))el("groupState").addEventListener("change",renderLedger);
   // detail modal: open via delegation (gage takes priority over disaster), close via X / overlay / Esc
@@ -4576,7 +4800,7 @@ async function loadData(){
       const parts=[]; if(rec)parts.push(`obligations as of ${rec}`); if(roll)parts.push(`rollups ${roll}`);
       if(parts.length)el2.innerHTML=` &middot; Data: ${parts.join(" &middot; ")}`;}).catch(()=>{});
     fetch("data/covid.json").then(r=>r.ok?r.json():null).then(c=>{COVID=c;if(document.getElementById("view-covid").classList.contains("active"))renderCovid();}).catch(()=>{});
-    fetch("data/newsreel.json").then(r=>r.ok?r.json():null).then(nw=>{NEWS=nw;if(document.getElementById("view-newsreel").classList.contains("active"))renderNewsreel();}).catch(()=>{});
+    fetch("data/newsreel.json").then(r=>r.ok?r.json():null).then(nw=>{NEWS=nw;if(document.getElementById("view-newsreel").classList.contains("active"))briRenderStrips();}).catch(()=>{});
     fetch("data/timeline.json").then(r=>r.ok?r.json():null).then(t=>{TML=t;renderHazTimeline();}).catch(()=>{});
     fetch("data/context.json").then(r=>r.ok?r.json():null).then(c=>{CTX=c;if(document.getElementById("view-context").classList.contains("active")){ctxRenderStates();ctxRender();}}).catch(()=>{});
     fetch("data/event_nexus.json").then(r=>r.ok?r.json():null).then(n=>{NEXUS=n;}).catch(()=>{});

@@ -35,9 +35,15 @@ jobs:
         with:
           enablement: true
 
-      # Refresh the "latest obligations" reel from OpenFEMA at deploy time.
-      # Network-only + fast; if OpenFEMA is unreachable, keep the committed
-      # snapshot so a hiccup never breaks the deploy.
+      # Refresh the national briefing ledger + the "latest obligations" strips
+      # from OpenFEMA at deploy time. Order matters: build_newsreel reads the
+      # COVID dn set from briefing.json. Network-only + fast; if OpenFEMA is
+      # unreachable, keep the committed snapshots so a hiccup never breaks
+      # the deploy.
+      - name: Refresh briefing ledger (best-effort)
+        run: |
+          python3 scripts/build_briefing.py \
+            || echo "briefing refresh failed — keeping committed data/briefing.json"
       - name: Refresh newsreel (best-effort)
         run: |
           python3 scripts/build_newsreel.py \

@@ -49,8 +49,10 @@ scripts/build_timeline.py   # OFFLINE: builds data/timeline.json — one regiona
 data/timeline.json          # committed: monthly regional hazard series + per-month disaster list (powers the Ledger hazard timeline)
 scripts/build_covid.py      # OFFLINE: builds data/covid.json — the 6 R5 COVID-19 (Biological) declarations' PA/IHP/projects (needs network)
 data/covid.json             # committed: per-state COVID-19 PA obligated/IHP approved/projects (powers the standalone COVID-19 view; kept OUT of ledger/geography/analyses — ~7× weather PA)
-scripts/build_newsreel.py   # OFFLINE: builds data/newsreel.json — "latest obligations" reel for the programs with a per-item obligation DATE: PA (PublicAssistanceFundedProjectsDetails.lastObligationDate) + Hazard Mitigation §404 (HazardMitigationAssistanceProjects v4.initialObligationDate) + Section 406 mitigation (the PA project's mitigationAmount — hardening built into a PA repair, a SUBSET of that PA obligation, dated by lastObligationDate; row carries paShare = the parent repair total). R5 only, COVID excluded. Each program: latest N obligated + biggest N in last 6mo. Needs network (get() retries on transient 503s). (IHP/AFG/EMPG carry no per-item obligation date, so they can't feed this reel.)
-data/newsreel.json          # committed, small: per-program latest+biggest obligations (powers the Newsreel view)
+scripts/build_newsreel.py   # OFFLINE: builds data/newsreel.json — "latest obligations" strips for the programs with a per-item obligation DATE: PA (PublicAssistanceFundedProjectsDetails.lastObligationDate) + Hazard Mitigation §404 (HazardMitigationAssistanceProjects v4.initialObligationDate) + Section 406 mitigation (the PA project's mitigationAmount — hardening built into a PA repair, a SUBSET of that PA obligation; row carries paShare = the parent repair total). NATIONAL scope (the Briefing's default; other scopes fetch the same queries live in-browser), COVID excluded via the briefing.json covid dn set (live Biological-dn fallback) — so run build_briefing.py FIRST. Latest N + biggest N in last 6mo per program. Needs network. (IHP/AFG/EMPG carry no per-item obligation date, so they can't feed strips.)
+data/newsreel.json          # committed, small: per-program national latest+biggest obligation strips (the Briefing's baked "what's moving" chapter at national scope)
+scripts/build_briefing.py   # OFFLINE: builds data/briefing.json — ONE canonical NATIONAL per-disaster ledger (~5.2K DR+EM+FM declarations, ALL history, all states/territories/COFA/tribal) joining FemaWebDisasterSummaries costs (PA total/A-B/C-G → Cat Z = remainder, IHP HA/ONA, HMGP, IA regs; FEDERAL SHARE ONLY) onto deduped DisasterDeclarationsSummaries identity (state/region/incidentType/declType/dates/tribal; pulled $select+$top/$skip WITHOUT $filter — the WAF 503 combo), PLUS a trailing-12-month per-state monthly PA obligation-activity series (lastObligationDate semantics, COVID split into its own bucket so the client toggle is pure arithmetic). FM is INCLUDED (1,643 FM rows carry real $ — mostly post-fire HMGP); declared-but-no-cost-rollup rows kept with null costs; conservation audit baked in (audit.check). Every rollup (state/region/national/by-year/COVID) is derived CLIENT-SIDE from the rows — units sum to wholes by construction. Needs network (~2 min).
+data/briefing.json          # committed (~570KB), LAZILY fetched: powers the Briefing (Newsreel view) — scope selector (US / Region 1-10 / state+territory, hash-routed #newsreel/MI), lede tiles, monthly activity chart, declaration-history chart + ledger table, PA composition incl. Cat Z with the on-screen reconciliation line, COVID toggle (default excluded), and the third tier of the disaster modal chain (DATA → BRI → NATIONAL: any US disaster gets a cost-breakdown modal with A-B+C-G+Z=total + verify links). Region/state "what's moving" strips are fetched LIVE per scope (briFetchStrips, ~1-2s, cached per session); national strips read baked newsreel.json.
 scripts/build_county_recent.py # OFFLINE: builds data/recent.json — a trailing ~400-day feed of Region 5 PA (lastObligationDate) + Hazard Mitigation (initialObligationDate) obligations as lean dated rows ({f,s,dn,amt,date,…}; f = county FIPS, null = statewide). Powers the Geography "Recent activity" sub-filter (last 7/30/60/90 days + 1 year). National date-windowed pull (the indexed/fast path — a server-side state filter forces a 15–25s scan, so we filter R5 client-side) paginated past the 10,000-row cap; COVID excluded. Needs network.
 data/recent.json            # committed, small (~100KB): raw dated R5 PA+HM obligation rows for the Geography "Recent activity" view. The browser fetches SHORT windows (7–90d) LIVE from OpenFEMA (national-then-filter-R5, ~1–2s); the 1-YEAR window can't be served live (a single national pull truncates at the 10k-row cap) so it reads THIS file, which is also the fallback when a live fetch fails or stalls (12s cap). Refreshed at deploy time (pages.yml) + optionally daily by the Cloudflare worker. Records are obligation ACTIVITY (incl. downward adjustments), not new declarations.
 cloudflare/recent-worker.js # OPTIONAL: a Cloudflare Worker that rebuilds recent.json daily (cron → KV) and serves it CORS-open, mirroring build_county_recent.py. Set RECENT_WORKER_URL in index.html to use it; default ("") reads the committed data/recent.json. See cloudflare/README.md.
@@ -319,17 +321,18 @@ design rationale behind the NFIP and refresh items.
   has a program chip row (`.gm-progbar`/GM_PROGS) scoping the measure chips, so the Recent
   (with mobile window chips), Flood-insurance, and state-only Non-disaster lenses (EMPG/AFG/prep
   families) are all selectable on mobile, matching desktop's program→measure pair.
-- **The Briefing — evolve the Newsreel into a scope-aware "charted news article" (PLANNED,
-  spec at `docs/briefing-plan.md`).** National/Region 1–10/state+territory scope selector; each
-  scope renders the same 5-chapter article (what's moving / history / composition incl. Cat Z
-  with on-screen reconciliation / recipients / watch), re-lensed per audience (regional
-  leadership, states, private sector). COVID toggle everywhere (default excluded). Feasibility
-  probed 2026-07-08: FemaWebDisasterSummaries is only 3,972 rows national (Cat Z derivable for
-  every US disaster — bakes small); DisasterDeclarationsSummaries carries `region`; PA applicant
-  Summaries (195K rows) fetched live per scope, never baked. Build order: P1 foundation
-  (build_briefing.py + scope bar + nationalized newsreel strips) → P2 State Briefing
-  (centerpiece) → P2b non-federal share (offline PA Details aggregation) → P3 recipients/watch
-  → P4 region+national comparative boards.
+- **The Briefing — evolve the Newsreel into a scope-aware "charted news article" (P1+P2 BUILT,
+  spec at `docs/briefing-plan.md`).** DONE: scope selector (US / Region 1–10 / all states+
+  territories, hash-routed), lede tiles, monthly PA activity chart, nationalized what's-moving
+  strips (baked national + live per-scope), declaration-history chart + ledger table, PA
+  composition incl. Cat Z with on-screen reconciliation, COVID toggle (default excluded),
+  briefing modal tier (any US disaster → cost breakdown + verify links). See
+  scripts/build_briefing.py + data/briefing.json in the layout above. REMAINING: P2b
+  non-federal share (offline PA Details aggregation — v1 deliberately says "federal share
+  only" rather than estimating), P3 recipients chapter (PA applicant Summaries, 195K rows,
+  fetched live per scope — never baked) + watch chapter (§406/PA uptake, A-B:C-G lifecycle),
+  P4 region/national comparative boards (state small-multiples, per-capita vs national
+  distribution).
 - **Refresh failure alerting.** The daily/monthly refresh workflows are best-effort + commit-
   on-change; add an Actions failure notification so a silently-failing pull (stale data looking
   fresh) is surfaced.

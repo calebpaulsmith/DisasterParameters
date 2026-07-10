@@ -7,7 +7,8 @@ name: Refresh daily data
 #
 # Scope (intentionally the FAST, self-contained, additive builders only):
 #   - data/recent.json    (build_county_recent.py)   — Geography "Recent activity" baked source
-#   - data/newsreel.json  (build_newsreel.py)         — Newsreel reel
+#   - data/briefing.json  (build_briefing.py)         — national briefing ledger + activity series
+#   - data/newsreel.json  (build_newsreel.py)         — Newsreel strips (reads briefing's covid set)
 #   - data/manifest.json  (build_manifest.py)         — per-file freshness stamp
 # The heavier county_declarations.json pipeline (map/ihp/hmgp/mitigation/prep/byyear) and the
 # MONTHLY NFIP rollup are deliberately NOT run here — see docs/refresh-architecture.md for the
@@ -43,6 +44,10 @@ jobs:
       # than failing the run. They are additive/idempotent, so a partial day is safe.
       - name: Rebuild recent obligations
         run: python3 scripts/build_county_recent.py || echo "recent refresh failed — keeping committed snapshot"
+
+      # Before newsreel: build_newsreel reads the COVID dn set from briefing.json
+      - name: Rebuild briefing ledger
+        run: python3 scripts/build_briefing.py || echo "briefing refresh failed — keeping committed snapshot"
 
       - name: Rebuild newsreel
         run: python3 scripts/build_newsreel.py || echo "newsreel refresh failed — keeping committed snapshot"
