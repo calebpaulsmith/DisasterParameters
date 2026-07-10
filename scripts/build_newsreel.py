@@ -10,7 +10,8 @@ programs that publish a per-item obligation DATE you can sort on:
                         (hardening built into a PA permanent-work repair; a SUBSET
                         of that project's PA obligation, dated by lastObligationDate)
 
-For each program, two strips, Region 5 only (IL/IN/MI/MN/OH/WI):
+For each program, two strips, NATIONAL scope (the Briefing's default; region/
+state scopes run the same queries live in-browser with scope filters):
   - "latest"  : the most recent N obligation events (orderby <date> desc)
   - "biggest" : the largest single obligations in the last 6 months
                 (orderby federalShareObligated desc within the date window)
@@ -21,10 +22,11 @@ WHY ONLY THESE TWO PROGRAMS
   no obligation date). Neither supports a per-item "latest obligated" reel.
 
 COVID-19 IS EXCLUDED
-  The six R5 COVID-19 (incidentType "Biological") declarations dwarf weather PA
-  (~7x a state's entire weather PA) and are kept in their own view. We drop them
-  here too — by incidentType for PA and by disasterNumber for both programs — so
-  the reel stays about weather/flood/storm obligations, consistent with the ledger.
+  COVID PA (~$98B national) dwarfs weather obligations. Dropped by incidentType
+  ('Biological') for PA/§406 server-side, and for HM (no incidentType field) by
+  disasterNumber against the COVID dn set from data/briefing.json (falls back to
+  a live Biological-dn pull if briefing.json is absent). Run build_briefing.py
+  first when rebuilding both.
 
 NOTE ON DATES
   lastObligationDate reflects the latest obligation ACTIVITY, which includes
@@ -35,16 +37,14 @@ CORS-open OpenFEMA; offline/regenerable. Re-run any time:
     python3 scripts/build_newsreel.py
 """
 import os, json, time, urllib.request, urllib.parse, datetime as dt
+from build_briefing import STATE_NAMES   # single source of truth for state names
 
 DATA = os.path.join(os.path.dirname(__file__), "..", "data")
 PA_URL = "https://www.fema.gov/api/open/v2/PublicAssistanceFundedProjectsDetails"
 HM_URL = "https://www.fema.gov/api/open/v4/HazardMitigationAssistanceProjects"
+# HM carries full state names; map back to abbreviations (unknown names pass through)
+ABBR = {v: k for k, v in STATE_NAMES.items()}
 
-R5_ABBR = ["IL", "IN", "MI", "MN", "OH", "WI"]
-R5_NAME = ["Illinois", "Indiana", "Michigan", "Minnesota", "Ohio", "Wisconsin"]
-ABBR = {"Illinois": "IL", "Indiana": "IN", "Michigan": "MI",
-        "Minnesota": "MN", "Ohio": "OH", "Wisconsin": "WI"}
-COVID_DNS = {4489, 4494, 4507, 4515, 4520, 4531}   # R5 COVID-19 (Biological)
 N_LATEST = 5
 N_BIGGEST = 5
 WINDOW_DAYS = 183                                  # ~6 months
@@ -83,9 +83,29 @@ def cutoff_iso():
     return d.isoformat() + "T00:00:00.000Z"
 
 
+# ---- COVID disaster-number set (for HM, which has no incidentType) ------------
+def covid_dns():
+    try:
+        b = json.load(open(os.path.join(DATA, "briefing.json")))
+        c = b["cols"]
+        i_dn, i_cv = c.index("dn"), c.index("covid")
+        return {r[i_dn] for r in b["d"] if r[i_cv]}
+    except Exception:
+        rows = []
+        skip = 0
+        while True:
+            u = ("https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries"
+                 f"?$filter={urllib.parse.quote(chr(39).join(['incidentType eq ','Biological','']))}"
+                 f"&$top=10000&$skip={skip}&$format=json&$metadata=off")
+            chunk = (get(u) or {}).get("DisasterDeclarationsSummaries", [])
+            rows.extend(chunk)
+            if len(chunk) < 10000:
+                break
+            skip += len(chunk)
+        return {r.get("disasterNumber") for r in rows}
+
+
 # ---- Public Assistance --------------------------------------------------------
-def pa_states_flt():
-    return "(" + " or ".join(f"stateAbbreviation eq '{s}'" for s in R5_ABBR) + ")"
 
 
 def pa_row(r):
@@ -103,18 +123,18 @@ def pa_row(r):
 
 def build_pa():
     # PA (v2) rejects 'ne null'; nulls already sort last under 'desc', so omit it.
-    base = f"{pa_states_flt()} and incidentType ne 'Biological'"
+    base = "incidentType ne 'Biological'"
     latest = q(PA_URL,
                base,
                "lastObligationDate desc",
                "disasterNumber,stateAbbreviation,applicationTitle,damageCategoryDescrip,county,federalShareObligated,lastObligationDate")
-    latest = [pa_row(r) for r in latest if r.get("disasterNumber") not in COVID_DNS][:N_LATEST]
+    latest = [pa_row(r) for r in latest][:N_LATEST]
 
     biggest = q(PA_URL,
                 f"lastObligationDate ge '{cutoff_iso()}' and {base}",
                 "federalShareObligated desc",
                 "disasterNumber,stateAbbreviation,applicationTitle,damageCategoryDescrip,county,federalShareObligated,lastObligationDate")
-    biggest = [pa_row(r) for r in biggest if r.get("disasterNumber") not in COVID_DNS][:N_BIGGEST]
+    biggest = [pa_row(r) for r in biggest][:N_BIGGEST]
     return latest, biggest
 
 
@@ -140,20 +160,18 @@ def m406_row(r):
 
 
 def build_m406():
-    base = f"mitigationAmount gt 0 and {pa_states_flt()} and incidentType ne 'Biological'"
+    base = "mitigationAmount gt 0 and incidentType ne 'Biological'"
     latest = q(PA_URL, base, "lastObligationDate desc", M406_SEL)
-    latest = [m406_row(r) for r in latest if r.get("disasterNumber") not in COVID_DNS][:N_LATEST]
+    latest = [m406_row(r) for r in latest][:N_LATEST]
 
     biggest = q(PA_URL,
                 f"lastObligationDate ge '{cutoff_iso()}' and {base}",
                 "mitigationAmount desc", M406_SEL)
-    biggest = [m406_row(r) for r in biggest if r.get("disasterNumber") not in COVID_DNS][:N_BIGGEST]
+    biggest = [m406_row(r) for r in biggest][:N_BIGGEST]
     return latest, biggest
 
 
 # ---- Hazard Mitigation --------------------------------------------------------
-def hm_states_flt():
-    return "(" + " or ".join(f"state eq '{s}'" for s in R5_NAME) + ")"
 
 
 def hm_row(r):
@@ -170,31 +188,31 @@ def hm_row(r):
     }
 
 
-def build_hm():
+def build_hm(cv):
     sel = "disasterNumber,state,programArea,projectType,subrecipient,recipient,county,federalShareObligated,initialObligationDate"
-    latest = q(HM_URL,
-               f"initialObligationDate ne null and {hm_states_flt()}",
-               "initialObligationDate desc", sel)
-    latest = [hm_row(r) for r in latest if r.get("disasterNumber") not in COVID_DNS][:N_LATEST]
+    latest = q(HM_URL, "initialObligationDate ne null", "initialObligationDate desc", sel)
+    latest = [hm_row(r) for r in latest if r.get("disasterNumber") not in cv][:N_LATEST]
 
-    biggest = q(HM_URL,
-                f"initialObligationDate ge '{cutoff_iso()}' and {hm_states_flt()}",
+    biggest = q(HM_URL, f"initialObligationDate ge '{cutoff_iso()}'",
                 "federalShareObligated desc", sel)
     biggest = [hm_row(r) for r in biggest
-               if r.get("disasterNumber") not in COVID_DNS and n(r.get("federalShareObligated")) > 0][:N_BIGGEST]
+               if r.get("disasterNumber") not in cv and n(r.get("federalShareObligated")) > 0][:N_BIGGEST]
     return latest, biggest
 
 
 def main():
+    cv = covid_dns()
+    print(f"covid dn set: {len(cv)}")
     pa_latest, pa_biggest = build_pa()
-    hm_latest, hm_biggest = build_hm()
+    hm_latest, hm_biggest = build_hm(cv)
     m4_latest, m4_biggest = build_m406()
     out = {
         "generated": dt.date.today().isoformat(),
         "windowDays": WINDOW_DAYS,
+        "scope": "national",
         "source": "OpenFEMA PublicAssistanceFundedProjectsDetails (lastObligationDate; "
                   "mitigationAmount for §406) + HazardMitigationAssistanceProjects v4 "
-                  "(initialObligationDate), Region 5, COVID-19 excluded",
+                  "(initialObligationDate), NATIONAL, COVID-19 excluded",
         "note": "PA is obligated; 'latest' = latest obligation activity (includes downward "
                 "adjustments). HM is §404 HMGP + non-disaster HMA (FMA/BRIC/PDM). §406 is the "
                 "mitigation portion built into PA permanent-work repairs (the mitigationAmount "

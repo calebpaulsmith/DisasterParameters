@@ -80,39 +80,48 @@
           "add_history",
           "build_county_applicants",
           "build_county_ihp",
-          "build_covid"
+          "build_covid",
+          "build_briefing"
         ],
         "totalObligatedAmountPa": [
           "add_history",
-          "build_covid"
+          "build_covid",
+          "build_briefing"
         ],
         "totalObligatedAmountCatAb": [
           "add_history",
-          "build_covid"
+          "build_covid",
+          "build_briefing"
         ],
         "totalObligatedAmountCatC2g": [
           "add_history",
-          "build_covid"
+          "build_covid",
+          "build_briefing"
         ],
         "totalObligatedAmountHmgp": [
           "add_history",
-          "build_covid"
+          "build_covid",
+          "build_briefing"
         ],
         "totalAmountIhpApproved": [
           "add_history",
-          "build_covid"
+          "build_covid",
+          "build_briefing"
         ],
         "totalAmountHaApproved": [
           "add_history",
-          "build_covid"
+          "build_covid",
+          "build_briefing"
         ],
         "totalAmountOnaApproved": [
           "add_history",
-          "build_covid"
+          "build_covid",
+          "build_briefing"
         ],
         "totalNumberIaApproved": [
           "add_history",
-          "build_covid"
+          "build_covid",
+          "build_briefing"
         ]
       },
       "columnsDeclaredUnfound": [],
@@ -170,29 +179,34 @@
           "build_county_map",
           "build_national",
           "build_request_dates",
-          "build_disaster_designations"
+          "build_disaster_designations",
+          "build_briefing"
         ],
         "declarationDate": [
           "build_declared",
           "build_national",
-          "build_request_dates"
+          "build_request_dates",
+          "build_briefing"
         ],
         "declarationTitle": [
           "add_history",
           "build_national",
-          "build_request_dates"
+          "build_request_dates",
+          "build_briefing"
         ],
         "incidentType": [
           "enrich",
           "add_history",
           "build_county_map",
           "build_national",
-          "build_request_dates"
+          "build_request_dates",
+          "build_briefing"
         ],
         "incidentBeginDate": [
           "add_history",
           "build_national",
-          "build_request_dates"
+          "build_request_dates",
+          "build_briefing"
         ],
         "incidentEndDate": [
           "add_history",
@@ -208,11 +222,13 @@
           "build_county_map",
           "build_national",
           "build_request_dates",
-          "build_disaster_designations"
+          "build_disaster_designations",
+          "build_briefing"
         ],
         "region": [
           "enrich",
-          "build_request_dates"
+          "build_request_dates",
+          "build_briefing"
         ],
         "fipsCountyCode": [
           "add_history",
@@ -300,7 +316,8 @@
           "build_recent",
           "build_newsreel",
           "build_covid",
-          "build_planner_applicants"
+          "build_planner_applicants",
+          "build_briefing"
         ],
         "county": [
           "build_recent",
@@ -317,12 +334,14 @@
           "build_county_byyear",
           "build_recent",
           "build_newsreel",
-          "build_planner_applicants"
+          "build_planner_applicants",
+          "build_briefing"
         ],
         "lastObligationDate": [
           "build_county_byyear",
           "build_recent",
-          "build_newsreel"
+          "build_newsreel",
+          "build_briefing"
         ]
       },
       "columnsDeclaredUnfound": [
@@ -1258,15 +1277,16 @@
       "name": "scripts/build_newsreel.py",
       "runtime": "offline",
       "schedule": ".github/workflows/refresh-daily.yml",
-      "method": "Latest N + biggest-in-6mo obligations for the two programs that carry a per-item obligation date (PA + HM).",
+      "method": "Latest N + biggest-in-6mo obligations for the programs with a per-item obligation date (PA + HM §404 + §406 mitigationAmount), NATIONAL scope; COVID excluded via the briefing.json covid dn set (live Biological-dn fallback).",
       "reads": [
         "publicAssistanceFundedProjectsDetails",
-        "hazardMitigationAssistanceProjects"
+        "hazardMitigationAssistanceProjects",
+        "briefing.json"
       ],
       "writes": [
         "newsreel.json"
       ],
-      "description": "Builds newsreel.json: the per-program 'latest obligations' reel (PA + Hazard Mitigation), Region 5, COVID excluded.",
+      "description": "Builds newsreel.json: the per-program 'latest obligations' strips (PA + Hazard Mitigation + §406), national, COVID excluded.",
       "links": [
         "scripts/build_newsreel.py"
       ]
@@ -1484,9 +1504,42 @@
       "links": [
         "scripts/build_disaster_designations.py"
       ]
+    },
+    {
+      "id": "build_briefing",
+      "name": "scripts/build_briefing.py",
+      "runtime": "offline",
+      "schedule": ".github/workflows/pages.yml",
+      "method": "One canonical national per-disaster ledger (DR+EM+FM, all history): FemaWebDisasterSummaries costs (Cat Z = remainder) joined to deduped DisasterDeclarationsSummaries identity/region, + a trailing-12-month per-state monthly PA obligation-activity series. Every rollup is derived client-side from the rows, so units sum to wholes by construction; unmatched cost rows conserved in the audit.",
+      "reads": [
+        "femaWebDisasterSummaries",
+        "disasterDeclarationsSummaries",
+        "publicAssistanceFundedProjectsDetails"
+      ],
+      "writes": [
+        "briefing.json"
+      ],
+      "description": "Builds briefing.json: the national disaster ledger + activity series behind the scope-aware Briefing (Newsreel) view.",
+      "links": [
+        "scripts/build_briefing.py",
+        "docs/briefing-plan.md"
+      ]
     }
   ],
   "artifacts": [
+    {
+      "id": "briefing.json",
+      "name": "data/briefing.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "National briefing ledger (~5.2K DR/EM/FM declarations, all history): identity + region + PA total/A-B/C-G (Cat Z derivable) + IHP HA/ONA + HMGP + IA registrations + COVID/tribal flags, plus a trailing-12-month per-state monthly PA obligation-activity series and a conservation audit. Lazily fetched by the Briefing (Newsreel) view.",
+      "deprecated": false,
+      "links": [
+        "data/briefing.json"
+      ],
+      "producedBy": [
+        "build_briefing"
+      ]
+    },
     {
       "id": "context.json",
       "name": "data/context.json",
@@ -1838,12 +1891,13 @@
     },
     {
       "id": "newsreel",
-      "name": "Newsreel",
+      "name": "Briefing (Newsreel)",
       "location": "index.html#view-newsreel",
       "reads": [
-        "newsreel.json"
+        "newsreel.json",
+        "briefing.json"
       ],
-      "description": "The 'latest obligations' reel for the two programs with a per-item obligation date (PA + Hazard Mitigation).",
+      "description": "The scope-aware Briefing: national / FEMA region / state+territory article — lede, live+baked obligation strips (PA + HM + §406), declaration history timeline + ledger, and PA composition incl. Cat Z with on-screen reconciliation. COVID toggle, default excluded.",
       "links": [
         "index.html"
       ]
