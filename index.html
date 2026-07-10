@@ -2811,7 +2811,7 @@ function newsCard(p){
    A-B/C-G/Z reconciling on-screen + IHP HA/ONA). */
 let BRI=null,briPend=false,briScope="US",briCovid=false,briShowAll=false;
 const briStripsCache={};
-const B={dn:0,st:1,rg:2,it:3,dt:4,ti:5,bg:6,dc:7,pa:8,ab:9,cg:10,ihp:11,ha:12,ona:13,hmgp:14,regs:15,cv:16,tr:17};
+const B={dn:0,st:1,rg:2,it:3,dt:4,ti:5,bg:6,dc:7,pa:8,ab:9,cg:10,ihp:11,ha:12,ona:13,hmgp:14,regs:15,cv:16,tr:17,pc:18,pf:19,pn:20};
 function briFind(dn){return BRI?BRI.d.find(r=>r[B.dn]===+dn):null;}
 function briCovidSet(){if(!BRI)return new Set();if(!BRI._cv)BRI._cv=new Set(BRI.d.filter(r=>r[B.cv]).map(r=>r[B.dn]));return BRI._cv;}
 function briAbbr(name){if(!BRI)return name;if(!BRI._n2a){BRI._n2a={};Object.entries(BRI.states).forEach(([k,v])=>BRI._n2a[v.n]=k);}return BRI._n2a[name]||name;}
@@ -2920,7 +2920,13 @@ function briComposition(rows){
     <p style="margin-top:8px;font-size:13px"><b>Reconciliation:</b> ${fmtMoneyFull(ab)} (A–B) + ${fmtMoneyFull(cg)} (C–G) + ${fmtMoneyFull(z)} (Z) = <b>${fmtMoneyFull(paT)}</b> PA obligated — exact, by construction (Z is the source's remainder).${negz?` <span class="thr-sub">${fmtNum(negz)} of ${fmtNum(cost.length)} underlying disasters currently post A–B + C–G above their PA total (source-data timing); the remainder absorbs it, nothing is hidden.</span>`:""}</p>`:"";
   const ihpSec=ihp>0?`<div class="sec-h" style="margin-top:18px">IHP approved — households<span class="src">HA + ONA</span></div>
     <p style="font-size:13px">${fmtMoneyFull(ha)} Housing (HA) + ${fmtMoneyFull(ona)} Other Needs (ONA)${Math.abs(ihpGap)>0?` + ${fmtMoneyFull(ihpGap)} unsplit in source`:""} = <b>${fmtMoneyFull(ihp)}</b> IHP approved.</p>`:"";
-  return paSec+ihpSec+`<p class="thr-sub" style="margin-top:8px">Federal share only — the 10–25% state/local match is not in this dataset (planned follow-up). PA is <b>obligated</b>; IHP is <b>approved</b> — different accounting stages, never conflated.</p>`;
+  // phase 2b: the non-federal bill — project-level sums (PA Details), an ESTIMATE
+  const pj=rows.filter(r=>r[B.pc]!=null);
+  const pc=pj.reduce((s,r)=>s+(r[B.pc]||0),0),pf=pj.reduce((s,r)=>s+(r[B.pf]||0),0),nf=pc-pf;
+  const nfSec=(pj.length&&pc>0)?`<div class="sec-h" style="margin-top:18px">The non-federal bill — implied state &amp; local share<span class="src">PA Details · estimate</span></div>
+    <p style="font-size:13px">${fmtMoneyFull(pc)} estimated total project cost − ${fmtMoneyFull(pf)} federal share obligated = <b>${fmtMoneyFull(nf)}</b> implied non-federal share, across <b>${fmtNum(pj.length)}</b> disaster${pj.length===1?"":"s"} with project-level data${pj.length<cost.length?` (${fmtNum(cost.length-pj.length)} of the ${fmtNum(cost.length)} costed disasters have none — mostly pre-1998)`:""}.</p>
+    <p class="thr-sub">An <b>estimate</b>, not an invoice: project costs reconcile for years, and the project-level federal sum here (${fmtMoney(pf)}) won't exactly match the authoritative summary total above (${fmtMoney(paT)}) — different datasets, refreshed on different days. The summary figure governs; this line answers "roughly what's the state/local match?"</p>`:"";
+  return paSec+ihpSec+nfSec+`<p class="thr-sub" style="margin-top:8px">Summary figures are federal share only. PA is <b>obligated</b>; IHP is <b>approved</b> — different accounting stages, never conflated.</p>`;
 }
 /* ---- chapter 1 strips: baked national / live scoped ---- */
 function briStripCards(P){return (P.PA?newsCard(P.PA):"")+(P.HM?newsCard(P.HM):"")+(P.M406?newsCard(P.M406):"");}
@@ -3899,7 +3905,9 @@ function renderBriefingDetail(r){
         +row("Housing (HA) / Other Needs (ONA)",`${fmtMoneyFull(r[B.ha]||0)} / ${fmtMoneyFull(r[B.ona]||0)}`,1):"")
       +(r[B.hmgp]>0?row("Hazard Mitigation (§404 HMGP) obligated",fmtMoneyFull(r[B.hmgp])):"")
       +(r[B.regs]>0?row("IA registrations approved",fmtNum(r[B.regs])):"")
-      +`<p class="thr-sub" style="margin-top:8px">A–B + C–G + Z = PA total, exactly (Z is the source's remainder). Federal share only. PA is <b>obligated</b>; IHP is <b>approved</b>.</p>`;
+      +(r[B.pc]!=null&&r[B.pc]>0?row(`Implied non-federal share <span class="thr-sub">(estimate — the state/local match)</span>`,`<b>${fmtMoneyFull((r[B.pc]||0)-(r[B.pf]||0))}</b>`)
+        +row(`<span class="thr-sub">= ${fmtMoneyFull(r[B.pc])} est. total project cost − ${fmtMoneyFull(r[B.pf]||0)} federal obligated, over ${fmtNum(r[B.pn]||0)} PA projects (project-level data; won't exactly match the summary total above)</span>`,"",1):"")
+      +`<p class="thr-sub" style="margin-top:8px">A–B + C–G + Z = PA total, exactly (Z is the source's remainder). Summary figures are federal share only. PA is <b>obligated</b>; IHP is <b>approved</b>.</p>`;
   // request→decision context harvested from the Daily Ops Brief archive, when available (same block as the national modal)
   const _rq=(typeof REQDATES!=="undefined"&&REQDATES&&REQDATES.byDisaster)?REQDATES.byDisaster[String(r[B.dn])]:null;
   const rqSec=(_rq&&_rq.requestDate)?`<div class="sec-h" style="margin-top:22px">Request → decision<span class="src">Daily Ops Brief · unofficial</span></div>

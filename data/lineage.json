@@ -317,7 +317,8 @@
           "build_newsreel",
           "build_covid",
           "build_planner_applicants",
-          "build_briefing"
+          "build_briefing",
+          "build_nonfed"
         ],
         "county": [
           "build_recent",
@@ -335,7 +336,8 @@
           "build_recent",
           "build_newsreel",
           "build_planner_applicants",
-          "build_briefing"
+          "build_briefing",
+          "build_nonfed"
         ],
         "lastObligationDate": [
           "build_county_byyear",
@@ -1514,7 +1516,8 @@
       "reads": [
         "femaWebDisasterSummaries",
         "disasterDeclarationsSummaries",
-        "publicAssistanceFundedProjectsDetails"
+        "publicAssistanceFundedProjectsDetails",
+        "nonfed.json"
       ],
       "writes": [
         "briefing.json"
@@ -1522,6 +1525,24 @@
       "description": "Builds briefing.json: the national disaster ledger + activity series behind the scope-aware Briefing (Newsreel) view.",
       "links": [
         "scripts/build_briefing.py",
+        "docs/briefing-plan.md"
+      ]
+    },
+    {
+      "id": "build_nonfed",
+      "name": "scripts/build_nonfed.py",
+      "runtime": "offline",
+      "schedule": ".github/workflows/refresh-weekly.yml",
+      "method": "Full national PublicAssistanceFundedProjectsDetails sweep (~820K rows, dn-range chunked + resumable cache) aggregated per disaster: Σ projectAmount + Σ federalShareObligated + project count. impliedNonFederal = the difference (the state/local match, an ESTIMATE). Row-conservation audit vs the dataset's $inlinecount.",
+      "reads": [
+        "publicAssistanceFundedProjectsDetails"
+      ],
+      "writes": [
+        "nonfed.json"
+      ],
+      "description": "Builds nonfed.json: per-disaster project-level cost/federal sums for the implied non-federal share (Briefing phase 2b).",
+      "links": [
+        "scripts/build_nonfed.py",
         "docs/briefing-plan.md"
       ]
     }
@@ -1732,6 +1753,19 @@
       ],
       "producedBy": [
         "build_nfip"
+      ]
+    },
+    {
+      "id": "nonfed.json",
+      "name": "data/nonfed.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Per-disaster project-level PA sums (estimated total cost, federal obligated, project count) from a full national PA Details sweep — the basis of the Briefing's implied non-federal share (estimate). Joined into briefing.json by build_briefing.py; not fetched directly by the browser.",
+      "deprecated": false,
+      "links": [
+        "data/nonfed.json"
+      ],
+      "producedBy": [
+        "build_nonfed"
       ]
     },
     {

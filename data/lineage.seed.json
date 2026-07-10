@@ -937,7 +937,8 @@
    "reads": [
     "femaWebDisasterSummaries",
     "disasterDeclarationsSummaries",
-    "publicAssistanceFundedProjectsDetails"
+    "publicAssistanceFundedProjectsDetails",
+    "nonfed.json"
    ],
    "writes": [
     "briefing.json"
@@ -945,6 +946,24 @@
    "description": "Builds briefing.json: the national disaster ledger + activity series behind the scope-aware Briefing (Newsreel) view.",
    "links": [
     "scripts/build_briefing.py",
+    "docs/briefing-plan.md"
+   ]
+  },
+  {
+   "id": "build_nonfed",
+   "name": "scripts/build_nonfed.py",
+   "runtime": "offline",
+   "schedule": ".github/workflows/refresh-weekly.yml",
+   "method": "Full national PublicAssistanceFundedProjectsDetails sweep (~820K rows, dn-range chunked + resumable cache) aggregated per disaster: Σ projectAmount + Σ federalShareObligated + project count. impliedNonFederal = the difference (the state/local match, an ESTIMATE). Row-conservation audit vs the dataset's $inlinecount.",
+   "reads": [
+    "publicAssistanceFundedProjectsDetails"
+   ],
+   "writes": [
+    "nonfed.json"
+   ],
+   "description": "Builds nonfed.json: per-disaster project-level cost/federal sums for the implied non-federal share (Briefing phase 2b).",
+   "links": [
+    "scripts/build_nonfed.py",
     "docs/briefing-plan.md"
    ]
   }
@@ -1168,6 +1187,9 @@
   },
   "briefing.json": {
    "description": "National briefing ledger (~5.2K DR/EM/FM declarations, all history): identity + region + PA total/A-B/C-G (Cat Z derivable) + IHP HA/ONA + HMGP + IA registrations + COVID/tribal flags, plus a trailing-12-month per-state monthly PA obligation-activity series and a conservation audit. Lazily fetched by the Briefing (Newsreel) view."
+  },
+  "nonfed.json": {
+   "description": "Per-disaster project-level PA sums (estimated total cost, federal obligated, project count) from a full national PA Details sweep — the basis of the Briefing's implied non-federal share (estimate). Joined into briefing.json by build_briefing.py; not fetched directly by the browser."
   }
  }
 }

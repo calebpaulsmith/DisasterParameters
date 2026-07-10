@@ -1,0 +1,66 @@
+name: Refresh weekly data
+
+# Rebuilds the HEAVY, slow-moving snapshots weekly and commits them to main when they
+# change. Weekly (not daily) because these figures reconcile over months — a daily
+# ~820K-row national sweep would re-fetch near-identical data.
+#
+# Scope:
+#   - data/nonfed.json   (build_nonfed.py)  — per-disaster project-level sums (implied
+#     non-federal share; full national PublicAssistanceFundedProjectsDetails sweep,
+#     ~90-120 requests). The DAILY briefing rebuild joins this committed snapshot,
+#     so the ledger's pc/pf/pn columns refresh the next morning automatically.
+#   - data/briefing.json (build_briefing.py) — rebuilt here too so the fresh nonfed
+#     lands in the ledger the same run rather than waiting for the daily.
+#   - data/manifest.json (build_manifest.py) — freshness stamp.
+
+on:
+  schedule:
+    - cron: "37 11 * * 2"   # Tuesdays 11:37 UTC (off-peak, staggered off the daily's 10:17)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-weekly
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Best-effort: an OpenFEMA hiccup keeps the committed snapshot. build_nonfed is
+      # resumable, but the Actions runner is ephemeral — a failed run just retries next week.
+      - name: Rebuild non-federal share sums (national PA Details sweep)
+        run: python3 scripts/build_nonfed.py || echo "nonfed refresh failed — keeping committed snapshot"
+
+      - name: Rebuild briefing ledger (joins fresh nonfed)
+        run: python3 scripts/build_briefing.py || echo "briefing refresh failed — keeping committed snapshot"
+
+      - name: Rebuild freshness manifest
+        run: python3 scripts/build_manifest.py
+
+      - name: Verify lineage (Guardian)
+        run: python3 scripts/verify_lineage.py
+
+      - name: Commit on change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/nonfed.json data/briefing.json data/manifest.json
+          if git diff --cached --quiet; then
+            echo "no data changes — nothing to commit"
+          else
+            git commit -m "Weekly data refresh (nonfed + briefing + manifest)"
+            git push
+          fi
