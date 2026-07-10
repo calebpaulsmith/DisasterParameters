@@ -155,7 +155,12 @@ Top to bottom, each chapter = one chart + one sentence + 3–5 rows, tap for dep
   minimal national modal). ← the centerpiece.
 - **P2b — Non-federal share**: offline PA Details aggregation → per-disaster
   state/local match.
-- **P3 — Recipients + Watch** (Ch 4–5).
+- **P3 — Recipients + Watch** (Ch 4–5). BUILT: "Who is getting it" (largest PA
+  applicants live per scope, applicant×disaster grain with counties merged,
+  obligated≠out-for-bid caveat) + "What to watch" (HMGP§404/PA and §406-share
+  posture tiles vs the national baseline, recent-disaster lifecycle list with the
+  A-B:C-G emergency-vs-rebuilding bar and a "still counting" flag). §406 sums ride
+  the nonfed sweep (pm column).
 - **P4 — Region board + national board** (comparative lenses).
 - Every phase: update `data/lineage.seed.json` (append-only) + rebuild/verify
   lineage (Guardian), update `data/manifest.json` build, and wire any new baked

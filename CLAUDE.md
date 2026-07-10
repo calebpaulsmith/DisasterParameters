@@ -331,10 +331,14 @@ design rationale behind the NFIP and refresh items.
   briefing modal tier (any US disaster → cost breakdown + verify links). P2b BUILT: implied
   non-federal share (scripts/build_nonfed.py national PA Details sweep → nonfed.json →
   briefing pc/pf/pn columns; composition chapter "non-federal bill" line + per-disaster modal
-  row, both labeled ESTIMATE with the summary figure authoritative; weekly refresh). See
-  scripts/build_briefing.py + data/briefing.json in the layout above. REMAINING: P3
-  recipients chapter (PA applicant Summaries, 195K rows,
-  fetched live per scope — never baked) + watch chapter (§406/PA uptake, A-B:C-G lifecycle),
+  row, both labeled ESTIMATE with the summary figure authoritative; weekly refresh). P3 BUILT:
+  recipients chapter ("Who is getting it" — largest PA applicants live per scope from
+  PublicAssistanceFundedProjectsSummaries v1, applicant×disaster grouping with counties merged,
+  obligated≠out-for-bid caveat, COVID always excluded) + watch chapter ("What to watch" —
+  HMGP§404/PA + §406-share-of-project-cost posture tiles vs the national baseline (pm column =
+  Σ mitigationAmount from the nonfed sweep) and a recent-disasters lifecycle list with the
+  Cat A-B:C-G emergency-vs-rebuilding bar + "still counting" flag). See
+  scripts/build_briefing.py + data/briefing.json in the layout above. REMAINING:
   P4 region/national comparative boards (state small-multiples, per-capita vs national
   distribution).
 - **Refresh failure alerting.** The daily/monthly refresh workflows are best-effort + commit-

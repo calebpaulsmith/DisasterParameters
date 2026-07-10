@@ -169,7 +169,8 @@ def main():
         else:
             costs = [None] * 8
         nf = nonfed.get(str(dn))
-        proj = [nf[0], nf[1], nf[2]] if nf else [None, None, None]
+        # pc/pf/pn/pm: est. total project cost, federal obligated, project count, §406 mitigation Σ
+        proj = [nf[0], nf[1], nf[2], (nf[3] if len(nf) > 3 else None)] if nf else [None, None, None, None]
         rows.append([dn, e["st"], e["rg"], idx(it_dict, e["it"] or "—"), idx(dt_dict, e["dt"]),
                      e["ti"][:90], e["bg"], e["dc"], *costs, covid, 1 if e["tr"] else 0, *proj])
 
@@ -218,7 +219,7 @@ def main():
                 "obligation activity incl. downward adjustments). Not endorsed by FEMA.",
         "cols": ["dn", "st", "rg", "it", "dt", "title", "begin", "declared",
                  "paTotal", "paAB", "paCG", "ihpTotal", "ihpHA", "ihpONA", "hmgp", "iaRegs",
-                 "covid", "tribal", "pc", "pf", "pn"],
+                 "covid", "tribal", "pc", "pf", "pn", "pm"],
         "it": it_dict, "dt": dt_dict, "states": states, "d": rows,
         "activity": {"cutoff": cutoff, "months": months, "byState": act},
         "audit": {

@@ -954,7 +954,7 @@
    "name": "scripts/build_nonfed.py",
    "runtime": "offline",
    "schedule": ".github/workflows/refresh-weekly.yml",
-   "method": "Full national PublicAssistanceFundedProjectsDetails sweep (~820K rows, dn-range chunked + resumable cache) aggregated per disaster: Σ projectAmount + Σ federalShareObligated + project count. impliedNonFederal = the difference (the state/local match, an ESTIMATE). Row-conservation audit vs the dataset's $inlinecount.",
+   "method": "Full national PublicAssistanceFundedProjectsDetails sweep (~820K rows, dn-range chunked + resumable cache) aggregated per disaster: Σ projectAmount + Σ federalShareObligated + project count + Σ mitigationAmount (§406). impliedNonFederal = the difference (the state/local match, an ESTIMATE). Row-conservation audit vs the dataset's $inlinecount.",
    "reads": [
     "publicAssistanceFundedProjectsDetails"
    ],
@@ -1050,9 +1050,12 @@
    "location": "index.html#view-newsreel",
    "reads": [
     "newsreel.json",
-    "briefing.json"
+    "briefing.json",
+    "publicAssistanceFundedProjectsDetails",
+    "hazardMitigationAssistanceProjects",
+    "publicAssistanceFundedProjectsSummaries"
    ],
-   "description": "The scope-aware Briefing: national / FEMA region / state+territory article — lede, live+baked obligation strips (PA + HM + §406), declaration history timeline + ledger, and PA composition incl. Cat Z with on-screen reconciliation. COVID toggle, default excluded.",
+   "description": "The scope-aware Briefing: national / FEMA region / state+territory article — lede, live+baked obligation strips (PA + HM + §406), declaration history timeline + ledger, and PA composition incl. Cat Z with on-screen reconciliation. COVID toggle, default excluded. Region/state strips + the recipients chapter fetch PA Details / HMA Projects / PA Summaries live per scope; the watch chapter reads lifecycle + §406/HMGP posture from the baked ledger.",
    "links": [
     "index.html"
    ]
@@ -1189,7 +1192,7 @@
    "description": "National briefing ledger (~5.2K DR/EM/FM declarations, all history): identity + region + PA total/A-B/C-G (Cat Z derivable) + IHP HA/ONA + HMGP + IA registrations + COVID/tribal flags, plus a trailing-12-month per-state monthly PA obligation-activity series and a conservation audit. Lazily fetched by the Briefing (Newsreel) view."
   },
   "nonfed.json": {
-   "description": "Per-disaster project-level PA sums (estimated total cost, federal obligated, project count) from a full national PA Details sweep — the basis of the Briefing's implied non-federal share (estimate). Joined into briefing.json by build_briefing.py; not fetched directly by the browser."
+   "description": "Per-disaster project-level PA sums (estimated total cost, federal obligated, project count, §406 mitigation Σ) from a full national PA Details sweep — the basis of the Briefing's implied non-federal share (estimate). Joined into briefing.json by build_briefing.py; not fetched directly by the browser."
   }
  }
 }
