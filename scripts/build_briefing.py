@@ -64,6 +64,24 @@ STATE_NAMES = {
     "PW":"Palau (COFA)",
 }
 
+# Per-capita denominator for the P4 comparative boards. TODAY'S population (a
+# labeled simplification for all-time per-capita figures). Sources: Census Bureau
+# Vintage 2024 state estimates (states + DC + PR, rounded to 1,000); 2020 Island
+# Areas Census (GU/VI/AS/MP); UN 2021 estimates (COFA freely associated states).
+STATE_POP = {
+    "AL":5157000,"AK":740000,"AZ":7582000,"AR":3088000,"CA":39431000,"CO":5957000,
+    "CT":3675000,"DE":1051000,"DC":702000,"FL":23372000,"GA":11180000,"HI":1446000,
+    "ID":2001000,"IL":12710000,"IN":6924000,"IA":3241000,"KS":2970000,"KY":4588000,
+    "LA":4597000,"ME":1405000,"MD":6263000,"MA":7136000,"MI":10140000,"MN":5793000,
+    "MS":2943000,"MO":6245000,"MT":1137000,"NE":2005000,"NV":3267000,"NH":1409000,
+    "NJ":9500000,"NM":2130000,"NY":19867000,"NC":11046000,"ND":796000,"OH":11883000,
+    "OK":4095000,"OR":4272000,"PA":13078000,"RI":1112000,"SC":5478000,"SD":924000,
+    "TN":7227000,"TX":31290000,"UT":3504000,"VT":648000,"VA":8812000,"WA":7958000,
+    "WV":1769000,"WI":5960000,"WY":587000,
+    "PR":3203000,"GU":154000,"VI":87000,"AS":50000,"MP":47000,
+    "FM":105000,"MH":42000,"PW":18000,
+}
+
 
 def get(url, retries=4):
     req = urllib.request.Request(url, headers={"User-Agent": "DisasterParameters/briefing"})
@@ -186,7 +204,8 @@ def main():
     for r in rows:
         if r[1]:
             st_reg.setdefault(r[1], Counter())[r[2]] += 1
-    states = {st: {"n": STATE_NAMES.get(st, st), "r": (c.most_common(1)[0][0] if c else None)}
+    states = {st: {"n": STATE_NAMES.get(st, st), "r": (c.most_common(1)[0][0] if c else None),
+                   "p": STATE_POP.get(st)}
               for st, c in sorted(st_reg.items())}
 
     # ---- 5. trailing-12-month obligation activity, monthly per state ----

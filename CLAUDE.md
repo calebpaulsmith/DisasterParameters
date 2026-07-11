@@ -338,9 +338,14 @@ design rationale behind the NFIP and refresh items.
   HMGP§404/PA + §406-share-of-project-cost posture tiles vs the national baseline (pm column =
   Σ mitigationAmount from the nonfed sweep) and a recent-disasters lifecycle list with the
   Cat A-B:C-G emergency-vs-rebuilding bar + "still counting" flag). See
-  scripts/build_briefing.py + data/briefing.json in the layout above. REMAINING:
-  P4 region/national comparative boards (state small-multiples, per-capita vs national
-  distribution).
+  scripts/build_briefing.py + data/briefing.json in the layout above. P4 BUILT: "How it compares"
+  chapter — per-capita distribution strip (all 59 jurisdictions as dots on a log scale,
+  scope highlighted, per-state percentile line at state scope; populations baked into
+  briefing.json states.p, Census Vintage-2024/Island-Areas-2020/UN-COFA, a labeled
+  today's-population simplification), a league table ranked by all-time PA/capita
+  (declarations · PA · PA/capita · HMGP/PA · §406 share · 12-mo activity, US baseline row,
+  tap a row to RE-SCOPE the whole briefing), and shared-y-scale monthly-activity small
+  multiples at region scope. All five plan phases complete.
 - **Refresh failure alerting.** The daily/monthly refresh workflows are best-effort + commit-
   on-change; add an Actions failure notification so a silently-failing pull (stale data looking
   fresh) is surfaced.

@@ -1055,7 +1055,7 @@
     "hazardMitigationAssistanceProjects",
     "publicAssistanceFundedProjectsSummaries"
    ],
-   "description": "The scope-aware Briefing: national / FEMA region / state+territory article — lede, live+baked obligation strips (PA + HM + §406), declaration history timeline + ledger, and PA composition incl. Cat Z with on-screen reconciliation. COVID toggle, default excluded. Region/state strips + the recipients chapter fetch PA Details / HMA Projects / PA Summaries live per scope; the watch chapter reads lifecycle + §406/HMGP posture from the baked ledger.",
+   "description": "The scope-aware Briefing: national / FEMA region / state+territory article — lede, live+baked obligation strips (PA + HM + §406), declaration history timeline + ledger, and PA composition incl. Cat Z with on-screen reconciliation. COVID toggle, default excluded. Region/state strips + the recipients chapter fetch PA Details / HMA Projects / PA Summaries live per scope; the watch chapter reads lifecycle + §406/HMGP posture from the baked ledger. The comparative chapter (per-capita distribution + league table + small multiples) is derived client-side from briefing.json (incl. baked states.p populations).",
    "links": [
     "index.html"
    ]
