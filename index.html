@@ -2811,7 +2811,7 @@ function newsCard(p){
    A-B/C-G/Z reconciling on-screen + IHP HA/ONA). */
 let BRI=null,briPend=false,briScope="US",briCovid=false,briShowAll=false;
 const briStripsCache={};
-const B={dn:0,st:1,rg:2,it:3,dt:4,ti:5,bg:6,dc:7,pa:8,ab:9,cg:10,ihp:11,ha:12,ona:13,hmgp:14,regs:15,cv:16,tr:17,pc:18,pf:19,pn:20};
+const B={dn:0,st:1,rg:2,it:3,dt:4,ti:5,bg:6,dc:7,pa:8,ab:9,cg:10,ihp:11,ha:12,ona:13,hmgp:14,regs:15,cv:16,tr:17,pc:18,pf:19,pn:20,pm:21};
 function briFind(dn){return BRI?BRI.d.find(r=>r[B.dn]===+dn):null;}
 function briCovidSet(){if(!BRI)return new Set();if(!BRI._cv)BRI._cv=new Set(BRI.d.filter(r=>r[B.cv]).map(r=>r[B.dn]));return BRI._cv;}
 function briAbbr(name){if(!BRI)return name;if(!BRI._n2a){BRI._n2a={};Object.entries(BRI.states).forEach(([k,v])=>BRI._n2a[v.n]=k);}return BRI._n2a[name]||name;}
@@ -2938,7 +2938,7 @@ async function briFetchStrips(){
   const PAU="https://www.fema.gov/api/open/v2/PublicAssistanceFundedProjectsDetails",HMU="https://www.fema.gov/api/open/v4/HazardMitigationAssistanceProjects";
   const paSel="disasterNumber,stateAbbreviation,applicationTitle,damageCategoryDescrip,county,federalShareObligated,lastObligationDate";
   const mSel=paSel+",mitigationAmount",hmSel="disasterNumber,state,programArea,projectType,subrecipient,recipient,county,federalShareObligated,initialObligationDate";
-  const q=async(base,flt,ob,s,k)=>{const r=await fetch(`${base}?$filter=${encodeURIComponent(flt)}&$orderby=${encodeURIComponent(ob)}&$select=${encodeURIComponent(s)}&$top=40&$format=json&$metadata=off`);if(!r.ok)throw 0;return (await r.json())[k]||[];};
+  const q=async(base,flt,ob,s,k)=>{const r=await fetch(`${base}?$filter=${encodeURIComponent(flt)}&$orderby=${encodeURIComponent(ob)}&$select=${encodeURIComponent(s)}&$top=40&$format=json&$metadata=off`,{signal:AbortSignal.timeout(12000)});if(!r.ok)throw 0;return (await r.json())[k]||[];};
   const [paL,paB,hmL,hmB,mL,mB]=await Promise.all([
     q(PAU,orPA+"incidentType ne 'Biological'","lastObligationDate desc",paSel,"PublicAssistanceFundedProjectsDetails"),
     q(PAU,`lastObligationDate ge '${cut}' and ${orPA}incidentType ne 'Biological'`,"federalShareObligated desc",paSel,"PublicAssistanceFundedProjectsDetails"),
@@ -2971,7 +2971,7 @@ async function briFetchRecipients(){
   const flt=orST+"incidentType ne 'Biological'";
   const sel="disasterNumber,state,county,applicantName,educationApplicant,numberOfProjects,federalObligatedAmount";
   const u=`https://www.fema.gov/api/open/v1/PublicAssistanceFundedProjectsSummaries?$filter=${encodeURIComponent(flt)}&$orderby=${encodeURIComponent("federalObligatedAmount desc")}&$select=${encodeURIComponent(sel)}&$top=60&$inlinecount=allpages&$format=json`;
-  const r=await fetch(u); if(!r.ok)throw 0; const j=await r.json();
+  const r=await fetch(u,{signal:AbortSignal.timeout(12000)}); if(!r.ok)throw 0; const j=await r.json();
   const rows=j.PublicAssistanceFundedProjectsSummaries||[];
   // group by applicant × disaster (source grain is applicant × county × disaster — counties merged, labeled)
   const g={};
