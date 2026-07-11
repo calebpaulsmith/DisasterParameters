@@ -1,6 +1,6 @@
 # The Briefing — evolving the Newsreel into a scope-aware "charted news article"
 
-Status: PLANNED (phase 1 not started). Owner decisions locked 2026-07-08:
+Status: ALL PHASES BUILT (P1, P2, P2b, P3, P4). Owner decisions locked 2026-07-08:
 evolve the existing **Newsreel** tab (no new tab), build the **State Briefing**
 first, national scope includes **all states + territories + tribal declarations**.
 
@@ -161,7 +161,11 @@ Top to bottom, each chapter = one chart + one sentence + 3–5 rows, tap for dep
   posture tiles vs the national baseline, recent-disaster lifecycle list with the
   A-B:C-G emergency-vs-rebuilding bar and a "still counting" flag). §406 sums ride
   the nonfed sweep (pm column).
-- **P4 — Region board + national board** (comparative lenses).
+- **P4 — Region board + national board** (comparative lenses). BUILT: the "How it
+  compares" chapter at every scope — log-scale per-capita distribution strip (scope
+  states highlighted; percentile callout at state scope), PA/capita league table with
+  the US baseline row and tap-to-rescope, and shared-scale monthly-activity small
+  multiples at region scope. Populations baked as states.p (labeled vintage).
 - Every phase: update `data/lineage.seed.json` (append-only) + rebuild/verify
   lineage (Guardian), update `data/manifest.json` build, and wire any new baked
   file into the pages.yml best-effort refresh if cheap (the rollup pull is one

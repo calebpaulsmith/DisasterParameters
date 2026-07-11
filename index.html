@@ -3023,6 +3023,80 @@ function briWatch(rows){
     +(list||`<span class="thr-sub">No DR/EM declarations in the last 3 years in this scope.</span>`)
     +`<p class="thr-sub" style="margin-top:8px">Last 3 years (FM excluded), newest first. The bar is <span style="color:var(--gold,#b58712)">Cat A–B emergency</span> vs <span style="color:var(--navy)">Cat C–G permanent</span> share of PA so far — emergency-heavy means the recovery is young; permanent-heavy means rebuilding is underway. <b>Still counting</b> = projects funded but obligations not yet posted. Recent totals under-count by construction.</p>`;
 }
+/* ---- chapter 6 (P4): how it compares — the regional-leadership lens ---- */
+let briCmpAll=false;
+function briCmpStats(){ // per-state aggregates under the current COVID setting — derived from the same rows as everything else
+  const rows=briCovid?BRI.d:BRI.d.filter(r=>!r[B.cv]);
+  const by={};
+  rows.forEach(r=>{const st=r[B.st]; if(!st)return; const e=by[st]=by[st]||{pa:0,n:0,hm:0,pm:0,pcost:0};
+    e.pa+=r[B.pa]||0; e.n++; e.hm+=r[B.hmgp]||0; e.pm+=r[B.pm]||0; e.pcost+=r[B.pc]||0;});
+  const a=BRI.activity||{}, out={};
+  Object.entries(by).forEach(([st,e])=>{
+    const s=BRI.states[st]||{};
+    let act=0; const m=a.byState&&a.byState[st];
+    if(m)m.forEach(x=>{act+=x[0]+(briCovid?x[1]:0);});
+    out[st]=Object.assign(e,{pop:s.p,percap:s.p?e.pa/s.p:null,act,name:s.n||st,rg:s.r});
+  });
+  return out;
+}
+function briCmpStrip(stats,hi){
+  const pts=Object.entries(stats).filter(([,v])=>v.percap!=null&&v.percap>=1);
+  if(pts.length<2)return "";
+  const mx=Math.max(...pts.map(([,v])=>v.percap));
+  const W=920,H=66,pl=16,pr=16,iw=W-pl-pr,cy=36;
+  const x=v=>pl+(Math.log10(Math.max(1,v))/Math.log10(Math.max(10,mx)))*iw;
+  let g="";
+  [10,100,1000,10000].filter(t=>t<=mx*1.15).forEach(t=>{g+=`<line x1="${x(t).toFixed(1)}" y1="20" x2="${x(t).toFixed(1)}" y2="48" stroke="#e7edf3"/><text x="${x(t).toFixed(1)}" y="60" font-size="9" fill="#8a94a6" text-anchor="middle">$${t>=1000?t/1000+"k":t}</text>`;});
+  pts.sort((a,b)=>a[1].percap-b[1].percap).forEach(([st,v])=>{
+    const isHi=hi.has(st);
+    g+=`<circle cx="${x(v.percap).toFixed(1)}" cy="${cy}" r="${isHi?6:3.5}" fill="${isHi?"var(--gold,#d5a022)":"var(--navy,#1a4480)"}" opacity="${isHi?1:0.4}" ${isHi?'stroke="var(--navy,#1a4480)" stroke-width="1.5"':""}><title>${esc(v.name)} — $${Math.round(v.percap).toLocaleString()}/capita all-time PA</title></circle>`;
+    if(isHi)g+=`<text x="${x(v.percap).toFixed(1)}" y="15" font-size="9.5" font-weight="700" fill="var(--navy)" text-anchor="middle">${st}</text>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${g}</svg>
+    <p class="thr-sub" style="margin-top:2px">Every state &amp; territory as a dot — all-time PA obligated per resident (<b>log scale</b>; today's population: Census Vintage-2024 / 2020 Island Areas). Hover any dot.</p>`;
+}
+function briCmpTable(stats,hi){
+  const all=Object.values(stats);
+  const usPa=all.reduce((s,v)=>s+v.pa,0),usPop=all.reduce((s,v)=>s+(v.pop||0),0);
+  const usHm=all.reduce((s,v)=>s+v.hm,0),usPm=all.reduce((s,v)=>s+v.pm,0),usPc=all.reduce((s,v)=>s+v.pcost,0),usAct=all.reduce((s,v)=>s+v.act,0),usN=all.reduce((s,v)=>s+v.n,0);
+  const pctS=(a,b)=>b>0?(a/b*100).toFixed(1)+"%":"—";
+  let entries=Object.entries(stats).filter(([st])=>hi.size?hi.has(st):true)
+    .sort((a,b)=>(b[1].percap||0)-(a[1].percap||0));
+  const total=entries.length, cut=!hi.size&&!briCmpAll;
+  if(cut)entries=entries.slice(0,12);
+  const tr=([st,v])=>`<tr class="clickable" data-briscope="${st}"><td><b style="color:var(--navy)">${st}</b> <span class="thr-sub">${esc(v.name)}</span></td><td style="text-align:right">${fmtNum(v.n)}</td><td style="text-align:right;white-space:nowrap">${fmtMoney(v.pa)}</td><td style="text-align:right;white-space:nowrap"><b>${v.percap!=null?"$"+Math.round(v.percap).toLocaleString():"—"}</b></td><td style="text-align:right">${pctS(v.hm,v.pa)}</td><td style="text-align:right">${pctS(v.pm,v.pcost)}</td><td style="text-align:right;white-space:nowrap">${fmtMoney(v.act)}</td></tr>`;
+  return `<div class="tablewrap" style="margin-top:12px"><table class="dis"><thead><tr><th>State</th><th style="text-align:right">Decl.</th><th style="text-align:right">PA obligated</th><th style="text-align:right">PA / capita</th><th style="text-align:right">HMGP/PA</th><th style="text-align:right">§406 share</th><th style="text-align:right">12-mo activity</th></tr></thead>
+    <tbody>${entries.map(tr).join("")}
+    <tr style="font-weight:700;background:#f4f7fb"><td>US <span class="thr-sub" style="font-weight:400">baseline</span></td><td style="text-align:right">${fmtNum(usN)}</td><td style="text-align:right">${fmtMoney(usPa)}</td><td style="text-align:right">${usPop?"$"+Math.round(usPa/usPop).toLocaleString():"—"}</td><td style="text-align:right">${pctS(usHm,usPa)}</td><td style="text-align:right">${pctS(usPm,usPc)}</td><td style="text-align:right">${fmtMoney(usAct)}</td></tr></tbody></table></div>
+    ${cut&&total>12?`<button class="gm-fulllink" data-bricmpexpand="1" style="margin-top:8px">Show all ${fmtNum(total)} states &amp; territories</button>`:(!hi.size&&briCmpAll?`<button class="gm-fulllink" data-bricmpexpand="1" style="margin-top:8px">Show top 12 only</button>`:"")}
+    <p class="thr-sub" style="margin-top:6px">Ranked by all-time PA per capita. Tap a row to re-scope the whole briefing to that state. HMGP/PA and §406-share are the mitigation-posture rates from the watch chapter; 12-mo activity is obligation movement (lastObligationDate).</p>`;
+}
+function briCmpSparks(stats,hi){
+  const a=BRI.activity; if(!a||!a.months||!hi.size||hi.size>13)return "";
+  const sts=[...hi].filter(st=>a.byState[st]).sort((x,y)=>stats[y].act-stats[x].act);
+  if(sts.length<2)return "";
+  const series=sts.map(st=>({st,v:a.months.map((_,i)=>{const m=a.byState[st][i];return m[0]+(briCovid?m[1]:0);})}));
+  const mx=Math.max(1,...series.flatMap(s=>s.v));   // SHARED scale — the honest comparison
+  const w=210,h=54,pb=14,iw=w-8,ih=h-pb-6;
+  const cell=s=>{const n=s.v.length,bw=iw/n*0.7;let bars="";
+    s.v.forEach((v,i)=>{const bh=Math.max(0,v)/mx*ih,bx=4+i*iw/n;bars+=`<rect x="${bx.toFixed(1)}" y="${(6+ih-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" fill="var(--navy,#1a4480)" opacity="0.85"><title>${a.months[i]} — ${fmtMoney(v)}</title></rect>`;});
+    return `<div style="flex:0 1 ${w}px;min-width:150px"><svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;display:block">${bars}<text x="4" y="${h-3}" font-size="10" font-weight="700" fill="var(--navy)">${s.st}</text><text x="${w-4}" y="${h-3}" font-size="9" fill="#565c65" text-anchor="end">${fmtMoney(stats[s.st].act)} / 12 mo</text></svg></div>`;};
+  return `<div class="sec-h" style="margin-top:16px">Monthly PA activity by state — shared scale</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px">${series.map(cell).join("")}</div>
+    <p class="thr-sub" style="margin-top:4px">All charts share one y-scale (peak month across the scope: ${fmtMoney(mx)}) — bar heights are directly comparable between states.</p>`;
+}
+function briCompareHTML(){
+  const stats=briCmpStats();
+  const sts=briScopeStates();
+  const hi=new Set(sts||[]);
+  const strip=briCmpStrip(stats,hi);
+  let pctile="";
+  if(sts&&sts.length===1&&stats[sts[0]]&&stats[sts[0]].percap!=null){
+    const me=stats[sts[0]].percap, pool=Object.values(stats).filter(v=>v.percap!=null).map(v=>v.percap);
+    const pr=Math.round(pool.filter(v=>v<=me).length/pool.length*100);
+    pctile=`<p style="font-size:13px;margin-top:4px"><b>${esc(stats[sts[0]].name)}</b> sits at the <b>${pr}th percentile</b> of all-time PA per capita — $${Math.round(me).toLocaleString()}/resident.</p>`;
+  }
+  return strip+pctile+briCmpTable(stats,hi)+briCmpSparks(stats,hi);
+}
 /* ---- the article ---- */
 function renderNewsreel(){
   const box=el("newsBody"); if(!box)return;
@@ -3036,6 +3110,8 @@ function renderNewsreel(){
     +`<div id="briStrips" style="margin-top:2px"></div>`
     +`<div class="card"><div class="card__hd"><h2>What has happened — ${esc(lbl)}</h2><span class="sub">every DR · EM · FM declaration, all history</span></div>
       <div class="card__bd">${briHistChart(rows)}${briLedgerTable(rows)}</div></div>`
+    +`<div class="card"><div class="card__hd"><h2>How it compares — ${esc(lbl)}</h2><span class="sub">per-capita distribution · league table${briScopeStates()&&briScopeStates().length>1?" · state small-multiples":""}</span></div>
+      <div class="card__bd">${briCompareHTML()}</div></div>`
     +`<div class="card"><div class="card__hd"><h2>Where the money goes — ${esc(lbl)}</h2><span class="sub">PA by category · IHP by program</span></div>
       <div class="card__bd">${briComposition(rows)}</div></div>`
     +`<div class="card"><div class="card__hd"><h2>Who is getting it — ${esc(lbl)}</h2><span class="sub">largest PA applicants · live from OpenFEMA</span></div>
@@ -4334,7 +4410,8 @@ function routeFromHash(){
     geoStateFilter=parts[1]?parts[1].toUpperCase():null;
     geoCountyFocus=(parts[2]&&DECL&&DECL.counties[parts[2]])?parts[2]:null;
   }
-  if(v==="newsreel"&&parts[1]){const p=parts[1].toUpperCase(); if(p==="US"||/^R([1-9]|10)$/.test(p)||/^[A-Z]{2}$/.test(p)){briScope=p; const s=el("briSel"); if(s&&[...s.options].some(o=>o.value===p))s.value=p;}}
+  if(v==="newsreel"){const p=(parts[1]||"US").toUpperCase();
+    if(p==="US"||/^R([1-9]|10)$/.test(p)||/^[A-Z]{2}$/.test(p)){briScope=p; const s=el("briSel"); if(s&&[...s.options].some(o=>o.value===p))s.value=p;}}
   showView(v,true);
 }
 window.addEventListener("hashchange",routeFromHash);
@@ -4356,7 +4433,11 @@ function wire(){
   // Briefing (newsreel) scope + COVID toggle + expand-all (delegated — the body re-renders)
   if(el("briSel"))el("briSel").addEventListener("change",e=>{briScope=e.target.value;briShowAll=false;renderNewsreel();syncHash();});
   if(el("briCovidTog"))el("briCovidTog").addEventListener("change",e=>{briCovid=e.target.checked;renderNewsreel();});
-  if(el("newsBody"))el("newsBody").addEventListener("click",e=>{const b=e.target.closest("[data-briexpand]");if(b){briShowAll=!briShowAll;renderNewsreel();}});
+  if(el("newsBody"))el("newsBody").addEventListener("click",e=>{
+    const b=e.target.closest("[data-briexpand]"); if(b){briShowAll=!briShowAll;renderNewsreel();return;}
+    const c=e.target.closest("[data-bricmpexpand]"); if(c){briCmpAll=!briCmpAll;renderNewsreel();return;}
+    const s=e.target.closest("[data-briscope]"); if(s){briScope=s.getAttribute("data-briscope");briShowAll=false;briCmpAll=false;const sel=el("briSel");if(sel)sel.value=briScope;renderNewsreel();syncHash();window.scrollTo({top:0,behavior:"smooth"});}
+  });
   document.querySelectorAll("table.dis th[data-sort]").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=(k==="state"||k==="tagstr")?1:-1;}renderLedger();}));
   if(el("groupState"))el("groupState").addEventListener("change",renderLedger);
   // detail modal: open via delegation (gage takes priority over disaster), close via X / overlay / Esc
