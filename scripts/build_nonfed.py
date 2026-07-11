@@ -21,7 +21,7 @@ WHAT / WHY
 
 METHOD
   Sweeps PA Details in disasterNumber-range chunks (dn 0-7000, step 200), each
-  chunk paginated $top=10000 with $select of just the three needed fields.
+  chunk paginated with $select of just the four needed fields (incl. mitigationAmount — the §406 hardening Σ, feeding the watch chapter's uptake rate).
   ~90-120 requests total. RESUMABLE: each completed chunk's aggregates are
   cached in data/_nonfed_cache.json (gitignored), so a killed run re-fetches
   only unfinished chunks. Conservation audit: fetched row count is compared to
@@ -32,7 +32,7 @@ Output: data/nonfed.json
   {generated, source, note, byDisaster:{dn:[projCostSum, fedObligSum, nProjects]},
    audit:{expectedRows, fetchedRows, nullDnRows, coverageDisasters, check}}
   Consumed by scripts/build_briefing.py (joined into briefing.json as the
-  pc/pf/pn row columns) — run this FIRST, then build_briefing.py.
+  pc/pf/pn/pm row columns) — run this FIRST, then build_briefing.py.
 
 Refresh cadence: weekly (.github/workflows/refresh-weekly.yml) — obligations
 reconcile over months; the daily briefing rebuild joins the committed snapshot.
@@ -45,10 +45,10 @@ DATA = os.path.join(os.path.dirname(__file__), "..", "data")
 URL = "https://www.fema.gov/api/open/v2/PublicAssistanceFundedProjectsDetails"
 CACHE = os.path.join(DATA, "_nonfed_cache.json")
 DN_MAX, STEP = 7000, 200
-SEL = urllib.parse.quote("disasterNumber,projectAmount,federalShareObligated")
+SEL = urllib.parse.quote("disasterNumber,projectAmount,federalShareObligated,mitigationAmount")
 
 
-def get(url, retries=5):
+def get(url, retries=7):
     req = urllib.request.Request(url, headers={"User-Agent": "DisasterParameters/nonfed"})
     for i in range(retries):
         try:
@@ -57,7 +57,7 @@ def get(url, retries=5):
         except Exception:
             if i == retries - 1:
                 raise
-            time.sleep(2 ** i)
+            time.sleep(3 * (i + 1))   # gentle linear backoff — OpenFEMA 503s cluster under load
 
 
 def expected_total():
@@ -70,19 +70,19 @@ def sweep_chunk(lo, hi):
     agg, rows, skip = {}, 0, 0
     flt = urllib.parse.quote(f"disasterNumber ge {lo} and disasterNumber lt {hi}")
     while True:
-        u = f"{URL}?$filter={flt}&$select={SEL}&$top=10000&$skip={skip}&$format=json&$metadata=off"
+        u = f"{URL}?$filter={flt}&$select={SEL}&$top=5000&$skip={skip}&$format=json&$metadata=off"
         chunk = (get(u) or {}).get("PublicAssistanceFundedProjectsDetails", [])
         for r in chunk:
             dn = r.get("disasterNumber")
             rows += 1
             if dn is None:
-                agg.setdefault("_null", [0, 0, 0])
                 dn = "_null"
-            a = agg.setdefault(str(dn), [0.0, 0.0, 0])
+            a = agg.setdefault(str(dn), [0.0, 0.0, 0, 0.0])
             a[0] += float(r.get("projectAmount") or 0)
             a[1] += float(r.get("federalShareObligated") or 0)
             a[2] += 1
-        if len(chunk) < 10000:
+            a[3] += float(r.get("mitigationAmount") or 0)
+        if len(chunk) < 5000:
             return agg, rows
         skip += len(chunk)
 
@@ -111,15 +111,15 @@ def main():
             if dn == "_null":
                 null_rows += a[2]
                 continue
-            e = by.setdefault(dn, [0.0, 0.0, 0])
-            e[0] += a[0]; e[1] += a[1]; e[2] += a[2]
-    by = {dn: [round(a[0]), round(a[1]), a[2]] for dn, a in sorted(by.items(), key=lambda x: int(x[0]))}
+            e = by.setdefault(dn, [0.0, 0.0, 0, 0.0])
+            e[0] += a[0]; e[1] += a[1]; e[2] += a[2]; e[3] += (a[3] if len(a) > 3 else 0)
+    by = {dn: [round(a[0]), round(a[1]), a[2], round(a[3])] for dn, a in sorted(by.items(), key=lambda x: int(x[0]))}
 
     nonfed_total = sum(a[0] - a[1] for a in by.values())
     out = {
         "generated": dt.date.today().isoformat(),
         "source": "OpenFEMA PublicAssistanceFundedProjectsDetails (projectAmount, federalShareObligated), full national sweep",
-        "note": "Per-disaster project-level sums. impliedNonFederal = projCostSum − fedObligSum "
+        "note": "Per-disaster project-level sums (+ Σ mitigationAmount = the §406 hardening inside PA repairs). impliedNonFederal = projCostSum − fedObligSum "
                 "(the state/local cost-share match, ESTIMATED — projectAmount is an estimated total "
                 "that reconciles over the project's life). Project-level federal sums will not exactly "
                 "match FemaWebDisasterSummaries federal totals (different datasets/refresh days); the "
