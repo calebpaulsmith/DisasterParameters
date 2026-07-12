@@ -234,8 +234,9 @@ few PA totals against the granular PA Funded Projects worksheets before shipping
   PRs do collide on the seed, it's a trivial JSON array merge — **keep both sides' nodes,
   then re-run `build_lineage.py && verify_lineage.py`** to reconcile. If seed collisions
   become frequent, split the seed into per-domain fragments (deferred item in
-  `docs/lineage-plan.md` §9). Full design: `docs/lineage-plan.md`; portable version for
-  other repos: `docs/lineage-discovery-prompt.md`.
+  `docs/lineage-plan.md` §9). Full design: `docs/lineage-plan.md`; portable spec for
+  rebuilding the whole feature in other repos: `docs/lineage-spec.md`; the
+  process-reproducing discovery prompt: `docs/lineage-discovery-prompt.md`.
 
 ## Deployment
 
