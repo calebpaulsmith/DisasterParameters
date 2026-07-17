@@ -433,14 +433,28 @@ function planBBox(){
   const cx=(x0+x1)/2, cy=(y0+y1)/2;
   return {x:cx-w/2,y:cy-h/2,w,h};
 }
-function mapTargetVB(){ if(mapFit==="plan"){const bb=planBBox(); if(bb)return bb;} return {x:0,y:0,w:PROJ.W,h:PROJ.H}; }
+function stateBBox(s){   // frame the active state when the plan has no counties yet
+  const {minx,maxy,k,s:sc,pad}=PROJ; let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,found=false;
+  COUNTIES.forEach(c=>{if(c.s!==s)return; found=true;
+    c.g.forEach(p=>p.forEach(r=>r.forEach(pt=>{const px=pad+(pt[0]-minx)*k*sc,py=pad+(maxy-pt[1])*sc;
+      if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;})));});
+  if(!found)return null;
+  const px=(x1-x0)*0.06+8,py=(y1-y0)*0.06+8;
+  let w=(x1-x0)+2*px,h=(y1-y0)+2*py;
+  const AR=PROJ.W/PROJ.H;
+  if(w/h>AR)h=w/AR; else w=h*AR;
+  const cx=(x0+x1)/2, cy=(y0+y1)/2;
+  return {x:cx-w/2,y:cy-h/2,w,h};
+}
+// the camera always frames the SELECTION: plan counties if any, else the chosen state, else the region
+function mapTargetVB(){ if(mapFit==="plan"){const bb=planBBox()||stateBBox(plan.states[0]); if(bb)return bb;} return {x:0,y:0,w:PROJ.W,h:PROJ.H}; }
 function mapApplyVB(anim){
   if(!PROJ)return;
   const svg=document.getElementById("svg"), fb=document.getElementById("fitBtn");
   const hasSel=planScoped();
-  if(hasSel&&!mapHadSel)mapFit="plan";   // a fresh selection (PDA import / disaster seed / first county) snaps back to fit-plan
+  if(hasSel&&!mapHadSel)mapFit="plan";   // a fresh selection (PDA import / disaster seed / first county) snaps back to fit
   mapHadSel=hasSel;
-  if(fb){fb.style.display=hasSel?"":"none"; fb.textContent=mapFit==="plan"?"⤢ full region":"◎ fit plan";}
+  if(fb){fb.style.display=""; fb.textContent=mapFit==="plan"?"⤢ full region":"◎ fit selection";}
   const t=mapTargetVB(), key=[t.x,t.y,t.w,t.h].map(v=>v.toFixed(1)).join(" ");
   if(key===mapVBKey)return; mapVBKey=key;
   const set=v=>svg.setAttribute("viewBox",`${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}`);
@@ -732,6 +746,7 @@ function setPlanState(s){   // a plan covers exactly ONE state; switching drops 
   if(out.length&&!confirm(`Switching to ${s} removes ${out.length} ${cur||""} count${out.length===1?"y":"ies"} from the plan. Continue?`))return;
   out.forEach(f=>delete plan.counties[f]);
   plan.states=[s];
+  mapFit="plan";   // picking a state is a fresh selection — snap the camera onto it
   renderStates();render();
 }
 function fillLayers(){
