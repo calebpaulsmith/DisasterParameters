@@ -491,7 +491,9 @@ tr.clickable:hover td{background:#eef3f8;}
 .paia__sq:hover{transform:translateY(-2px);}
 .paia.dim{opacity:.55;filter:saturate(.55);}
 .paia.dim .paia__sq{box-shadow:none;}
-#geoMap svg .hotc{cursor:pointer;} #geoMap svg .hotc:hover{stroke:#0d2342;stroke-width:1.1;}
+#geoMap svg path{cursor:pointer;transition:fill .45s ease,stroke .45s ease;}
+#geoMap svg .hotc:hover{stroke:#0d2342;stroke-width:1.1;}
+#geoMap svg path.hov{stroke:#f2a900;stroke-width:1.2;paint-order:stroke fill;}
 #geoMap svg path.cselect{stroke:#0d2342;stroke-width:2.4;vector-effect:non-scaling-stroke;paint-order:stroke fill;animation:cselGlow 1.5s ease-in-out infinite;}
 @keyframes cselGlow{0%,100%{filter:drop-shadow(0 0 1px rgba(242,169,0,.65));}50%{filter:drop-shadow(0 0 6px rgba(242,169,0,1));}}
 .geotbl{width:100%;border-collapse:collapse;font-size:13px;}
@@ -947,7 +949,7 @@ tr.clickable:hover td{background:#eef3f8;}
         <button class="paia__sq hm on" data-aid="hm" title="Disasters that received HMGP (Hazard Mitigation Grant Program, §404)"><span class="paia__k">HMGP</span><span class="paia__t">Mitigation</span></button>
       </div>
       <label class="covtog" title="Fold the six statewide COVID-19 declarations (≈7× weather PA) into the PA / IHP / HMGP state totals"><input type="checkbox" id="geoCovidTog"> incl. COVID-19</label>
-      <span class="geohint thr-sub">Pick a <b>program</b>, then a <b>measure</b> — the map, rankings and timeline follow. On <b>Overview</b>, the <b>With PA / IA / HMGP</b> chips filter which disasters count (IA = ledger authorization). Tap a state or county to drill in.</span>
+      <span class="geohint thr-sub">Pick a <b>program</b>, then a <b>measure</b> — the map, rankings and timeline follow. On <b>Overview</b>, the <b>With PA / IA / HMGP</b> chips filter which disasters count (IA = ledger authorization). Tap the map to drill in — a <b>state</b>, then a <b>county</b> — and hover to preview its card; outside the selection the map darkens.</span>
     </div>
     <div class="geodash">
       <aside class="geocol geocol--states"><div class="geoh">By state <span id="geoClear" class="geoclear" style="display:none">show all ✕</span></div><div id="geoStates" class="geoscroll"><div class="skeleton"><span class="spin"></span></div></div></aside>
@@ -1718,22 +1720,42 @@ function geoCountyBBox(fips){
   const px=(x1-x0)*0.7+12,py=(y1-y0)*0.7+12;
   return {x:x0-px,y:y0-py,w:(x1-x0)+2*px,h:(y1-y0)+2*py};
 }
+const GEO_DARK="#252b35", GEO_DARK_STROKE="#333b48";   // out-of-scope counties fade to dark; choropleth reads only inside the selection
 function renderGeoMap(){
   const box=el("geoMap");if(!box||!COUNTIES.length||!DECL)return;
   if(!MAPPROJ)projectCounties();
   if(!geoVB)geoVB=geoTargetVB()||geoFullVB();
   const dc=DECL.counties||{},m=geoMetric,gf=geoStateFilter,cf=geoCountyFocus;
   const df=geoDisasterFocus, dsetRaw=df?geoDisasterFips(df):null, useD=!!(dsetRaw&&dsetRaw.size);
-  const paths=COUNTIES.map(c=>{const o=dc[c.f],v=o?geoCountyVal(o,m):0;
+  const attr=c=>{const o=dc[c.f],v=o?geoCountyVal(o,m):0;
     const inD=useD?dsetRaw.has(c.f):false;
     const csel=!df&&cf&&c.f===cf;
-    const sel=useD?inD:(cf?c.f===cf:(gf&&c.s===gf)), dim=useD?!inD:(cf?c.f!==cf:(gf&&c.s!==gf));
-    const tip=o?`${c.n}, ${c.s} — ${GEO_META[m].fmt(v)} ${GEO_META[m].label}`:`${c.n}, ${c.s} — none`;
-    const cls=(o&&v?"hotc":"")+(csel?" cselect":"")+(useD&&inD?" dsel":"");
-    return `<path d="${cpath(c)}" fill="${geoColor(m,v)}" stroke="${sel?'#0d2342':'#fff'}" stroke-width="${sel?0.9:0.4}"${cls.trim()?` class="${cls.trim()}"`:""}${o&&v&&!GEO_STATEONLY[m]?` data-gfips="${c.f}"`:""}${dim?' opacity="0.18"':''}><title>${tip.replace(/"/g,"&quot;")}</title></path>`;}).join("");
-  box.innerHTML=`<svg viewBox="${vbStr(geoVB)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;background:#f7f9fc;border-radius:8px;cursor:grab;touch-action:none">${paths}<g class="geolabels"></g></svg>
-    <div class="maphint thr-sub">drag to pan · pinch or scroll to zoom</div>
-    <div class="maplegend" style="margin-top:6px"><span>${GEO_META[m].label}:</span>${GEO_LEGEND[m].map(p=>`<span><i style="background:${geoColor(m,p[0])}"></i>${p[1]}</span>`).join("")}</div>`;
+    const inScope=useD?inD:(gf?c.s===gf:true);   // selection scope keeps the choropleth; everything else darkens
+    const sel=useD?inD:(cf?c.f===cf:(gf&&c.s===gf));
+    const tip=inScope?(o?`${c.n}, ${c.s} — ${GEO_META[m].fmt(v)} ${GEO_META[m].label}`:`${c.n}, ${c.s} — none`):`${c.n}, ${c.s}`;
+    const cls=((o&&v&&inScope?"hotc ":"")+(csel?"cselect ":"")+(useD&&inD?"dsel ":"")).trim();
+    return {fill:inScope?geoColor(m,v):GEO_DARK, stroke:sel?'#0d2342':(inScope?'#fff':GEO_DARK_STROKE), sw:sel?0.9:0.4, cls, tip};};
+  const legend=`<span>${GEO_META[m].label}:</span>${GEO_LEGEND[m].map(p=>`<span><i style="background:${geoColor(m,p[0])}"></i>${p[1]}</span>`).join("")}`
+    +((useD||gf)?`<span class="thr-sub">· shaded: ${useD?`DR-${df} counties`:(DECL.states[gf]||{}).name||gf} only</span>`:"");
+  const svg=geoSvg();
+  if(svg&&svg._nPaths===COUNTIES.length){   // update in place so the choropleth/darkening FADES (CSS transition) and pan/zoom isn't reset
+    const ps=svg.querySelectorAll("path");
+    COUNTIES.forEach((c,i)=>{const p=ps[i];if(!p)return;const a=attr(c);
+      p.setAttribute("fill",a.fill);p.setAttribute("stroke",a.stroke);p.setAttribute("stroke-width",a.sw);
+      if(a.cls)p.setAttribute("class",a.cls);else p.removeAttribute("class");
+      p.removeAttribute("opacity");
+      const t=p.querySelector("title");if(t)t.textContent=a.tip;});
+    const lg=box.querySelector(".maplegend"); if(lg)lg.innerHTML=legend;
+    geoHoverKey=null; geoUpdateLabels();
+  }else{
+    const paths=COUNTIES.map(c=>{const a=attr(c);
+      return `<path d="${cpath(c)}" data-gfips="${c.f}" data-gs="${c.s}" fill="${a.fill}" stroke="${a.stroke}" stroke-width="${a.sw}"${a.cls?` class="${a.cls}"`:""}><title>${a.tip.replace(/"/g,"&quot;")}</title></path>`;}).join("");
+    box.innerHTML=`<svg viewBox="${vbStr(geoVB)}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;background:#f7f9fc;border-radius:8px;cursor:grab;touch-action:none">${paths}<g class="geolabels"></g></svg>
+      <div class="maphint thr-sub">drag to pan · pinch or scroll to zoom</div>
+      <div class="maplegend" style="margin-top:6px">${legend}</div>`;
+    const s=geoSvg(); if(s)s._nPaths=COUNTIES.length;
+    geoHoverKey=null;
+  }
   geoBindMapControls(); syncPaiaUI(); syncMitChips();
 }
 /* ===== map viewBox: partial zoom, animated motion, drag/wheel pan-zoom ===== */
@@ -1753,10 +1775,10 @@ function geoTargetVB(){
   if(geoDisasterFocus){const bb=geoMultiBBox(geoDisasterFips(geoDisasterFocus)); if(bb)return bb;
     if(geoStateFilter){const sb=geoStateBBox(geoStateFilter);if(sb)return sb;} return geoFullVB();}
   if(geoCountyFocus){const bb=geoCountyBBox(geoCountyFocus);if(!bb)return geoFullVB();
+    // zoom to the county itself (bbox already carries generous padding for context);
+    // floor the frame so tiny counties don't over-zoom past the label/pan limits
     const cx=bb.x+bb.w/2, cy=bb.y+bb.h/2;
-    const fCty=Math.max(bb.w/MAPPROJ.W, bb.h/MAPPROJ.H);  // zoom that would frame the county
-    const f=(1+fCty)/2;                                   // only ~50% of the way in, centered
-    const w=MAPPROJ.W*f, h=MAPPROJ.H*f;
+    const w=Math.max(bb.w,MAPPROJ.W*0.10), h=Math.max(bb.h,MAPPROJ.H*0.10);
     return {x:cx-w/2, y:cy-h/2, w, h};
   }
   if(geoStateFilter){const bb=geoStateBBox(geoStateFilter);if(bb)return bb;}
@@ -1821,8 +1843,8 @@ function geoBindMapControls(){
       const net=was?Math.hypot(ex-was.sx,ey-was.sy):0;
       if(net>8||moved===999){geoDidPan=true;}              // a real drag / pinch — swallow the trailing click
       else{ // a tap: pointer capture can mis-target the native click, so resolve the county by coordinates
-        const tgt=document.elementFromPoint(ex,ey), cf=tgt&&tgt.closest?tgt.closest("[data-gfips]"):null;
-        if(cf){geoDidPan=true; showCountyGeo(cf.getAttribute("data-gfips"));}
+        const tgt=document.elementFromPoint(ex,ey), cf=tgt&&tgt.closest?tgt.closest("path[data-gs]"):null;
+        if(cf){geoDidPan=true; geoMapTap(cf);}
       }
       drag=null; if(s)s.style.cursor="grab";
     }};
@@ -1835,6 +1857,44 @@ function geoBindMapControls(){
     let nw=Math.max(minW,Math.min(maxW,geoVB.w*f)); const nh=geoVB.h*(nw/geoVB.w);
     geoVB.x+=(geoVB.w-nw)*mx; geoVB.y+=(geoVB.h-nh)*my; geoVB.w=nw; geoVB.h=nh; geoApplyVB();
   },{passive:false});
+  // hover preview (mouse only): highlight the state/county under the cursor and show its card in the Detail pane
+  if(window.matchMedia&&matchMedia("(hover:hover)").matches){
+    box.addEventListener("pointerover",e=>{ if(pts.size)return;   // not while dragging/pinching
+      geoHoverPath(e.target&&e.target.closest?e.target.closest("path[data-gs]"):null); });
+    box.addEventListener("pointerleave",()=>geoHoverPath(null));
+  }
+}
+/* ===== level-aware map interaction: region → tap picks a STATE; state → tap picks a COUNTY
+   (tapping across the border moves to that state; tapping the focused county backs out).
+   Hover previews the same card the tap would commit. ===== */
+function geoMapTap(p){
+  const f=p.getAttribute("data-gfips"), s=p.getAttribute("data-gs");
+  if(geoDisasterFocus){ if(f&&DECL.counties[f])showCountyGeo(f); return; }   // disaster focus: tap a county → its own history
+  if(!geoStateFilter){ if(s)geoSelectState(s); return; }                     // region level → zoom into the state
+  if(s&&s!==geoStateFilter){ geoSelectState(s); return; }                    // crossed into a darkened state → move there
+  if(GEO_STATEONLY[geoMetric])return;                                        // state-level grants have no county grain
+  if(f&&f===geoCountyFocus){ geoExitCounty(); return; }                      // tap the focused county again → back to the state
+  if(f&&DECL.counties[f])showCountyGeo(f);                                   // state level → zoom into the county
+}
+let geoHoverKey=null;
+function geoHoverPath(p){
+  const svg=geoSvg(); if(!svg||!DECL)return;
+  let key=null;
+  if(p&&!geoDisasterFocus){
+    const f=p.getAttribute("data-gfips"), s=p.getAttribute("data-gs");
+    if(!geoStateFilter)key=s?"s:"+s:null;                                    // region level → preview the state
+    else if(s&&s!==geoStateFilter)key="s:"+s;                                // over a darkened state → preview it
+    else if(!GEO_STATEONLY[geoMetric]&&f&&DECL.counties[f])key="c:"+f;       // in the selected state → preview the county
+  }
+  if(key===geoHoverKey)return;
+  svg.querySelectorAll("path.hov").forEach(x=>x.classList.remove("hov"));
+  geoHoverKey=key;
+  if(!key){ if(!geoDisasterFocus)geoRefreshDetail(); return; }               // cursor left → restore the committed card
+  const [kind,val]=key.split(":");
+  if(kind==="s"){ svg.querySelectorAll(`path[data-gs="${val}"]`).forEach(x=>x.classList.add("hov"));
+    if(DECL.states[val])showStateGeo(val); }
+  else{ const pe=svg.querySelector(`path[data-gfips="${val}"]`); if(pe)pe.classList.add("hov");
+    const b=el("geoPick"); if(b)b.innerHTML=countyDetailHTML(DECL.counties[val],val); }
 }
 function disasterMeta(dn){return DISASTERS.find(d=>d.disasterNumber===dn)||{};}
 function enterDisasterFocus(dn){
