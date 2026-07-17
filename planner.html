@@ -30,10 +30,18 @@ a{color:var(--blue);}
 .mapcard,.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);}
 .mapcard{padding:10px;position:relative;}
 .mapcard svg{width:100%;height:auto;display:block;background:#f7f9fc;border-radius:8px;}
-.cty{cursor:pointer;stroke:#c6d0dc;stroke-width:.4;transition:fill .45s ease,stroke .2s;}
+.mapcard svg{transition:background-color .5s ease;}
+.mapcard svg.darkmap{background:#10151d;}
+.cty{cursor:pointer;stroke:#c6d0dc;stroke-width:.4;transition:fill .45s ease,stroke .3s ease,opacity .45s ease;}
 .cty:hover{stroke:#0b1f3a;stroke-width:1;}
 .cty.sel{stroke:var(--gold);stroke-width:2.2;}
 .cty.dim{opacity:.25;}
+/* dark selection canvas: the plan's counties glow gold; everything else recedes */
+.darkmap .cty{stroke:#39445a;stroke-width:.5;}
+.darkmap .cty:hover{stroke:#f2a900;stroke-width:1.4;vector-effect:non-scaling-stroke;}
+.darkmap .cty.dim{opacity:.3;}
+.darkmap .cty.sel{stroke:#fff;stroke-width:1.6;vector-effect:non-scaling-stroke;paint-order:stroke fill;filter:drop-shadow(0 0 4px rgba(242,169,0,.55));}
+.darkmap .cty.sel:hover{stroke:#ffd75e;stroke-width:2.2;}
 .fitbtn{position:absolute;top:16px;right:16px;z-index:5;font:inherit;font-size:12px;font-weight:600;color:var(--navy);background:#fff;border:1px solid var(--line);border-radius:6px;padding:5px 9px;cursor:pointer;box-shadow:var(--shadow-sm);}
 .fitbtn:hover{background:#f4f7fb;}
 .legend{position:absolute;left:18px;bottom:18px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11.5px;box-shadow:var(--shadow-sm);max-width:280px;}
@@ -47,9 +55,10 @@ a{color:var(--blue);}
 .fld{margin-bottom:14px;}
 .fld label{display:block;font-size:11.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
 input[type=text],select{width:100%;padding:8px 10px;font-size:14px;font-family:inherit;border:1px solid var(--line-2);border-radius:7px;background:var(--white);}
-.states{display:flex;flex-wrap:wrap;gap:6px;}
-.stchip{font-size:12.5px;font-weight:700;border:1px solid var(--line-2);border-radius:20px;padding:4px 12px;cursor:pointer;background:var(--white);color:var(--ink-2);}
-.stchip.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.states{display:flex;background:#eef2f7;border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;}
+.stchip{flex:1;text-align:center;font-size:13px;font-weight:700;border-radius:8px;padding:7px 0;cursor:pointer;background:transparent;color:var(--ink-2);transition:background .2s,color .2s,box-shadow .2s;}
+.stchip:hover{background:#e0e8f2;}
+.stchip.on{background:var(--navy);color:#fff;box-shadow:0 1px 4px rgba(11,31,58,.35),inset 0 -2px 0 var(--gold);}
 .progrow{display:flex;gap:6px;flex-wrap:wrap;}
 .pchip{font-size:13px;font-weight:800;border:1.5px solid var(--line-2);border-radius:8px;padding:6px 14px;cursor:pointer;background:var(--white);color:var(--ink-2);}
 .pchip.on{background:var(--blue-dark);color:#fff;border-color:var(--blue-dark);}
@@ -205,7 +214,7 @@ details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(-
       <div class="btnrow" style="margin-top:6px"><button class="btn primary" id="disLoad">Load designated counties</button></div>
     </details>
 
-    <div class="fld"><label>States in scope</label><div class="states" id="states"></div></div>
+    <div class="fld"><label>State</label><div class="states" id="states"></div></div>
     <div class="fld"><label>Map color-by</label>
       <div class="cbyrow"><span class="cby" data-c="metric" id="cbyMetric">Metric</span><span class="cby" data-c="team" id="cbyTeam">Teams</span></div>
       <select id="layer" style="margin-top:6px"></select>
@@ -305,7 +314,7 @@ details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(-
 const R5=["IL","IN","MI","MN","OH","WI"];
 const LS_KEY="planner_plans_v1";
 const TEAM_COLORS=["#e41d3d","#005ea2","#00a91c","#8168b3","#e5a000","#0f8c9c","#b04abd","#755b48","#3e4ded","#607f35"];
-const DEFAULT_PLAN=()=>({name:"",counties:{},layer:"auto",colorBy:"metric",program:"pa",states:[...R5],excludedDns:[],teams:[],caseload:{},basis:null});
+const DEFAULT_PLAN=()=>({name:"",counties:{},layer:"auto",colorBy:"metric",program:"pa",states:["IN"],excludedDns:[],teams:[],caseload:{},basis:null});
 let COUNTIES=[], NAME_INDEX={}, DECL=null, DRC=null, DCIHP=null, DESIG=null, PROJ=null, plan=DEFAULT_PLAN();
 let assignTeam=null; // team id while "assign by map click" is armed
 // COVID-19 (Biological) R5 declarations — ALWAYS excluded from every calculation
@@ -415,11 +424,11 @@ function planBBox(){
     c.g.forEach(p=>p.forEach(r=>r.forEach(pt=>{const px=pad+(pt[0]-minx)*k*s,py=pad+(maxy-pt[1])*s;
       if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;})));});
   if(!found)return null;
-  const px=(x1-x0)*0.22+16,py=(y1-y0)*0.22+16;
+  const px=(x1-x0)*0.12+10,py=(y1-y0)*0.12+10;
   let w=(x1-x0)+2*px,h=(y1-y0)+2*py;
   // keep the projected aspect (so PNG/SharePoint exports stay undistorted) + a context
   // floor so neighboring counties remain visible and clickable to extend the plan
-  const AR=PROJ.W/PROJ.H, minW=PROJ.W*0.40;
+  const AR=PROJ.W/PROJ.H, minW=PROJ.W*0.26;
   if(w<minW)w=minW; if(w/h>AR)h=w/AR; else w=h*AR;
   const cx=(x0+x1)/2, cy=(y0+y1)/2;
   return {x:cx-w/2,y:cy-h/2,w,h};
@@ -445,27 +454,36 @@ function mapApplyVB(anim){
 document.getElementById("fitBtn").onclick=()=>{mapFit=mapFit==="plan"?"region":"plan";mapApplyVB(true);};
 
 let curMax=0;
-const MAP_DARK="#252b35";   // once a plan has counties, everything outside it fades to this — the choropleth reads only within the selection
+// once a plan has counties, the map becomes a dark canvas: the choropleth reads only within
+// the selection (luminous gold ramp) while everything else recedes into navy darkness
+const MAP_DARK_IN="#232c3a", MAP_DARK_OUT="#1a212c";
 function planScoped(){return !!Object.keys(plan.counties).length;}
+// sequential gold ramp for the selection on the dark canvas: pale cream → gold → deep amber
+// (single warm hue — separates from the cool surround by hue AND lightness; monotonic lightness)
+function rampGold(t){t=Math.max(0,Math.min(1,t));
+  const A=[255,244,209],B=[242,169,0],C=[224,124,0],mix=(a,b,u)=>a.map((x,i)=>Math.round(x+(b[i]-x)*u));
+  return `rgb(${(t<0.55?mix(A,B,t/0.55):mix(B,C,(t-0.55)/0.45)).join(",")})`;}
 function countyFill(f,L,scoped){
-  const sel=!!plan.counties[f];
-  if(scoped&&!sel)return MAP_DARK;
   if(plan.colorBy==="team"){
+    const sel=!!plan.counties[f];
     if(!sel)return "#e9eef4";
     const t=teamOf(f);
     return t?t.color:"#c9d2dc";
   }
-  if(L&&L.get&&curMax>0){const v=L.get(f);return v>0?ramp(Math.sqrt(v/curMax)):"#eef2f6";}
-  return "#e9eef4";
+  if(L&&L.get&&curMax>0){const v=L.get(f);
+    if(scoped)return v>0?rampGold(Math.sqrt(v/curMax)):"#f6ecc9";
+    return v>0?ramp(Math.sqrt(v/curMax)):"#eef2f6";}
+  return scoped?"#f6ecc9":"#e9eef4";
 }
 function render(){
   const scoped=planScoped();
   const L=plan.colorBy==="metric"?activeLayer():null;
-  curMax=0;   // ramp normalizes within the selection once a plan exists, else across the active states
+  curMax=0;   // ramp normalizes within the selection once a plan exists, else across the active state
   if(L&&L.get)COUNTIES.forEach(c=>{if(scoped?plan.counties[c.f]:plan.states.includes(c.s)){const v=L.get(c.f);if(v>curMax)curMax=v;}});
   const svg=document.getElementById("svg");
   const mk=c=>{const inState=plan.states.includes(c.s), sel=!!plan.counties[c.f];
-    return {cls:"cty"+(sel?" sel":"")+(inState?"":" dim"), fill:countyFill(c.f,L,scoped)};};
+    const fill=(scoped&&!sel)?(inState?MAP_DARK_IN:MAP_DARK_OUT):countyFill(c.f,L,scoped);
+    return {cls:"cty"+(sel?" sel":"")+(inState?"":" dim"), fill};};
   const ps=svg.querySelectorAll("path.cty");
   if(ps.length===COUNTIES.length){   // update in place: fill changes fade (CSS transition) and the zoom isn't reset
     COUNTIES.forEach((c,i)=>{const a=mk(c),p=ps[i];p.setAttribute("class",a.cls);p.setAttribute("fill",a.fill);});
@@ -475,15 +493,17 @@ function render(){
       s+=`<path class="${a.cls}" data-f="${c.f}" data-n="${c.n.replace(/"/g,'')}" data-s="${c.s}" d="${cpath(c)}" fill="${a.fill}"/>`;});
     svg.innerHTML=s;
   }
+  svg.classList.toggle("darkmap",scoped);
   mapApplyVB(true);
   const lg=document.getElementById("legend");
   const scopeNote=scoped?`<div class="muted" style="margin-top:3px">plan counties only — others darkened</div>`:"";
+  const bar=scoped?`<div class="bar" style="background:linear-gradient(90deg,#fff4d1,#ffd75e,#f2a900,#e07c00)"></div>`:`<div class="bar"></div>`;
   if(plan.colorBy==="team"){
     if(plan.teams.length){lg.style.display="block";
       lg.innerHTML=`<div><b>Teams</b></div>`+plan.teams.map(t=>`<div class="trow"><span class="dot" style="background:${t.color}"></span>${esc(t.name)}${t.members?` <span class="muted">· ${esc(t.members)}</span>`:""}</div>`).join("")
         +`<div class="trow"><span class="dot" style="background:#c9d2dc"></span><span class="muted">in plan, unassigned</span></div>`+scopeNote;}
     else lg.style.display="none";
-  }else if(L&&L.get&&curMax>0){lg.style.display="block";lg.innerHTML=`<div>${L.label}</div><div class="bar"></div><div class="ends"><span>0</span><span>${fmtVal(curMax,L.fmt)}</span></div>`+scopeNote;}
+  }else if(L&&L.get&&curMax>0){lg.style.display="block";lg.innerHTML=`<div>${L.label}</div>${bar}<div class="ends"><span>0</span><span>${fmtVal(curMax,L.fmt)}</span></div>`+scopeNote;}
   else lg.style.display="none";
   const ab=document.getElementById("assignbar");
   const at=assignTeam?plan.teams.find(t=>t.id===assignTeam):null;
@@ -704,8 +724,16 @@ document.getElementById("svg").addEventListener("mousemove",e=>{const p=e.target
   tip.textContent=`${p.dataset.n}, ${p.dataset.s}${val}`;tip.style.opacity=1;tip.style.left=(e.clientX+12)+"px";tip.style.top=(e.clientY+12)+"px";});
 document.getElementById("svg").addEventListener("mouseleave",()=>tip.style.opacity=0);
 
-function renderStates(){document.getElementById("states").innerHTML=R5.map(s=>`<span class="stchip ${plan.states.includes(s)?"on":""}" data-s="${s}">${s}</span>`).join("");
-  document.querySelectorAll(".stchip").forEach(c=>c.onclick=()=>{const s=c.dataset.s,i=plan.states.indexOf(s);if(i<0)plan.states.push(s);else plan.states.splice(i,1);renderStates();render();});}
+function renderStates(){document.getElementById("states").innerHTML=R5.map(s=>`<span class="stchip ${plan.states[0]===s?"on":""}" data-s="${s}">${s}</span>`).join("");
+  document.querySelectorAll(".stchip").forEach(c=>c.onclick=()=>{const s=c.dataset.s;if(plan.states[0]!==s)setPlanState(s);});}
+function setPlanState(s){   // a plan covers exactly ONE state; switching drops out-of-state counties (confirmed)
+  const cur=plan.states[0];
+  const out=Object.keys(plan.counties).filter(f=>{const c=COUNTIES.find(x=>x.f===f);return c&&c.s!==s;});
+  if(out.length&&!confirm(`Switching to ${s} removes ${out.length} ${cur||""} count${out.length===1?"y":"ies"} from the plan. Continue?`))return;
+  out.forEach(f=>delete plan.counties[f]);
+  plan.states=[s];
+  renderStates();render();
+}
 function fillLayers(){
   const sel=document.getElementById("layer");
   const opts=Object.entries(LAYERS).filter(([,v])=>v.progs.includes(plan.program));
@@ -787,7 +815,7 @@ document.getElementById("disLoad").onclick=()=>{
     if(c)sts.add(c.s);
     plan.counties[f]={pa,ia};
   });
-  if(sts.size)plan.states=[...sts];
+  if(sts.size)plan.states=[[...sts][0]];   // single-state plan (a DR is state-scoped)
   const d=DINDEX[dn]||{};
   plan.basis={type:"disaster",dn,programs:[wantPa?"pa":null,wantIa?"ia":null].filter(Boolean),title:d.title||"",date:d.date||""};
   if(!plan.name)document.getElementById("planName").value=plan.name=`DR-${dn} ${d.title||""}`.trim().slice(0,80);
@@ -1469,6 +1497,11 @@ function savedPlans(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"{}");
 function refreshLoad(){const sel=document.getElementById("loadSel"),ps=savedPlans();sel.innerHTML=`<option value="">Load saved…</option>`+Object.keys(ps).map(n=>`<option>${n.replace(/</g,"")}</option>`).join("");}
 function loadPlanObj(p){
   plan=Object.assign(DEFAULT_PLAN(),p);
+  // migrate older multi-state plans to the single-state model: prefer the state of the plan's counties
+  if(!Array.isArray(plan.states)||plan.states.length!==1){
+    const f0=Object.keys(plan.counties||{})[0], c0=f0&&COUNTIES.find(x=>x.f===f0);
+    plan.states=[c0?c0.s:(Array.isArray(plan.states)&&plan.states[0])||"IN"];
+  }
   plan.excludedDns=(plan.excludedDns||[]).map(Number);
   plan.teams=plan.teams||[];
   plan.teams.forEach(t=>{if(!Array.isArray(t.pdmgs))t.pdmgs=[];}); // migrate older saved plans
@@ -1521,8 +1554,10 @@ function exportSelfContainedHtml(){
   if(!fipsList.length){alert("No counties in the plan yet.");return;}
   const L=plan.colorBy==="metric"?activeLayer():null;
   const snaps=fipsList.map(f=>{const s=buildCountySnapshot(f);s.layerValue=(L&&L.get)?L.get(f):null;return s;});
-  const geom=COUNTIES.filter(c=>plan.states.includes(c.s)).map(c=>({f:c.f,n:c.n,s:c.s,g:c.g,sel:!!plan.counties[c.f],fill:countyFill(c.f,L)}));
-  const payload={name:plan.name||"Untitled plan",program:PROGRAMS[plan.program].label,colorBy:plan.colorBy,
+  const scoped=planScoped();
+  const geom=COUNTIES.filter(c=>plan.states.includes(c.s)).map(c=>({f:c.f,n:c.n,s:c.s,g:c.g,sel:!!plan.counties[c.f],
+    fill:(scoped&&!plan.counties[c.f])?MAP_DARK_IN:countyFill(c.f,L,scoped)}));
+  const payload={name:plan.name||"Untitled plan",program:PROGRAMS[plan.program].label,colorBy:plan.colorBy,scoped,
     layerLabel:L?L.label:"Team assignments",layerFmt:L?L.fmt:"n",states:plan.states,
     teams:plan.teams.map(t=>({name:t.name,color:t.color,members:t.members,counties:Object.keys(plan.counties).filter(f=>plan.counties[f].team===t.id).map(f=>{const c=COUNTIES.find(x=>x.f===f);return c?c.n+", "+c.s:f;})})),
     basis:plan.basis,excludedDns:plan.excludedDns.slice(),expect:expectationSummary(),counties:snaps};
@@ -1544,7 +1579,7 @@ function buildExportDoc(payload,geom){
 .disc{background:#fff7e6;border-bottom:1px solid #f0d68a;color:#6b4c00;font-size:12.5px;padding:8px 20px;text-align:center}
 .wrap{max-width:1200px;margin:0 auto;padding:18px 20px 40px}
 .mapcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;position:relative;margin-bottom:20px}
-svg{width:100%;height:auto;display:block;background:#f7f9fc;border-radius:8px}
+svg{width:100%;height:auto;display:block;background:${payload.scoped?"#10151d":"#f7f9fc"};border-radius:8px}
 .legend{position:absolute;left:18px;bottom:18px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11.5px}
 .legend .bar{height:9px;width:150px;border-radius:2px;background:linear-gradient(90deg,#eaf2fb,#0b1f3a);margin:4px 0}
 .legend .ends{display:flex;justify-content:space-between;color:var(--ink-3)}
@@ -1588,12 +1623,12 @@ let curMax=0;DATA.counties.forEach(c=>{if(c.layerValue>curMax)curMax=c.layerValu
 let svgHtml="";
 GEOM.forEach(c=>{
   const sel=!!byFips[c.f];
-  svgHtml+='<path stroke="'+(sel?'#ffbe2e':'#c6d0dc')+'" stroke-width="'+(sel?2.2:.4)+'" d="'+cpath(c)+'" fill="'+(c.fill||'#e9eef4')+'"/>';
+  svgHtml+='<path stroke="'+(sel?(DATA.scoped?'#fff':'#ffbe2e'):(DATA.scoped?'#39445a':'#c6d0dc'))+'" stroke-width="'+(sel?(DATA.scoped?1.6:2.2):.5)+'" d="'+cpath(c)+'" fill="'+(c.fill||'#e9eef4')+'"/>';
 });
 svg.innerHTML=svgHtml;
 const lg=document.getElementById("legend");
 if(DATA.colorBy==="team"&&DATA.teams.length){lg.style.display="block";lg.innerHTML="<div><b>Teams</b></div>"+DATA.teams.map(t=>'<div><span class="tc" style="background:'+t.color+'"></span>'+esc(t.name)+(t.members?' <span style="color:#565c65">· '+esc(t.members)+"</span>":"")+"</div>").join("");}
-else if(curMax>0){lg.style.display="block";lg.innerHTML="<div>"+esc(DATA.layerLabel)+"</div><div class='bar'></div><div class='ends'><span>0</span><span>"+fmtVal(curMax,DATA.layerFmt)+"</span></div>";}
+else if(curMax>0){lg.style.display="block";lg.innerHTML="<div>"+esc(DATA.layerLabel)+"</div><div class='bar'"+(DATA.scoped?" style='background:linear-gradient(90deg,#fff4d1,#ffd75e,#f2a900,#e07c00)'":"")+"></div><div class='ends'><span>0</span><span>"+fmtVal(curMax,DATA.layerFmt)+"</span></div>";}
 const E=DATA.expect||{};
 let expectHtml="";
 if(E.pa)expectHtml+='<h3 class="sec">Expectations — PA (per prior disaster touching the selection; '+E.pa.included+' of '+E.pa.disasters+' disasters included)</h3><div class="chipgrid">'
@@ -1651,7 +1686,7 @@ function mapPngDataUrl(scale){
     const W=PROJ.W*(scale||1.5),H=PROJ.H*(scale||1.5);
     img.onload=()=>{
       const cv=document.createElement("canvas");cv.width=W;cv.height=H;
-      const ctx=cv.getContext("2d");ctx.fillStyle="#f7f9fc";ctx.fillRect(0,0,W,H);
+      const ctx=cv.getContext("2d");ctx.fillStyle=planScoped()?"#10151d":"#f7f9fc";ctx.fillRect(0,0,W,H);
       ctx.drawImage(img,0,0,W,H);
       resolve(cv.toDataURL("image/png"));
     };
