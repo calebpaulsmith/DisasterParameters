@@ -30,10 +30,12 @@ a{color:var(--blue);}
 .mapcard,.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);}
 .mapcard{padding:10px;position:relative;}
 .mapcard svg{width:100%;height:auto;display:block;background:#f7f9fc;border-radius:8px;}
-.cty{cursor:pointer;stroke:#c6d0dc;stroke-width:.4;transition:fill .1s;}
+.cty{cursor:pointer;stroke:#c6d0dc;stroke-width:.4;transition:fill .45s ease,stroke .2s;}
 .cty:hover{stroke:#0b1f3a;stroke-width:1;}
 .cty.sel{stroke:var(--gold);stroke-width:2.2;}
 .cty.dim{opacity:.25;}
+.fitbtn{position:absolute;top:16px;right:16px;z-index:5;font:inherit;font-size:12px;font-weight:600;color:var(--navy);background:#fff;border:1px solid var(--line);border-radius:6px;padding:5px 9px;cursor:pointer;box-shadow:var(--shadow-sm);}
+.fitbtn:hover{background:#f4f7fb;}
 .legend{position:absolute;left:18px;bottom:18px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11.5px;box-shadow:var(--shadow-sm);max-width:280px;}
 .legend .bar{height:9px;width:150px;border-radius:2px;background:linear-gradient(90deg,#eaf2fb,#0b1f3a);margin:4px 0;}
 .legend .ends{display:flex;justify-content:space-between;color:var(--ink-3);}
@@ -181,6 +183,7 @@ details.pick summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(-
   <div class="mapcard" id="mapcard"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
     <div class="legend" id="legend" style="display:none"></div>
     <div class="assignbar" id="assignbar"></div>
+    <button class="fitbtn" id="fitBtn" style="display:none" title="Toggle the map between the plan's counties and the full region">⤢ full region</button>
   </div>
   <aside class="panel">
     <div class="fld"><label>Plan name</label><input type="text" id="planName" placeholder="e.g. IN Winter Storm 2026 — PA/IA request"></div>
@@ -403,10 +406,51 @@ function cpath(c){const {minx,maxy,k,s,pad}=PROJ;let d="";
   c.g.forEach(p=>p.forEach(r=>{d+="M"+r.map(pt=>`${(pad+(pt[0]-minx)*k*s).toFixed(1)},${(pad+(maxy-pt[1])*s).toFixed(1)}`).join("L")+"Z";}));return d;}
 function ramp(t){t=Math.max(0,Math.min(1,t));const a=[234,242,251],b=[11,31,58];return`rgb(${a.map((x,i)=>Math.round(x+(b[i]-x)*t)).join(",")})`;}
 
+/* ---- map viewBox: animated zoom to the plan's counties (toggleable back to the full region) ---- */
+let mapFit="plan", mapVB=null, mapAnimRAF=null, mapVBKey="", mapHadSel=false;
+function planBBox(){
+  const set=new Set(Object.keys(plan.counties)); if(!set.size)return null;
+  const {minx,maxy,k,s,pad}=PROJ; let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,found=false;
+  COUNTIES.forEach(c=>{if(!set.has(c.f))return; found=true;
+    c.g.forEach(p=>p.forEach(r=>r.forEach(pt=>{const px=pad+(pt[0]-minx)*k*s,py=pad+(maxy-pt[1])*s;
+      if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;})));});
+  if(!found)return null;
+  const px=(x1-x0)*0.22+16,py=(y1-y0)*0.22+16;
+  let w=(x1-x0)+2*px,h=(y1-y0)+2*py;
+  // keep the projected aspect (so PNG/SharePoint exports stay undistorted) + a context
+  // floor so neighboring counties remain visible and clickable to extend the plan
+  const AR=PROJ.W/PROJ.H, minW=PROJ.W*0.40;
+  if(w<minW)w=minW; if(w/h>AR)h=w/AR; else w=h*AR;
+  const cx=(x0+x1)/2, cy=(y0+y1)/2;
+  return {x:cx-w/2,y:cy-h/2,w,h};
+}
+function mapTargetVB(){ if(mapFit==="plan"){const bb=planBBox(); if(bb)return bb;} return {x:0,y:0,w:PROJ.W,h:PROJ.H}; }
+function mapApplyVB(anim){
+  if(!PROJ)return;
+  const svg=document.getElementById("svg"), fb=document.getElementById("fitBtn");
+  const hasSel=planScoped();
+  if(hasSel&&!mapHadSel)mapFit="plan";   // a fresh selection (PDA import / disaster seed / first county) snaps back to fit-plan
+  mapHadSel=hasSel;
+  if(fb){fb.style.display=hasSel?"":"none"; fb.textContent=mapFit==="plan"?"⤢ full region":"◎ fit plan";}
+  const t=mapTargetVB(), key=[t.x,t.y,t.w,t.h].map(v=>v.toFixed(1)).join(" ");
+  if(key===mapVBKey)return; mapVBKey=key;
+  const set=v=>svg.setAttribute("viewBox",`${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}`);
+  if(!anim||!mapVB){mapVB={...t};set(mapVB);return;}
+  if(mapAnimRAF)cancelAnimationFrame(mapAnimRAF);
+  const from={...mapVB},t0=performance.now(),dur=550,ease=p=>1-Math.pow(1-p,3);
+  (function step(now){const p=Math.min(1,(now-t0)/dur),e=ease(p);
+    mapVB={x:from.x+(t.x-from.x)*e,y:from.y+(t.y-from.y)*e,w:from.w+(t.w-from.w)*e,h:from.h+(t.h-from.h)*e};
+    set(mapVB); if(p<1)mapAnimRAF=requestAnimationFrame(step); else mapAnimRAF=null;})(t0);
+}
+document.getElementById("fitBtn").onclick=()=>{mapFit=mapFit==="plan"?"region":"plan";mapApplyVB(true);};
+
 let curMax=0;
-function countyFill(f,L){
+const MAP_DARK="#252b35";   // once a plan has counties, everything outside it fades to this — the choropleth reads only within the selection
+function planScoped(){return !!Object.keys(plan.counties).length;}
+function countyFill(f,L,scoped){
+  const sel=!!plan.counties[f];
+  if(scoped&&!sel)return MAP_DARK;
   if(plan.colorBy==="team"){
-    const sel=!!plan.counties[f];
     if(!sel)return "#e9eef4";
     const t=teamOf(f);
     return t?t.color:"#c9d2dc";
@@ -415,24 +459,31 @@ function countyFill(f,L){
   return "#e9eef4";
 }
 function render(){
+  const scoped=planScoped();
   const L=plan.colorBy==="metric"?activeLayer():null;
-  curMax=0;
-  if(L&&L.get)COUNTIES.forEach(c=>{if(plan.states.includes(c.s)){const v=L.get(c.f);if(v>curMax)curMax=v;}});
-  let s="";
-  COUNTIES.forEach(c=>{
-    const inState=plan.states.includes(c.s), sel=!!plan.counties[c.f];
-    const cls="cty"+(sel?" sel":"")+(inState?"":" dim");
-    s+=`<path class="${cls}" data-f="${c.f}" data-n="${c.n.replace(/"/g,'')}" data-s="${c.s}" d="${cpath(c)}" fill="${countyFill(c.f,L)}"/>`;
-  });
+  curMax=0;   // ramp normalizes within the selection once a plan exists, else across the active states
+  if(L&&L.get)COUNTIES.forEach(c=>{if(scoped?plan.counties[c.f]:plan.states.includes(c.s)){const v=L.get(c.f);if(v>curMax)curMax=v;}});
   const svg=document.getElementById("svg");
-  svg.setAttribute("viewBox",`0 0 ${PROJ.W} ${PROJ.H}`);svg.innerHTML=s;
+  const mk=c=>{const inState=plan.states.includes(c.s), sel=!!plan.counties[c.f];
+    return {cls:"cty"+(sel?" sel":"")+(inState?"":" dim"), fill:countyFill(c.f,L,scoped)};};
+  const ps=svg.querySelectorAll("path.cty");
+  if(ps.length===COUNTIES.length){   // update in place: fill changes fade (CSS transition) and the zoom isn't reset
+    COUNTIES.forEach((c,i)=>{const a=mk(c),p=ps[i];p.setAttribute("class",a.cls);p.setAttribute("fill",a.fill);});
+  }else{
+    let s="";
+    COUNTIES.forEach(c=>{const a=mk(c);
+      s+=`<path class="${a.cls}" data-f="${c.f}" data-n="${c.n.replace(/"/g,'')}" data-s="${c.s}" d="${cpath(c)}" fill="${a.fill}"/>`;});
+    svg.innerHTML=s;
+  }
+  mapApplyVB(true);
   const lg=document.getElementById("legend");
+  const scopeNote=scoped?`<div class="muted" style="margin-top:3px">plan counties only — others darkened</div>`:"";
   if(plan.colorBy==="team"){
     if(plan.teams.length){lg.style.display="block";
       lg.innerHTML=`<div><b>Teams</b></div>`+plan.teams.map(t=>`<div class="trow"><span class="dot" style="background:${t.color}"></span>${esc(t.name)}${t.members?` <span class="muted">· ${esc(t.members)}</span>`:""}</div>`).join("")
-        +`<div class="trow"><span class="dot" style="background:#c9d2dc"></span><span class="muted">in plan, unassigned</span></div>`;}
+        +`<div class="trow"><span class="dot" style="background:#c9d2dc"></span><span class="muted">in plan, unassigned</span></div>`+scopeNote;}
     else lg.style.display="none";
-  }else if(L&&L.get&&curMax>0){lg.style.display="block";lg.innerHTML=`<div>${L.label}</div><div class="bar"></div><div class="ends"><span>0</span><span>${fmtVal(curMax,L.fmt)}</span></div>`;}
+  }else if(L&&L.get&&curMax>0){lg.style.display="block";lg.innerHTML=`<div>${L.label}</div><div class="bar"></div><div class="ends"><span>0</span><span>${fmtVal(curMax,L.fmt)}</span></div>`+scopeNote;}
   else lg.style.display="none";
   const ab=document.getElementById("assignbar");
   const at=assignTeam?plan.teams.find(t=>t.id===assignTeam):null;
