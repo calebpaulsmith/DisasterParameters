@@ -41,6 +41,20 @@ type filters (Flooding / Tornado / Wind / Hail / Snow-Ice / Storms), and a
 sortable **ledger** of every disaster: number (desc), incident period, state,
 type tags, PA/IA, and measured wind / hail / stage / tornado.
 
+**Programs by Year** — every federal program on one chart: a stacked bar per year
+covering disaster assistance (PA · IHP · HMGP) and the non-disaster grants that run
+alongside it (hazard mitigation · EMPG · firefighter · homeland security · transit ·
+nonprofit), for all of Region 5 or one state. **Click a year** and the whole year opens
+up: each program's dollars, what they were spent on (damage category, project type,
+sub-program), who received them, and which disasters they came from — the disaster rows
+open the full disaster record. Below it, a **state comparison** for one program at a
+time, in total or per capita. The **year basis differs by program** and is labeled on
+every figure: PA / HMGP / mitigation sit in their true obligation year, EMPG and the
+preparedness families in their grant fiscal year, and IHP in its disaster's incident year
+(a proxy — IHP carries no obligation date). Only obligated dollars count: hazard-mitigation
+applications that were denied, pending or not selected are excluded and reported in the
+data file's audit.
+
 ## Data — real, measured, mostly live
 
 | Layer | Source | How |

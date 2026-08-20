@@ -37,6 +37,7 @@ SOURCE_CADENCE = {
     "event_nexus.json": "as-needed",
     "context.json": "as-needed",
     "planner_applicants.json": "as-needed (re-run after the county applicant pipeline; PA sources update daily)",
+    "program_years.json": "as-needed (PA/HMA reload daily; grant datasets less often)",
     "r5_counties.json": "static (county geometry)",
 }
 
