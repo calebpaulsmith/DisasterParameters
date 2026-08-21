@@ -966,6 +966,30 @@
     "scripts/build_nonfed.py",
     "docs/briefing-plan.md"
    ]
+  },
+  {
+   "id": "build_program_years",
+   "name": "scripts/build_program_years.py",
+   "runtime": "offline",
+   "schedule": "weekly (manual today)",
+   "method": "One year x state x program cube for Region 5. PA worksheets (Details v2) bucketed by lastObligationDate and attributed to applicant names through the PublicAssistanceApplicants (disasterNumber, applicantId) bridge; HMGP + non-disaster HMA by initialObligationDate, federalShareObligated ONLY (project requests with no obligated share are excluded and reported); EMPG by reporting year; the DHS preparedness grab-bag split into the same five families build_state_prep.py uses, by fiscal year; IHP taken from the ledger and placed in its disaster's incident year (a labeled proxy). Every pull is gated on the server's own $inlinecount so a dropped page aborts the build instead of silently shortening a series. Recipient-name variants are grouped with dedup_applicants.normalize(). Audit reconciles each program against county_declarations.json's *ByYear buckets and states the cause of every difference, plus a PA worksheets-vs-ledger cross-dataset check.",
+   "reads": [
+    "publicAssistanceFundedProjectsDetails",
+    "publicAssistanceApplicants",
+    "hazardMitigationAssistanceProjects",
+    "emergencyManagementPerformanceGrants",
+    "nonDisasterAssistanceFirefighterGrants",
+    "femaWebDisasterSummaries",
+    "disasters.json",
+    "county_declarations.json"
+   ],
+   "writes": [
+    "program_years.json"
+   ],
+   "description": "Builds program_years.json: obligations by year x state x program, with the within-year drill-down (sub-program split, top recipients, disasters behind it) that powers the Programs by Year tab.",
+   "links": [
+    "scripts/build_program_years.py"
+   ]
   }
  ],
  "surfaces": [
@@ -1125,6 +1149,18 @@
    "links": [
     "planner.html"
    ]
+  },
+  {
+   "id": "programs",
+   "name": "Programs by Year view",
+   "location": "index.html#view-programs",
+   "reads": [
+    "program_years.json"
+   ],
+   "description": "Stacked obligations-by-year bars across all ten programs (scoped to Region 5 or one state), a click-a-year drill-down into that year's sub-program split, top recipients and source disasters, and a state-comparison chart for one program at a time.",
+   "links": [
+    "index.html"
+   ]
   }
  ],
  "artifacts": {
@@ -1193,6 +1229,9 @@
   },
   "nonfed.json": {
    "description": "Per-disaster project-level PA sums (estimated total cost, federal obligated, project count, §406 mitigation Σ) from a full national PA Details sweep — the basis of the Briefing's implied non-federal share (estimate). Joined into briefing.json by build_briefing.py; not fetched directly by the browser."
+  },
+  "program_years.json": {
+   "description": "Year x state x program obligation cube for Region 5 (PA, IHP, HMGP, non-disaster mitigation, EMPG and the four preparedness families), with each year's sub-program split, top recipients and source disasters."
   }
  }
 }

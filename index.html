@@ -660,6 +660,57 @@ tr.clickable:hover td{background:#eef3f8;}
 .trigparm .pv{font-size:18px;font-weight:900;color:var(--navy);}
 .trigparm .pl{font-size:11.5px;color:var(--ink-2);font-weight:600;}
 .trigparm .pf{font-size:10.5px;color:var(--ink-3);margin-top:4px;}
+/* ===== Program Obligations by year (view-programs) ===== */
+.pgbar{display:flex;flex-direction:column;align-items:flex-start;margin-bottom:14px;}
+#pgGroupRow::before{content:"show";}
+.pgcmprow::before{content:"program";}
+.pglegend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.pgk{display:inline-flex;align-items:center;text-align:left;gap:6px;font-size:12px;font-weight:700;color:var(--ink-2);background:#fff;border:1px solid var(--line);border-radius:20px;padding:4px 10px;cursor:pointer;}
+.pgk i{width:10px;height:10px;border-radius:2px;flex:0 0 auto;}
+.pgk b{font-weight:800;color:var(--ink);}
+.pgk.off{opacity:.42;text-decoration:line-through;}
+.pgk:hover{border-color:var(--navy);}
+.pgplot{position:relative;}
+.pgplot svg{width:100%;height:auto;display:block;}
+.pghit{cursor:pointer;}
+.pgnote{margin-top:8px;}
+.pgdet{margin-top:16px;border-top:2px solid var(--navy);padding-top:14px;}
+.pgdet__hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
+.pgdet__hd h3{font-size:16px;}
+.pgclear{font:inherit;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--ink-2);border-radius:20px;padding:3px 10px;cursor:pointer;}
+.pggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:12px;}
+.pggrid>*{min-width:0;}   /* grid items default to min-width:auto — a long recipient name would otherwise widen the whole page */
+.pgcard{border:1px solid var(--line);border-radius:8px;padding:11px 13px;background:#fff;min-width:0;overflow:hidden;}
+.pgcard__hd{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;color:var(--navy);}
+.pgcard__hd i{width:10px;height:10px;border-radius:2px;flex:0 0 auto;}
+.pgcard__hd b{margin-left:auto;font-size:14px;}
+.pgcard__meta{font-size:11.5px;color:var(--ink-3);margin:3px 0 8px;}
+.pgsub{margin:0 0 8px;}
+.pgrow{display:flex;align-items:center;gap:8px;font-size:12px;padding:2px 0;}
+.pgrow__l{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pgrow__v{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.pgbarline{height:5px;border-radius:3px;background:#eef2f7;overflow:hidden;margin-top:1px;}
+.pgbarline span{display:block;height:100%;}
+.pgcard details{margin-top:6px;}
+.pgcard summary{font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;}
+.pgcard table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:11.5px;margin-top:6px;}
+.pgcard table td{padding:3px 4px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere;}
+.pgcard table td:last-child{width:74px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.pgcard tr[data-dn]{cursor:pointer;}
+.pgcard tr[data-dn]:hover{background:#f4f7fb;}
+.pgcmp{margin-top:4px;}
+.pgcmp__row{display:grid;grid-template-columns:118px 1fr 96px;align-items:center;gap:10px;padding:5px 6px;border-radius:6px;cursor:pointer;}
+.pgcmp__row:hover{background:#f4f7fb;}
+.pgcmp__row.on{background:#eef4ff;box-shadow:inset 0 0 0 1px #c7d7f0;}
+.pgcmp__st{font-size:13px;font-weight:700;color:var(--navy);}
+.pgcmp__bar{height:16px;border-radius:3px;background:#eef2f7;overflow:hidden;}
+.pgcmp__bar span{display:block;height:100%;}
+.pgcmp__v{text-align:right;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;}
+.pgempty{font-size:12.5px;color:var(--ink-3);padding:10px 0;}
+@media(max-width:760px){
+  .pggrid{grid-template-columns:1fr;}
+  .pgcmp__row{grid-template-columns:56px 1fr 84px;gap:7px;}
+}
 </style>
 </head>
 <body>
@@ -698,6 +749,7 @@ tr.clickable:hover td{background:#eef3f8;}
     <button data-view="history" class="active">&#128467;&#65039; Disaster Ledger</button>
     <button data-view="timelines">&#9201;&#65039; Disaster Timelines</button>
     <button data-view="geography">&#128506;&#65039; Geography</button>
+    <button data-view="programs">&#128176; Programs by Year</button>
     <button data-view="newsreel">&#128240; Newsreel</button>
     <button data-view="covid">&#129440; COVID-19</button>
     <button data-view="context">&#128202; Conditions in Context</button>
@@ -961,6 +1013,27 @@ tr.clickable:hover td{background:#eef3f8;}
     </div>
     <div id="geoTimeline" class="geotl"></div>
     <div id="geoMobile"></div>
+  </section>
+
+  <!-- ============ PROGRAM OBLIGATIONS BY YEAR ============ -->
+  <section class="view" id="view-programs">
+    <div class="note" style="margin-bottom:16px"><span class="i">!</span><span><b>Every federal program, year by year.</b> One bar per year, split by <b>program</b> &mdash; disaster assistance (PA &middot; IHP &middot; HMGP) and the non-disaster grants that run alongside it (mitigation &middot; EMPG &middot; firefighter &middot; homeland security &middot; transit &middot; nonprofit). <b>Click a year</b> for everything behind it: what the money bought, who received it, and which disasters it came from. <b>PA is obligated; IHP is approved</b> &mdash; different accounting stages. The <b>year basis differs by program</b> and is labeled on every figure. COVID-19 is excluded (it sits on its own tab). Real OpenFEMA figures &mdash; <b>not endorsed by FEMA</b>.</span></div>
+    <div class="pgbar">
+      <div class="geogrp" id="pgScopeRow" role="group" aria-label="Scope">
+        <button data-pgst="" class="active" title="All six Region 5 states together">Region&nbsp;5</button>
+        <button data-pgst="IL">Illinois</button>
+        <button data-pgst="IN">Indiana</button>
+        <button data-pgst="MI">Michigan</button>
+        <button data-pgst="MN">Minnesota</button>
+        <button data-pgst="OH">Ohio</button>
+        <button data-pgst="WI">Wisconsin</button></div>
+      <div class="geotoggle" id="pgGroupRow" role="group" aria-label="Which programs">
+        <button data-pggrp="all" class="active" title="Every program on one chart">All programs</button>
+        <button data-pggrp="disaster" title="Assistance triggered by a declaration: PA, IHP, HMGP">Disaster assistance</button>
+        <button data-pggrp="nondis" class="ndis" title="Grants that run without a declaration: mitigation, EMPG, firefighter, homeland security, transit, nonprofit">Non-disaster grants</button></div>
+      <span class="geohint thr-sub">Pick a <b>state</b> (or keep the whole region), choose which <b>programs</b> to chart, then <b>click a year</b> to drill into it. Use the legend to hide a program that dwarfs the rest.</span>
+    </div>
+    <div id="pgBody"><div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading program obligations&hellip;</div></div>
   </section>
 
   <!-- ============ COVID-19 (self-contained; kept out of the weather views) ============ -->
@@ -4437,11 +4510,12 @@ function buildTimeline(g,peaks,record,live,declSet){
 }
 
 /* ===== nav + shareable hash routing (#view, #geography/MN) ===== */
-const VALID_VIEWS=["history","timelines","geography","newsreel","covid","context","watch","estimator"];
+const VALID_VIEWS=["history","timelines","geography","programs","newsreel","covid","context","watch","estimator"];
 function curView(){const b=document.querySelector(".nav button.active");return b?b.dataset.view:"history";}
 function syncHash(){let h=curView();
   if(h==="geography"){ if(geoCountyFocus)h+="/"+geoStateFilter+"/"+geoCountyFocus; else if(geoStateFilter)h+="/"+geoStateFilter; }
   if(h==="newsreel"&&briScope!=="US")h+="/"+briScope;
+  if(h==="programs"&&pgState)h+="/"+pgState;
   if((location.hash||"").replace(/^#/,"")!==h) history.replaceState(null,"","#"+h);}
 let navOpenScrollY=0;
 function navIsOpen(){const ni=document.querySelector(".nav__inner");return!!(ni&&ni.classList.contains("open"));}
@@ -4455,6 +4529,7 @@ function showView(v,noScroll){
   if(v==="watch"&&!watchState.ready)loadWatch();
   if(v==="watch")renderDeclMap();
   if(v==="geography")geoRenderAll();
+  if(v==="programs"){pgLoad();renderPrograms();}
   if(v==="covid")renderCovid();
   if(v==="newsreel")renderNewsreel();
   if(v==="history")renderHazTimeline();
@@ -4470,11 +4545,267 @@ function routeFromHash(){
     geoStateFilter=parts[1]?parts[1].toUpperCase():null;
     geoCountyFocus=(parts[2]&&DECL&&DECL.counties[parts[2]])?parts[2]:null;
   }
+  if(v==="programs"){const p=(parts[1]||"").toUpperCase(); pgState=PG_STATES.includes(p)?p:null;}
   if(v==="newsreel"){const p=(parts[1]||"US").toUpperCase();
     if(p==="US"||/^R([1-9]|10)$/.test(p)||/^[A-Z]{2}$/.test(p)){briScope=p; const s=el("briSel"); if(s&&[...s.options].some(o=>o.value===p))s.value=p;}}
   showView(v,true);
 }
 window.addEventListener("hashchange",routeFromHash);
+
+/* ============ PROGRAM OBLIGATIONS BY YEAR (view-programs) ============
+   One cube — data/program_years.json: year × state × program → dollars plus the
+   within-year drill-down (sub-program split, top recipients, the disasters behind it).
+   Everything this tab shows comes from that committed file; nothing is fetched live.
+   Year basis DIFFERS by program and is labeled everywhere it is shown: PA / HMGP /
+   non-disaster mitigation sit in their TRUE obligation year, EMPG + the preparedness
+   families in their grant FISCAL year, and IHP in its disaster's INCIDENT year (a proxy —
+   IHP carries no obligation date). PA is obligated; IHP is approved. */
+let PGY=null, pgPend=false;
+let pgState=null;        // null = Region 5 (the file's own exact "R5" cell, not a merge of state top-lists)
+let pgGroup="all";       // all | disaster | nondis
+let pgOff={};            // program key -> hidden via the legend
+let pgYear=null;         // the clicked year (drill-down); null = no year selected
+let pgFull=false;        // include the pre-FY2007 years (grant programs only — the ledger starts at FY2007)
+let pgCmpProg="pa";      // program shown in the state-comparison chart
+let pgCmpCapita=false;
+
+const PG_PROGS=[
+ {k:"pa",label:"Public Assistance",short:"PA",grp:"d",color:"#1a9850",stage:"obligated",
+  basis:"true obligation year",unit:"project worksheets",recip:"Top applicants",sub:"By damage category",
+  src:"PublicAssistanceFundedProjectsDetails v2",
+  tip:"Public Assistance — federal share OBLIGATED to state/local governments and certain nonprofits. Summed from project worksheets and placed in the year each was obligated."},
+ {k:"ihp",label:"Individuals &amp; Households",short:"IHP",grp:"d",color:"#e8590c",stage:"approved",
+  basis:"proxy — disaster incident year",unit:"IA registrations",recip:null,sub:"Housing vs Other Needs",
+  src:"FemaWebDisasterSummaries (via the ledger)",
+  tip:"IHP — the one Individual Assistance program with public per-disaster dollars, APPROVED (a different accounting stage from PA's obligated). IHP carries no obligation date, so each disaster's IHP sits in its incident year."},
+ {k:"hmgp",label:"Hazard Mitigation (&sect;404)",short:"HMGP",grp:"d",color:"#6a4c93",stage:"obligated",
+  basis:"true obligation year",unit:"projects",recip:"Top subrecipients",sub:"By project type",
+  src:"HazardMitigationAssistanceProjects v4 (programArea = HMGP)",
+  tip:"Hazard Mitigation Grant Program (&sect;404) — post-disaster mitigation, OBLIGATED. HMGP reconciles for years after its disaster, so it is keyed to the obligation year, not the incident."},
+ {k:"mit",label:"Non-disaster mitigation",short:"HMA",grp:"n",color:"#0e7c86",stage:"obligated",
+  basis:"true obligation year",unit:"projects",recip:"Top subrecipients",sub:"By program",
+  src:"HazardMitigationAssistanceProjects v4 (all programs except HMGP)",
+  tip:"Competitive, non-disaster hazard-mitigation grants — FMA, PDM, BRIC, LPDM, RFC, SRL. Not tied to any declaration."},
+ {k:"empg",label:"Emergency Mgmt Performance",short:"EMPG",grp:"n",color:"#d4a017",stage:"awarded",
+  basis:"reporting / fiscal year",unit:"awards",recip:"Top recipient agencies",sub:"By project type",
+  src:"EmergencyManagementPerformanceGrants v2",
+  tip:"EMPG — the formula grant that pays for state and local emergency-management capability. Non-disaster; awarded by fiscal year."},
+ {k:"prepFire",label:"Firefighter (AFG/SAFER)",short:"AFG",grp:"n",color:"#b23b1e",stage:"awarded",
+  basis:"grant fiscal year",unit:"awards",recip:"Top recipients",sub:"By sub-program",
+  src:"NonDisasterAssistanceFirefighterGrants v1",
+  tip:"Assistance to Firefighters, SAFER, Fire Prevention &amp; Safety, Station Construction — grants straight to fire departments."},
+ {k:"prepHomeland",label:"Homeland Security",short:"HSGP",grp:"n",color:"#5a189a",stage:"awarded",
+  basis:"grant fiscal year",unit:"awards",recip:"Top recipients",sub:"By sub-program",
+  src:"NonDisasterAssistanceFirefighterGrants v1",
+  tip:"Homeland Security Grant Program (SHSP / UASI / OPSG). It rides in the same OpenFEMA dataset as the firefighter grants, which is a grab-bag of DHS non-disaster grants — split here into families."},
+ {k:"prepTransit",label:"Transit / Port / Rail",short:"Transit",grp:"n",color:"#2b8cbe",stage:"awarded",
+  basis:"grant fiscal year",unit:"awards",recip:"Top recipients",sub:"By sub-program",
+  src:"NonDisasterAssistanceFirefighterGrants v1",
+  tip:"Transit, port, freight-rail and intercity-bus security grants."},
+ {k:"prepNonprofit",label:"Nonprofit Security",short:"NSGP",grp:"n",color:"#a1683a",stage:"awarded",
+  basis:"grant fiscal year",unit:"awards",recip:"Top recipients",sub:"By sub-program",
+  src:"NonDisasterAssistanceFirefighterGrants v1",
+  tip:"Nonprofit Security Grant Program — hardening for nonprofits at risk of terrorist attack."},
+ {k:"prepOther",label:"Other preparedness",short:"Other",grp:"n",color:"#7d8597",stage:"awarded",
+  basis:"grant fiscal year",unit:"awards",recip:"Top recipients",sub:"By sub-program",
+  src:"NonDisasterAssistanceFirefighterGrants v1",
+  tip:"The remaining DHS non-disaster preparedness grants (EMPG excluded — it has its own bar)."}];
+const PG_BY={}; PG_PROGS.forEach(p=>PG_BY[p.k]=p);
+const PG_STATES=["IL","IN","MI","MN","OH","WI"];
+
+function pgLoad(){
+  if(pgPend||PGY)return; pgPend=true;
+  fetch("data/program_years.json").then(r=>{if(!r.ok)throw 0;return r.json();}).then(j=>{
+    PGY=j; pgPend=false; renderPrograms();
+  }).catch(()=>{pgPend=false; PGY={error:1,years:{}};
+    const b=el("pgBody"); if(b)b.innerHTML=`<div class="note"><span class="i">!</span><span>Couldn't load <code>data/program_years.json</code>. Reload the page &mdash; and note the app must be served over http(s), not opened as a file.</span></div>`;});
+}
+function pgScope(){return pgState||"R5";}
+function pgScopeLabel(){return pgState?((PGY.states[pgState]||{}).name||pgState):"Region 5 (all six states)";}
+function pgCell(y,k,st){const a=(PGY.years||{})[String(y)]; if(!a)return null; const b=a[st||pgScope()]; return b?(b[k]||null):null;}
+function pgVal(y,k,st){const c=pgCell(y,k,st); return c?c.a:0;}
+function pgGroupProgs(){return PG_PROGS.filter(p=>pgGroup==="all"||(pgGroup==="disaster"?p.grp==="d":p.grp==="n"));}
+function pgActiveProgs(){return pgGroupProgs().filter(p=>!pgOff[p.k]);}
+function pgAllYears(){return Object.keys(PGY.years||{}).map(Number).sort((a,b)=>a-b);}
+function pgYearsShown(){
+  const y0=PGY.ledgerYear0||2007, all=pgAllYears(); if(!all.length)return [];
+  const lo=pgFull?all[0]:Math.max(all[0],y0), hi=all[all.length-1];
+  const progs=pgActiveProgs(), out=[];
+  for(let y=lo;y<=hi;y++)out.push(y);
+  // trim leading/trailing years with nothing in them for the current selection
+  while(out.length&&!progs.some(p=>pgVal(out[0],p.k)))out.shift();
+  while(out.length&&!progs.some(p=>pgVal(out[out.length-1],p.k)))out.pop();
+  return out;
+}
+function pgSum(k,years,st){let s=0;years.forEach(y=>s+=pgVal(y,k,st));return s;}
+function pgNice(mx){                       // a round axis maximum + 4 ticks
+  if(mx<=0)return {max:1,ticks:[0,1]};
+  const p=Math.pow(10,Math.floor(Math.log10(mx))), n=mx/p;
+  const step=(n<=1.2?0.25:n<=2.5?0.5:n<=5?1:2)*p, max=Math.ceil(mx/step)*step, ticks=[];
+  for(let v=0;v<=max+1e-6;v+=step)ticks.push(v);
+  return {max,ticks};
+}
+function pgBasisNote(){
+  const a=pgActiveProgs();
+  const bits=[];
+  if(a.some(p=>p.k==="pa"||p.k==="hmgp"||p.k==="mit"))bits.push("PA, HMGP and non-disaster mitigation sit in their <b>true obligation year</b>");
+  if(a.some(p=>p.k==="ihp"))bits.push("IHP sits in its disaster's <b>incident year</b> (a proxy &mdash; IHP carries no obligation date)");
+  if(a.some(p=>p.grp==="n"&&p.k!=="mit"))bits.push("EMPG and the preparedness families sit in their <b>grant fiscal year</b>");
+  return bits.join(" &middot; ");
+}
+
+/* ---- chart 1: stacked bars, one column per year ---- */
+function pgNarrow(){return window.matchMedia("(max-width:760px)").matches;}
+function pgChartHTML(){
+  const years=pgYearsShown(), progs=pgActiveProgs();
+  if(!years.length||!progs.length)return `<div class="pgempty">Nothing selected &mdash; turn a program back on below.</div>`;
+  const tot=y=>progs.reduce((s,p)=>s+pgVal(y,p.k),0);
+  const {max,ticks}=pgNice(Math.max(...years.map(tot)));
+  // the SVG scales uniformly (no preserveAspectRatio="none"), so a phone gets a narrower,
+  // taller viewBox instead of horizontally-squashed text
+  const nw=pgNarrow();
+  const W=nw?520:1000,H=nw?330:340,padL=nw?84:64,padR=nw?10:12,padT=14,axH=nw?28:30;
+  const plotH=H-padT-axH,iw=W-padL-padR,base=padT+plotH;
+  const slot=iw/years.length, bw=Math.max(3,Math.min(46,slot*0.68)), fs=nw?1.55:1;
+  const xOf=i=>padL+slot*(i+0.5);
+  let grid=ticks.map(t=>{const y=base-(t/max)*plotH;
+    return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="#eef2f7" stroke-width="1"/>`
+      +`<text x="${padL-6}" y="${(y+3.5*fs).toFixed(1)}" font-size="${(10.5*fs).toFixed(1)}" text-anchor="end" fill="#8a94a6">${t?fmtMoney(t):"0"}</text>`;}).join("");
+  let bars="",hits="",labs="";
+  years.forEach((y,i)=>{
+    const cx=xOf(i), sel=(pgYear==null||pgYear===y), op=sel?1:0.3;
+    let acc=0;
+    progs.forEach(p=>{
+      const v=pgVal(y,p.k); if(v<=0)return;
+      const h=(v/max)*plotH, yTop=base-((acc+v)/max)*plotH; acc+=v;
+      if(h<0.4)return;
+      bars+=`<rect x="${(cx-bw/2).toFixed(1)}" y="${yTop.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${p.color}" opacity="${op}"><title>${y} · ${p.label.replace(/&amp;/g,"&")}: ${fmtMoneyFull(v)}</title></rect>`;
+    });
+    if(acc>0&&slot>(nw?34:26))labs+=`<text x="${cx.toFixed(1)}" y="${(base-(acc/max)*plotH-5).toFixed(1)}" font-size="${(9.5*fs).toFixed(1)}" text-anchor="middle" fill="#5a6478" opacity="${op}">${fmtMoney(acc)}</text>`;
+    hits+=`<rect class="pghit" data-pgyear="${y}" x="${(cx-slot/2).toFixed(1)}" y="${padT}" width="${slot.toFixed(1)}" height="${plotH}" fill="${pgYear===y?"#0d234212":"transparent"}"><title>${y}: ${fmtMoneyFull(acc)} — click for the detail behind this year</title></rect>`;
+    const every=nw?(years.length<=10?1:(years.length<=22?3:5)):(years.length<=16?1:(years.length<=26?2:3));
+    const lastDrawn=Math.floor((years.length-1)/every)*every, isLast=i===years.length-1;
+    if(i%every===0||(isLast&&i-lastDrawn>=2))labs+=`<text x="${cx.toFixed(1)}" y="${(base+13*fs).toFixed(1)}" font-size="${(10*fs).toFixed(1)}" text-anchor="middle" fill="${pgYear===y?"#0d2342":"#8a94a6"}" font-weight="${pgYear===y?800:400}">${(nw||years.length>26)?"'"+String(y).slice(2):y}</text>`;
+  });
+  // the FY2007 coverage edge — before it, only the grant programs are covered by this data
+  let edge="";
+  const y0=PGY.ledgerYear0||2007, ei=years.indexOf(y0);
+  if(pgFull&&ei>0){const x=(padL+slot*ei).toFixed(1);
+    edge=`<line x1="${x}" y1="${padT}" x2="${x}" y2="${base}" stroke="#b4271f" stroke-width="1.5" stroke-dasharray="4 3"/>`
+        +`<text x="${(+x-6).toFixed(1)}" y="${padT+11}" font-size="${(9.5*fs).toFixed(1)}" text-anchor="end" fill="#b4271f" font-weight="700">◀ grant programs only</text>`;}
+  return `<div class="pgplot"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Obligations by program and year">
+    ${grid}${edge}${bars}${labs}
+    <line x1="${padL}" y1="${base}" x2="${W-padR}" y2="${base}" stroke="#cfd8e3" stroke-width="1"/>
+    ${hits}</svg></div>`;
+}
+function pgLegendHTML(){
+  const years=pgYearsShown();
+  return pgGroupProgs().map(p=>{
+    const v=pgSum(p.k,years);
+    return `<button class="pgk${pgOff[p.k]?" off":""}" data-pgtog="${p.k}" title="${p.tip} — click to hide it from the chart">
+      <i style="background:${p.color}"></i>${p.label} <b>${fmtMoney(v)}</b></button>`;}).join("");
+}
+
+/* ---- the drill-down for one clicked year ---- */
+function pgRowsHTML(rows,mx,color){
+  return rows.map(r=>`<div class="pgrow"><span class="pgrow__l" title="${esc(r[0])}">${esc(r[0])}</span><span class="pgrow__v">${fmtMoney(r[1])}</span></div>
+    <div class="pgbarline"><span style="width:${Math.max(1,Math.round(r[1]/mx*100))}%;background:${color}"></span></div>`).join("");
+}
+function pgProgCardHTML(p,y){
+  const c=pgCell(y,p.k); if(!c||!c.a)return "";
+  const sub=Object.entries(c.sub||{}).sort((a,b)=>b[1]-a[1]);
+  const smx=sub.length?sub[0][1]:1;
+  const names=PGY.names||[];
+  const meta=[`<b>${p.stage}</b>`,p.basis];
+  if(c.n)meta.push(fmtNum(c.n)+" "+p.unit);
+  if(c.nr)meta.push(fmtNum(c.nr)+" distinct recipients");
+  let h=`<div class="pgcard"><div class="pgcard__hd"><i style="background:${p.color}"></i>${p.label}<b>${fmtMoney(c.a)}</b></div>
+    <div class="pgcard__meta">${meta.join(" &middot; ")}</div>`;
+  if(p.k==="pa"&&c.m406)h+=`<div class="pgcard__meta" style="margin-top:-4px">includes <b>${fmtMoney(c.m406)}</b> of &sect;406 mitigation built into these repairs</div>`;
+  if(sub.length){
+    const shown=Math.min(6,sub.length), of=(c.ns||sub.length);
+    h+=`<div class="pgsub"><div class="pgrow__l" style="font-size:11px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em">${p.sub}${of>shown?` <span style="font-weight:600;text-transform:none;letter-spacing:0">(top ${shown} of ${fmtNum(of)})</span>`:""}</div>${pgRowsHTML(sub.slice(0,shown),smx,p.color)}</div>`;}
+  if(c.top&&c.top.length){
+    const rows=c.top.map(t=>`<tr><td>${esc(names[t[0]]||"—")}</td><td>${fmtMoney(t[1])}</td></tr>`).join("");
+    h+=`<details><summary>${p.recip||"Top recipients"} (${c.top.length}${c.nr&&c.nr>c.top.length?" of "+fmtNum(c.nr):""})</summary><table>${rows}</table></details>`;
+  }else if(p.k==="ihp"){
+    h+=`<div class="pgcard__meta">No recipient list &mdash; IHP goes to households, and FEMA publishes no per-recipient dollars.</div>`;
+  }
+  if(c.dis&&c.dis.length){
+    const rows=c.dis.map(t=>{const d=(PGY.disasters||{})[t[0]]||{};
+      return `<tr data-dn="${t[0]}" title="Open the full disaster record"><td>DR-${t[0]} &middot; ${esc((d.t||"").slice(0,44))}<span class="thr-sub"> ${d.s||""} ${String(d.b||"").slice(0,4)}</span></td><td>${fmtMoney(t[1])}</td></tr>`;}).join("");
+    const nd=c.nd||c.dis.length;
+    h+=`<details><summary>Disasters behind it (${c.dis.length}${nd>c.dis.length?" of "+fmtNum(nd):""})</summary>
+      <div class="pgcard__meta" style="margin:4px 0 0">${p.k==="ihp"?"Each disaster's IHP sits in its own incident year.":"Obligations recorded in "+y+" &mdash; the disasters themselves may be from any earlier year."}</div>
+      <table>${rows}</table></details>`;
+  }
+  return h+`</div>`;
+}
+function pgDetailHTML(){
+  if(pgYear==null)return `<div class="pgnote thr-sub"><b>Click any year</b> in the chart for everything behind it &mdash; each program's dollars that year, what they were spent on, who received them, and which disasters they came from.</div>`;
+  const y=pgYear, progs=pgActiveProgs().filter(p=>pgVal(y,p.k)>0);
+  const tot=progs.reduce((s,p)=>s+pgVal(y,p.k),0);
+  const cards=progs.map(p=>pgProgCardHTML(p,y)).join("");
+  return `<div class="pgdet"><div class="pgdet__hd">
+      <h3>${y} &middot; ${pgScopeLabel()}</h3>
+      <button class="pgclear" data-pgclear="1">clear year &#10005;</button></div>
+    <div class="thr-sub"><b>${fmtMoneyFull(tot)}</b> across ${progs.length} program${progs.length===1?"":"s"} &mdash; ${pgBasisNote()}.</div>
+    ${progs.length?`<div class="pggrid">${cards}</div>`:`<div class="pgempty">Nothing recorded for the selected programs in ${y}.</div>`}</div>`;
+}
+
+/* ---- chart 2: the same program across all six states ---- */
+function pgCmpHTML(){
+  const p=PG_BY[pgCmpProg], years=pgYear!=null?[pgYear]:pgYearsShown();
+  const per=(st)=>{const v=pgSum(p.k,years,st); const pop=((PGY.states[st]||{}).pop)||0;
+    return {st,v,pc:(pop?v/pop:0),pop};};
+  const rows=PG_STATES.map(per).sort((a,b)=>(pgCmpCapita?b.pc-a.pc:b.v-a.v));
+  const mx=Math.max(1,...rows.map(r=>pgCmpCapita?r.pc:r.v));
+  const tot=rows.reduce((s,r)=>s+r.v,0);
+  const body=rows.map(r=>{const v=pgCmpCapita?r.pc:r.v;
+    return `<div class="pgcmp__row${pgState===r.st?" on":""}" data-pgstate="${r.st}" title="${(PGY.states[r.st]||{}).name||r.st} — click to scope the whole tab to this state">
+      <span class="pgcmp__st">${(PGY.states[r.st]||{}).name||r.st}</span>
+      <span class="pgcmp__bar"><span style="width:${Math.max(1,Math.round(v/mx*100))}%;background:${p.color}"></span></span>
+      <span class="pgcmp__v">${pgCmpCapita?("$"+(r.pc).toFixed(2)):fmtMoney(r.v)}</span></div>`;}).join("");
+  const when=pgYear!=null?`in <b>${pgYear}</b>`:(years.length?`over <b>${years[0]}&ndash;${years[years.length-1]}</b>`:"");
+  return `<div class="pgcmp">${body}</div>
+    <div class="pgnote thr-sub"><b>${p.label}</b> ${when} &mdash; ${fmtMoneyFull(tot)} across the six states, ${p.stage} by ${p.basis}. ${pgCmpCapita?"Per-capita uses today's population, not the population at the time &mdash; a simplification.":""} Source: ${p.src}. ${pgYear!=null?"Showing the year selected in the chart above.":"Click a year above to narrow this to one year."}</div>`;
+}
+function pgCmpChipsHTML(){
+  return PG_PROGS.map(p=>`<button data-pgcmp="${p.k}" class="${p.k===pgCmpProg?"active":""}${p.grp==="n"?" ndis":""}" title="${p.tip}">${p.label}</button>`).join("");
+}
+
+function renderPrograms(){
+  const body=el("pgBody"); if(!body)return;
+  if(!PGY){pgLoad(); body.innerHTML=`<div class="skeleton" style="margin-top:18px"><span class="spin"></span> Loading program obligations&hellip;</div>`; return;}
+  if(PGY.error)return;
+  const years=pgYearsShown(), progs=pgActiveProgs();
+  const total=progs.reduce((s,p)=>s+pgSum(p.k,years),0);
+  const span=years.length?`${years[0]}&ndash;${years[years.length-1]}`:"—";
+  document.querySelectorAll("#pgScopeRow button").forEach(b=>b.classList.toggle("active",(b.getAttribute("data-pgst")||"")===(pgState||"")));
+  document.querySelectorAll("#pgGroupRow button").forEach(b=>b.classList.toggle("active",b.getAttribute("data-pggrp")===pgGroup));
+  body.innerHTML=`
+  <div class="card">
+    <div class="card__hd"><h2>Obligations by program, by year</h2>
+      <span class="sub">${pgScopeLabel()} &middot; ${span} &middot; <b>${fmtMoneyFull(total)}</b></span></div>
+    <div class="card__bd">
+      <div class="pglegend">${pgLegendHTML()}</div>
+      ${pgChartHTML()}
+      <div class="pgnote thr-sub">${pgBasisNote()}. PA is <b>obligated</b>, IHP is <b>approved</b> &mdash; different accounting stages, never added together as if they were the same thing. Recent years <b>under-count</b>: obligations keep reconciling for years after a disaster.
+        <button class="pgclear" data-pgfull="1" style="margin-left:6px">${pgFull?"hide pre-"+(PGY.ledgerYear0||2007)+" years":"show the full record (from "+(pgAllYears()[0]||"")+")"}</button></div>
+      ${pgDetailHTML()}
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="card__hd"><h2>State comparison &mdash; one program at a time</h2>
+      <span class="sub">all six Region&nbsp;5 states${pgYear!=null?" &middot; "+pgYear:""}</span></div>
+    <div class="card__bd">
+      <div class="geotoggle pgcmprow" style="border-radius:8px">${pgCmpChipsHTML()}
+        <label class="covtog" title="Divide by today's state population"><input type="checkbox" id="pgCapTog"${pgCmpCapita?" checked":""}> per capita</label></div>
+      ${pgCmpHTML()}
+    </div>
+  </div>`;
+  const cap=el("pgCapTog"); if(cap)cap.addEventListener("change",e=>{pgCmpCapita=e.target.checked;renderPrograms();});
+}
 
 /* ===== wiring ===== */
 function wire(){
@@ -4551,13 +4882,22 @@ function wire(){
     const dbk=e.target.closest("[data-dnbkt]"); if(dbk){dnShowBucket(+dbk.getAttribute("data-dnbkt"));return;}
     const dnr=e.target.closest("[data-dnreq]"); if(dnr){openDenial(dnr.getAttribute("data-dnreq"));return;}
     const drc=e.target.closest("[data-drcdn]"); if(drc){openDrc(drc.getAttribute("data-drcdn"));return;}
+    const pst=e.target.closest("#pgScopeRow button[data-pgst]"); if(pst){pgState=pst.getAttribute("data-pgst")||null;renderPrograms();syncHash();return;}
+    const pgr=e.target.closest("#pgGroupRow button[data-pggrp]"); if(pgr){pgGroup=pgr.getAttribute("data-pggrp");pgOff={};renderPrograms();return;}
+    const ptg=e.target.closest("[data-pgtog]"); if(ptg){const k=ptg.getAttribute("data-pgtog");pgOff[k]=!pgOff[k];renderPrograms();return;}
+    const pyr=e.target.closest("[data-pgyear]"); if(pyr){const y=+pyr.getAttribute("data-pgyear");pgYear=(pgYear===y?null:y);renderPrograms();return;}
+    const pcl=e.target.closest("[data-pgclear]"); if(pcl){pgYear=null;renderPrograms();return;}
+    const pfu=e.target.closest("[data-pgfull]"); if(pfu){pgFull=!pgFull;renderPrograms();return;}
+    const pcm=e.target.closest("[data-pgcmp]"); if(pcm){pgCmpProg=pcm.getAttribute("data-pgcmp");renderPrograms();return;}
+    const pgs=e.target.closest("[data-pgstate]"); if(pgs){const st=pgs.getAttribute("data-pgstate");pgState=(pgState===st?null:st);renderPrograms();syncHash();return;}
     const t=e.target.closest("[data-dn]"); if(t)openDetail(t.getAttribute("data-dn"));
   });
   el("mClose").addEventListener("click",closeDetail);
   el("mBack").addEventListener("click",modalBack);
   el("modal").addEventListener("click",e=>{if(e.target===el("modal"))closeDetail();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape")modalBack();});
-  window.matchMedia("(max-width:760px)").addEventListener("change",()=>{const v=el("view-geography");if(v&&v.classList.contains("active"))geoRenderAll();});
+  window.matchMedia("(max-width:760px)").addEventListener("change",()=>{const v=el("view-geography");if(v&&v.classList.contains("active"))geoRenderAll();
+    const pv=el("view-programs");if(pv&&pv.classList.contains("active")&&PGY)renderPrograms();});
   resolveBuild();
 }
 async function resolveBuild(){
@@ -4692,6 +5032,8 @@ const REPORT_VIEWS={
     {key:"geomap",label:"County choropleth map",kind:"chart",sel:"#geoMap"},
     {key:"geoboard",label:"Top counties / detail board",kind:"list",sel:"#geoBoard"},
     {key:"geotl",label:"Obligations-by-year timeline",kind:"chart",sel:"#geoTimeline"}]},
+  programs:{title:"Program Obligations by Year",els:[
+    {key:"pgall",label:"Obligations by program & year (chart, drill-down, state comparison)",kind:"chart",sel:"#pgBody"}]},
   newsreel:{title:"Newsreel — latest obligations",els:[
     {key:"news",label:"Latest & biggest obligations",kind:"list",sel:"#newsBody"}]},
   covid:{title:"COVID-19 declarations",els:[

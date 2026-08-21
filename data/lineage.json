@@ -81,7 +81,8 @@
           "build_county_applicants",
           "build_county_ihp",
           "build_covid",
-          "build_briefing"
+          "build_briefing",
+          "build_program_years"
         ],
         "totalObligatedAmountPa": [
           "add_history",
@@ -319,12 +320,14 @@
           "build_planner_applicants",
           "build_briefing",
           "build_nonfed",
+          "build_program_years",
           "newsreel"
         ],
         "county": [
           "build_recent",
           "build_newsreel",
           "build_planner_applicants",
+          "build_program_years",
           "newsreel"
         ],
         "countyCode": [
@@ -341,6 +344,7 @@
           "build_planner_applicants",
           "build_briefing",
           "build_nonfed",
+          "build_program_years",
           "newsreel"
         ],
         "lastObligationDate": [
@@ -348,6 +352,7 @@
           "build_recent",
           "build_newsreel",
           "build_briefing",
+          "build_program_years",
           "newsreel"
         ]
       },
@@ -571,6 +576,7 @@
           "build_county_byyear",
           "build_recent",
           "build_newsreel",
+          "build_program_years",
           "newsreel"
         ],
         "programArea": [
@@ -578,12 +584,14 @@
           "build_county_byyear",
           "build_recent",
           "build_newsreel",
+          "build_program_years",
           "newsreel"
         ],
         "county": [
           "build_county_hmgp",
           "build_recent",
           "build_newsreel",
+          "build_program_years",
           "newsreel"
         ],
         "countyCode": [
@@ -599,6 +607,7 @@
           "build_county_byyear",
           "build_recent",
           "build_newsreel",
+          "build_program_years",
           "newsreel"
         ],
         "federalShareObligated": [
@@ -607,12 +616,14 @@
           "build_county_byyear",
           "build_recent",
           "build_newsreel",
+          "build_program_years",
           "newsreel"
         ],
         "projectType": [
           "build_county_hmgp",
           "build_recent",
           "build_newsreel",
+          "build_program_years",
           "newsreel"
         ],
         "numberOfProperties": [
@@ -623,10 +634,12 @@
           "build_county_byyear",
           "build_recent",
           "build_newsreel",
+          "build_program_years",
           "newsreel"
         ],
         "dateApproved": [
-          "build_county_hmgp"
+          "build_county_hmgp",
+          "build_program_years"
         ]
       },
       "columnsDeclaredUnfound": [],
@@ -658,10 +671,12 @@
       ],
       "columnUsage": {
         "state": [
-          "build_state_prep"
+          "build_state_prep",
+          "build_program_years"
         ],
         "fundingAmount": [
-          "build_state_prep"
+          "build_state_prep",
+          "build_program_years"
         ]
       },
       "columnsDeclaredUnfound": [],
@@ -693,19 +708,24 @@
       ],
       "columnUsage": {
         "vendorState": [
-          "build_state_prep"
+          "build_state_prep",
+          "build_program_years"
         ],
         "awardAmount": [
-          "build_state_prep"
+          "build_state_prep",
+          "build_program_years"
         ],
         "programName": [
-          "build_state_prep"
+          "build_state_prep",
+          "build_program_years"
         ],
         "vendorName": [
-          "build_state_prep"
+          "build_state_prep",
+          "build_program_years"
         ],
         "fiscalYear": [
-          "build_state_prep"
+          "build_state_prep",
+          "build_program_years"
         ]
       },
       "columnsDeclaredUnfound": [],
@@ -1558,6 +1578,30 @@
         "scripts/build_nonfed.py",
         "docs/briefing-plan.md"
       ]
+    },
+    {
+      "id": "build_program_years",
+      "name": "scripts/build_program_years.py",
+      "runtime": "offline",
+      "schedule": "weekly (manual today)",
+      "method": "One year x state x program cube for Region 5. PA worksheets (Details v2) bucketed by lastObligationDate and attributed to applicant names through the PublicAssistanceApplicants (disasterNumber, applicantId) bridge; HMGP + non-disaster HMA by initialObligationDate, federalShareObligated ONLY (project requests with no obligated share are excluded and reported); EMPG by reporting year; the DHS preparedness grab-bag split into the same five families build_state_prep.py uses, by fiscal year; IHP taken from the ledger and placed in its disaster's incident year (a labeled proxy). Every pull is gated on the server's own $inlinecount so a dropped page aborts the build instead of silently shortening a series. Recipient-name variants are grouped with dedup_applicants.normalize(). Audit reconciles each program against county_declarations.json's *ByYear buckets and states the cause of every difference, plus a PA worksheets-vs-ledger cross-dataset check.",
+      "reads": [
+        "publicAssistanceFundedProjectsDetails",
+        "publicAssistanceApplicants",
+        "hazardMitigationAssistanceProjects",
+        "emergencyManagementPerformanceGrants",
+        "nonDisasterAssistanceFirefighterGrants",
+        "femaWebDisasterSummaries",
+        "disasters.json",
+        "county_declarations.json"
+      ],
+      "writes": [
+        "program_years.json"
+      ],
+      "description": "Builds program_years.json: obligations by year x state x program, with the within-year drill-down (sub-program split, top recipients, disasters behind it) that powers the Programs by Year tab.",
+      "links": [
+        "scripts/build_program_years.py"
+      ]
     }
   ],
   "artifacts": [
@@ -1808,6 +1852,19 @@
       ]
     },
     {
+      "id": "program_years.json",
+      "name": "data/program_years.json",
+      "freshnessFrom": "data/manifest.json",
+      "description": "Year x state x program obligation cube for Region 5 (PA, IHP, HMGP, non-disaster mitigation, EMPG and the four preparedness families), with each year's sub-program split, top recipients and source disasters.",
+      "deprecated": false,
+      "links": [
+        "data/program_years.json"
+      ],
+      "producedBy": [
+        "build_program_years"
+      ]
+    },
+    {
       "id": "r5_counties.json",
       "name": "data/r5_counties.json",
       "freshnessFrom": "data/manifest.json",
@@ -2016,6 +2073,18 @@
       "description": "Standalone planning tool, program-first (PA / IA / HMGP lens): select counties (map, A-Z list, or seed from a declared disaster's program-filtered designated counties), get per-county expectations (applicants, $, projects, categories of work; registrations + IHP HA/ONA for IA) with live per-disaster exclusion (outliers suggested), divide counties among named teams (team-colored map + per-team workload), drill each county's history, import PDA estimates, save/export the plan (self-contained HTML, CSVs, SharePoint copy-paste fragment, map PNG). User-authored (not a declaration).",
       "links": [
         "planner.html"
+      ]
+    },
+    {
+      "id": "programs",
+      "name": "Programs by Year view",
+      "location": "index.html#view-programs",
+      "reads": [
+        "program_years.json"
+      ],
+      "description": "Stacked obligations-by-year bars across all ten programs (scoped to Region 5 or one state), a click-a-year drill-down into that year's sub-program split, top recipients and source disasters, and a state-comparison chart for one program at a time.",
+      "links": [
+        "index.html"
       ]
     }
   ]
