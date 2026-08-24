@@ -1,0 +1,43 @@
+code,detail
+MULTIPLE_TABLE_A,ignored Table A - Michigan PDA - May 2026 - Counties That Met Threshold Only.xlsx (using Table A - Michigan PDA - May 2026.xlsx)
+NO_EVENT_LABELS,no incident period in manifest or filenames — single synthesized event '2026-04-10 - 2026-04-21'
+SCOPE_FROM_WORKBOOKS,no query.xlsx — scope = 37 counties from Table A + Chart A's
+MET_ONLY_EXCLUDED,"11 counties under their county indicator excluded from the board ($1,176,296.56): Allegan, Antrim, Clare, Jackson, Kalamazoo, Leelanau, Montcalm, Muskegon, Roscommon, Saginaw, Shiawassee"
+UNMATCHED_DROP,Alcona County - Chart A - Michigan (2026).xlsx: filetree match: Alcona County - Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Allegan Chart A - Michigan (2026).xlsx: filetree match: Allegan Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Alpena Chart A - Michigan (2026).xlsx: filetree match: Alpena Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Antrim County Chart A - Michigan (2026).xlsx: filetree match: Antrim County Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Benzie Chart A - Michigan (2026).xlsx: filetree match: Benzie Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Charlevoix Chart A - Michigan (2026).xlsx: filetree match: Charlevoix Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Cheboygan Chart A - Michigan (2026).xlsx: filetree match: Cheboygan Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Clare Chart A - Michigan (2026).xlsx: filetree match: Clare Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Crawford - Michigan (2026).xlsx: filetree match: Crawford - Michigan (2026).xlsx
+UNMATCHED_DROP,Eaton County - Chart A - Michigan (2026).xlsx: filetree match: Eaton County - Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Emmett Chart A - Michigan (2026).xlsx: filetree match: Emmett Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Grand Traverse Chart A - Michigan (2026).xlsx: filetree match: Grand Traverse Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Gratiot County- Michigan (2026).xlsx: filetree match: Gratiot County- Michigan (2026).xlsx
+UNMATCHED_DROP,Iron County Chart A - Michigan (2026).xlsx: filetree match: Iron County Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Jackson Chart A - Michigan (2026).xlsx: filetree match: Jackson Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Kalamazoo Chart A - Michigan (2026).xlsx: filetree match: Kalamazoo Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Kalkaska Chart A - Michigan (2026).xlsx: filetree match: Kalkaska Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Lake County Chart A - Michigan (2026).xlsx: filetree match: Lake County Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Leelanau Chart A - Michigan (2026).xlsx: filetree match: Leelanau Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Manistee County Chart A - Michigan (2026).xlsx: filetree match: Manistee County Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Marquette Chart A - Michigan (2026).xlsx: filetree match: Marquette Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Mecosta Chart A - Michigan (2026).xlsx: filetree match: Mecosta Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Menominee Chart A - Michigan (2026).xlsx: filetree match: Menominee Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Missaukee Chart A - Michigan (2026).xlsx: filetree match: Missaukee Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Montcalm Chart A - Michigan (2026).xlsx: filetree match: Montcalm Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Montmorency Chart A - Michigan (2026).xlsx: filetree match: Montmorency Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Muskegon Chart A - Michigan (2026).xlsx: filetree match: Muskegon Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Newaygo Chart A - Michigan (2026).xlsx: filetree match: Newaygo Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Ogemaw County - Chart A - Michigan (2026).xlsx: filetree match: Ogemaw County - Chart A - Michigan (2026).xlsx
+COUNTY_TOTAL_MISMATCH,"Osceola Chart A - Michigan (2026).xlsx: total L3: wb $1,257,552.18 vs calc $1,257,552.17"
+UNMATCHED_DROP,Osceola Chart A - Michigan (2026).xlsx: filetree match: Osceola Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Oscoda County - Chart A - Michigan (2026).xlsx: filetree match: Oscoda County - Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Presque Isle Chart A - Michigan (2026).xlsx: filetree match: Presque Isle Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Roscommon Chart A - Michigan (2026).xlsx: filetree match: Roscommon Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Saginaw Chart A - Michigan (2026).xlsx: filetree match: Saginaw Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Shiawassee Chart A - Michigan (2026).xlsx: filetree match: Shiawassee Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Tuscola Chart A - Michigan (2026).xlsx: filetree match: Tuscola Chart A - Michigan (2026).xlsx
+UNMATCHED_DROP,Wexford Chart A - Michigan (2026).xlsx: filetree match: Wexford Chart A - Michigan (2026).xlsx

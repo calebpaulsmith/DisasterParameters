@@ -1,0 +1,17 @@
+code,detail
+NO_EVENT_LABELS,no incident period in manifest or filenames — single synthesized event '2026-04-13 - 2026-04-23'
+SCOPE_FROM_WORKBOOKS,no query.xlsx — scope = 14 counties from Table A + Chart A's
+UNMATCHED_DROP,Bayfield County Chart A - Wisconsin (2026).xlsx: filetree match: Bayfield County Chart A - Wisconsin (2026).xlsx
+UNMATCHED_DROP,Chart A - Rock County.xlsx: filetree match: Chart A - Rock County.xlsx
+UNMATCHED_DROP,Iowa Chart A - Wisconsin (2026).xlsx: filetree match: Iowa Chart A - Wisconsin (2026).xlsx
+UNMATCHED_DROP,Jackson County Chart A - Wisconsin (2026) Final.xlsx: filetree match: Jackson County Chart A - Wisconsin (2026) Final.xlsx
+UNMATCHED_DROP,Jefferson County Chart A - Wisconsin (2026).xlsx: filetree match: Jefferson County Chart A - Wisconsin (2026).xlsx
+UNMATCHED_DROP,Juneau Chart A - Wisconsin (2026).xlsx: filetree match: Juneau Chart A - Wisconsin (2026).xlsx
+UNMATCHED_DROP,Kewaunee Chart A - Wisconsin (2026).xlsx: filetree match: Kewaunee Chart A - Wisconsin (2026).xlsx
+UNMATCHED_DROP,Manitowoc Chart A - Wisconsin (2026).xlsx: filetree match: Manitowoc Chart A - Wisconsin (2026).xlsx
+UNMATCHED_DROP,Marathon County Chart A - Wisconsin (2026).xlsx: filetree match: Marathon County Chart A - Wisconsin (2026).xlsx
+UNMATCHED_DROP,Outagamie - Chart A WI May 2026.xlsx: filetree match: Outagamie - Chart A WI May 2026.xlsx
+UNMATCHED_DROP,Racine Chart A - Wisconsin (2026).xlsx: filetree match: Racine Chart A - Wisconsin (2026).xlsx
+UNMATCHED_DROP,Sauk Chart A- Wisconsin (2026).xlsx: filetree match: Sauk Chart A- Wisconsin (2026).xlsx
+UNMATCHED_DROP,Vernon Chart A Draft - Wisconsin (2026).xlsx: filetree match: Vernon Chart A Draft - Wisconsin (2026).xlsx
+UNMATCHED_DROP,Waupaca Chart A - Wisconsin (2026).xlsx: filetree match: Waupaca Chart A - Wisconsin (2026).xlsx

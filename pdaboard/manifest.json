@@ -1,0 +1,11 @@
+{
+  "pda_id": "IN_PDA_July_2026",
+  "title": "IN PA PDA - July 2026",
+  "state": "IN",
+  "sharepoint_base": "",
+  "events": [
+    {"event_id": "E1", "label": "June 6 - 11, 2026"},
+    {"event_id": "E2", "label": "June 16 - 26, 2026"}
+  ],
+  "stale_hours": 48
+}

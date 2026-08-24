@@ -1,0 +1,1252 @@
+Year,Month,State,State_Pop, State_Threshold,Declaration_Number,County,Met_Threshold,County_Pop, County_Threshold ,Applicant_Id,SLTT_Organization_Id,Applicant_Name,Cat_A,Cat_B,Cat_C,Cat_D,Cat_E,Cat_F,Cat_G,Total
+2025,September,WI,5893718,11139127,null,Door,true,30066,141911.52,null,null,"Baileys Harbor, Town of",25138,8280,null,null,null,null,null,33418
+2025,September,WI,5893718,11139127,null,Door,true,30066,141911.52,null,null,Door County Highway Department,44293,null,null,null,null,null,null,44293
+2025,September,WI,5893718,11139127,null,Door,true,30066,141911.52,null,null,Door County Parks,29378,null,null,null,10000,null,null,39378
+2025,September,WI,5893718,11139127,null,Door,true,30066,141911.52,null,null,"Egg Harbor, Village of",70809,null,null,null,null,null,null,70809
+2025,September,WI,5893718,11139127,null,Door,true,30066,141911.52,null,null,"Ephraim, Village of",8279.74,null,null,null,null,null,null,8279.74
+2025,September,WI,5893718,11139127,null,Door,true,30066,141911.52,null,null,"Liberty Grove, Town of",22435.7,null,null,null,null,null,null,22435.7
+2025,September,WI,5893718,11139127,null,Door,true,30066,141911.52,null,null,"Sister Bay, Village of",4078,null,null,null,null,null,null,4078
+2025,September,WI,5893718,11139127,null,Door,true,30066,141911.52,null,null,Washington Island Cooperative,0,null,null,null,null,8866,null,8866
+2025,September,WI,5893718,11139127,null,Door,true,30066,141911.52,null,null,Wisconsin DNR - Newport State Park,68421,null,null,null,null,null,null,68421
+2025,September,WI,5893718,11139127,null,Door,true,30066,141911.52,null,null,Wisconsin DNR - Peninsula State Park,112898.47,null,null,null,null,null,null,112898.47
+2025,September,WI,5893718,11139127,null,Grant,true,51938,245147.36,null,null,"Bagley, Village of",4500,null,null,null,null,null,null,4500
+2025,September,WI,5893718,11139127,null,Grant,true,51938,245147.36,null,null,"Bloomington, Village of",null,null,null,null,null,null,null,null
+2025,September,WI,5893718,11139127,null,Grant,true,51938,245147.36,null,null,Grant County Highway Department,null,null,9250,null,null,null,null,9250
+2025,September,WI,5893718,11139127,null,Grant,true,51938,245147.36,null,null,"Hickory Grove, Town of",12315,null,56923,null,null,null,null,69238
+2025,September,WI,5893718,11139127,null,Grant,true,51938,245147.36,null,null,Marion Township,18403,null,182436,null,null,null,null,200839
+2025,September,WI,5893718,11139127,null,Grant,true,51938,245147.36,null,null,Millville Township,null,null,9518,null,null,null,null,9518
+2025,September,WI,5893718,11139127,null,Grant,true,51938,245147.36,null,null,North Lancaster Township,5754,null,44500,null,null,null,null,50254
+2025,September,WI,5893718,11139127,null,Grant,true,51938,245147.36,null,null,Watterstown Township,7864.91,null,26744,null,null,null,null,34608.91
+2025,September,WI,5893718,11139127,null,Grant,true,51938,245147.36,null,null,"Woodman, Town of",4981,null,23704,null,null,null,null,28685
+2025,September,WI,5893718,11139127,null,Grant,true,51938,245147.36,null,null,"Wyalusing, Town of",null,null,20956,null,null,null,null,20956
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Bayside,57090.62,33596.87,9149.84,null,null,null,null,99837.33
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Brown Deer,93187.31,null,1650000,null,15150,null,6561.53,1764898.84
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Cudahy,null,9150.69,null,null,22658.5,8648.65,null,40457.84
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Fox Point Lutheran Church,null,null,null,null,null,null,null,0
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,"Fox Point, Village of",167787.73,null,308325,51530,5000,null,null,532642.73
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Franklin,38627.34,null,null,null,null,8269.35,null,46896.69
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Glendale,186366.24,null,null,null,null,null,null,186366.24
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Glendale-River Hills School District,null,null,null,null,7500,null,null,7500
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Greendale,87378.66,9119.18,10000,null,null,null,11500,117997.84
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Greendale School District,null,null,null,null,50000,null,4600,54600
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Greenfield,134186.34,16559.03,253505.38,null,19630.42,106636.1,20072.38,550589.65
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Hales Corners,78077.82,null,37351.33,null,null,null,null,115429.15
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Human Concerns ,null,null,null,null,null,null,null,0
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Journeys Lutheran School,null,null,null,null,null,null,null,0
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Milwaukee Metropolitan Sewer District,131390,101084,43580,610721,294753.11,3501906.65,null,4683434.76
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,"Milwaukee, City of - Dept of Neighborhood Services",null,3682.29,null,null,null,null,null,3682.29
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,"Milwaukee, City of - Dept of Public Works",3829868.31,106361.09,295796.84,null,224093.65,565741.43,9840,5031701.32
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,"Milwaukee, City of - Fire Dept",null,83396.87,null,null,null,null,null,83396.87
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,"Milwaukee, City of - Police Dept",null,6930.57,null,null,null,null,null,6930.57
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,"Milwaukee, City of - Public Libraries ",null,null,null,null,550123.81,null,null,550123.81
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,"Milwaukee, City of - Public Schools",null,null,null,null,2500000,null,null,2500000
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,"Milwaukee, County of ",null,4669.55,null,null,205117.58,null,648964.77,858751.9
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,North Shore Congregational Church,null,null,null,null,null,null,null,0
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,North Shore Fire,null,null,null,null,24141.74,null,null,24141.74
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Oak Creek,7670.8,4418.55,null,null,null,null,null,12089.35
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,River Hills,4924.85,null,805208.09,null,5572.51,4370.58,null,820076.03
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Shorewood,14102.7,null,null,null,null,null,10000,24102.7
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,South Milwaukee,10000,null,null,null,7500,null,null,17500
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Wauwatosa,436474.29,34087.22,245102.5,184896.8,294230,null,1764049,2958839.81
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Wauwatosa School District,null,null,null,null,120333.11,null,null,120333.11
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,West Allis,587961.81,43096.3,13101.24,null,41338.24,null,null,685497.59
+2025,September,WI,5893718,11139127,null,Milwaukee,true,939489,4434388.08,null,null,Whitefish Bay,37802.75,null,null,null,48411.45,null,18167.54,104381.74
+2025,September,WI,5893718,11139127,null,Ozaukee,true,91503,431894.16,null,null,"Cedarburg, Town of",null,null,16328,null,null,null,null,16328
+2025,September,WI,5893718,11139127,null,Ozaukee,true,91503,431894.16,null,null,"Grafton, Village of",10095,11108,null,15400,null,null,null,36603
+2025,September,WI,5893718,11139127,null,Ozaukee,true,91503,431894.16,null,null,"Mequon, City of",69018,null,85933,null,5000,null,null,159951
+2025,September,WI,5893718,11139127,null,Ozaukee,true,91503,431894.16,null,null,Ozaukee County,57780,4114,87480,null,25000,null,33820,208194
+2025,September,WI,5893718,11139127,null,Ozaukee,true,91503,431894.16,null,null,"Port Washington, City of",10785,null,39865,null,null,null,null,50650
+2025,September,WI,5893718,11139127,null,Washington,true,136761,645511.92,null,null,"Barton, Town of",null,null,39500,null,null,null,null,39500
+2025,September,WI,5893718,11139127,null,Washington,true,136761,645511.92,null,null,"Farmington, Town of",null,null,375000,null,null,null,null,375000
+2025,September,WI,5893718,11139127,null,Washington,true,136761,645511.92,null,null,"Germantown, Town of",null,null,4908.72,null,null,null,null,4908.72
+2025,September,WI,5893718,11139127,null,Washington,true,136761,645511.92,null,null,"Germantown, Village of",149445.09,15996.41,115303,18500,null,null,null,299244.5
+2025,September,WI,5893718,11139127,null,Washington,true,136761,645511.92,null,null,"Hartford, City of",null,null,null,null,null,21694.8,null,21694.8
+2025,September,WI,5893718,11139127,null,Washington,true,136761,645511.92,null,null,"Richfield, Village of",7946,8604.83,12459,null,null,null,null,29009.83
+2025,September,WI,5893718,11139127,null,Washington,true,136761,645511.92,null,null,St. John's Church - West Band,null,null,null,null,24278.52,null,null,24278.52
+2025,September,WI,5893718,11139127,null,Washington,true,136761,645511.92,null,null,Washington County,6567.22,5496.85,84696.12,null,null,null,null,96760.19
+2025,September,WI,5893718,11139127,null,Washington,true,136761,645511.92,null,null,West Bend School District ,null,null,null,null,42163,null,21000,63163
+2025,September,WI,5893718,11139127,null,Washington,true,136761,645511.92,null,null,"West Bend, City of",10428,22421,28122,null,null,null,30322,91293
+2025,September,WI,5893718,11139127,null,Washington,true,136761,645511.92,null,null,"West Bend, Town of",null,null,4836.12,null,null,null,null,4836.12
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Brookfield, City of",221659,null,24000,null,null,null,null,245659
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Brookfield, Town of",null,null,null,null,null,null,8903,8903
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Butler, Village of",20980,null,null,null,null,null,67741,88721
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Delafield, City of",null,22453,null,null,null,null,null,22453
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Elm Grove, Village of",null,null,62047,null,null,null,29050,91097
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Genesee, Town of",null,null,null,null,null,null,null,0
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Hartland, Village of",null,null,null,23897,null,null,null,23897
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Menomonee Falls, Village of",null,null,313059,null,19427,12310,11885,356681
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Merton, Village of",null,null,null,130000,null,null,null,130000
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Muskego, City of ",65689,16213,278202,null,null,140754,28334,529192
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"New Berlin, City of",48822,21530,107446,22152,16827,null,null,216777
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Pewaukee, Village of",null,null,null,null,null,null,null,0
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Summit, Village of",12245,null,null,null,null,null,null,12245
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,Waukesha County,null,null,299854,null,null,null,18160,318014
+2025,September,WI,5893718,11139127,null,Waukesha,true,406978,1920936.16,null,null,"Waukesha, City of ",10666,null,4867,null,null,null,130684,146217
+2025,April,MI,10077413,19046310.57,4880,Emmet,true,34112,150092.8,null,null,911 Central Dispatch Authority ,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077475,19046427.75,4880,Presque Isle,true,12982,57120.8,null,null,Bearinger Township,5000,  ,  ,  ,  ,  ,  ,5000
+2025,April,MI,10077362,19046214.18,4880,Charlevoix,true,26054,114637.6,null,null,Beaver Island - Emergency Services Authority,  ,  ,  ,  ,  ,  ,  ,null
+2025,April,MI,10077363,19046216.07,4880,Charlevoix,true,26054,114637.6,null,null,Beaver Island - Peaine Twp,4060,  ,  ,  ,  ,  ,  ,4060
+2025,April,MI,10077414,19046312.46,4880,Emmet,true,34112,150092.8,null,null,Center Township ,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077336,19046165.04,4880,Alcona,true,10167,44734.8,255327,85383,Alcona County Road Commission,297000,  ,  ,  ,  ,  ,  ,297000
+2025,April,MI,10077337,19046166.93,4880,Alcona,true,10167,44734.8,255323,37013,Alcona County  ,  ,  ,  ,  ,  ,  ,  ,null
+2025,April,MI,10077338,19046168.82,4880,Alcona,true,10167,44734.8,255707,117582,Caledonia Township,  ,  ,  ,  ,  ,  ,  ,null
+2025,April,MI,10077481,19046439.09,4880,Presque Isle,true,12982,57120.8,null,null,Cheyboygan Life,  ,20041,  ,  ,  ,  ,  ,20041
+2025,April,MI,10077340,19046172.6,4880,Alcona,true,10167,44734.8,255697,117578,Village of Lincoln,  ,  ,  ,  ,  ,  ,  ,null
+2025,April,MI,10077427,19046337.03,4880,Luce,true,5339,23491.6,null,null,Cloverland Electric - Luce,        ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077342,19046176.38,4880,Alpena,true,28907,127190.8,255348,31270,Alpena County,484493,8268,  ,  ,7440,  ,  ,500201
+2025,April,MI,10077343,19046178.27,4880,Alpena,true,28907,127190.8,255448,117502,City of Alpena,134213,39568,  ,  ,  ,  ,  ,173781
+2025,April,MI,10077493,19046461.77,4880,Schoolcraft,true,8047,35406.8,null,null,Cloverland Electric - Schoolcraft,  ,  ,  ,  ,  ,17777,  ,17777
+2025,April,MI,10077428,19046338.92,4880,Mackinac,true,10834,47669.6,null,null,Cloverland Electrical Cooperative,  ,  ,  ,  ,  ,993460,  ,993460
+2025,April,MI,10077352,19046195.28,4880,Antrim,true,23431,103096.4,null,null,County Sheriff's Office,  ,  ,  ,  ,7730,  ,  ,7730
+2025,April,MI,10077381,19046250.09,4880,Charlevoix,true,26054,114637.6,255073,46839,Michigan Department of Military & Veterans Affairs,  ,227,  ,  ,  ,  ,  ,226
+2025,April,MI,10077420,19046323.8,4880,Emmet,true,34112,150092.8,255073,46839,Michigan Department of Military & Veterans Affairs,  ,19892,  ,  ,  ,  ,  ,19891
+2025,April,MI,10077471,19046420.19,4880,Otsego,true,25091,110400.4,255073,46839,Michigan Department of Military & Veterans Affairs,189511,43071,  ,  ,  ,  ,  ,232580
+2025,April,MI,10077350,19046191.5,4880,Antrim,true,23431,103096.4,255073,46839,Michigan Department of Military & Veterans Affairs,  ,  ,  ,  ,  ,  ,  ,null
+2025,April,MI,10077351,19046193.39,4880,Antrim,true,23431,103096.4,255073,46839,Michigan Department of Military & Veterans Affairs,631941,  ,  ,  ,  ,  ,  ,631941
+2025,April,MI,10077335,19046163.15,4880,Alcona,true,10167,44734.8,255073,46839,Michigan Department of Military & Veterans Affairs,2720,  ,  ,  ,  ,  ,  ,2720
+2025,April,MI,10077348,19046187.72,4880,Alpena,true,28907,127190.8,255073,46839,Michigan Department of Military & Veterans Affairs,45904,72313,  ,  ,  ,  ,  ,118217
+2025,April,MI,10077360,19046210.4,4880,Antrim,true,23431,103096.4,255073,46839,Michigan Department of Military & Veterans Affairs,3400,1133,  ,  ,  ,  ,  ,4533
+2025,April,MI,10077392,19046270.88,4880,Cheboygan,true,25579,112547.6,255073,46839,Michigan Department of Military & Veterans Affairs,757249,41484,  ,  ,  ,  ,  ,798731
+2025,April,MI,10077436,19046354.04,4880,Mackinac,true,10834,47669.6,255073,46839,Michigan Department of Military & Veterans Affairs,13601,  ,  ,  ,  ,  ,  ,13601
+2025,April,MI,10077449,19046378.61,4880,Montmorency,true,9153,40273.2,255073,46839,Michigan Department of Military & Veterans Affairs,91808,283246,  ,  ,  ,  ,  ,375053
+2025,April,MI,10077462,19046403.18,4880,Oscoda,true,8219,36163.6,255073,46839,Michigan Department of Military & Veterans Affairs,  ,81607,  ,  ,  ,  ,  ,81607
+2025,April,MI,10077491,19046457.99,4880,Presque Isle,true,12982,57120.8,255073,46839,Michigan Department of Military & Veterans Affairs,  ,115611,  ,  ,  ,  ,  ,115610
+2025,April,MI,10077478,19046433.42,4880,Presque Isle,true,12982,57120.8,null,null,East Grand Lake ,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077440,19046361.6,4880,Montmorency,true,9153,40273.2,null,null,Great Lakes Energy Co-op,  ,  ,  ,  ,  ,910963,  ,910962
+2025,April,MI,10077465,19046408.85,4880,Otsego,true,25091,110400.4,null,null,Great Lakes Energy Co-op,  ,  ,  ,  ,  ,23588947,  ,23588947
+2025,April,MI,10077356,19046202.84,4880,Antrim,true,23431,103096.4,null,null,Great Lakes Energy Co-op - Antrim,  ,  ,  ,  ,  ,1073515,  ,1073515
+2025,April,MI,10077364,19046217.96,4880,Charlevoix,true,26054,114637.6,255341,37127,"Boyne City, City of",6067,7658,  ,  ,  ,  ,  ,13725
+2025,April,MI,10077365,19046219.85,4880,Charlevoix,true,26054,114637.6,255218,35265,"Charlevoix, City of",126624,28795,  ,  ,  ,57469,  ,212888
+2025,April,MI,10077366,19046221.74,4880,Charlevoix,true,26054,114637.6,255221,32135,Charlevoix County,  ,7391,  ,  ,  ,  ,  ,7391
+2025,April,MI,10077367,19046223.63,4880,Charlevoix,true,26054,114637.6,255324,117451,Charlevoix County Road Commission,1282201,  ,  ,  ,  ,  ,  ,1282201
+2025,April,MI,10077368,19046225.52,4880,Charlevoix,true,26054,114637.6,255642,117558,Charlevoix Township,36200,  ,  ,  ,  ,72300,  ,108500
+2025,April,MI,10077369,19046227.41,4880,Charlevoix,true,26054,114637.6,255320,34226,"East Jordan, City of",11530,4954,  ,  ,48000,  ,  ,64484
+2025,April,MI,10077370,19046229.3,4880,Charlevoix,true,26054,114637.6,255382,117481,Evangeline Township,  ,  ,  ,  ,  ,  ,  ,null
+2025,April,MI,10077371,19046231.19,4880,Charlevoix,true,26054,114637.6,255434,117499,Hayes Township,  ,  ,  ,  ,  ,  ,  ,null
+2025,April,MI,10077372,19046233.08,4880,Charlevoix,true,26054,114637.6,255445,117500,Lake Charlevoix EMS Authority,  ,38392,  ,  ,7994,  ,  ,46386
+2025,April,MI,10077386,19046259.54,4880,Cheboygan,true,25579,112547.6,null,null,Great Lakes Energy Co-Op - Cheboygan,  ,  ,  ,  ,  ,886399,  ,886399
+2025,April,MI,10077374,19046236.86,4880,Charlevoix,true,26054,114637.6,255317,117447,Melrose Township,6730,4715,  ,  ,  ,        ,  ,11445
+2025,April,MI,10077396,19046278.44,4880,Crawford,true,12988,57147.2,null,null,Great Lakes Energy Co-op - Crawford,  ,  ,  ,  ,  ,1460813,  ,1460813
+2025,April,MI,10077405,19046295.45,4880,Emmet,true,34112,150092.8,null,null,Great Lakes Energy Co-op - Emmet,  ,  ,  ,  ,  ,9682227,  ,9682227
+2025,April,MI,10077377,19046242.53,4880,Charlevoix,true,26054,114637.6,255306,85282,Great Lakes Energy Cooperative,  ,  ,  ,  ,  ,5018543,  ,5018543
+2025,April,MI,10077425,19046333.25,4880,Kalkaska,true,17939,78931.6,null,null,Great Lakes Energy Co-Op - Kalkaska,  ,  ,  ,  ,  ,1286177,  ,1286177
+2025,April,MI,10077451,19046382.39,4880,Oscoda,true,8219,36163.6,null,null,Great Lakes Energy Co-Op - Oscoda,  ,  ,  ,  ,  ,834623,  ,834623
+2025,April,MI,10077422,19046327.58,4880,Emmet,true,34112,150092.8,null,null,Harbor Springs Sewer Authority,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077432,19046346.48,4880,Mackinac,true,10834,47669.6,null,null,Mackinac County 911 and Emergency Management,  ,25339,  ,  ,  ,  ,  ,25339
+2025,April,MI,10077433,19046348.37,4880,Mackinac,true,10834,47669.6,null,null,Mackinac County Road Commission,77250,  ,  ,  ,  ,  ,  ,77250
+2025,April,MI,10077384,19046255.76,4880,Cheboygan,true,25579,112547.6,255189,32107,Cheboygan County,361200,43783,  ,  ,  ,  ,  ,404982
+2025,April,MI,10077383,19046253.87,4880,Cheboygan,true,25579,112547.6,255201,117437,Cheboygan County Road Commission,1326762,  ,  ,  ,  ,  ,  ,1326761
+2025,April,MI,10077385,19046257.65,4880,Cheboygan,true,25579,112547.6,255338,117472,City of Cheboygan,24560,  ,  ,  ,  ,  ,  ,24560
+2025,April,MI,10077353,19046197.17,4880,Antrim,true,23431,103096.4,null,null,Mancelona Twp,  ,5785,  ,  ,  ,  ,  ,5785
+2025,April,MI,10077354,19046199.06,4880,Antrim,true,23431,103096.4,null,null,Mancelona Water,  ,  ,  ,  ,  ,  ,  ,null
+2025,April,MI,10077391,19046268.99,4880,Cheboygan,true,25579,112547.6,255367,117470,Joint Administrative Fire Board Inverness Fire Department,36138,  ,  ,  ,  ,  ,  ,36138
+2025,April,MI,10077373,19046234.97,4880,Charlevoix,true,26054,114637.6,null,null,Marion Twp,4700,  ,  ,  ,  ,  ,  ,4700
+2025,April,MI,10077380,19046248.2,4880,Charlevoix,true,26054,114637.6,255265,9419,Michigan Department of Natural Resources,520844,  ,  ,  ,  ,  ,  ,520843
+2025,April,MI,10077418,19046320.02,4880,Emmet,true,34112,150092.8,255265,9419,Michigan Department of Natural Resources,999254,  ,  ,  ,17550,  ,  ,1016803
+2025,April,MI,10077470,19046418.3,4880,Otsego,true,25091,110400.4,255265,9419,Michigan Department of Natural Resources,1524008,  ,  ,  ,31232,  ,  ,1555240
+2025,April,MI,10077334,19046161.26,4880,Alcona,true,10167,44734.8,255265,9419,Michigan Department of Natural Resources,246983,  ,  ,  ,  ,  ,  ,246983
+2025,April,MI,10077394,19046274.66,4880,Chippewa,true,36785,161854,255265,9419,Michigan Department of Natural Resources,  ,  ,  ,  ,  ,17777,  ,17777
+2025,April,MI,10077402,19046289.78,4880,Crawford,true,12988,57147.2,255265,9419,Michigan Department of Natural Resources,26717,  ,  ,  ,  ,  ,  ,26717
+2025,April,MI,10077397,19046280.33,4880,Crawford,true,12988,57147.2,255265,9419,Michigan Department of Natural Resources,154434,  ,  ,  ,  ,  ,  ,154434
+2025,April,MI,10077399,19046284.11,4880,Crawford,true,12988,57147.2,255265,9419,Michigan Department of Natural Resources,34624,  ,  ,  ,  ,  ,  ,34624
+2025,April,MI,10077347,19046185.83,4880,Alpena,true,28907,127190.8,255265,9419,Michigan Department of Natural Resources,582203,  ,  ,  ,  ,  ,  ,582203
+2025,April,MI,10077359,19046208.51,4880,Antrim,true,23431,103096.4,255265,9419,Michigan Department of Natural Resources,496651,  ,  ,  ,  ,  ,  ,496651
+2025,April,MI,10077390,19046267.1,4880,Cheboygan,true,25579,112547.6,255265,9419,Michigan Department of Natural Resources,2388881,  ,  ,  ,3998,  ,  ,2392879
+2025,April,MI,10077401,19046287.89,4880,Crawford,true,12988,57147.2,255265,9419,Michigan Department of Natural Resources,2285208,  ,  ,  ,  ,  ,  ,2285208
+2025,April,MI,10077398,19046282.22,4880,Crawford,true,12988,57147.2,255265,9419,Michigan Department of Natural Resources,17940,  ,  ,  ,  ,  ,  ,17939
+2025,April,MI,10077435,19046352.15,4880,Mackinac,true,10834,47669.6,255265,9419,Michigan Department of Natural Resources,1163340,  ,  ,  ,  ,  ,  ,1163340
+2025,April,MI,10077448,19046376.72,4880,Montmorency,true,9153,40273.2,255265,9419,Michigan Department of Natural Resources,2048254,  ,  ,  ,14370,  ,  ,2062624
+2025,April,MI,10077411,19046306.79,4880,Emmet,true,34112,150092.8,255265,9419,Michigan Department of Natural Resources,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077415,19046314.35,4880,Emmet,true,34112,150092.8,255265,9419,Michigan Department of Natural Resources,  ,173595,  ,  ,  ,  ,  ,173594
+2025,April,MI,10077461,19046401.29,4880,Oscoda,true,8219,36163.6,255265,9419,Michigan Department of Natural Resources,1283877,  ,  ,  ,432,  ,  ,1284309
+2025,April,MI,10077489,19046454.21,4880,Presque Isle,true,12982,57120.8,255265,9419,Michigan Department of Natural Resources,1184397,  ,  ,  ,  ,  ,  ,1184397
+2025,April,MI,10077408,19046301.12,4880,Emmet,true,34112,150092.8,255175,34245,County of Emmet,292156,91498,  ,  ,  ,  ,  ,383653
+2025,April,MI,10077424,19046331.36,4880,Emmet,true,34112,150092.8,255300,117460,Emmet County Road Commission,1050331,  ,  ,  ,  ,  ,  ,1050331
+2025,April,MI,10077379,19046246.31,4880,Charlevoix,true,26054,114637.6,255343,9422,MIchigan Department of Technology/Management & Budget,50260,  ,  ,  ,  ,  ,  ,50260
+2025,April,MI,10077409,19046303.01,4880,Emmet,true,34112,150092.8,255343,9422,MIchigan Department of Technology/Management & Budget,76928,57275,  ,  ,  ,96696,  ,230896
+2025,April,MI,10077417,19046318.13,4880,Emmet,true,34112,150092.8,255343,9422,MIchigan Department of Technology/Management & Budget,51629,  ,  ,  ,  ,  ,  ,51629
+2025,April,MI,10077421,19046325.69,4880,Emmet,true,34112,150092.8,255343,9422,MIchigan Department of Technology/Management & Budget,  ,91345,  ,  ,  ,  ,  ,91345
+2025,April,MI,10077419,19046321.91,4880,Emmet,true,34112,150092.8,255343,9422,MIchigan Department of Technology/Management & Budget,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077469,19046416.41,4880,Otsego,true,25091,110400.4,255343,9422,MIchigan Department of Technology/Management & Budget,1004666,  ,12799,  ,  ,  ,  ,1017465
+2025,April,MI,10077333,19046159.37,4880,Alcona,true,10167,44734.8,255343,9422,MIchigan Department of Technology/Management & Budget,5938,  ,  ,  ,  ,  ,  ,5938
+2025,April,MI,10077346,19046183.94,4880,Alpena,true,28907,127190.8,255343,9422,MIchigan Department of Technology/Management & Budget,328012,  ,22721,  ,  ,  ,  ,350733
+2025,April,MI,10077412,19046308.68,4880,Emmet,true,34112,150092.8,255343,9422,MIchigan Department of Technology/Management & Budget,51488,  ,  ,  ,  ,  ,  ,51487
+2025,April,MI,10077407,19046299.23,4880,Emmet,true,34112,150092.8,255343,9422,MIchigan Department of Technology/Management & Budget,590987,73167,  ,  ,  ,134948,  ,799100
+2025,April,MI,10077358,19046206.62,4880,Antrim,true,23431,103096.4,255343,9422,MIchigan Department of Technology/Management & Budget,11851,  ,  ,  ,  ,  ,  ,11851
+2025,April,MI,10077416,19046316.24,4880,Emmet,true,34112,150092.8,255343,9422,MIchigan Department of Technology/Management & Budget,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077389,19046265.21,4880,Cheboygan,true,25579,112547.6,255343,9422,MIchigan Department of Technology/Management & Budget,103866,  ,  ,  ,  ,  ,  ,103866
+2025,April,MI,10077400,19046286,4880,Crawford,true,12988,57147.2,255343,9422,MIchigan Department of Technology/Management & Budget,73039,  ,  ,  ,  ,  ,  ,73039
+2025,April,MI,10077438,19046357.82,4880,Mackinac,true,10834,47669.6,255343,9422,MIchigan Department of Technology/Management & Budget,15915,  ,  ,  ,  ,  ,  ,15915
+2025,April,MI,10077426,19046335.14,4880,Kalkaska,true,17939,78931.6,255343,9422,MIchigan Department of Technology/Management & Budget,14668,  ,  ,  ,  ,  ,  ,14668
+2025,April,MI,10077447,19046374.83,4880,Montmorency,true,9153,40273.2,255343,9422,MIchigan Department of Technology/Management & Budget,275556,  ,  ,  ,  ,  ,  ,275556
+2025,April,MI,10077430,19046342.7,4880,Mackinac,true,10834,47669.6,255343,9422,MIchigan Department of Technology/Management & Budget,206163,  ,  ,  ,  ,  ,  ,206162
+2025,April,MI,10077429,19046340.81,4880,Mackinac,true,10834,47669.6,255343,9422,MIchigan Department of Technology/Management & Budget,61589,4452,  ,  ,  ,  ,  ,66040
+2025,April,MI,10077431,19046344.59,4880,Mackinac,true,10834,47669.6,255343,9422,MIchigan Department of Technology/Management & Budget,  ,19029,  ,  ,  ,  ,  ,19028
+2025,April,MI,10077460,19046399.4,4880,Oscoda,true,8219,36163.6,255343,9422,MIchigan Department of Technology/Management & Budget,158793,  ,  ,  ,  ,  ,  ,158793
+2025,April,MI,10077488,19046452.32,4880,Presque Isle,true,12982,57120.8,255343,9422,MIchigan Department of Technology/Management & Budget,147227,  ,  ,  ,  ,  ,  ,147227
+2025,April,MI,10077494,19046463.66,4880,State Agencies,true,null, $-   ,255343,9422,MIchigan Department of Technology/Management & Budget,  ,307373,  ,  ,  ,  ,  ,307373
+2025,April,MI,10077382,19046251.98,4880,Charlevoix,true,26054,114637.6,255058,130,Michigan State Police/EMHSD,55649,38711,  ,  ,  ,  ,  ,94360
+2025,April,MI,10077472,19046422.08,4880,Otsego,true,25091,110400.4,255058,130,Michigan State Police/EMHSD,891512,37948,  ,  ,  ,  ,  ,929460
+2025,April,MI,10077349,19046189.61,4880,Alpena,true,28907,127190.8,255058,130,Michigan State Police/EMHSD,875829,38711,  ,  ,  ,  ,  ,914540
+2025,April,MI,10077361,19046212.29,4880,Antrim,true,23431,103096.4,255058,130,Michigan State Police/EMHSD,19249,  ,  ,  ,  ,  ,  ,19249
+2025,April,MI,10077393,19046272.77,4880,Cheboygan,true,25579,112547.6,255058,130,Michigan State Police/EMHSD,183429,763395,  ,  ,  ,  ,  ,946824
+2025,April,MI,10077403,19046291.67,4880,Crawford,true,12988,57147.2,255058,130,Michigan State Police/EMHSD,19249,  ,  ,  ,  ,  ,  ,19249
+2025,April,MI,10077439,19046359.71,4880,Mackinac,true,10834,47669.6,255058,130,Michigan State Police/EMHSD,19249,3478,  ,  ,  ,  ,  ,22727
+2025,April,MI,10077450,19046380.5,4880,Montmorency,true,9153,40273.2,255058,130,Michigan State Police/EMHSD,891717,45498,  ,  ,  ,  ,  ,937215
+2025,April,MI,10077446,19046372.94,4880,Montmorency,true,9153,40273.2,255058,130,Michigan State Police/EMHSD,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077463,19046405.07,4880,Oscoda,true,8219,36163.6,255058,130,Michigan State Police/EMHSD,19249,33594,  ,  ,  ,  ,  ,52843
+2025,April,MI,10077492,19046459.88,4880,Presque Isle,true,12982,57120.8,255058,130,Michigan State Police/EMHSD,875829,41692,  ,  ,  ,  ,  ,917521
+2025,April,MI,10077443,19046367.27,4880,Montmorency,true,9153,40273.2,255058,130,Michigan State Police/EMHSD,7420,23358,  ,  ,  ,  ,  ,30778
+2025,April,MI,10077444,19046369.16,4880,Montmorency,true,9153,40273.2,255058,130,Michigan State Police/EMHSD,386529,74273,  ,  ,  ,  ,  ,460801
+2025,April,MI,10077495,19046465.55,4880,State Agencies,true,null, $-   ,255058,130,Michigan State Police/EMHSD,  ,203605,  ,  ,  ,  ,  ,203605
+2025,April,MI,10077423,19046329.47,4880,Emmet,true,34112,150092.8,255058,130,Michigan State Police/EMHSD,29249,10620,  ,  ,  ,  ,  ,39869
+2025,April,MI,10077341,19046174.49,4880,Alcona,true,10167,44734.8,255058,130,Michigan State Police/EMHSD,19249,33594,  ,  ,  ,  ,  ,52843
+2025,April,MI,10077480,19046437.2,4880,Presque Isle,true,12982,57120.8,null,null,Onaway Area Ambulance,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077454,19046388.06,4880,Oscoda,true,8219,36163.6,255612,117537,Big Creek Township,11143,14659,  ,  ,  ,  ,  ,25800
+2025,April,MI,10077456,19046391.84,4880,Oscoda,true,8219,36163.6,255668,117548,Comins Township,10515,4800,  ,  ,  ,  ,  ,15315
+2025,April,MI,10077344,19046180.16,4880,Alpena,true,28907,127190.8,255264,117430,Presque Isle Electric & Gas,689659,  ,  ,  ,  ,5909380,  ,6599039
+2025,April,MI,10077466,19046410.74,4880,Otsego,true,25091,110400.4,255264,117430,Presque Isle Electric & Gas,30462,  ,  ,  ,  ,261015,  ,291476
+2025,April,MI,10077455,19046389.95,4880,Oscoda,true,8219,36163.6,255264,117430,Presque Isle Electric & Gas,  ,12034,  ,  ,  ,  ,  ,12033
+2025,April,MI,10077331,19046155.59,4880,Alcona,true,10167,44734.8,255264,117430,Presque Isle Electric & Gas,157184,  ,  ,  ,  ,1346838,  ,1504022
+2025,April,MI,10077387,19046261.43,4880,Cheboygan,true,25579,112547.6,255264,117430,Presque Isle Electric & Gas,1306209,  ,  ,  ,  ,11192324,  ,12498533
+2025,April,MI,10077404,19046293.56,4880,Emmet,true,34112,150092.8,255264,117430,Presque Isle Electric & Gas,6092,  ,  ,  ,  ,52203,  ,58295
+2025,April,MI,10077459,19046397.51,4880,Oscoda,true,8219,36163.6,255264,117430,Presque Isle Electric & Gas,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077458,19046395.62,4880,Oscoda,true,8219,36163.6,255264,117430,Presque Isle Electric & Gas,4768407,  ,  ,  ,  ,  ,  ,4768406
+2025,April,MI,10077434,19046350.26,4880,Mackinac,true,10834,47669.6,255264,117430,Presque Isle Electric & Gas,68235,  ,  ,  ,  ,584674,  ,652909
+2025,April,MI,10077457,19046393.73,4880,Oscoda,true,8219,36163.6,255264,117430,Presque Isle Electric & Gas,  ,4810,  ,  ,  ,  ,  ,4809
+2025,April,MI,10077441,19046363.49,4880,Montmorency,true,9153,40273.2,255264,117430,Presque Isle Electric & Gas,1241630,  ,  ,  ,  ,10638972,  ,11880602
+2025,April,MI,10077468,19046414.52,4880,Otsego,true,25091,110400.4,255264,117430,Presque Isle Electric & Gas,582345,48216,  ,  ,  ,  ,  ,630560
+2025,April,MI,10077452,19046384.28,4880,Oscoda,true,8219,36163.6,255264,117430,Presque Isle Electric & Gas,241259,  ,  ,  ,  ,2067239,  ,2308497
+2025,April,MI,10077483,19046442.87,4880,Presque Isle,true,12982,57120.8,null,null,Presque Isle Township Fire,  ,4161,  ,  ,  ,  ,  ,4161
+2025,April,MI,10077339,19046170.71,4880,Alcona,true,10167,44734.8,null,null,South Shore Hubbard Lake FD,  ,  ,  ,  ,  ,  ,  ,null
+2025,April,MI,10077355,19046200.95,4880,Antrim,true,23431,103096.4,null,null,Star Twp Fire Department,  ,  ,  ,  ,  ,  ,  ,null
+2025,April,MI,10077484,19046444.76,4880,Presque Isle,true,12982,57120.8,null,null,Thunderbay Community Health Services,  ,5760,  ,  ,  ,  ,  ,5760
+2025,April,MI,10077464,19046406.96,4880,Otsego,true,25091,110400.4,255191,24847,Otsego County,3036281,139193,  ,  ,  ,  ,298580,3175474
+2025,April,MI,10077445,19046371.05,4880,Montmorency,true,9153,40273.2,255519,117511,Tri-Township Fire Department,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077410,19046304.9,4880,Emmet,true,34112,150092.8,255684,36546,Village of Mackinaw City,5039,  ,  ,  ,  ,9669,  ,14706
+2025,April,MI,10077474,19046425.86,4880,Presque Isle,true,12982,57120.8,255633,117546,Allis Township,  ,  ,  ,  ,  ,  ,  ,          
+2025,April,MI,10077375,19046238.75,4880,Charlevoix,true,26054,114637.6,null,null,WFUP - Cadillac Telecasting Company,  ,  ,  ,  ,  ,        ,  ,null
+2025,April,MI,10077476,19046429.64,4880,Presque Isle,true,12982,57120.8,255706,117581,Case Township Fire Department,  ,34821,  ,  ,  ,  ,  ,34820
+2025,April,MI,10077376,19046240.64,4880,Charlevoix,true,26054,114637.6,null,null,WKHQ - MacDonald Garber Broadcast Company,  ,  ,  ,  ,  ,  ,  ,null
+2025,April,MI,10077477,19046431.53,4880,Presque Isle,true,12982,57120.8,255314,117435,"Onaway, City of",7000,11098,  ,  ,  ,  ,  ,18098
+2025,April,MI,10077378,19046244.42,4880,Charlevoix,true,26054,114637.6,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,23875,  ,23875
+2025,April,MI,10077406,19046297.34,4880,Emmet,true,34112,150092.8,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,63848,  ,63848
+2025,April,MI,10077467,19046412.63,4880,Otsego,true,25091,110400.4,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,100232,  ,100232
+2025,April,MI,10077332,19046157.48,4880,Alcona,true,10167,44734.8,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,62020,  ,62020
+2025,April,MI,10077345,19046182.05,4880,Alpena,true,28907,127190.8,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,62020,  ,62020
+2025,April,MI,10077479,19046435.31,4880,Presque Isle,true,12982,57120.8,255667,117494,Wolverine Power Cooperative,  ,6794,  ,  ,  ,  ,  ,6794
+2025,April,MI,10077357,19046204.73,4880,Antrim,true,23431,103096.4,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,62020,  ,62020
+2025,April,MI,10077482,19046440.98,4880,Presque Isle,true,12982,57120.8,255667,117494,Wolverine Power Cooperative,  ,28621,  ,  ,  ,  ,  ,28621
+2025,April,MI,10077490,19046456.1,4880,Presque Isle,true,12982,57120.8,255667,117494,Wolverine Power Cooperative,  ,33582,  ,  ,  ,  ,  ,33581
+2025,April,MI,10077473,19046423.97,4880,Presque Isle,true,12982,57120.8,255667,117494,Wolverine Power Cooperative,343980,  ,  ,  ,  ,  ,  ,343979
+2025,April,MI,10077486,19046448.54,4880,Presque Isle,true,12982,57120.8,255667,117494,Wolverine Power Cooperative,1255033,  ,  ,  ,  ,10753819,  ,12008852
+2025,April,MI,10077388,19046263.32,4880,Cheboygan,true,25579,112547.6,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,73449,  ,73449
+2025,April,MI,10077485,19046446.65,4880,Presque Isle,true,12982,57120.8,255667,117494,Wolverine Power Cooperative,71868,48446,  ,  ,  ,7000,  ,127313
+2025,April,MI,10077395,19046276.55,4880,Crawford,true,12988,57147.2,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,62020,  ,62020
+2025,April,MI,10077437,19046355.93,4880,Mackinac,true,10834,47669.6,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,62020,  ,62020
+2025,April,MI,10077442,19046365.38,4880,Montmorency,true,9153,40273.2,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,65558,  ,65558
+2025,April,MI,10077453,19046386.17,4880,Oscoda,true,8219,36163.6,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,62020,  ,62020
+2025,April,MI,10077487,19046450.43,4880,Presque Isle,true,12982,57120.8,255667,117494,Wolverine Power Cooperative,  ,  ,  ,  ,  ,90304,  ,90304
+2025,May,IN,6785528,12824647.92,4882,Orange,true,19867,87414.8,255160,null,WEST BADEN (CORPORATE NAME WEST BADEN SPRINGS),9940,  ,305334,  ,  ,  ,  ,315274
+2025,May,IN,6785528,12824647.92,4882,Clark,true,121093,532809.2,255163,null,"Jeffersonville, City of",25269.28,83689.41,  ,  ,  ,42076.19,13891,164925.88
+2025,May,IN,6785528,12824647.92,4882,Bartholomew,true,82208,361715.2,255166,null,Bartholomew County Emergency Management,  ,9940.47,  ,  ,  ,  ,  ,9940.47
+2025,May,IN,6785528,12824647.92,4882,Clark,true,121093,532809.2,255169,null,Town of Utica,87376.7,  ,65000,  ,  ,  ,  ,152376.7
+2025,May,IN,6785528,12824647.92,4882,Harrison,true,39654,174477.6,null,null,Boone Township Fire Department,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Madison,true,130129,572567.6,255496,null,"Anderson, City of",219285,102652,12115,null,105503,3018972,null,3458527
+2025,May,IN,6785528,12824647.92,4882,Brown,true,15475,68090,255172,null,"NASHVILLE, TOWN OF",10215.45,32435.3,  ,  ,  ,  ,  ,42650.75
+2025,May,IN,6785528,12824647.92,4882,Warrick,true,63898,281151.2,null,null,"Boonville, City of ",  ,3802.85,  ,  ,  ,  ,  ,3802.85
+2025,May,IN,6785528,12824647.92,4882,Clark,true,121093,532809.2,255173,null,Jeffersonville Flood Control District,268373.14,79951.53,  ,  ,  ,  ,  ,348324.67
+2025,May,IN,6785528,12824647.92,4882,Floyd,true,80484,354129.6,255177,null,"New Albany, City of",200625.1,38491.62,  ,  ,  ,  ,100000,339116.72
+2025,May,IN,6785528,12824647.92,4882,Harrison,true,39654,174477.6,255178,null,Town of Palmyra (Palmyra Town of),  ,5199.61,  ,  ,  ,  ,  ,5199.61
+2025,May,IN,6785528,12824647.92,4882,Franklin,true,22785,100254,255179,null,Town of Brookville,  ,  ,  ,41566,  ,  ,5313,46879
+2025,May,IN,6785528,12824647.92,4882,Jackson,false,46428,204283.2,null,null,Brownstone Fire Department,  ,  ,  ,  ,  ,  ,  ,null
+2025,May,IN,6785528,12824647.92,4882,Perry,true,19867,87414.8,null,null,Carol White REMC,  ,  ,  ,  ,  ,      ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Jefferson,true,33147,145846.8,255180,null,Jefferson County ERC (Highway Department),  ,105799.76,951270.94,  ,  ,  ,  ,1057070.7
+2025,May,IN,6785528,12824647.92,4882,Jefferson,true,33147,145846.8,255181,null,"Madison, City of",270771,  ,  ,  ,  ,  ,632400,903171
+2025,May,IN,6785528,12824647.92,4882,Lawrence,true,45011,198048.4,255182,null,"Bedford, City of",88065,5871,  ,  ,  ,  ,31655,125591
+2025,May,IN,6785528,12824647.92,4882,Lawrence,true,45011,198048.4,255183,null,Lawrence County,  ,9795.57,  ,  ,  ,  ,  ,9795.57
+2025,May,IN,6785528,12824647.92,4882,Lawrence,true,45011,198048.4,255185,null,Lawrence County Highway Department,22712,  ,45811,  ,  ,  ,  ,68523
+2025,May,IN,6785528,12824647.92,4882,Harrison,true,39654,174477.6,255188,null,"Harrison County Commissioners, EMA and Highway",27348.35,29730.26,163125.78,  ,  ,  ,  ,220204.39
+2025,May,IN,6785528,12824647.92,4882,Marshall,true,46095,202818,255207,null,Marshall County Commissioners,5372.23,5459.31,  ,  ,  ,  ,  ,10831.54
+2025,May,IN,6785528,12824647.92,4882,Marshall,true,46095,202818,255208,null,"Bourbon, Town of",20415.82,81746.01,  ,  ,2500,  ,2500,107161.83
+2025,May,IN,6785528,12824647.92,4882,Warrick,true,63898,281151.2,255209,null,Boonville Fire Department,  ,18921.69,  ,  ,  ,  ,  ,18921.69
+2025,May,IN,6785528,12824647.92,4882,Warrick,true,63898,281151.2,255210,null,Town of Newburgh,10192.1,487938.38,38060,  ,  ,  ,  ,536190.48
+2025,May,IN,6785528,12824647.92,4882,Vanderburgh,true,180136,792598.4,255212,null,"Evansville, City of",  ,36093.2,  ,705730,165095,313149.05,  ,1220067.25
+2025,May,IN,6785528,12824647.92,4882,Montgomery,true,37936,166918.4,255211,null,Parke County Rural Electric Membership Corp (REMC),null,null,null,null,null,5148,null,5148
+2025,May,IN,6785528,12824647.92,4882,Montgomery,true,37936,166918.4,255214,null,TIPMONT Rural Electric Membership Corp (REMC),  ,  ,  ,  ,  ,178067.91,  ,178067.91
+2025,May,IN,6785528,12824647.92,4882,Jackson,false,46428,204283.2,null,null,City of Seymour,  ,4925.7,  ,  ,  ,  ,  ,4925.7
+2025,May,IN,6785528,12824647.92,4882,Martin,true,9812,43172.8,255215,null,SHOALS COMMUNITY SCHOOL CORPORATION,  ,  ,  ,  ,  ,  ,55908,55908
+2025,May,IN,6785528,12824647.92,4882,Madison,true,130129,572567.6,255220,null,"Anderson, City of Police Department",  ,14960.39,  ,  ,  ,  ,  ,14960.39
+2025,May,IN,6785528,12824647.92,4882,Clay,true,26466,116450.4,null,null,Clay City ,  ,  ,  ,  ,null,null,  ,0
+2025,May,IN,6785528,12824647.92,4882,Perry,true,19867,87414.8,255222,null,"Cannelton, City of",5196,  ,  ,  ,  ,  ,  ,5196
+2025,May,IN,6785528,12824647.92,4882,Madison,true,130129,572567.6,255223,null,Madison County Emergency Management,  ,14518.48,  ,  ,  ,  ,  ,14518.48
+2025,May,IN,6785528,12824647.92,4882,Clay,true,26466,116450.4,null,null,Clay County Highway Department,5111,  ,127201,  ,null,null,  ,132312
+2025,May,IN,6785528,12824647.92,4882,Perry,true,19867,87414.8,255224,null,Perry County Emergency Management,  ,  ,  ,  ,12923.59,  ,  ,12923.59
+2025,May,IN,6785528,12824647.92,4882,Perry,true,19867,87414.8,255225,null,"Tell City, City of",  ,77150.09,90318,  ,  ,  ,  ,167468.09
+2025,May,IN,6785528,12824647.92,4882,Perry,true,19867,87414.8,255227,null,Town of Troy/Troy Utilities,42917.67,7888.65,  ,  ,  ,  ,  ,50806.32
+2025,May,IN,6785528,12824647.92,4882,Perry,true,19867,87414.8,255229,null,Perry County Highway Department,90519.36,  ,  ,  ,  ,  ,  ,90519.36
+2025,May,IN,6785528,12824647.92,4882,Perry,true,19867,87414.8,255230,null,Cannelton Street Department,4104.48,  ,25900,  ,  ,  ,  ,30004.48
+2025,May,IN,6785528,12824647.92,4882,Perry,true,19867,87414.8,255231,null,"Cannelton, City of (Utilities)",7417.28,4495.32,7919.84,7655.14,9041.32,  ,  ,36528.9
+2025,May,IN,6785528,12824647.92,4882,Vanderburgh,true,180136,792598.4,255233,null,Vanderburgh County Highway Garage,97786.41,  ,405982.62,  ,  ,  ,  ,503769.03
+2025,May,IN,6785528,12824647.92,4882,Bartholomew,true,82208,361715.2,255276,null,Bartholomew County Rural Electric Membership Corp (REMC),8556.69,10975,7276,  ,  ,155448.44,  ,182256.13
+2025,May,IN,6785528,12824647.92,4882,Brown,true,15475,68090,null,null,Cordy Sweetwater Conservancy,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Decatur,true,26472,116476.8,null,null,Decatur County Sheriffs Department,      ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Jackson,false,46428,204283.2,null,null,Department of Corrections (Jackson County),  ,2322.57,  ,  ,  ,  ,  ,2322.57
+2025,May,IN,6785528,12824647.92,4882,Bartholomew,true,82208,361715.2,255242,null,Bartholomew County Sheriff's Department,  ,57130,  ,  ,  ,  ,  ,57130
+2025,May,IN,6785528,12824647.92,4882,Bartholomew,true,82208,361715.2,255391,null,"Columbus Fire department,City of",  ,37418,  ,  ,  ,  ,  ,37418
+2025,May,IN,6785528,12824647.92,4882,Brown,true,15475,68090,255246,null,Brown County Highway Department,68375.69,  ,88702.25,  ,  ,  ,  ,157077.94
+2025,May,IN,6785528,12824647.92,4882,Marion,false,977203,4299693.2,null,null,Department of Corrections (Marion County),  ,704.81,  ,  ,  ,  ,  ,704.81
+2025,May,IN,6785528,12824647.92,4882,Brown,true,15475,68090,255248,null,Brown County Parks & Recreation Department,5220.38,  ,  ,  ,  ,  ,84600,89820.38
+2025,May,IN,6785528,12824647.92,4882,Switzerland,true,9737,42842.8,255253,null,Switzerland County Highway Department,7639,  ,226000,  ,  ,  ,  ,233639
+2025,May,IN,6785528,12824647.92,4882,Switzerland,true,9737,42842.8,255254,null,Town of Vevay,9434.88,  ,  ,  ,  ,  ,51349,60783.88
+2025,May,IN,6785528,12824647.92,4882,Washington,true,28182,124000.8,255256,null,"SALEM, CITY OF",  ,5047,  ,  ,  ,  ,  ,5047
+2025,May,IN,6785528,12824647.92,4882,Greene,true,30803,135533.2,255257,null,"Bloomfield, Town of (Bloomfield, City of)",9857,  ,  ,  ,  ,  ,  ,9857
+2025,May,IN,6785528,12824647.92,4882,Harrison,true,39654,174477.6,null,null,Elizabeth Fire Department,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Spencer,false,19810,87164,null,null,Finch Newton Water,  ,      ,  ,  ,  ,  ,  ,null
+2025,May,IN,6785528,12824647.92,4882,Greene,true,30803,135533.2,255258,null,GREENE COUNTY HIGHWAY DEPARTMENT,  ,  ,149496.61,  ,  ,  ,  ,149496.61
+2025,May,IN,6785528,12824647.92,4882,Warrick,true,63898,281151.2,null,null,Frankton Power,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Brown,true,15475,68090,null,null,Fruitdale Volunteer Fire  Department�Jackson Township,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Warrick,true,63898,281151.2,255263,null,Ohio Township Fire,  ,43992.5,  ,  ,  ,  ,  ,43992.5
+2025,May,IN,6785528,12824647.92,4882,Harrison,true,39654,174477.6,null,null,Harrison Township Fire Department,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Bartholomew,true,82208,361715.2,255289,null,"Columbus, City of",  ,215549.06,  ,14807,  ,  ,  ,230356.06
+2025,May,IN,6785528,12824647.92,4882,Marion,false,977203,4299693.2,null,null,Indy Parks and Recreation,  ,  ,  ,  ,  ,  ,16011.87,16011.87
+2025,May,IN,6785528,12824647.92,4882,Clark,true,121093,532809.2,255275,null,Clark County REMC,  ,8608.69,  ,  ,  ,62274.56,  ,70883.25
+2025,May,IN,6785528,12824647.92,4882,Jackson,false,46428,204283.2,null,null,Jackson County ,7205.2,4964.01,20377.97,  ,  ,  ,  ,32547.18
+2025,May,IN,6785528,12824647.92,4882,Bartholomew,true,82208,361715.2,255243,null,"Columbus, City of - Columbus City Utilities",  ,  ,  ,  ,  ,35000,  ,35000
+2025,May,IN,6785528,12824647.92,4882,Orange,true,19867,87414.8,255283,null,Town of Orleans,5501.59,  ,  ,  ,  ,  ,  ,5501.59
+2025,May,IN,6785528,12824647.92,4882,Owen,true,21321,93812.4,255284,null,Spencer-Owen Community Schools,  ,  ,  ,  ,177154,  ,  ,177154
+2025,May,IN,6785528,12824647.92,4882,Greene,true,30803,135533.2,255626,null,"Greene County (EMA, Health, Hwy, Sheriff)",  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Harrison,true,39654,174477.6,null,null,Lanesville Volunteer Fire Department,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Warrick,true,63898,281151.2,null,null,"Lynville, City of ",  ,      ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Madison,true,130129,572567.6,255219,null,"Anderson, City of - Fire Department",  ,6595.47,  ,  ,  ,  ,  ,6595.47
+2025,May,IN,6785528,12824647.92,4882,Clark,true,121093,532809.2,255171,null,Clark County Government,202987.72,160839.49,462804.74,  ,  ,  ,  ,826631.95
+2025,May,IN,6785528,12824647.92,4882,Marion,false,977203,4299693.2,null,null,Marion County Department of Public Works,78437.25,146182.89,371851.7,  ,299902,  ,239100,1135473.84
+2025,May,IN,6785528,12824647.92,4882,Marshall,true,46095,202818,null,null,Marion University,9641.5,  ,  ,  ,12400,  ,  ,22041.5
+2025,May,IN,6785528,12824647.92,4882,Marion,false,977203,4299693.2,null,null,Metropolitan Emergency Services Agency,  ,12588.98,  ,  ,  ,  ,  ,12588.98
+2025,May,IN,6785528,12824647.92,4882,Bartholomew,true,82208,361715.2,255244,null,"Columbus, City of - Columbus Parks and Recreation Department",23496.49,  ,  ,  ,  ,  ,68549.47,92045.96
+2025,May,IN,6785528,12824647.92,4882,Harrison,true,39654,174477.6,null,null,Middleton Fire Department,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Crawford,true,10526,46314.4,255292,null,CRAWFORD (COUNTY) / HIGHWAY DEPT,  ,  ,245198.02,  ,  ,  ,  ,245198.02
+2025,May,IN,6785528,12824647.92,4882,Martin,true,9812,43172.8,255340,null,MARTIN COUNTY HIGHWAY DEPARTMENT,  ,  ,75422.59,  ,  ,  ,  ,75422.59
+2025,May,IN,6785528,12824647.92,4882,Harrison,true,39654,174477.6,255342,null,MAUCKPORT (TOWN OF),9480.19,  ,  ,  ,  ,  ,  ,9480.19
+2025,May,IN,6785528,12824647.92,4882,Clark,true,121093,532809.2,null,null,Origin Park,  ,  ,  ,  ,  ,  ,      ,0
+2025,May,IN,6785528,12824647.92,4882,Harrison,true,39654,174477.6,255638,null,Harrison County Rural Electric Membership Corp (REMC),  ,  ,  ,  ,  ,64194,  ,64194
+2025,May,IN,6785528,12824647.92,4882,Lawrence,true,45011,198048.4,255623,null,Indiana Department of Natural Resources,  ,5500,  ,  ,  ,  ,  ,5500
+2025,May,IN,6785528,12824647.92,4882,Washington,true,28182,124000.8,255354,null,Washington County,  ,72176.59,  ,  ,  ,  ,  ,72176.59
+2025,May,IN,6785528,12824647.92,4882,Orange,true,19867,87414.8,255355,null,Town of Paoli,  ,13956.56,  ,  ,  ,  ,  ,13956.56
+2025,May,IN,6785528,12824647.92,4882,Floyd,true,80484,354129.6,255356,null,FLOYD (COUNTY) / HIGHWAY DEPT. / HIGHWAY DEPT.,44377.31,  ,  ,  ,  ,  ,  ,44377.31
+2025,May,IN,6785528,12824647.92,4882,Floyd,true,80484,354129.6,255357,null,FLOYD (COUNTY) / SHERIFF'S DEPT. / SHERIFF'S DEPT.,  ,4598.35,  ,  ,40000,  ,  ,44598.35
+2025,May,IN,6785528,12824647.92,4882,Franklin,true,22785,100254,255359,null,FRANKLIN COUNTY HIGHWAY DEPARTMENT,29894,83900,2869126,  ,  ,  ,  ,2982920
+2025,May,IN,6785528,12824647.92,4882,Washington,true,28182,124000.8,255363,null,Franklin Township Fire Department,  ,7200,  ,  ,  ,  ,  ,7200
+2025,May,IN,6785528,12824647.92,4882,Jackson,false,46428,204283.2,255288,null,JACKSON COUNTY - REMC,  ,  ,  ,  ,  ,354206.21,  ,354206.21
+2025,May,IN,6785528,12824647.92,4882,Martin,true,9812,43172.8,255370,null,"SHOALS, TOWN OF",  ,  ,  ,  ,  ,  ,      ,0
+2025,May,IN,6785528,12824647.92,4882,Franklin,true,22785,100254,255385,null,Whitewater Canal Trail Inc,  ,1350,  ,  ,  ,  ,17436,18786
+2025,May,IN,6785528,12824647.92,4882,Decatur,true,26472,116476.8,255390,null,DECATUR COUNTY PARKS AND RECREATION,7200,  ,  ,  ,  ,  ,  ,7200
+2025,May,IN,6785528,12824647.92,4882,Bartholomew,true,82208,361715.2,255271,null,EAST COLUMBUS FIRE DEPARTMENT,  ,15673.84,  ,  ,  ,  ,  ,15673.84
+2025,May,IN,6785528,12824647.92,4882,Decatur,true,26472,116476.8,255406,null,DECATUR COUNTY HIGHWAY DEPARTMENT,79588.89,  ,26529.63,  ,  ,  ,  ,106118.52
+2025,May,IN,6785528,12824647.92,4882,Bartholomew,true,82208,361715.2,255421,null,Harrison Township Fire Department (Bartholomew Co),  ,5283.85,  ,  ,  ,  ,  ,5283.85
+2025,May,IN,6785528,12824647.92,4882,Madison,true,130129,572567.6,null,null,"Pendelton, Town of",  ,  ,  ,  ,  ,31303.44,  ,31303.44
+2025,May,IN,6785528,12824647.92,4882,Jefferson,true,33147,145846.8,null,null,Pendleton IMPA,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Clay,true,26466,116450.4,null,null,Posey Township Fire Department,  ,  ,  ,  ,null,null,  ,0
+2025,May,IN,6785528,12824647.92,4882,Morgan,true,71780,315832,255427,null,Brown Township Fire & Rescue,  ,17272,  ,  ,  ,  ,  ,17272
+2025,May,IN,6785528,12824647.92,4882,Madison,true,130129,572567.6,255499,null,MADISON COUNTY,  ,12967.7,  ,  ,20596.89,  ,  ,33564.59
+2025,May,IN,6785528,12824647.92,4882,Morgan,true,71780,315832,255436,null,Monrovia Police Department,  ,9580,  ,  ,  ,  ,  ,9580
+2025,May,IN,6785528,12824647.92,4882,Decatur,true,26472,116476.8,255480,null,DECATUR COUNTY REMC,  ,  ,  ,  ,  ,38000,  ,38000
+2025,May,IN,6785528,12824647.92,4882,Harrison,true,39654,174477.6,null,null,Ramsey Volunteer Fire Department,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Marshall,true,46095,202818,255493,null,Marshall County Rural Electric Membership Corp (REMC),  ,  ,  ,  ,  ,318041.66,  ,318041.66
+2025,May,IN,6785528,12824647.92,4882,Franklin,true,22785,100254,255495,null,Franklin County EMA,  ,3599.25,  ,  ,  ,  ,  ,3599.25
+2025,May,IN,6785528,12824647.92,4882,Parke,false,16156,71086.4,null,null,"Rockville, City of",  ,  ,  ,  ,  ,13747.34,  ,13747.34
+2025,May,IN,6785528,12824647.92,4882,Morgan,true,71780,315832,255216,null,"Martinsville, City of",  ,13796,  ,  ,  ,  ,  ,13796
+2025,May,IN,6785528,12824647.92,4882,Morgan,true,71780,315832,255623,null,Indiana Department of Natural Resources,null,4500,null,null,null,null,null,4500
+2025,May,IN,6785528,12824647.92,4882,Morgan,true,71780,315832,255435,null,MORGAN COUNTY,  ,22106,252917,  ,  ,  ,  ,275023
+2025,May,IN,6785528,12824647.92,4882,Owen,true,21321,93812.4,255345,null,OWEN (COUNTY) / HIGHWAY DEPT. / HIGHWAY DEPT.,12000,277017.43,991932.28,  ,  ,  ,  ,1280949.71
+2025,May,IN,6785528,12824647.92,4882,Shelby,false,45055,198242,null,null,Shelby County Sheriff/Police Department,  ,75727.12,5246,  ,  ,  ,  ,80973.12
+2025,May,IN,6785528,12824647.92,4882,Orange,true,19867,87414.8,255344,null,ORANGE (COUNTY) / HIGHWAY DEPT. / HIGHWAY DEPT.,32930.65,  ,  ,  ,  ,  ,  ,32930.65
+2025,May,IN,6785528,12824647.92,4882,Parke,false,16156,71086.4,255211,null,Parke County Rural Electric Membership Corp (REMC),10145.7,  ,21207.35,  ,  ,23203.68,  ,54556.73
+2025,May,IN,6785528,12824647.92,4882,Brown,true,15475,68090,255197,null,SOUTH CENTRAL INDIANA REMC (2),  ,  ,  ,  ,  ,102555.05,  ,102555.05
+2025,May,IN,6785528,12824647.92,4882,Madison,true,130129,572567.6,255501,null,LAPEL (TOWN OF),  ,21407.44,  ,  ,  ,  ,  ,21407.44
+2025,May,IN,6785528,12824647.92,4882,Washington,true,28182,277029.06,255288,null,JACKSON COUNTY - REMC,null,null,null,null,null,192660,null,192660
+2025,May,IN,6785528,12824647.92,4882,Brown,true,15475,68090,255288,null,JACKSON COUNTY - REMC,null,null,null,null,null,55513,null,55513
+2025,May,IN,6785528,12824647.92,4882,Brown,true,15475,68090,255512,null,Southern Brown Volunteer Fire Department�Van Buren Township Trustee,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Floyd,true,80484,354129.6,255528,null,Highlander Fire Protection District,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Madison,true,130129,572567.6,255562,null,MADISON COUNTY HIGHWAY DEPT.,182462.42,  ,  ,  ,  ,  ,  ,182462.42
+2025,May,IN,6785528,12824647.92,4882,Vigo,false,106153,467073.2,null,null,"Terre Haute, City of ",55691.77,  ,  ,  ,  ,  ,10930.3,66622.07
+2025,May,IN,6785528,12824647.92,4882,Clark,true,121093,532809.2,null,null,Town of Clarksville,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Spencer,false,19810,87164,null,null,Town of Grandview ,4324.01,15103.47,5722,  ,  ,  ,  ,25149.48
+2025,May,IN,6785528,12824647.92,4882,Madison,true,130129,572567.6,255564,null,Richland Township Trustee,8720,  ,  ,  ,  ,  ,  ,8720
+2025,May,IN,6785528,12824647.92,4882,Madison,true,130129,572567.6,255565,null,"Anderson University, Inc",  ,  ,  ,  ,100000,  ,  ,100000
+2025,May,IN,6785528,12824647.92,4882,Floyd,true,80484,354129.6,255638,null,Harrison County Rural Electric Membership Corp (REMC),null,null,null,null,null,3756,null,3756
+2025,May,IN,6785528,12824647.92,4882,Floyd,true,80484,354129.6,255585,null,House of God Five Mile Lane Church,  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Perry,true,19867,87414.8,255602,null,Integrated Public Safety Commission,  ,  ,  ,  ,  ,25227.56,  ,25227.56
+2025,May,IN,6785528,12824647.92,4882,Clay,true,26466,116450.4,255267,null,UTILITIES DISTRICT OF WESTERN INDIANA REMC,  ,  ,  ,  ,null,2853,  ,2853
+2025,May,IN,6785528,12824647.92,4882,Clay,true,26466,116450.4,255211,null,Parke County Rural Electric Membership Corp (REMC),null,null,null,null,null,2399,null,2399
+2025,May,IN,6785528,12824647.92,4882,Clay,true,26466,116450.4,null,null,Town of Harmony,7951,  ,  ,  ,null,null,  ,7951
+2025,May,IN,6785528,12824647.92,4882,Morgan,true,71780,315832,null,null,Town of Moresville,  ,18251,  ,  ,  ,279431,  ,297682
+2025,May,IN,6785528,12824647.92,4882,Owen,true,19810,87164,255285,null,"Spencer, Town of",7336.94,null,null,null,null,10000,null,17336.94
+2025,May,IN,6785528,12824647.92,4882,Vanderburgh,true,180136,792598.4,255213,null,Vanderburgh County,  ,8190.43,  ,  ,  ,  ,87360.08,95550.51
+2025,May,IN,6785528,12824647.92,4882,Lawrence,true,45011,198048.4,255288,null,JACKSON COUNTY - REMC,null,null,null,null,null,23132,null,23132
+2025,May,IN,6785528,12824647.92,4882,Lawrence,true,45011,198048.4,null,null,Town of Oolitic,  ,5555,  ,  ,  ,57486,  ,63041
+2025,May,IN,6785528,12824647.92,4882,Warren,true,8440,37136,255611,null,Warren County Rural Electric Membership Corp (REMC),  ,  ,  ,  ,  ,43452,  ,43452
+2025,May,IN,6785528,12824647.92,4882,Owen,true,21321,93812.4,255628,null,OWEN VALLEY SPORTS COMPLEX,  ,      ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Warrick,true,63898,281151.2,255287,null,Warrick County Highway,  ,2376.92,  ,  ,  ,  ,  ,2376.92
+2025,May,IN,6785528,12824647.92,4882,Vigo,false,106153,467073.2,null,null,Vigo County ,44691.97,20857.33,181851.26,  ,  ,23232.76,  ,270633.32
+2025,May,IN,6785528,12824647.92,4882,Owen,true,21321,1603125.99,255267,null,UTILITIES DISTRICT OF WESTERN INDIANA REMC,null,null,null,null,null,1890,null,1890
+2025,May,IN,6785528,12824647.92,4882,Greene,true,30803,135533.2,255267,null,UTILITIES DISTRICT OF WESTERN INDIANA REMC,null,null,null,null,null,19100,null,19100
+2025,May,IN,6785528,12824647.92,4882,Greene,true,30803,135533.2,255654,null,"SWITZ CITY, TOWN OF",  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Harrison,true,39654,174477.6,255679,null,"NEW AMSTERDAM, TOWN OF",  ,  ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Madison,true,130129,572567.6,255680,null,Lapel Stony Creek Township Fire Territory,  ,      ,  ,  ,  ,  ,  ,0
+2025,May,IN,6785528,12824647.92,4882,Orange,true,19867,87414.8,255692,null,Orange County Rural Electric Membership Corp (REMC),  ,  ,  ,  ,  ,  ,  ,null
+2025,May,IN,6785528,12824647.92,4882,White,false,24688,108627.2,null,null,White County,  ,  ,  ,  ,  ,  ,  ,null
+2025,May,IN,6785528,12824647.92,4882,Morgan,true,15475,68090,255197,null,SOUTH CENTRAL INDIANA REMC (2),  ,  ,  ,  ,  ,191994.92,  ,191994.92
+2025,May,IN,6785528,12824647.92,4882,Owen,true,15475,68090,255197,null,SOUTH CENTRAL INDIANA REMC (2),  ,  ,  ,  ,  ,125732.03,  ,125732.03
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,"Barnesville, Village of ",8857,        ,        ,        ,        ,7123,        ,15979
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,"Bellaire, Village of",4000,        ,        ,        ,        ,25290,        ,29290
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Belmont County Engineer,230011,64175,948798,        ,        ,        ,        ,1242983
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Bridgeport School District,        ,        ,        ,        ,84143,        ,        ,84143
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,"Bridgeport, Village of",        ,        ,11781,        ,        ,        ,        ,11780
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,"Brookside, Village of ",4400,19575,        ,        ,8248,        ,        ,32222
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,"Colerain, Township of",52821,        ,879080,        ,        ,        ,        ,931901
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Kirkwood Township,        ,15320,5660,        ,        ,        ,        ,20980
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,"Martin's Ferry, city of",7170,        ,437600,        ,        ,        ,        ,444769
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Mead Township,33649,        ,937280,        ,        ,        ,        ,970927
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,"Pease, Township of",75000,        ,930000,        ,        ,        ,        ,1005000
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,"Powhatan, Village of ",        ,26860,        ,        ,        ,7324,        ,34182
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Pultney Township,        ,        ,200000,        ,        ,        ,        ,200000
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Richland Township,10000,        ,576000,        ,        ,        ,        ,586000
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Smith Township,30800,        ,        ,        ,        ,        ,        ,30800
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Somerset Township ,30000,        ,13400,        ,        ,        ,        ,43400
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,"St. Clairsville, City of ",        ,19614,        ,        ,        ,        ,        ,19614
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Union Township,23285,        ,91030,        ,        ,        ,        ,114314
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Warren Township,        ,12196,89377,        ,        ,        ,        ,101571
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Washington Township,        ,        ,816000,        ,        ,        ,        ,816000
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Wayne Township,        ,        ,114000,        ,        ,        ,        ,114000
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,Wheeling Township,45344,45000,5024,        ,        ,        ,        ,95367
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,York Township,        ,4300,28679,        ,        ,        ,        ,32979
+2024,April,OH,11799448,21710984,null,Belmont,null,66497,305886.2,null,null,"Yorkville, Village of",        ,        ,8000,        ,        ,9132,        ,17132
+2024,April,OH,11799448,21710984,null,Guernsey,null,38438,176814.8,null,null,Guernsey County Engineer,        ,32195,814641,        ,        ,        ,        ,846836
+2024,April,OH,11799448,21710984,null,Guernsey,null,38438,176814.8,null,null,Londonderry Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,April,OH,11799448,21710984,null,Guernsey,null,38438,176814.8,null,null,Spencer Township,        ,        ,73300,        ,        ,        ,        ,73300
+2024,April,OH,11799448,21710984,null,Guernsey,null,38438,176814.8,null,null,Wills Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,April,OH,11799448,21710984,null,Jefferson,null,65249,300145.4,null,null,"Adena, Village",5000,        ,        ,        ,30000,        ,        ,35000
+2024,April,OH,11799448,21710984,null,Jefferson,null,65249,300145.4,null,null,Island Creek Township,        ,        ,11784,        ,        ,        ,        ,11784
+2024,April,OH,11799448,21710984,null,Jefferson,null,65249,300145.4,null,null,Jefferson County Engineer,88374,        ,377356,        ,        ,        ,        ,465729
+2024,April,OH,11799448,21710984,null,Jefferson,null,65249,300145.4,null,null,Knox Township,27912,        ,100000,        ,        ,        ,        ,127911
+2024,April,OH,11799448,21710984,null,Jefferson,null,65249,300145.4,null,null,"Rayland, Village ",        ,        ,        ,        ,13000,        ,35966,13000
+2024,April,OH,11799448,21710984,null,Jefferson,null,65249,300145.4,null,null,"Steubenville, City of",        ,318500,        ,        ,        ,574250,        ,892750
+2024,April,OH,11799448,21710984,null,Jefferson,null,65249,300145.4,null,null,Warren Township - Jefferson County,6000,        ,120000,        ,        ,        ,        ,126000
+2024,April,OH,11799448,21710984,null,Jefferson,null,65249,300145.4,null,null,Wells Township,        ,        ,16197,        ,        ,        ,        ,16197
+2024,April,OH,11799448,21710984,null,Jefferson,null,65249,300145.4,null,null,Yorkville,5000,        ,        ,        ,        ,        ,        ,5000
+2024,April,OH,11799448,21710984,null,Meigs,null,22210,102166,null,null,"Chester, Township of ",7922,        ,84584,        ,        ,        ,        ,92506
+2024,April,OH,11799448,21710984,null,Meigs,null,22210,102166,null,null,Meigs County Highway Department,45579,        ,30038,        ,        ,        ,        ,75615
+2024,April,OH,11799448,21710984,null,Monroe,null,13385,61571,null,null,Center Township ,        ,20182,11570,        ,        ,        ,        ,31752
+2024,April,OH,11799448,21710984,null,Monroe,null,13385,61571,null,null,Franklin Township,        ,        ,6945,        ,        ,        ,        ,6945
+2024,April,OH,11799448,21710984,null,Monroe,null,13385,61571,null,null,Green Township,        ,        ,100110,        ,        ,        ,        ,100110
+2024,April,OH,11799448,21710984,null,Monroe,null,13385,61571,null,null,Jackson Township,        ,        ,65634,        ,        ,        ,        ,65634
+2024,April,OH,11799448,21710984,null,Monroe,null,13385,61571,null,null,Monroe County Engineer,72396,375980,1905292,        ,        ,        ,        ,2353667
+2024,April,OH,11799448,21710984,null,Monroe,null,13385,61571,null,null,Ohio Township,4631,        ,213622,        ,        ,        ,        ,218253
+2024,April,OH,11799448,21710984,null,Morgan,null,13802,63489.2,null,null,Morgan County Engineer,        ,        ,1003154,        ,        ,        ,        ,1003154
+2024,April,OH,11799448,21710984,null,Noble,null,14115,64929,null,null,Beaver Township,        ,        ,12245,        ,        ,        ,        ,12245
+2024,April,OH,11799448,21710984,null,Noble,null,14115,64929,null,null,Elk Township,        ,        ,66940,        ,        ,        ,        ,66940
+2024,April,OH,11799448,21710984,null,Noble,null,14115,64929,null,null,Enoch Township,        ,        ,35325,        ,        ,        ,        ,35325
+2024,April,OH,11799448,21710984,null,Noble,null,14115,64929,null,null,Noble County Engineer,8929,        ,1484360,        ,        ,        ,        ,1493289
+2024,April,OH,11799448,21710984,null,Noble,null,14115,64929,null,null,Olive Township,        ,        ,529601,        ,        ,        ,        ,529601
+2024,April,OH,11799448,21710984,null,Noble,null,14115,64929,null,null,Seneca Township,        ,        ,95400,        ,        ,        ,        ,95400
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Adams Township - Washington County,        ,        ,145402,        ,        ,        ,        ,145402
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Belpre Township,        ,        ,11610,        ,        ,        ,        ,11609
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Fearing Township,        ,        ,87995,        ,        ,        ,        ,87995
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Grandview Township,        ,        ,237416,        ,        ,        ,        ,237416
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Independence Township,        ,        ,117500,        ,        ,        ,        ,117500
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Lawrence Township,        ,        ,58600,        ,        ,        ,        ,58600
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Ludlow Township,        ,        ,275000,        ,        ,        ,        ,275000
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Marietta Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,"Marietta, City of",81714,        ,        ,        ,        ,203530,        ,285243
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Newport Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Palmer Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Warren Township - Washington County,        ,        ,9000,        ,        ,        ,        ,9000
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Washington County Engineer,58251,        ,354709,        ,        ,        ,        ,412960
+2024,April,OH,11799448,21710984,null,Washington,null,59771,274946.6,null,null,Watertown Township,        ,        ,35000,        ,        ,        ,        ,35000
+2024,June-September,MN,5706494,10499949,4797,Blue Earth,null,69112,317915.2,null,null,Blue Earth County,215000,20000,2911000,        ,523000,20000,1350500,3689000
+2024,June-September,MN,5706494,10499949,4797,Brown,null,25912,119195.2,null,null,Bashaw TWP,        ,        ,3805,        ,        ,        ,        ,3805
+2024,June-September,MN,5706494,10499949,4797,Brown,null,25912,119195.2,null,null,Evan,        ,        ,        ,        ,10530,        ,        ,10530
+2024,June-September,MN,5706494,10499949,4797,Brown,null,25912,119195.2,null,null,Milford TWP,        ,        ,6000,        ,        ,        ,        ,6000
+2024,June-September,MN,5706494,10499949,4797,Brown,null,25912,119195.2,null,null,Mulligan TWP,        ,        ,13361,        ,        ,        ,        ,13361
+2024,June-September,MN,5706494,10499949,4797,Brown,null,25912,119195.2,null,null,New Ulm,5327,        ,4266,        ,        ,        ,        ,9593
+2024,June-September,MN,5706494,10499949,4797,Brown,null,25912,119195.2,null,null,North Star TWP,        ,        ,17283,        ,        ,        ,        ,17283
+2024,June-September,MN,5706494,10499949,4797,Brown,null,25912,119195.2,null,null,Prairieville TWP,        ,        ,23100,        ,        ,        ,        ,23100
+2024,June-September,MN,5706494,10499949,4797,Brown,null,25912,119195.2,null,null,Springfield,        ,9326,        ,        ,        ,        ,45218,9326
+2024,June-September,MN,5706494,10499949,4797,Brown,null,25912,119195.2,null,null,Stately TWP,        ,        ,8973,        ,        ,        ,        ,8973
+2024,June-September,MN,5706494,10499949,4797,Carver,null,106922,491841.2,null,null,Carver County ,134863,184882,125972,        ,55000,        ,121400,500717
+2024,June-September,MN,5706494,10499949,4797,Cass,null,30066,138303.6,null,null,Cass County ,10000,156562,        ,        ,        ,38000,        ,204561
+2024,June-September,MN,5706494,10499949,4797,Cook,null,5600,25760,null,null,Cook County,        ,20000,192000,        ,        ,        ,        ,212000
+2024,June-September,MN,5706494,10499949,4797,Cottonwood,null,11517,52978.2,null,null,Cottonwood County,100000,200000,1500000,100000,        ,100000,700000,2000000
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,City of Burnsville,33629,        ,        ,        ,        ,        ,        ,33629
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,City of Hastings,6017,3170,        ,        ,        ,        ,        ,9187
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,City of Inver Grove Heights,        ,60200,        ,        ,        ,        ,        ,60200
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,City of Miesville Ravine,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,City of South St. Paul,4800,47034,        ,        ,        ,        ,        ,51833
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,"City of St. Paul - Water Street, Lilydale",45000,        ,        ,        ,        ,        ,        ,45000
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,Dakota County,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,Dakota County Byllesby Dam,25000,        ,        ,15700,        ,        ,        ,40700
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,Dakota County Parks Byllesby Canoe Launch,        ,        ,        ,        ,        ,        ,25000,          
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,Dakota County Parks Greenway Black Dog Trail,180000,        ,        ,        ,        ,        ,        ,180000
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,Dakota County Transportation - Lilydale,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,Dakota County Transportation MN River,        ,        ,        ,        ,        ,        ,639360,          
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,Dakota Environmental Resources - Vermillion,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,DNR Fort Snelling,100000,        ,4000,        ,5000,5000,        ,114000
+2024,June-September,MN,5706494,10499949,4797,Dakota,null,439882,2023457.2,null,null,Eureka Township,        ,        ,        ,64163,        ,        ,        ,64163
+2024,June-September,MN,5706494,10499949,4797,Dodge,null,20867,95988.2,null,null,Canisteo Township,        ,        ,10404,        ,        ,        ,        ,10404
+2024,June-September,MN,5706494,10499949,4797,Dodge,null,20867,95988.2,null,null,Dodge County,        ,        ,69443,        ,        ,        ,        ,69443
+2024,June-September,MN,5706494,10499949,4797,Dodge,null,20867,95988.2,null,null,Hayfield Township,        ,        ,9338,        ,        ,        ,        ,9337
+2024,June-September,MN,5706494,10499949,4797,Dodge,null,20867,95988.2,null,null,"Mantorville, City of",        ,7597,21465,        ,        ,        ,        ,29062
+2024,June-September,MN,5706494,10499949,4797,Dodge,null,20867,95988.2,null,null,Vernon Township,14389,        ,5827,        ,        ,        ,        ,20215
+2024,June-September,MN,5706494,10499949,4797,Faribault,null,13921,64036.6,null,null,Faribault County,10000,        ,136000,10000,        ,30000,8000,186000
+2024,June-September,MN,5706494,10499949,4797,Fillmore,null,21228,97648.8,null,null,Fillmore County,30000,10000,150000,10000,5000,50000,20000,255000
+2024,June-September,MN,5706494,10499949,4797,Freeborn,null,30895,142117,null,null,Freeborn County,20000,4000,200000,        ,5000,1000000,15000,1229000
+2024,June-September,MN,5706494,10499949,4797,Goodhue,null,47582,218877.2,null,null,Goodhue County,325000,54000,198000,        ,76000,75000,68000,728000
+2024,June-September,MN,5706494,10499949,4797,Houston,null,18843,86677.8,null,null,City of Hokah,        ,5909,        ,        ,        ,        ,        ,5908
+2024,June-September,MN,5706494,10499949,4797,Houston,null,18843,86677.8,null,null,City of La Crescent,        ,        ,        ,        ,        ,        ,38154,          
+2024,June-September,MN,5706494,10499949,4797,Houston,null,18843,86677.8,null,null,Houston County,5488,        ,        ,        ,        ,        ,        ,5488
+2024,June-September,MN,5706494,10499949,4797,Houston,null,18843,86677.8,null,null,MN Department of Natural,32000,        ,        ,        ,        ,        ,10000,32000
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Alvwood Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Bearville Township,        ,        ,25000,        ,        ,        ,        ,25000
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Bigfork Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Carpenter Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,City of Calumet,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,City of Grand Rapids,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,City of Keewatin,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,City of Nashwauk,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,County Environmental Services,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,County Land Department,        ,        ,        ,        ,        ,        ,157519,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,County Transportation,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Goodhope Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Grant Rapids PUC,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Harris Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Hibbing/Itasca Area Forestry,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Lake Country Power,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Lawerance Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Lone Pine Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Marcell Township,        ,        ,24630,        ,        ,        ,        ,24630
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,MN DNR,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Morse Township,        ,        ,6000,        ,        ,        ,        ,6000
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Nashwauk Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Nore Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Sago Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Spang Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Wabana Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Itasca,null,45014,207064.4,null,null,Wildwood Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Jackson,null,9989,45949.4,null,null,Jackson County,        ,965000,7400000,200000,250000,70000,1241200,8885000
+2024,June-September,MN,5706494,10499949,4797,Lake,null,10905,50163,null,null,Lake County,40000,12000,505000,20000,25000,        ,550000,602000
+2024,June-September,MN,5706494,10499949,4797,Le Sueur,null,28674,131900.4,null,null,Le Sueur County,50000,65000,1298500,50000,        ,1515000,        ,2978500
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,City of Dunnell,        ,3958,        ,        ,        ,        ,        ,3958
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,City of Fairmont,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,City of Granada,        ,5505,        ,        ,        ,        ,        ,5504
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,City of Trimont,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,Fox Lake Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,Lake Belt Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,Manyaska Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,Martin Co HW Dept.,8553,7696,66121,        ,        ,        ,        ,82369
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,Martin Co Parks,9139,        ,        ,        ,        ,        ,        ,9139
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,MN DNR Region 4,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,Nashville Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,Pleasant Prairie Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,Rolling Green Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Martin,null,20025,92115,null,null,Waverly Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,McLeod,null,36771,169146.6,null,null,City of Brownton,        ,22586,        ,        ,        ,        ,        ,22586
+2024,June-September,MN,5706494,10499949,4797,McLeod,null,36771,169146.6,null,null,City of Glencoe,        ,4325,22500,        ,        ,18000,12950,44825
+2024,June-September,MN,5706494,10499949,4797,McLeod,null,36771,169146.6,null,null,City of Plato,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,McLeod,null,36771,169146.6,null,null,City of Silver Lake,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,McLeod,null,36771,169146.6,null,null,Glencoe Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,McLeod,null,36771,169146.6,null,null,Helen Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,McLeod,null,36771,169146.6,null,null,McLeod Drainage,        ,59053,        ,        ,        ,        ,        ,59052
+2024,June-September,MN,5706494,10499949,4797,McLeod,null,36771,169146.6,null,null,McLeod Highway Department,        ,11105,4964,        ,        ,        ,        ,16068
+2024,June-September,MN,5706494,10499949,4797,McLeod,null,36771,169146.6,null,null,Round Grove Township ,        ,        ,16000,        ,        ,        ,        ,16000
+2024,June-September,MN,5706494,10499949,4797,McLeod,null,36771,169146.6,null,null,Sumter Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,Austin Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,Austin Utilities,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,Bennington Township,        ,        ,92921,        ,        ,        ,        ,92921
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,City of Austin,        ,        ,        ,        ,        ,        ,86760,          
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,City of Brownsdale,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,City of Mapleview,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,Clayton Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,Grand Meadow Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,LeRoy Township,        ,        ,9038,        ,        ,        ,        ,9037
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,Lodi Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,Mower County Public Works,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,Red Rock Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Mower,null,40029,184133.4,null,null,Waltham Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Murray,null,8179,37623.4,null,null,Murray County,5000,10000,250000,20000,75000,100000,250000,460000
+2024,June-September,MN,5706494,10499949,4797,Nicollet,null,34454,158488.4,null,null,City of North Mankato,        ,166836,        ,        ,        ,        ,        ,166836
+2024,June-September,MN,5706494,10499949,4797,Nicollet,null,34454,158488.4,null,null,City of St Peter,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Nicollet,null,34454,158488.4,null,null,Lake Praire Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Nobels,null,22290,102534,null,null,Nobles County,3500000,        ,100000,        ,        ,        ,5000,3600000
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,Cascade Township,        ,        ,7533,        ,        ,        ,        ,7533
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,Chatfield School District,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,City of Chatfield,        ,        ,8082,        ,        ,        ,        ,8082
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,City of Oronoca,        ,        ,        ,        ,        ,        ,52000,          
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,City of Rochester,74172,11121,4300,        ,70000,        ,20000,159593
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,High Forest Township,        ,        ,6900,        ,        ,        ,        ,6900
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,Marion Township,        ,        ,12400,        ,        ,        ,        ,12400
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,MDOT District 6,        ,        ,        ,        ,        ,72800,        ,72800
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,Olmstead County,24815,        ,37052,        ,        ,        ,7377,61866
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,Olmsted County,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,Oronoca Township,        ,        ,10100,        ,        ,        ,        ,10100
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,Peoples Energy,        ,        ,        ,        ,        ,15285,        ,15284
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,Quincy Township,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,Rochester Public Utilities,        ,        ,        ,        ,        ,144980,        ,144979
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,Rochester Township,        ,        ,10700,        ,        ,        ,        ,10700
+2024,June-September,MN,5706494,10499949,4797,Olmsted,null,162847,749096.2,null,null,Salem Township,        ,        ,65000,        ,        ,        ,        ,65000
+2024,June-September,MN,5706494,10499949,4797,Pipestone,null,9424,43350.4,null,null,Pipestone County,        ,        ,205271,500,        ,        ,2500,205771
+2024,June-September,MN,5706494,10499949,4797,Ramsey,null,552352,2540819.2,null,null,Metropolitan Airport Commission,        ,157250,        ,        ,        ,        ,        ,157249
+2024,June-September,MN,5706494,10499949,4797,Ramsey,null,552352,2540819.2,null,null,Minnesota Department of Natural Resources,5000,        ,        ,        ,        ,        ,7600,5000
+2024,June-September,MN,5706494,10499949,4797,Ramsey,null,552352,2540819.2,null,null,Saint Paul Parks,740215,180303,        ,        ,        ,        ,142280,920518
+2024,June-September,MN,5706494,10499949,4797,Ramsey,null,552352,2540819.2,null,null,Saint Paul Police,        ,77631,        ,        ,        ,        ,        ,77630
+2024,June-September,MN,5706494,10499949,4797,Ramsey,null,552352,2540819.2,null,null,Saint Paul Public Works,41603,722520,        ,        ,        ,        ,        ,764123
+2024,June-September,MN,5706494,10499949,4797,Ramsey,null,552352,2540819.2,null,null,Union Depot,        ,5581,        ,        ,        ,        ,        ,5581
+2024,June-September,MN,5706494,10499949,4797,Redwood,null,15425,70955,null,null,City of Sanborn,        ,        ,        ,        ,        ,        ,22000,          
+2024,June-September,MN,5706494,10499949,4797,Redwood,null,15425,70955,null,null,Redwood County HWY,        ,55000,        ,        ,        ,        ,        ,55000
+2024,June-September,MN,5706494,10499949,4797,Renville,null,14723,67725.8,null,null,Boon Lake Township,        ,        ,16126,        ,        ,        ,        ,16126
+2024,June-September,MN,5706494,10499949,4797,Renville,null,14723,67725.8,null,null,Martinsburg Township,        ,        ,13295,        ,        ,        ,        ,13295
+2024,June-September,MN,5706494,10499949,4797,Renville,null,14723,67725.8,null,null,Norfolk Township,        ,        ,12200,        ,        ,        ,        ,12200
+2024,June-September,MN,5706494,10499949,4797,Renville,null,14723,67725.8,null,null,Renville County,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Renville,null,14723,67725.8,null,null,Renville County Drainage,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Renville,null,14723,67725.8,null,null,Renville County Parks,        ,        ,        ,        ,        ,        ,15053,          
+2024,June-September,MN,5706494,10499949,4797,Renville,null,14723,67725.8,null,null,Wellington Township,        ,        ,11930,        ,        ,        ,        ,11930
+2024,June-September,MN,5706494,10499949,4797,Rice,null,67097,308646.2,null,null,Rice County,50000,162500,397000,100000,150000,        ,177500,859500
+2024,June-September,MN,5706494,10499949,4797,Rock,null,9704,44638.4,null,null,Rock County,        ,        ,        ,        ,        ,        ,2580000,          
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,Arlington Township,        ,        ,17930,        ,        ,        ,        ,17930
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,Bismarck Township,        ,        ,17428,        ,        ,        ,        ,17428
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,City of Arlington,        ,        ,        ,        ,        ,        ,21085,          
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,City of Henderson,34000,13000,        ,        ,        ,        ,        ,47000
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,City of New Auburn,        ,19350,        ,        ,        ,        ,        ,19350
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,Dryden Township,        ,        ,22305,        ,        ,        ,        ,22305
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,Grafton Township,        ,        ,17630,        ,        ,        ,        ,17630
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,Henderson Township,7000,        ,57500,        ,        ,        ,        ,64500
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,High Island Watershed,        ,        ,8870,        ,        ,        ,        ,8870
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,Jessenland Township,        ,        ,15716,        ,        ,        ,        ,15716
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,Moltke Township,        ,        ,10460,        ,        ,        ,        ,10460
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,Sibley County Drainage,        ,        ,        ,        ,        ,        ,        ,          
+2024,June-September,MN,5706494,10499949,4797,Sibley,null,14836,68245.6,null,null,Sibley County Public Works,15830,7418,8700,        ,        ,        ,        ,31948
+2024,June-September,MN,5706494,10499949,4797,St. Louis,null,200231,921062.6,null,null,St Louis County,288500,229000,6555000,1500,520000,64376,920000,7658376
+2024,June-September,MN,5706494,10499949,4797,Steele,null,37406,172067.6,null,null,Steele County,38000,59000,31000,        ,5000,62300,70000,195300
+2024,June-September,MN,5706494,10499949,4797,Wabasha,null,21387,98380.2,null,null,Wabasha County,7500,27000,31500,30000,28000,        ,364000,124000
+2024,June-September,MN,5706494,10499949,4797,Waseca,null,18968,87252.8,null,null,Waseca County,7500,12000,107000,        ,13400,        ,        ,139900
+2024,June-September,MN,5706494,10499949,4797,Watonwan,null,11253,51763.8,null,null,Watonwan County,        ,        ,        ,        ,        ,        ,2200000,          
+2024,June-September,MN,5706494,10499949,4797,Winona,null,49671,228486.6,null,null,City of Altura,        ,        ,6926,        ,        ,        ,        ,6926
+2024,June-September,MN,5706494,10499949,4797,Winona,null,49671,228486.6,null,null,City of Winona,        ,52316,77916,        ,        ,        ,4688,130231
+2024,June-September,MN,5706494,10499949,4797,Winona,null,49671,228486.6,null,null,Department of Natural Resources,        ,        ,47400,145542,        ,        ,        ,192942
+2024,June-September,MN,5706494,10499949,4797,Winona,null,49671,228486.6,null,null,Norton Township,        ,        ,17256,        ,        ,        ,        ,17255
+2023,September,MI,10077331,17836876,null,Eaton,null,109175,480370,null,null,Benton Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Eaton,null,109175,480370,null,null,City of Charlotte,4485,7086,        ,        ,        ,        ,        ,11569
+2023,September,MI,10077331,17836876,null,Eaton,null,109175,480370,null,null,City of Eaton Rapids,27584,        ,        ,        ,        ,        ,        ,27583
+2023,September,MI,10077331,17836876,null,Eaton,null,109175,480370,null,null,City of Grand Ledge,1197448,41812,66240,        ,        ,        ,        ,1305499
+2023,September,MI,10077331,17836876,null,Eaton,null,109175,480370,null,null,City of Potterville,78377,        ,        ,        ,        ,        ,        ,78377
+2023,September,MI,10077331,17836876,null,Eaton,null,109175,480370,null,null,Delta Township,78210,        ,        ,        ,        ,9174,        ,87383
+2023,September,MI,10077331,17836876,null,Eaton,null,109175,480370,null,null,Eaton County-RFI ,100419,        ,        ,        ,        ,        ,        ,100418
+2023,September,MI,10077331,17836876,null,Eaton,null,109175,480370,null,null,Oneida Township ,5066,        ,        ,        ,        ,        ,        ,5066
+2023,September,MI,10077331,17836876,null,Eaton,null,109175,480370,null,null,Tri-County Electric,        ,        ,        ,        ,        ,187356,        ,187356
+2023,September,MI,10077331,17836876,null,Eaton,null,109175,480370,null,null,Village of Dimondale,75200,        ,        ,        ,        ,        ,        ,75199
+2023,September,MI,10077331,17836876,null,Eaton,null,109175,480370,null,null,Windsor Township,502258,25637,        ,        ,        ,        ,        ,527894
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,911 Dispatch,        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,City of East Lansing,23565,        ,        ,        ,        ,        ,        ,23564
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,City of Lansing,1229406,30284,        ,        ,12538,20929,        ,1293157
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,City of Lansing - BWL,534380,9836,        ,        ,        ,6372946,        ,6917162
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,City of Leslie,7243,        ,        ,        ,        ,        ,        ,7243
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,City of Mason,193160,4074,        ,        ,        ,        ,        ,197234
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,City of Williamston,11341,        ,        ,        ,        ,        ,        ,11341
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,Delhi Township,26771,24030,        ,        ,        ,        ,        ,50801
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,Ingham County Drains,        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,Ingham County Parks,51333,        ,        ,        ,        ,        ,        ,51333
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,Lansing Township,23710,        ,        ,        ,        ,        ,        ,23709
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,Locke Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,Meridian Township,70697,        ,        ,        ,        ,        ,        ,70697
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,Village of Webberville,14753,        ,        ,        ,        ,        ,        ,14752
+2023,September,MI,10077331,17836876,null,Ingham,null,284900,1253560,null,null,Wheatfield Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Ionia,null,66804,293937.6,null,null,Campbell Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Ionia,null,66804,293937.6,null,null,"Clarksville, Village of",        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Ionia,null,66804,293937.6,null,null,Ionia County Road Department,        ,33723,        ,        ,        ,        ,        ,33722
+2023,September,MI,10077331,17836876,null,Ionia,null,66804,293937.6,null,null,"Ionia, City of",        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Ionia,null,66804,293937.6,null,null,"Pewamo, Village of",        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Ionia,null,66804,293937.6,null,null,"Portland, City of",52000,        ,        ,        ,        ,4712,57600,56712
+2023,September,MI,10077331,17836876,null,Ionia,null,66804,293937.6,null,null,Saranac Schools,40000,        ,        ,        ,        ,        ,23000,40000
+2023,September,MI,10077331,17836876,null,Ionia,null,66804,293937.6,null,null,"Saranac, Village of",59500,        ,        ,        ,12000,        ,9500,71500
+2023,September,MI,10077331,17836876,null,Ionia,null,66804,293937.6,null,null,Tri-County Electric - Ionia,        ,        ,        ,        ,        ,274076,        ,274076
+2023,September,MI,10077331,17836876,null,Kent,null,657974,2895085.6,null,null,Alpine Township,66518,61758,        ,        ,91500,        ,16000,219775
+2023,September,MI,10077331,17836876,null,Kent,null,657974,2895085.6,null,null,Cannon Township,22710,        ,        ,        ,        ,        ,        ,22709
+2023,September,MI,10077331,17836876,null,Kent,null,657974,2895085.6,null,null,Cascade Township,6934,        ,        ,        ,        ,        ,        ,6934
+2023,September,MI,10077331,17836876,null,Kent,null,657974,2895085.6,null,null,Grand Rapids City of,        ,235405,        ,        ,        ,        ,        ,235405
+2023,September,MI,10077331,17836876,null,Kent,null,657974,2895085.6,null,null,Grand Rapids Township,26685,4513,        ,        ,        ,        ,        ,31198
+2023,September,MI,10077331,17836876,null,Kent,null,657974,2895085.6,null,null,Kent County,        ,10066,        ,        ,        ,        ,        ,10066
+2023,September,MI,10077331,17836876,null,Kent,null,657974,2895085.6,null,null,Plainfield Township,102776,30000,        ,        ,        ,        ,        ,132776
+2023,September,MI,10077331,17836876,null,Livingston,null,193866,853010.4,null,null,Brighton Area Fire Authority,        ,11398,        ,        ,        ,        ,        ,11398
+2023,September,MI,10077331,17836876,null,Livingston,null,193866,853010.4,null,null,"Brighton, City of",        ,        ,        ,        ,        ,8147,        ,8147
+2023,September,MI,10077331,17836876,null,Livingston,null,193866,853010.4,null,null,Fowlerville Area Fire Department,        ,3986,        ,        ,8660,        ,        ,12646
+2023,September,MI,10077331,17836876,null,Livingston,null,193866,853010.4,null,null,"Fowlerville, Village of",11986,        ,        ,        ,        ,        ,        ,11985
+2023,September,MI,10077331,17836876,null,Livingston,null,193866,853010.4,null,null,Green Oak Township Fire Department,        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Livingston,null,193866,853010.4,null,null,Livingston County EMS,        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Livingston,null,193866,853010.4,null,null,Livingston County Road Commission,20877,        ,        ,        ,        ,        ,        ,20877
+2023,September,MI,10077331,17836876,null,Livingston,null,193866,853010.4,null,null,Putnam Township Fire Department,        ,        ,        ,        ,        ,        ,        ,          
+2023,September,MI,10077331,17836876,null,Monroe,null,154809,681159.6,null,null,Ash Township,        ,50000,        ,        ,        ,        ,        ,50000
+2023,September,MI,10077331,17836876,null,Monroe,null,154809,681159.6,null,null,Berlin Towship,4804,15465,        ,        ,        ,        ,        ,20268
+2023,September,MI,10077331,17836876,null,Monroe,null,154809,681159.6,null,null,Carleton Village of,        ,7971,        ,        ,        ,165256,        ,173227
+2023,September,MI,10077331,17836876,null,Monroe,null,154809,681159.6,null,null,Frenchtown,77087,16818,        ,        ,        ,        ,18064,93905
+2023,September,MI,10077331,17836876,null,Monroe,null,154809,681159.6,null,null,Monroe City of,79600,72300,        ,        ,        ,35000,19200,186900
+2023,September,MI,10077331,17836876,null,Monroe,null,154809,681159.6,null,null,Monroe Township,10535,7731,        ,        ,        ,        ,        ,18266
+2023,September,MI,10077331,17836876,null,Monroe,null,154809,681159.6,null,null,South Rockwood,34693,        ,        ,        ,        ,        ,        ,34692
+2023,September,MI,10077331,17836876,null,Oakland,null,1274395,5607338,null,null,South Lyon Township,18164,        ,        ,        ,7653,        ,        ,25817
+2023,September,MI,10077331,17836876,null,Wayne,null,1793561,7891668.4,null,null,Canton Township,132122,8636,        ,        ,        ,        ,        ,140757
+2023,September,MI,10077331,17836876,null,Wayne,null,1793561,7891668.4,null,null,Wayne County,        ,3938,        ,        ,100396,        ,        ,104333
+2023,May,IN,6785528,12010384.56,4704,Benton,null,8719,38363.6,null,null,Benton County,10275,10410,        ,        ,        ,        ,7350,20684
+2023,May,IN,6785528,12010384.56,4704,Benton,null,8719,38363.6,null,null,Newton County REMC - Benton,        ,        ,        ,        ,        ,18915,        ,18914
+2023,May,IN,6785528,12010384.56,4704,Benton,null,8719,38363.6,null,null,Warren County REMC - Benton,        ,        ,        ,        ,        ,95004,        ,95004
+2023,May,IN,6785528,12010384.56,4704,Brown,null,15475,68090,null,null,South Central Indiana REMC - Brown,        ,        ,        ,        ,        ,136842,        ,136842
+2023,May,IN,6785528,12010384.56,4704,Clinton,null,33190,146036,null,null,Boone County REMC - Clinton,        ,        ,        ,        ,        ,55856,        ,55856
+2023,May,IN,6785528,12010384.56,4704,Clinton,null,33190,146036,null,null,City of Frankfort,114049,74096,        ,        ,15000,362180,27879,565324
+2023,May,IN,6785528,12010384.56,4704,Clinton,null,33190,146036,null,null,Clinton County Highway,7831,        ,        ,        ,        ,        ,        ,7831
+2023,May,IN,6785528,12010384.56,4704,Clinton,null,33190,146036,null,null,Frankfort High School,10000,        ,        ,        ,        ,        ,        ,10000
+2023,May,IN,6785528,12010384.56,4704,Johnson,null,24688,108627.2,null,null,Bargersville Fire Dept.,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,IN,6785528,12010384.56,4704,Johnson,null,24688,108627.2,null,null,City of Franklin,36820,        ,        ,        ,        ,        ,        ,36819
+2023,May,IN,6785528,12010384.56,4704,Johnson,null,24688,108627.2,null,null,Johnson County Government,10541,9507,        ,        ,25000,        ,        ,45047
+2023,May,IN,6785528,12010384.56,4704,Johnson,null,24688,108627.2,null,null,Johnson County Highway Department,15041,        ,        ,        ,        ,        ,        ,15040
+2023,May,IN,6785528,12010384.56,4704,Johnson,null,24688,108627.2,null,null,Johnson County Public Library,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,IN,6785528,12010384.56,4704,Johnson,null,24688,108627.2,null,null,Johnson County REMC - Johnson,        ,        ,        ,        ,        ,544289,        ,544289
+2023,May,IN,6785528,12010384.56,4704,Johnson,null,24688,108627.2,null,null,Johnson County Solid Waste,4234,        ,        ,        ,        ,        ,        ,4233
+2023,May,IN,6785528,12010384.56,4704,Johnson,null,24688,108627.2,null,null,South Central Indiana REMC - Johnson,        ,        ,        ,        ,        ,68195,        ,68194
+2023,May,IN,6785528,12010384.56,4704,Johnson,null,24688,108627.2,null,null,Town of Bargersville,8553,69488,        ,        ,        ,        ,        ,78040
+2023,May,IN,6785528,12010384.56,4704,Johnson,null,24688,108627.2,null,null,Town of Whiteland,172760,59527,        ,        ,5000,4332,        ,241618
+2023,May,IN,6785528,12010384.56,4704,Monroe,null,139718,614759.2,null,null,Monroe County Commissioners,26604,        ,        ,        ,        ,        ,        ,26604
+2023,May,IN,6785528,12010384.56,4704,Monroe,null,139718,614759.2,null,null,Monroe County Highway,22880,15965,3804,        ,        ,        ,        ,42647
+2023,May,IN,6785528,12010384.56,4704,Monroe,null,139718,614759.2,null,null,South Central Indiana REMC,        ,        ,        ,        ,        ,543666,        ,543666
+2023,May,IN,6785528,12010384.56,4704,Monroe,null,139718,614759.2,null,null,Stinesville Fire Department,4683,        ,        ,        ,        ,        ,        ,4683
+2023,May,IN,6785528,12010384.56,4704,Monroe,null,139718,614759.2,null,null,Utilities District of Western Indiana REMC - Monroe,        ,        ,        ,        ,        ,13899,        ,13899
+2023,May,IN,6785528,12010384.56,4704,Morgan,null,71780,315832,null,null,A&A Township Fire Department,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,IN,6785528,12010384.56,4704,Morgan,null,71780,315832,null,null,City of Martinsville,116341,52082,        ,        ,6000,        ,        ,174423
+2023,May,IN,6785528,12010384.56,4704,Morgan,null,71780,315832,null,null,First Presbyterian Church,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,IN,6785528,12010384.56,4704,Morgan,null,71780,315832,null,null,Metro School District of Martinsville,        ,        ,        ,        ,25000,        ,        ,25000
+2023,May,IN,6785528,12010384.56,4704,Morgan,null,71780,315832,null,null,Morgan County,68304,8810,        ,        ,3980,        ,        ,81092
+2023,May,IN,6785528,12010384.56,4704,Morgan,null,71780,315832,null,null,South Central Indiana REMC - Morgan,        ,        ,        ,        ,        ,1203500,        ,1203500
+2023,May,IN,6785528,12010384.56,4704,Morgan,null,71780,315832,null,null,Washington Township,        ,7594,        ,        ,        ,        ,        ,7594
+2023,May,IN,6785528,12010384.56,4704,Owen,null,21321,93812.4,null,null,Owen County ,33622,8985,        ,        ,        ,        ,        ,42606
+2023,May,IN,6785528,12010384.56,4704,Owen,null,21321,93812.4,null,null,South Central Indiana REMC - Owen,        ,        ,        ,        ,        ,450497,        ,450497
+2023,May,IN,6785528,12010384.56,4704,Owen,null,21321,93812.4,null,null,Town of Spencer ,54385,2312,        ,        ,        ,        ,        ,56696
+2023,May,IN,6785528,12010384.56,4704,Owen,null,21321,93812.4,null,null,Utilities District of Western Indiana REMC - Owen,        ,        ,        ,        ,        ,21510,        ,21510
+2023,May,IN,6785528,12010384.56,4704,Sullivan,null,20817,91594.8,null,null,City of Sullivan,115553,25417,        ,        ,        ,116137,5000,257106
+2023,May,IN,6785528,12010384.56,4704,Sullivan,null,20817,91594.8,null,null,Hoosier Energy,        ,        ,        ,        ,        ,6396580,        ,6396580
+2023,May,IN,6785528,12010384.56,4704,Sullivan,null,20817,91594.8,null,null,Sullivan County,316046,46122,18000,        ,        ,        ,286335,380167
+2023,May,IN,6785528,12010384.56,4704,Sullivan,null,20817,91594.8,null,null,Sullivan County Community Hospital,        ,10223,        ,        ,        ,        ,        ,10223
+2023,May,IN,6785528,12010384.56,4704,Sullivan,null,20817,91594.8,null,null,Sullivan Middle School ,        ,        ,        ,        ,5000,        ,        ,5000
+2023,May,IN,6785528,12010384.56,4704,Sullivan,null,20817,91594.8,null,null,WINenergy,        ,        ,        ,        ,        ,516845,        ,516845
+2023,May,IN,6785528,12010384.56,4704,White,null,54688,240627.2,null,null,Carroll White REMC - White,        ,        ,        ,        ,        ,568003,        ,568003
+2023,May,IN,6785528,12010384.56,4704,White,null,54688,240627.2,null,null,North White High School,        ,        ,        ,        ,10000,        ,        ,10000
+2023,May,IN,6785528,12010384.56,4704,White,null,54688,240627.2,null,null,Town of Monon,13414,        ,        ,        ,        ,        ,        ,13414
+2023,May,IN,6785528,12010384.56,4704,White,null,54688,240627.2,null,null,Tri-County High School,        ,        ,        ,        ,10000,        ,        ,10000
+2023,May,IN,6785528,12010384.56,4704,White,null,54688,240627.2,null,null,Warren County REMC - White,        ,        ,        ,        ,        ,6878,        ,6878
+2023,May,MN,5706494,10100494.38,4722,Aitkin,null,15697,69066.8,null,null,Aitkin County Highway Department,        ,        ,57001,        ,        ,        ,        ,57001
+2023,May,MN,5706494,10100494.38,4722,Aitkin,null,15697,69066.8,null,null,Beaver Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Aitkin,null,15697,69066.8,null,null,City of Aitkin,        ,        ,16657,        ,        ,        ,        ,16656
+2023,May,MN,5706494,10100494.38,4722,Aitkin,null,15697,69066.8,null,null,Haugen Township,        ,        ,24830,        ,        ,        ,        ,24830
+2023,May,MN,5706494,10100494.38,4722,Aitkin,null,15697,69066.8,null,null,Hill Lake Township,        ,        ,12260,        ,        ,        ,        ,12260
+2023,May,MN,5706494,10100494.38,4722,Aitkin,null,15697,69066.8,null,null,Kimberly Township,        ,        ,42166,        ,        ,        ,        ,42165
+2023,May,MN,5706494,10100494.38,4722,Aitkin,null,15697,69066.8,null,null,Lake Country Power,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Aitkin,null,15697,69066.8,null,null,McGregor Township,        ,        ,12670,        ,        ,        ,        ,12670
+2023,May,MN,5706494,10100494.38,4722,Aitkin,null,15697,69066.8,null,null,Minnesota Department of Natural Resources,        ,        ,20000,        ,        ,        ,        ,20000
+2023,May,MN,5706494,10100494.38,4722,Aitkin,null,15697,69066.8,null,null,Morrison Township,        ,        ,6780,        ,        ,        ,        ,6780
+2023,May,MN,5706494,10100494.38,4722,Aitkin,null,15697,69066.8,null,null,Rice River Township,        ,        ,13544,        ,        ,        ,        ,13543
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Akron Township,        ,        ,17179,        ,        ,        ,        ,17179
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Almond Township,        ,        ,4411,        ,        ,        ,        ,4411
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Artichoke Township,        ,        ,62700,        ,        ,        ,        ,62700
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,"Beardsley, City of",        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Big Stone County Emergency Management,        ,9800,        ,        ,        ,        ,        ,9800
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Big Stone County Highway Department,        ,        ,63003,        ,        ,        ,        ,63002
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Browns Valley Township,        ,        ,18425,        ,        ,        ,        ,18425
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Foster Township,        ,        ,38774,        ,        ,        ,        ,38774
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,"Graceville, City of",        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Malta Township,        ,        ,6500,        ,        ,        ,        ,6500
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Moonshine Township,        ,        ,4687,        ,        ,        ,        ,4686
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Ortonville City,9200,        ,        ,        ,        ,25620,        ,34820
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Ortonville Township,        ,        ,4500,        ,        ,        ,        ,4500
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Prior Township,        ,        ,13000,        ,        ,        ,        ,13000
+2023,May,MN,5706494,10100494.38,4722,Big Stone,null,5166,22730.4,null,null,Upper MN River Watershed District,7327,3800,        ,18995,        ,        ,        ,30122
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Atkinson Township,        ,        ,19025,        ,        ,        ,        ,19025
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Automba Township,        ,        ,15850,        ,        ,        ,        ,15850
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Beseman Township,        ,        ,10610,        ,        ,        ,        ,10610
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Carlton County Highway Department,        ,        ,83666,        ,        ,        ,        ,83666
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,City of Moose Lake,        ,57848,        ,        ,        ,        ,23052,57847
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Eagle Township ,        ,        ,54870,        ,        ,        ,        ,54870
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Kalevala Township,        ,        ,25800,        ,        ,        ,        ,25800
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Lakeview Township,        ,        ,18954,        ,        ,        ,        ,18954
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Mahtowa township,        ,        ,14559,        ,        ,        ,        ,14558
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Silver Township,        ,        ,9728,        ,        ,        ,        ,9727
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Skelton Township,        ,        ,4016,        ,        ,        ,        ,4016
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Split Rock Township,        ,        ,9866,        ,        ,        ,        ,9866
+2023,May,MN,5706494,10100494.38,4722,Carlton,null,36207,159310.8,null,null,Thomson Township,        ,        ,21469,        ,        ,        ,        ,21468
+2023,May,MN,5706494,10100494.38,4722,Cass,null,30066,132290.4,null,null,Cass County Highway Department,        ,        ,84800,        ,        ,        ,        ,84800
+2023,May,MN,5706494,10100494.38,4722,Cass,null,30066,132290.4,null,null,City of Lakeshore,        ,        ,6380,        ,        ,        ,        ,6380
+2023,May,MN,5706494,10100494.38,4722,Cass,null,30066,132290.4,null,null,Shinobee Township,        ,        ,4540,        ,        ,        ,        ,4540
+2023,May,MN,5706494,10100494.38,4722,Cass,null,30066,132290.4,null,null,Walden Township,        ,        ,8443,        ,        ,        ,        ,8443
+2023,May,MN,5706494,10100494.38,4722,Chippewa,null,12598,55431.2,null,null,Big Bend Township,        ,        ,4200,        ,        ,        ,        ,4200
+2023,May,MN,5706494,10100494.38,4722,Chippewa,null,12598,55431.2,null,null,Chippewa County Highway Department,        ,        ,41242,        ,        ,        ,        ,41241
+2023,May,MN,5706494,10100494.38,4722,Chippewa,null,12598,55431.2,null,null,Kragero Township,        ,        ,8370,        ,        ,        ,        ,8370
+2023,May,MN,5706494,10100494.38,4722,Chippewa,null,12598,55431.2,null,null,Leenthrop Township,        ,        ,8500,        ,        ,        ,        ,8500
+2023,May,MN,5706494,10100494.38,4722,Chippewa,null,12598,55431.2,null,null,Lone Tree Township,        ,        ,24248,        ,        ,        ,        ,24247
+2023,May,MN,5706494,10100494.38,4722,Chippewa,null,12598,55431.2,null,null,Mandt Township,        ,        ,33570,        ,        ,        ,        ,33570
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Alliance Township,        ,        ,16000,        ,        ,        ,        ,16000
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Barnesville Township ,        ,        ,12840,        ,        ,        ,        ,12840
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Buffalo River Watershed District ,        ,        ,        ,16000,        ,        ,        ,16000
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,City of Moorhead,        ,45140,        ,        ,        ,        ,        ,45140
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Clay County Highway Department ,        ,36930,51750,        ,        ,        ,        ,88680
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Elmwood Township ,        ,        ,20349,        ,        ,        ,        ,20349
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Felton Township,        ,        ,7140,        ,        ,        ,        ,7140
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Flowing Township,        ,        ,4000,        ,        ,        ,        ,4000
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Highland Grove Township ,        ,        ,8850,        ,        ,        ,        ,8850
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Kragnes Township,        ,        ,21800,        ,        ,        ,        ,21800
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Moland Township,        ,        ,22330,        ,        ,        ,        ,22330
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Spring Prairie Township,        ,        ,24760,        ,        ,        ,        ,24760
+2023,May,MN,5706494,10100494.38,4722,Clay,null,65318,287399.2,null,null,Ulen Township,        ,        ,33760,        ,        ,        ,        ,33760
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,Bois De Sioux Watershed - Grant,        ,        ,29400,        ,        ,        ,        ,29400
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,County Highway Department,        ,10073,88562,        ,        ,        ,        ,98635
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,Delaware Township,        ,        ,17600,        ,        ,        ,        ,17600
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,Elk Lake Township,        ,        ,6131,        ,        ,        ,        ,6131
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,Erdahl Township,        ,        ,4190,        ,        ,        ,        ,4190
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,Gorton Township,        ,        ,6153,        ,        ,        ,        ,6153
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,Land Township,        ,        ,14900,        ,        ,        ,        ,14900
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,Logan Township,        ,        ,9260,        ,        ,        ,        ,9260
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,"Norcross, City of",        ,        ,4500,        ,        ,        ,        ,4500
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,North Ottawa Township,        ,        ,4800,        ,        ,        ,        ,4800
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,Pomme de Terre Township,        ,        ,29438,        ,        ,        ,        ,29438
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,Sanford Township,        ,        ,8050,        ,        ,        ,        ,8050
+2023,May,MN,5706494,10100494.38,4722,Grant,null,6074,26725.6,null,null,Stony Brook Township,        ,        ,18210,        ,        ,        ,        ,18210
+2023,May,MN,5706494,10100494.38,4722,Houston,null,18843,82909.2,null,null,City of La Crescent,3906,        ,37836,        ,        ,68487,        ,110228
+2023,May,MN,5706494,10100494.38,4722,Itasca,null,45014,198061.6,null,null,Big Fork Township,        ,        ,10802,        ,        ,        ,        ,10802
+2023,May,MN,5706494,10100494.38,4722,Itasca,null,45014,198061.6,null,null,City of Calumet,        ,        ,20000,        ,        ,        ,        ,20000
+2023,May,MN,5706494,10100494.38,4722,Itasca,null,45014,198061.6,null,null,City of Warba,        ,        ,13600,        ,        ,        ,        ,13600
+2023,May,MN,5706494,10100494.38,4722,Itasca,null,45014,198061.6,null,null,Itasca County Highway Dept,        ,        ,67978,        ,        ,        ,        ,67977
+2023,May,MN,5706494,10100494.38,4722,Itasca,null,45014,198061.6,null,null,Marcell Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Itasca,null,45014,198061.6,null,null,Oteneagen Township,        ,        ,4000,        ,        ,        ,        ,4000
+2023,May,MN,5706494,10100494.38,4722,Itasca,null,45014,198061.6,null,null,Spang Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Kittson,null,4207,18510.8,null,null,Davis Township,        ,        ,25071,        ,        ,        ,        ,25071
+2023,May,MN,5706494,10100494.38,4722,Kittson,null,4207,18510.8,null,null,Kittson County Highway Department,17560,        ,59273,        ,        ,        ,        ,76833
+2023,May,MN,5706494,10100494.38,4722,Kittson,null,4207,18510.8,null,null,North Red River Township,11500,        ,16000,        ,        ,        ,        ,27500
+2023,May,MN,5706494,10100494.38,4722,Kittson,null,4207,18510.8,null,null,South Red River Township,        ,        ,11000,        ,        ,        ,        ,11000
+2023,May,MN,5706494,10100494.38,4722,Kittson,null,4207,18510.8,null,null,St. Vincent Township,        ,        ,11000,        ,        ,        ,        ,11000
+2023,May,MN,5706494,10100494.38,4722,Kittson,null,4207,18510.8,null,null,Teien Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Kittson,null,4207,18510.8,null,null,Two Rivers Watershed,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Lac qui Parle,null,6719,29563.6,null,null,Agassiz Township,        ,        ,26794,        ,        ,        ,        ,26794
+2023,May,MN,5706494,10100494.38,4722,Lac qui Parle,null,6719,29563.6,null,null,"Dawson, City of",        ,7863,        ,        ,        ,        ,        ,7863
+2023,May,MN,5706494,10100494.38,4722,Lac qui Parle,null,6719,29563.6,null,null,Garfield Township,        ,        ,12000,        ,        ,        ,        ,12000
+2023,May,MN,5706494,10100494.38,4722,Lac qui Parle,null,6719,29563.6,null,null,Hamlin Township,        ,        ,14844,        ,        ,        ,        ,14843
+2023,May,MN,5706494,10100494.38,4722,Lac qui Parle,null,6719,29563.6,null,null,Lac Qui Parle County Drainage District,        ,        ,        ,197657,        ,        ,        ,197657
+2023,May,MN,5706494,10100494.38,4722,Lac qui Parle,null,6719,29563.6,null,null,Lac Qui Parle County Highway Department,        ,        ,58711,        ,        ,        ,        ,58710
+2023,May,MN,5706494,10100494.38,4722,Lac qui Parle,null,6719,29563.6,null,null,Lac Qui Parle Township,        ,        ,        ,4315,        ,        ,        ,4315
+2023,May,MN,5706494,10100494.38,4722,Lac qui Parle,null,6719,29563.6,null,null,Lake Shore Township,        ,        ,33956,        ,        ,        ,        ,33956
+2023,May,MN,5706494,10100494.38,4722,Lac qui Parle,null,6719,29563.6,null,null,Maxwell Township,        ,        ,45260,        ,        ,        ,        ,45260
+2023,May,MN,5706494,10100494.38,4722,Lac qui Parle,null,6719,29563.6,null,null,Providence Township,        ,        ,45221,        ,        ,        ,        ,45220
+2023,May,MN,5706494,10100494.38,4722,Lac qui Parle,null,6719,29563.6,null,null,Walter Township,4910,        ,7000,        ,        ,        ,        ,11910
+2023,May,MN,5706494,10100494.38,4722,Lake of the Wood,null,3763,16557.2,null,null,Lake of The Woods County,        ,        ,17260,        ,        ,        ,        ,17260
+2023,May,MN,5706494,10100494.38,4722,Lyon,null,25269,111183.6,null,null,Clifton Township,        ,        ,4495,        ,        ,        ,        ,4495
+2023,May,MN,5706494,10100494.38,4722,Lyon,null,25269,111183.6,null,null,Fairview Township,        ,        ,12985,        ,        ,        ,        ,12985
+2023,May,MN,5706494,10100494.38,4722,Lyon,null,25269,111183.6,null,null,Grand View Township ,        ,        ,3829,        ,        ,        ,        ,3829
+2023,May,MN,5706494,10100494.38,4722,Lyon,null,25269,111183.6,null,null,Island Lake Township ,        ,        ,43588,        ,        ,        ,        ,43588
+2023,May,MN,5706494,10100494.38,4722,Lyon,null,25269,111183.6,null,null,Rock Lake Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Lyon,null,25269,111183.6,null,null,Vallers Township,        ,        ,23755,        ,        ,        ,        ,23755
+2023,May,MN,5706494,10100494.38,4722,Lyon,null,25269,111183.6,null,null,Westheimer Township,        ,        ,14575,        ,        ,        ,        ,14575
+2023,May,MN,5706494,10100494.38,4722,Mahnomen,null,5411,23808.4,null,null,Bejou Township ,        ,        ,15360,        ,        ,        ,        ,15360
+2023,May,MN,5706494,10100494.38,4722,Mahnomen,null,5411,23808.4,null,null,Gregory Township ,        ,        ,7800,        ,        ,        ,        ,7800
+2023,May,MN,5706494,10100494.38,4722,Mahnomen,null,5411,23808.4,null,null,Mahnomen County Highway Department,6600,7820,82423,        ,        ,        ,        ,96842
+2023,May,MN,5706494,10100494.38,4722,Mahnomen,null,5411,23808.4,null,null,Rosedale Township ,        ,        ,9260,        ,        ,        ,        ,9260
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Big Woods Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Boxville Township,        ,        ,50000,        ,        ,        ,        ,50000
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,City of Oslo,7000,14500,        ,        ,        ,        ,        ,21500
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Comstock Township,        ,        ,15000,        ,        ,        ,        ,15000
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Donnelly Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Eagle Point Township,        ,        ,25230,        ,        ,        ,        ,25230
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Foldahl Township,        ,        ,6500,        ,        ,        ,        ,6500
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Fork Township,        ,        ,76389,        ,        ,        ,        ,76389
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Marshall County Highway Department ,        ,20967,16000,12500,        ,        ,        ,49467
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Middle River Township,        ,        ,6000,        ,        ,        ,        ,6000
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Moylan Township,        ,        ,8000,        ,        ,        ,        ,8000
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Nelson Park Township,        ,        ,15400,        ,        ,        ,        ,15400
+2023,May,MN,5706494,10100494.38,4722,Marshall,null,9040,39776,null,null,Veldt Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,McLeod,null,36771,161792.4,null,null,Bergen Township,        ,        ,4000,        ,        ,        ,        ,4000
+2023,May,MN,5706494,10100494.38,4722,McLeod,null,36771,161792.4,null,null,City of Brownton,        ,6269,        ,        ,        ,        ,        ,6268
+2023,May,MN,5706494,10100494.38,4722,McLeod,null,36771,161792.4,null,null,City of Stewart,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,McLeod,null,36771,161792.4,null,null,McLeod Soil and Water Conservation District,        ,        ,        ,6720,        ,        ,        ,6720
+2023,May,MN,5706494,10100494.38,4722,McLeod,null,36771,161792.4,null,null,Sumter Township,        ,        ,10235,        ,        ,        ,        ,10234
+2023,May,MN,5706494,10100494.38,4722,Mille Lacs,null,26459,116419.6,null,null,Bogus Brook Township,        ,        ,14336,        ,        ,        ,        ,14336
+2023,May,MN,5706494,10100494.38,4722,Mille Lacs,null,26459,116419.6,null,null,Milaca Township,        ,        ,27425,        ,        ,        ,        ,27425
+2023,May,MN,5706494,10100494.38,4722,Mille Lacs,null,26459,116419.6,null,null,Mille Lacs County Transportation,        ,        ,91585,        ,        ,        ,        ,91584
+2023,May,MN,5706494,10100494.38,4722,Mille Lacs,null,26459,116419.6,null,null,Milo Township,        ,        ,14750,        ,        ,        ,        ,14750
+2023,May,MN,5706494,10100494.38,4722,Morrison,null,34010,149644,null,null,Buckman,        ,        ,11684,        ,        ,        ,        ,11684
+2023,May,MN,5706494,10100494.38,4722,Morrison,null,34010,149644,null,null,Buh Township,        ,        ,15269,        ,        ,        ,        ,15269
+2023,May,MN,5706494,10100494.38,4722,Morrison,null,34010,149644,null,null,Culmdrum Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Morrison,null,34010,149644,null,null,Elmdale Township,5400,        ,10000,        ,        ,        ,        ,15400
+2023,May,MN,5706494,10100494.38,4722,Morrison,null,34010,149644,null,null,Morrison County Public Works,        ,        ,50031,        ,        ,        ,        ,50031
+2023,May,MN,5706494,10100494.38,4722,Morrison,null,34010,149644,null,null,Two Rivers Township,        ,        ,78055,        ,        ,        ,        ,78055
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Anthony Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Bear Park Township,        ,        ,4000,        ,        ,        ,        ,4000
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,City of Perley,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Flom Township,        ,        ,15600,        ,        ,        ,        ,15600
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Fossum Township,        ,        ,15000,        ,        ,        ,        ,15000
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Good Hope Township,        ,        ,14000,        ,        ,        ,        ,14000
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Green Meadow Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Hegne Township,        ,        ,19650,        ,        ,        ,        ,19650
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Lake Ida Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Lee Township,        ,        ,46000,        ,        ,        ,        ,46000
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Mary Township,        ,        ,4500,        ,        ,        ,        ,4500
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,McDonaldsville Township,        ,        ,58800,        ,        ,        ,        ,58800
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Norman County Highway Department,60500,20000,159311,        ,        ,        ,        ,239811
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Pleasant View Township,        ,        ,12000,        ,        ,        ,        ,12000
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Rockwell Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Strand Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Waukon Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Wild Rice Watershed,        ,8000,        ,        ,        ,        ,        ,8000
+2023,May,MN,5706494,10100494.38,4722,Norman,null,6441,28340.4,null,null,Winchester Township,        ,        ,35532,        ,        ,        ,        ,35532
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Arna Township,        ,        ,5000,        ,        ,        ,        ,5000
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Brook Park Township,        ,        ,29450,        ,        ,        ,        ,29450
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Chengwatana Township,        ,        ,18935,        ,        ,        ,        ,18935
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,City of Brook Park,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,City of Henriette,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,City of Rock Creek,        ,        ,11946,        ,        ,        ,        ,11946
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,City of Willow River,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Dell Grove Township,        ,        ,17760,        ,        ,        ,        ,17760
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Finlayson Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Hinckley Township,        ,        ,7207,        ,        ,        ,        ,7207
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Kettle River Township,        ,        ,7497,        ,        ,        ,        ,7497
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Munch Township,        ,        ,14915,        ,        ,        ,        ,14915
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Nickerson Township,        ,        ,6115,        ,        ,        ,        ,6114
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Norman Township,        ,        ,8066,        ,        ,        ,        ,8065
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Ogema Township,        ,        ,8985,        ,        ,        ,        ,8985
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Pine County Highway Department,        ,        ,123412,        ,        ,        ,        ,123412
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Pokegama Township,        ,        ,87426,        ,        ,        ,        ,87426
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Royalton Township,        ,        ,29453,        ,        ,        ,        ,29452
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Sandstone Township,        ,        ,24154,        ,        ,        ,        ,24154
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Sturgeon Lake Township,        ,        ,32053,        ,        ,        ,        ,32052
+2023,May,MN,5706494,10100494.38,4722,Pine,null,28876,127054.4,null,null,Windemere Township,        ,        ,30213,        ,        ,        ,        ,30213
+2023,May,MN,5706494,10100494.38,4722,Polk,null,31192,137244.8,null,null,East Grand Forks Fire Department,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Polk,null,31192,137244.8,null,null,Liberty Township,        ,        ,10700,        ,        ,        ,        ,10700
+2023,May,MN,5706494,10100494.38,4722,Polk,null,31192,137244.8,null,null,Middle Snake River Watershed District,        ,        ,        ,23815,        ,        ,        ,23815
+2023,May,MN,5706494,10100494.38,4722,Polk,null,31192,137244.8,null,null,Minnesota DNR - Polk County,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Polk,null,31192,137244.8,null,null,Polk County Highway ,        ,        ,11195,        ,        ,        ,        ,11195
+2023,May,MN,5706494,10100494.38,4722,Polk,null,31192,137244.8,null,null,Reis Township,        ,        ,18300,        ,        ,        ,        ,18300
+2023,May,MN,5706494,10100494.38,4722,Polk,null,31192,137244.8,null,null,Sand Hill River Watershed,        ,        ,11600,        ,        ,        ,        ,11600
+2023,May,MN,5706494,10100494.38,4722,Polk,null,31192,137244.8,null,null,Scandia Township,        ,        ,6750,        ,        ,        ,        ,6750
+2023,May,MN,5706494,10100494.38,4722,Pope,null,11308,49755.2,null,null,Blue Mounds Township,        ,        ,42100,        ,        ,        ,        ,42100
+2023,May,MN,5706494,10100494.38,4722,Pope,null,11308,49755.2,null,null,Langhei Township,        ,        ,23007,        ,        ,        ,        ,23007
+2023,May,MN,5706494,10100494.38,4722,Pope,null,11308,49755.2,null,null,New Prairie Township,        ,        ,13093,        ,        ,        ,        ,13093
+2023,May,MN,5706494,10100494.38,4722,Pope,null,11308,49755.2,null,null,Rolling Forks Township,        ,        ,38500,        ,        ,        ,        ,38500
+2023,May,MN,5706494,10100494.38,4722,Prairie Island Indian Community,null,181,796.4,null,null,Prairie Island Indian Community,5798,31766,6750,        ,        ,        ,        ,44313
+2023,May,MN,5706494,10100494.38,4722,Ramsey,null,552352,2430348.8,null,null,Metropolitan Airports Commission,        ,168941,        ,        ,        ,        ,        ,168940
+2023,May,MN,5706494,10100494.38,4722,Ramsey,null,552352,2430348.8,null,null,Saint Paul Parks,158893,46028,        ,        ,        ,        ,34377,204920
+2023,May,MN,5706494,10100494.38,4722,Ramsey,null,552352,2430348.8,null,null,Saint Paul Police Department,        ,230708,        ,        ,        ,        ,        ,230707
+2023,May,MN,5706494,10100494.38,4722,Ramsey,null,552352,2430348.8,null,null,Saint Paul Public Works,48923,449734,20000,        ,        ,        ,        ,518657
+2023,May,MN,5706494,10100494.38,4722,Ramsey,null,552352,2430348.8,null,null,Saint Paul Regional Water Services,        ,16000,        ,        ,        ,        ,        ,16000
+2023,May,MN,5706494,10100494.38,4722,Ramsey,null,552352,2430348.8,null,null,Union Depot (Ramsey County),        ,5424,        ,        ,        ,        ,        ,5424
+2023,May,MN,5706494,10100494.38,4722,Redwood,null,15425,67870,null,null,City of Redwood Falls,        ,4111,9769,        ,        ,        ,        ,13879
+2023,May,MN,5706494,10100494.38,4722,Redwood,null,15425,67870,null,null,Redwood County Drainage,        ,        ,        ,        ,        ,        ,23050,          
+2023,May,MN,5706494,10100494.38,4722,Renville,null,14723,64781.2,null,null,Brookfield Township,        ,        ,11920,        ,        ,        ,        ,11920
+2023,May,MN,5706494,10100494.38,4722,Renville,null,14723,64781.2,null,null,City of Franklin,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Renville,null,14723,64781.2,null,null,Melville Township,        ,        ,86950,        ,        ,        ,        ,86950
+2023,May,MN,5706494,10100494.38,4722,Renville,null,14723,64781.2,null,null,Northfolk Township,        ,        ,31700,        ,        ,        ,        ,31700
+2023,May,MN,5706494,10100494.38,4722,Renville,null,14723,64781.2,null,null,Osceola Township,        ,        ,4500,        ,        ,        ,        ,4500
+2023,May,MN,5706494,10100494.38,4722,Renville,null,14723,64781.2,null,null,Palmyra township,        ,        ,3845,        ,        ,        ,        ,3845
+2023,May,MN,5706494,10100494.38,4722,Renville,null,14723,64781.2,null,null,Preston Lake Township ,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Renville,null,14723,64781.2,null,null,Renville County Ditch ,        ,        ,23000,        ,        ,        ,        ,23000
+2023,May,MN,5706494,10100494.38,4722,Renville,null,14723,64781.2,null,null,Renville County Highway,        ,        ,12000,        ,        ,        ,        ,12000
+2023,May,MN,5706494,10100494.38,4722,Renville,null,14723,64781.2,null,null,Sacred Heart Township,        ,        ,50984,        ,        ,        ,        ,50983
+2023,May,MN,5706494,10100494.38,4722,Roseau,null,15331,67456.4,null,null,Barnett Township,        ,        ,95342,        ,        ,        ,        ,95342
+2023,May,MN,5706494,10100494.38,4722,Roseau,null,15331,67456.4,null,null,Deer Township,        ,        ,5850,        ,        ,        ,        ,5850
+2023,May,MN,5706494,10100494.38,4722,Roseau,null,15331,67456.4,null,null,Moose Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Roseau,null,15331,67456.4,null,null,Polonia Township,        ,        ,10500,        ,        ,        ,        ,10500
+2023,May,MN,5706494,10100494.38,4722,Roseau,null,15331,67456.4,null,null,Roseau County Highway Department,        ,        ,127240,        ,        ,        ,        ,127240
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Balkan Township,        ,22670,        ,        ,        ,        ,        ,22670
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Bassett Township,        ,7250,        ,        ,        ,        ,        ,7250
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Canosia Township,        ,12735,        ,        ,        ,        ,        ,12735
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,City of Brookston,5357,        ,        ,        ,        ,        ,        ,5357
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,City of Duluth,24863,74915,        ,        ,        ,22641,        ,122419
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,City of Floodwood,7331,5500,        ,        ,        ,        ,        ,12830
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,City of Hibbing,25700,19050,        ,        ,        ,        ,        ,44750
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,City of Rice Lake,4395,23575,        ,        ,        ,        ,        ,27970
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Clinton Township,        ,6615,        ,        ,        ,        ,        ,6615
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Cotton Township,        ,17358,        ,        ,        ,        ,        ,17358
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Ellsburg Township,        ,15294,        ,        ,        ,        ,        ,15293
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Embarrass Township,        ,12800,        ,        ,        ,        ,        ,12800
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Fayal Township,        ,4963,        ,        ,        ,        ,        ,4963
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Fine Lake Township,        ,9256,        ,        ,        ,        ,        ,9256
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Floodwood Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Grand Lake Township,5502,8097,        ,        ,        ,        ,        ,13598
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Lakewood Township,        ,58657,        ,        ,        ,        ,        ,58657
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Meadowlands Township,        ,43740,        ,        ,        ,        ,        ,43740
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Northland Township,        ,10028,        ,        ,        ,        ,        ,10027
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Pike Lake Area Wastewater Collection System,41101,        ,        ,        ,9772,        ,        ,50872
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Solway Township,        ,5756,        ,        ,        ,        ,        ,5755
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,St Louis County Land and Minerals Dept,        ,22793,        ,        ,        ,        ,        ,22793
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,St Louis County Public Works,123824,789946,        ,        ,        ,        ,        ,913768
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Van Buren Township,        ,65053,        ,        ,        ,        ,        ,65053
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Waasa Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,Western Lake Area Sanitary District,129029,5818,        ,        ,        ,        ,        ,134846
+2023,May,MN,5706494,10100494.38,4722,St. Louis ,null,200231,881016.4,null,null,White Township,        ,89522,        ,        ,        ,        ,        ,89522
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Baker Township,        ,        ,41532,        ,        ,        ,        ,41531
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Darnen Township,        ,        ,57000,        ,        ,        ,        ,57000
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Eldorado Township,        ,        ,35949,        ,        ,        ,        ,35948
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Everglade Township,        ,        ,9450,        ,        ,        ,        ,9450
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Framnas Township,        ,        ,20000,        ,        ,        ,        ,20000
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Horton Township,        ,        ,21164,        ,        ,        ,        ,21164
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Moore Township,        ,        ,12844,        ,        ,        ,        ,12844
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Pepperton Township,        ,        ,5000,        ,        ,        ,        ,5000
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Rendsville Township,        ,        ,6680,        ,        ,        ,        ,6680
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Stevens County Ditches,        ,        ,        ,3318,        ,        ,        ,3318
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Stevens County Highway Department,        ,        ,23553,        ,        ,        ,        ,23552
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Swan Lake Township,        ,        ,13625,        ,        ,        ,        ,13625
+2023,May,MN,5706494,10100494.38,4722,Stevens,null,9671,42552.4,null,null,Synnes Township,        ,        ,25100,        ,        ,        ,        ,25100
+2023,May,MN,5706494,10100494.38,4722,Swift,null,9838,43287.2,null,null,Benson City,        ,7000,        ,        ,        ,        ,        ,7000
+2023,May,MN,5706494,10100494.38,4722,Swift,null,9838,43287.2,null,null,Benson Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Swift,null,9838,43287.2,null,null,Camp Lake Township,        ,        ,37391,        ,        ,        ,        ,37390
+2023,May,MN,5706494,10100494.38,4722,Swift,null,9838,43287.2,null,null,Cashel Township,        ,        ,46914,        ,        ,        ,        ,46914
+2023,May,MN,5706494,10100494.38,4722,Swift,null,9838,43287.2,null,null,Fairfield Township,        ,        ,177414,        ,        ,        ,        ,177414
+2023,May,MN,5706494,10100494.38,4722,Swift,null,9838,43287.2,null,null,Hegbert Township,        ,        ,11099,        ,        ,        ,        ,11099
+2023,May,MN,5706494,10100494.38,4722,Swift,null,9838,43287.2,null,null,Kerkhoven Township,        ,        ,26778,        ,        ,        ,        ,26778
+2023,May,MN,5706494,10100494.38,4722,Swift,null,9838,43287.2,null,null,Marysland Township,        ,        ,35364,        ,        ,        ,        ,35364
+2023,May,MN,5706494,10100494.38,4722,Swift,null,9838,43287.2,null,null,Moyer Township,        ,        ,105263,        ,        ,        ,        ,105262
+2023,May,MN,5706494,10100494.38,4722,Swift,null,9838,43287.2,null,null,Tara Township,        ,        ,44000,        ,        ,        ,        ,44000
+2023,May,MN,5706494,10100494.38,4722,Swift,null,9838,43287.2,null,null,West Bank Township,        ,        ,50241,        ,        ,        ,        ,50240
+2023,May,MN,5706494,10100494.38,4722,Traverse,null,3360,14784,null,null,Bois De Sioux Watershed,        ,        ,        ,312900,        ,        ,        ,312900
+2023,May,MN,5706494,10100494.38,4722,Traverse,null,3360,14784,null,null,City of Browns Valley,        ,5038,        ,        ,        ,        ,        ,5038
+2023,May,MN,5706494,10100494.38,4722,Traverse,null,3360,14784,null,null,City of Dumont,        ,13864,        ,        ,        ,        ,        ,13863
+2023,May,MN,5706494,10100494.38,4722,Traverse,null,3360,14784,null,null,Minnesota Department of Transportation,        ,        ,11133,        ,        ,        ,        ,11133
+2023,May,MN,5706494,10100494.38,4722,Traverse,null,3360,14784,null,null,Traverse County Highway Department,        ,        ,613100,        ,        ,        ,        ,613100
+2023,May,MN,5706494,10100494.38,4722,Wabasha,null,21387,94102.8,null,null,City of Lake City,7156,        ,        ,        ,        ,        ,        ,7156
+2023,May,MN,5706494,10100494.38,4722,Wabasha,null,21387,94102.8,null,null,City of Wabasha,11189,18940,        ,        ,        ,        ,132502,30128
+2023,May,MN,5706494,10100494.38,4722,Wabasha,null,21387,94102.8,null,null,Greenfield Township,        ,        ,4375,        ,        ,        ,        ,4375
+2023,May,MN,5706494,10100494.38,4722,Wabasha,null,21387,94102.8,null,null,Wabasha County,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Washington,null,267568,1177299.2,null,null,City of Afton ,        ,5742,        ,        ,        ,        ,        ,5742
+2023,May,MN,5706494,10100494.38,4722,Washington,null,267568,1177299.2,null,null,City of Bayport,        ,4532,        ,        ,        ,        ,        ,4532
+2023,May,MN,5706494,10100494.38,4722,Washington,null,267568,1177299.2,null,null,City of Cottage Grove,        ,4604,12627,        ,        ,        ,        ,17231
+2023,May,MN,5706494,10100494.38,4722,Washington,null,267568,1177299.2,null,null,City of St. Marys Point,        ,14858,        ,        ,        ,        ,        ,14858
+2023,May,MN,5706494,10100494.38,4722,Washington,null,267568,1177299.2,null,null,City of Stillwater,        ,351173,        ,        ,        ,        ,        ,351173
+2023,May,MN,5706494,10100494.38,4722,Washington,null,267568,1177299.2,null,null,Lake St. Croix Beach,        ,27716,        ,        ,        ,        ,9600,27715
+2023,May,MN,5706494,10100494.38,4722,Washington,null,267568,1177299.2,null,null,MNDOT Central Office,        ,32000,14000,        ,        ,        ,        ,46000
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Andrea Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Atherton Township,        ,        ,4920,        ,        ,        ,        ,4920
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Bradford Township,        ,        ,5500,        ,        ,        ,        ,5500
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Brandrup Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Campbell Township,        ,        ,6000,        ,        ,        ,        ,6000
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Chamption Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Connelly Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Deerhorn Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Foxhome Township,        ,        ,3800,        ,        ,        ,        ,3800
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Manston Township,        ,        ,4000,        ,        ,        ,        ,4000
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Meadows Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Mitchell Township,        ,        ,3800,        ,        ,        ,        ,3800
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Nilsen Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Nordick Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Wilkin County Highway Department,10000,        ,78870,        ,        ,        ,        ,88870
+2023,May,MN,5706494,10100494.38,4722,Wilkin,null,6506,28626.4,null,null,Wolverton Township,        ,        ,        ,        ,        ,        ,        ,          
+2023,May,MN,5706494,10100494.38,4722,Winona,null,49671,218552.4,null,null,City of Winona,6590,36884,        ,        ,        ,12025,19578,55498
+2026,May,MI,10077331,19550022.14,4925,Alcona,true,10167,49411.62,278792,85383,Alcona County Road Commission,null,78740.63,370322.78,null,null,null,null,449063.41
+2026,May,MI,10077331,19550022.14,4925,Multiple,null,null,null,null,null,Presque Isle Energy & Gas,null,3688.51,null,null,null,80758,null,84446.51
+2026,May,MI,10077331,19550022.14,4925,Alpena,true,28907,140488.02,null,null,Alpena Road Commission,null,null,147388,null,null,null,null,147388
+2026,May,MI,10077331,19550022.14,4925,Alpena,true,28907,140488.02,278801,117502,City of Alpena,null,null,null,73375.93,null,null,null,73375.93
+2026,May,MI,10077331,19550022.14,4925,Benzie,true,17970,87334.2,null,null,Benzie County Road Commission,null,null,null,null,null,null,null,null
+2026,May,MI,10077331,19550022.14,4925,Benzie,true,17970,87334.2,null,null,Benzonia Township,null,null,null,null,null,null,7812,7812
+2026,May,MI,10077331,19550022.14,4925,Benzie,true,17970,87334.2,null,null,Betsie Valley Trail,null,null,null,null,null,null,null,null
+2026,May,MI,10077331,19550022.14,4925,Benzie,true,17970,87334.2,null,null,Homstead Dam - Benzie Labor emergency protective measures,null,null,null,null,null,null,null,null
+2026,May,MI,10077331,19550022.14,4925,Multiple,null,null,null,null,null,Michigan Department of Natural Resources,470369.85,5084849.45,null,660737.39,null,null,809207.9,7025164.59
+2026,May,MI,10077331,19550022.14,4925,Benzie,true,17970,87334.2,null,null,Village of Beulah,null,null,null,null,null,187982,null,187982
+2026,May,MI,10077331,19550022.14,4925,Charlevoix,true,26054,126622.44,null,null,Charlevoix County Road Commission,null,null,190676.5,null,null,null,null,190676.5
+2026,May,MI,10077331,19550022.14,4925,Charlevoix,true,26054,126622.44,null,null,City of Charlevoix,null,null,null,null,null,null,null,null
+2026,May,MI,10077331,19550022.14,4925,Charlevoix,true,26054,126622.44,278793,34226,"East Jordan, City of",null,null,null,null,null,7936,null,7936
+2026,May,MI,10077331,19550022.14,4925,Charlevoix,true,26054,126622.44,null,null,St. James Township,null,null,null,26145,null,null,null,26145
+2026,May,MI,10077331,19550022.14,4925,Cheboygan,true,25579,124313.94,278802,117437,Cheboygan County Road Commission,null,31621,905964,null,null,null,null,937585
+2026,May,MI,10077331,19550022.14,4925,Cheboygan,true,25579,124313.94,null,null,Cheboygan EOC,350000,48044.53,null,null,null,null,null,398044.53
+2026,May,MI,10077331,19550022.14,4925,Multiple,null,null,null,278788,130,Michigan State Police/EMHSD,null,238575,null,null,null,null,null,238575
+2026,May,MI,10077331,19550022.14,4925,Cheboygan,true,25579,124313.94,null,null,Tuscarora Township,null,24657.62,null,null,null,null,185467,210124.62
+2026,May,MI,10077331,19550022.14,4925,Crawford,true,12988,63121.68,null,null,Au Sable Woods Association,null,null,20080,null,null,null,null,20080
+2026,May,MI,10077331,19550022.14,4925,Crawford,true,12988,63121.68,278796,29337,Crawford County,null,5500,null,null,null,null,null,5500
+2026,May,MI,10077331,19550022.14,4925,Crawford,true,12988,63121.68,null,null,Crawford Road Commission,null,null,29208,null,null,null,null,29208
+2026,May,MI,10077331,19550022.14,4925,Crawford,true,12988,63121.68,null,null,South Branch Fire Dept,null,11923,null,null,null,null,null,11923
+2026,May,MI,10077331,19550022.14,4925,Eaton,true,109175,530590.5,null,null,Eaton County Drain Commission,null,null,null,null,null,null,null,null
+2026,May,MI,10077331,19550022.14,4925,Eaton,true,109175,530590.5,null,null,Eaton County Road Commission,null,8565.56,503921.9,null,null,null,null,512487.46
+2026,May,MI,10077331,19550022.14,4925,Multiple,true,null,null,null,null,EGLE,null,15666.48,null,null,null,null,null,15666.48
+2026,May,MI,10077331,19550022.14,4925,Eaton,true,109175,530590.5,null,null,Village of Mulliken,null,null,null,124264.1,null,null,null,124264.1
+2026,May,MI,10077331,19550022.14,4925,Emmet,true,34112,165784.32,null,null,Emmet County Park & Recreation Department,null,null,null,null,null,null,75175.76,75175.76
+2026,May,MI,10077331,19550022.14,4925,Emmet,true,34112,165784.32,null,null,Pellston Regional Airport,null,191373.9,null,null,6000,null,null,197373.9
+2026,May,MI,10077331,19550022.14,4925,Grand Traverse,true,95238,462856.68,278794,157084,Garfield Charter Township,null,null,null,null,73925.12,null,60346.27,134271.39
+2026,May,MI,10077331,19550022.14,4925,Grand Traverse,true,95238,462856.68,null,null,Grand Traverse County Parks,null,4500,null,null,null,null,226075.57,230575.57
+2026,May,MI,10077331,19550022.14,4925,Grand Traverse,true,95238,462856.68,null,null,Grand Traverse County Roads,198000,138929.52,1657333.52,null,null,null,null,1994263.04
+2026,May,MI,10077331,19550022.14,4925,Grand Traverse,true,95238,462856.68,null,null,Traverse City,null,null,35750,null,null,null,294071,329821
+2026,May,MI,10077331,19550022.14,4925,Gratiot,true,41761,202958.46,null,null,Alma College,null,null,15580,null,null,null,null,15580
+2026,May,MI,10077331,19550022.14,4925,Gratiot,true,41761,202958.46,null,null,City of Alma ,null,null,null,null,8591.26,null,null,8591.26
+2026,May,MI,10077331,19550022.14,4925,Gratiot,true,41761,202958.46,null,null,City of St. Louis ,null,null,44730,null,null,null,null,44730
+2026,May,MI,10077331,19550022.14,4925,Gratiot,true,41761,202958.46,null,null,Fulton Township,null,19284.33,null,null,null,4683.93,null,23968.26
+2026,May,MI,10077331,19550022.14,4925,Gratiot,true,41761,202958.46,null,null,Gratiot Co Drain Commission,5750,null,null,95900,null,null,null,101650
+2026,May,MI,10077331,19550022.14,4925,Gratiot,true,41761,202958.46,null,null,Village of Perrinton,6337.22,null,null,null,null,5324.17,null,11661.39
+2026,May,MI,10077331,19550022.14,4925,Iron,true,11631,56526.66,278812,85269,IRON COUNTY ROAD COMMISSION,null,null,383314,null,null,null,null,383314
+2026,May,MI,10077331,19550022.14,4925,Kalkaska,true,17939,87183.54,null,null,Boardman Township,null,null,null,91670,null,null,null,91670
+2026,May,MI,10077331,19550022.14,4925,Kalkaska,true,17939,87183.54,null,null,Kalkaska Library,null,null,null,null,null,null,null,null
+2026,May,MI,10077331,19550022.14,4925,Kalkaska,true,17939,87183.54,null,null,Kalkaska Public Works,null,null,null,41889.27,null,null,null,41889.27
+2026,May,MI,10077331,19550022.14,4925,Kalkaska,true,17939,87183.54,null,null,Kalkaska Road Commission,null,null,178470.59,null,null,null,null,178470.59
+2026,May,MI,10077331,19550022.14,4925,Kalkaska,true,17939,87183.54,null,null,Village of Kalkaska,null,null,null,null,60035,null,null,60035
+2026,May,MI,10077331,19550022.14,4925,Lake,true,12096,58786.56,null,null,Newkirk,null,null,123782.58,null,null,null,null,123782.58
+2026,May,MI,10077331,19550022.14,4925,Manistee,true,25032,121655.52,null,null,Manistee City WWTP,null,8275,null,null,null,null,null,8275
+2026,May,MI,10077331,19550022.14,4925,Manistee,true,25032,121655.52,null,null,Manistee County Road Commission ,4202,null,1932750,null,null,null,null,1936952
+2026,May,MI,10077331,19550022.14,4925,Marquette,true,66017,320842.62,null,null,"Ishpeming, City of ",null,12326,null,null,null,null,null,12326
+2026,May,MI,10077331,19550022.14,4925,Marquette,true,66017,320842.62,278800,85273,MARQUETTE COUNTY ROAD COMM,null,7619,380617,null,null,null,null,388236
+2026,May,MI,10077331,19550022.14,4925,Mecosta,true,39714,193010.04,null,null,Mecosta County Parks Commission,null,null,null,null,null,null,632000,632000
+2026,May,MI,10077331,19550022.14,4925,Menominee,true,23502,114219.72,null,null,Menominee County,null,null,403474,null,null,null,null,403474
+2026,May,MI,10077331,19550022.14,4925,Missaukee,true,15052,73152.72,null,null,Missaukee County Road Commission,null,null,286453,null,null,null,null,286453
+2026,May,MI,10077331,19550022.14,4925,Montmorency,true,9153,44483.58,null,null,Montmorency County Road Commission,null,null,57128,null,null,null,null,57128
+2026,May,MI,10077331,19550022.14,4925,Newaygo,true,49978,242893.08,null,null,Bridgeton Township,null,null,null,null,null,null,null,null
+2026,May,MI,10077331,19550022.14,4925,Newaygo,true,49978,242893.08,null,null,City of Grant,null,null,null,null,null,null,null,null
+2026,May,MI,10077331,19550022.14,4925,Newaygo,true,49978,242893.08,null,null,City of Newaygo,null,5422.4,null,null,null,null,null,5422.4
+2026,May,MI,10077331,19550022.14,4925,Newaygo,true,49978,242893.08,null,null,County of Newaygo,null,11142,248373.84,null,null,null,null,259515.84
+2026,May,MI,10077331,19550022.14,4925,Multiple,null,null,null,null,null,Great Lakes Energy Co-Op - Newaygo,null,null,null,null,null,11697.36,null,11697.36
+2026,May,MI,10077331,19550022.14,4925,Newaygo,true,49978,242893.08,null,null,Village of Hesperia,null,32534,null,null,null,null,null,32534
+2026,May,MI,10077331,19550022.14,4925,Ogemaw,true,20770,100942.2,null,null,Ogemaw County Road Commission,null,null,106500,null,null,null,null,106500
+2026,May,MI,10077331,19550022.14,4925,Ogemaw,true,20770,100942.2,null,null,Ogemaw District Library,null,null,null,null,10405,null,null,10405
+2026,May,MI,10077331,19550022.14,4925,Osceola,true,22891,111250.26,278803,85350,Evart Fire Department,null,166516.06,null,null,null,null,null,166516.06
+2026,May,MI,10077331,19550022.14,4925,Osceola,true,22891,111250.26,null,null,Evart City,5940.665,null,24790,null,null,null,7259,37989.665
+2026,May,MI,10077331,19550022.14,4925,Osceola,true,22891,111250.26,null,null,Hersey Township,5474.8,7087.32,null,null,null,null,null,12562.12
+2026,May,MI,10077331,19550022.14,4925,Osceola,true,22891,111250.26,null,null,Lincoln Township Fire Department,null,10048,null,null,null,null,null,10048
+2026,May,MI,10077331,19550022.14,4925,Osceola,true,22891,111250.26,null,null,Osceola County Emergency Management,12073.6,8976.97,null,null,null,null,null,21050.57
+2026,May,MI,10077331,19550022.14,4925,Osceola,true,22891,111250.26,null,null,Osceola County Road Commission,null,95000,861500,null,null,null,null,956500
+2026,May,MI,10077331,19550022.14,4925,Oscoda,true,8219,39944.34,278797,85598,Oscoda County Road Commission,null,7058.07,82348.05,null,null,null,null,89406.12
+2026,May,MI,10077331,19550022.14,4925,Presque Isle,true,12982,63092.52,278787,117436,Presque Isle County Rd Commission,null,null,105000,null,null,null,null,105000
+2026,May,MI,10077331,19550022.14,4925,Tuscola,true,53323,259149.78,null,null,Tuscalo County Road Commission,9000,null,294150,null,null,null,null,303150
+2026,May,MI,10077331,19550022.14,4925,Wexford,true,33673,163650.78,null,null,City of Cadillac,5749,null,12000,null,null,458131,320320,796200
+2026,May,MI,10077331,19550022.14,4925,Wexford,true,33673,163650.78,null,null,County Road Comm,null,null,1759814,null,null,null,null,1759814
+2026,May,MI,10077331,19550022.14,4925,Wexford,true,33673,163650.78,null,null,Lake Mitchell Sewer Authority,null,231128,null,null,null,null,null,231128
+2026,May,WI,5893718,11433812.92,4923,Bayfield,false,16220,78829.2,null,null,Bayfield County,5825,null,null,null,null,null,null,5825
+2026,May,WI,5893718,11433812.92,4923,Bayfield,false,16220,78829.2,null,null,Town of Barnes,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Bayfield,false,16220,78829.2,null,null,Town of Washburn,8935.68,null,null,null,null,null,null,8935.68
+2026,May,WI,5893718,11433812.92,4923,Bayfield,false,16220,78829.2,null,null,City of Washburn,36635.43,null,null,null,null,null,null,36635.43
+2026,May,WI,5893718,11433812.92,4923,Iowa,true,23709,115225.74,null,null,Hazel Dell Historic School District,null,null,null,null,29708.85,null,null,29708.85
+2026,May,WI,5893718,11433812.92,4923,Iowa,true,23709,115225.74,null,null,Iowa County Highway,null,null,22669.14,null,null,null,null,22669.14
+2026,May,WI,5893718,11433812.92,4923,Iowa,true,23709,115225.74,null,null,Township of Dodgeville,null,null,29678,null,null,null,null,29678
+2026,May,WI,5893718,11433812.92,4923,Iowa,true,23709,115225.74,null,null,Township of Eden,null,null,4895.06,null,null,null,null,4895.06
+2026,May,WI,5893718,11433812.92,4923,Iowa,true,23709,115225.74,null,null,Township of Highland,null,null,48487,null,null,null,null,48487
+2026,May,WI,5893718,11433812.92,4923,Multiple,null,null,null,null,null,Department of Transportation,289750,142613,null,null,null,null,null,432363
+2026,May,WI,5893718,11433812.92,4923,Jackson,true,21145,102764.7,null,null,Ho Chunk,98707.21,null,null,null,null,null,null,98707.21
+2026,May,WI,5893718,11433812.92,4923,Jackson,true,21145,102764.7,null,null,Township of Komensky,15365.86,null,null,null,null,null,null,15365.86
+2026,May,WI,5893718,11433812.92,4923,Jackson,true,21145,102764.7,null,null,Jackson Electric Cooperative,null,null,null,null,null,41267.41,null,41267.41
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,City of Waterloo,53795.63,10235.09,null,null,null,null,null,64030.72
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,City of Watertown,16011.32,5797.33,38254.69,null,69860.14,null,null,129923.48
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,City of Whitewater,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Jefferson Utilities,null,null,null,null,null,26478.61,null,26478.61
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Aztalan,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Cold Spring,17497,null,5307.53,null,null,null,null,22804.53
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Concord,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Farmington ,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Hebron,17872.05,null,null,null,null,null,null,17872.05
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Village of Sullivan,null,null,6099.03,null,null,null,null,6099.03
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Village of Palmyra,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Village of Johnson Creek,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Village of Cambridge,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Watertown,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Waterloo,8000,null,null,null,null,null,null,8000
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Sumner,8000,null,null,null,null,null,null,8000
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Sullivan,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Palmyra,13380,null,70890,null,null,null,null,84270
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Oakland,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Milford,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Lake Mills,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Koshkonong,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Jefferson,17727,null,null,null,null,null,null,17727
+2026,May,WI,5893718,11433812.92,4923,Jefferson,true,84900,412614,null,null,Town of Ixonia,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Armenia Township,null,null,22884.45,null,null,null,null,22884.45
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,City of New Lisbon,4379.45,null,null,null,null,null,null,4379.45
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Cutler Township,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Elroy Fire Department ,null,7312.38,null,null,null,null,null,7312.38
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Juneau County,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Lindina Township,null,null,12555.26,null,null,null,null,12555.26
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Necedah Township,null,null,22955.48,null,null,null,null,22955.48
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Orange Township,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Plymouth Township,null,null,4774.41,null,null,null,null,4774.41
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Village of Union Center,7921.75,null,null,null,null,null,null,7921.75
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Village of Wonewoc,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Wonewoc Fire Department,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Juneau,true,26718,129849.48,null,null,Wonewoc township,75086.11,null,7484.48,null,null,null,null,82570.59
+2026,May,WI,5893718,11433812.92,4923,Kewaunee,true,20563,99936.18,null,null,Kewaunee County,10500,17000,168000,null,null,null,65000,260500
+2026,May,WI,5893718,11433812.92,4923,Kewaunee,true,20563,99936.18,null,null,"Lincoln, Town of",null,null,9500,null,null,null,null,9500
+2026,May,WI,5893718,11433812.92,4923,Kewaunee,true,20563,99936.18,null,null,"Pierce, Town of ",null,null,5483,null,null,null,null,5483
+2026,May,WI,5893718,11433812.92,4923,Kewaunee,true,20563,99936.18,null,null,"Red River, Town of",null,null,17718,null,null,null,null,17718
+2026,May,WI,5893718,11433812.92,4923,Kewaunee,true,20563,99936.18,null,null,"West Kewaunee, Town of ",null,null,7659,null,null,null,null,7659
+2026,May,WI,5893718,11433812.92,4923,Manitowoc,false,81359,395404.74,null,null,Francis Creek,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Manitowoc,false,81359,395404.74,null,null,Town of Mishicot,null,null,23847.15,null,null,null,null,23847.15
+2026,May,WI,5893718,11433812.92,4923,Manitowoc,false,81359,395404.74,null,null,Two Rivers,null,null,51978.41,null,null,null,null,51978.41
+2026,May,WI,5893718,11433812.92,4923,Manitowoc,false,81359,395404.74,null,null,Village of Mishicot,null,null,81772.5,null,null,4672.2,null,86444.7
+2026,May,WI,5893718,11433812.92,4923,Marathon,false,138013,670743.18,null,null,Central Wisonsin Airport,null,null,null,null,50000,null,null,50000
+2026,May,WI,5893718,11433812.92,4923,Marathon,false,138013,670743.18,null,null,Town of Bergen,null,null,105165.05,null,null,null,null,105165.05
+2026,May,WI,5893718,11433812.92,4923,Marathon,false,138013,670743.18,null,null,Town of Day,null,null,28845,null,null,null,null,28845
+2026,May,WI,5893718,11433812.92,4923,Marathon,false,138013,670743.18,null,null,Town of Emmet,null,null,6467.44,null,null,null,null,6467.44
+2026,May,WI,5893718,11433812.92,4923,Marathon,false,138013,670743.18,null,null,Town of Ringle,23506.92,32955.12,null,null,null,null,null,56462.04
+2026,May,WI,5893718,11433812.92,4923,Marathon,false,138013,670743.18,null,null,DC Everest School,null,null,null,null,25000,null,null,25000
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,278814,17951,Outagamie County,4193.15,80564.6,39957.56,null,null,null,315771.15,440486.46
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,null,null,Town of Bovina,null,null,31960,null,null,null,null,31960
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,null,null,Town of Cicero,null,null,21658.06,null,null,null,null,21658.06
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,null,null,Town of Deer Creek,null,null,12700,null,null,null,null,12700
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,null,null,Town of Ellington,12336,null,85479,null,null,null,null,97815
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,null,null,Town of Liberty,null,null,16645,null,null,null,null,16645
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,null,null,Town of Oneida,null,39775.31,198470,null,null,null,null,238245.31
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,null,null,Village of Liberty,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,null,null,Village of Nichols,null,23408,null,null,null,null,null,23408
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,null,null,Village of Shiocton,17092.9,52663,147380.48,null,null,21786.3,81665.56,320588.24
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,null,null,Outagamie County Drainage Board,null,null,144085,27005,null,null,null,171090
+2026,May,WI,5893718,11433812.92,4923,Outagamie,true,190705,926826.3,null,null,Oneida Nation,null,19999.32,9540,null,null,null,null,29539.32
+2026,May,WI,5893718,11433812.92,4923,Racine,false,197727,960953.22,null,null,"Burlington, City of ",null,null,null,null,null,null,15690,15690
+2026,May,WI,5893718,11433812.92,4923,Racine,false,197727,960953.22,null,null,Racine County,null,null,793851.81,null,null,null,null,793851.81
+2026,May,WI,5893718,11433812.92,4923,Racine,false,197727,960953.22,null,null,"Waterford, Town of",null,null,58386.52,null,null,null,null,58386.52
+2026,May,WI,5893718,11433812.92,4923,Racine,false,197727,960953.22,null,null,"Yorkville, Village of",7500,null,null,null,null,null,null,7500
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,County of Rock,11500,10400,199000,null,null,null,10000,230900
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,City of Beloit,50455,11933,5300,null,26500,null,null,94188
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,City of Janesville,208000,7995,699800,1055000,15000,5216000,775000,7976795
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Bradford,17500,null,29500,null,null,null,null,47000
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Center,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Fulton,5000,22880,4500,null,null,null,null,32380
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Harmony,null,null,16248,null,null,null,null,16248
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Janesville,5000,5700,456995,null,null,null,null,467695
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Johnston,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of La Prairie,7500,null,null,null,null,null,null,7500
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Milton,6000,11000,13241,null,null,null,null,30241
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Plymouth,13475,null,12550,null,null,null,null,26025
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Porter,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Rock,36750,19200,28750,null,null,null,null,84700
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Spring Valley,null,null,24500,null,null,null,null,24500
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Turtle,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Township of Orfodville,null,null,null,null,12500,null,null,12500
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,National Guard,null,152815.1381,null,null,null,null,null,152815.1381
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,First Lutheran Church,66515.93,null,null,null,null,null,null,66515.93
+2026,May,WI,5893718,11433812.92,4923,Rock,true,163687,795518.82,null,null,Janesville School District,null,null,null,null,1485300,null,null,1485300
+2026,May,WI,5893718,11433812.92,4923,Sauk,false,65763,319608.18,null,null,Town of Baraboo,null,null,10224.5,null,null,null,null,10224.5
+2026,May,WI,5893718,11433812.92,4923,Sauk,false,65763,319608.18,null,null,Town of Excelsior,14115,null,31748.19,null,null,null,null,45863.19
+2026,May,WI,5893718,11433812.92,4923,Sauk,false,65763,319608.18,null,null,Town of Freedom,10510.21,null,14740.29,null,null,null,null,25250.5
+2026,May,WI,5893718,11433812.92,4923,Sauk,false,65763,319608.18,null,null,Town of Prairie Du Sac,null,null,9454.24,null,null,null,null,9454.24
+2026,May,WI,5893718,11433812.92,4923,Sauk,false,65763,319608.18,null,null,Village of Merrimac,14543.32,null,null,null,null,null,null,14543.32
+2026,May,WI,5893718,11433812.92,4923,Sauk,false,65763,319608.18,null,null,Village of Prairie Du Sac,50439.95,null,null,null,null,null,null,50439.95
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Bland Clinic - Vernon Health,null,null,null,null,100000,null,null,100000
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,City of Viroqua,null,null,null,null,7000,null,null,7000
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Bethel Buttik Food Pantry,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,City of Westby,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Coon Prairie Lutheran Church,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Our Saviors Lutheran Church,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Township of Christiana,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Norseland Nursing Home,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Vernon County,null,null,null,null,4500,null,null,4500
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Bethesda Church,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Village of Chaseburg,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Village of Coon Valley,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Vernon Eletrical Cooperative,null,null,null,null,5000,15756,null,20756
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Westby Schools,null,null,null,null,917726,null,null,917726
+2026,May,WI,5893718,11433812.92,4923,Vernon,true,30714,149270.04,null,null,Couleecap Inc ,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Clintonville Fire,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Clintonville Police Dept,null,9870.41,null,null,null,null,null,9870.41
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Clintonville Public Works,null,null,297372.88,null,null,null,null,297372.88
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Clintonville Utilities,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,City of New London,13931.83,91434.63,null,null,null,63011.69,16237,184615.15
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Township of Helvetia ,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Township of Fremont,4766.09,null,null,null,null,null,null,4766.09
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Town of Scandinavia ,null,null,null,null,null,null,null,null
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Town of Wyoming ,null,null,13000,null,null,null,null,13000
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Village of Big Falls ,null,19613,null,5500,null,null,null,25113
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Village of Embarrass ,null,null,10000,null,null,null,null,10000
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Village of Fremont ,202004.67,26354.95,356218,null,130701.83,118820.7,19000,853100.15
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Village of Scandinavia ,null,null,null,18300,null,null,null,18300
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,Waupaca County,null,109628.39,165000,null,null,null,260000,534628.39
+2026,May,WI,5893718,11433812.92,4923,Waupaca,true,51812,251806.32,null,null,City of Manawa,null,null,null,null,null,null,null,null

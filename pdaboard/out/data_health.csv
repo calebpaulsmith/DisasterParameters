@@ -1,0 +1,11 @@
+code,detail
+SIZE_MISMATCH,"Carroll County Chart A - Indiana (June 6 - 11, 2026).xlsx: filetree match: Carroll County Chart A - Indiana (June 6 - 11, 2026).xlsx"
+SIZE_MISMATCH,"Decatur - Indiana (June 6 - 11, 2026).xlsx: filetree match: Decatur - Indiana (June 6 - 11, 2026).xlsx"
+NO_COUNTY_CELL,"Benton Chart A - Indiana (June 16 - 26, 2026).xlsx: County Summary!B3 is blank (county dropdown not set)"
+EMPTY_CHART,"Benton Chart A - Indiana (June 16 - 26, 2026).xlsx: no applicant rows"
+COUNTY_FROM_FILENAME,"Benton Chart A - Indiana (June 16 - 26, 2026).xlsx: county guessed from filename: 'Benton'"
+AMBIGUOUS_MATCH,"Benton Chart A - Indiana (June 16 - 26, 2026).xlsx: filetree match: Benton Chart A - Indiana (June 16 - 26, 2026).xlsx"
+AMBIGUOUS_MATCH,"Benton Chart A - Indiana (June 6 - 11, 2026).xlsx: filetree match: Benton Chart A - Indiana (June 6 - 11, 2026).xlsx"
+NO_COUNTY_CELL,"Morgan Chart A - Indiana (June 6 - 11, 2026).xlsx: County Summary!B3 is blank (county dropdown not set)"
+EMPTY_CHART,"Morgan Chart A - Indiana (June 6 - 11, 2026).xlsx: no applicant rows"
+COUNTY_FROM_FILENAME,"Morgan Chart A - Indiana (June 6 - 11, 2026).xlsx: county guessed from filename: 'Morgan'"

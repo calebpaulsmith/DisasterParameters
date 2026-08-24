@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDA Board — Local Setup Walkthrough</title>
+<style>
+  :root{
+    --navy:#162e51; --navy-2:#0b1f3a; --blue:#005ea2; --blue-dark:#1a4480;
+    --gold:#ffbe2e; --ink:#1b1b1b; --ink-2:#3d4551; --ink-3:#565c65;
+    --line:#dfe1e2; --line-2:#c6cace; --bg:#f4f5f6; --bg-2:#fbfbfa; --white:#fff;
+    --ok:#00a91c; --warn:#b50909;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:"Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  header.mast{background:linear-gradient(120deg,var(--navy-2),var(--navy) 60%,var(--blue-dark) 130%);color:#fff;border-bottom:4px solid var(--gold);padding:20px 0}
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px}
+  .eyebrow{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+  h1{font-size:26px;margin:4px 0 6px}
+  .lede{color:#d7e2f2;font-size:15px;max-width:70ch}
+  main{padding:26px 0 80px}
+  .disc{background:#fff7e6;border:1px solid #f0d48a;border-left:4px solid var(--gold);border-radius:8px;padding:12px 14px;font-size:13.5px;color:#5c4600;margin:0 0 24px}
+  .disc b{color:#3d2e00}
+  section{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:0 0 18px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  section > h2{font-size:19px;margin:0 0 4px;display:flex;align-items:baseline;gap:10px}
+  .snum{flex:none;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;font-size:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+  .sgoal{color:var(--ink-3);font-size:13px;margin:2px 0 14px 38px}
+  h3{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:18px 0 7px;border-bottom:1px solid var(--line);padding-bottom:4px}
+  p{margin:9px 0}
+  ul,ol{margin:9px 0;padding-left:22px}
+  li{margin:5px 0}
+  code{font-family:var(--mono);background:#eef1f4;color:var(--blue-dark);padding:1px 5px;border-radius:4px;font-size:12.5px}
+  pre{background:var(--navy-2);color:#e8eef7;font-family:var(--mono);font-size:12.5px;line-height:1.5;padding:12px 14px;border-radius:8px;overflow-x:auto;margin:10px 0}
+  pre .cm{color:#8aa0bd}
+  .fmt{background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:11px 14px;margin:10px 0;font-size:13.5px}
+  .fmt b{color:var(--navy)}
+  table{border-collapse:collapse;width:100%;font-size:13px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:#eef1f4;color:var(--navy);font-weight:700}
+  td code{white-space:nowrap}
+  .tag{display:inline-block;font-size:10.5px;font-weight:800;border-radius:4px;padding:1px 6px;text-transform:uppercase;letter-spacing:.03em;vertical-align:1px}
+  .tag.in{background:#e5f3e6;color:#0a6b1c} .tag.out{background:#fbe4e7;color:#8a1220}
+  .toc{position:sticky;top:0;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);z-index:5;margin-bottom:18px;font-size:12.5px}
+  .toc a{color:var(--blue-dark);text-decoration:none;margin-right:14px;white-space:nowrap}
+  .toc a:hover{text-decoration:underline}
+  label{display:block;font-size:12px;font-weight:700;color:var(--ink-2);margin:9px 0 3px}
+  input,select{font-family:var(--sans);font-size:13.5px;padding:6px 9px;border:1px solid var(--line-2);border-radius:6px;width:100%;background:#fff}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .btn{font-family:var(--sans);font-size:13px;font-weight:700;border:1px solid var(--navy);background:var(--navy);color:#fff;border-radius:7px;padding:8px 15px;cursor:pointer;margin-top:12px}
+  .btn.sec{background:#fff;color:var(--navy)}
+  .out-json{background:var(--navy-2);color:#e8eef7;font-family:var(--mono);font-size:12px;padding:12px;border-radius:8px;white-space:pre;overflow-x:auto;margin-top:10px}
+  .note{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+  footer{max-width:920px;margin:0 auto;padding:20px 22px 50px;color:var(--ink-3);font-size:12px;border-top:1px solid var(--line)}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="mast">
+  <div class="wrap">
+    <div class="eyebrow">PA PDA Operations Dashboard</div>
+    <h1>Local setup walkthrough</h1>
+    <p class="lede">How to stand up the PDA Board on a work computer: get the code, pull the
+    SharePoint file tree, point it at the right folders, drop in the Chart A / Table A
+    workbooks, and build the board. Each step says <b>what you feed it</b> and <b>the format</b>.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="disc">
+    <b>Handling note.</b> This page and the tool's code are safe to share. The actual PDA
+    inputs are not: <b>Chart A / Table A workbooks, the SharePoint <code>query.xlsx</code>
+    export, and everything the board builds (<code>out/</code>) contain live damage figures,
+    applicant details, and staff names.</b> Keep those on the work machine only — they are
+    git-ignored and never leave it. Unofficial working tool; not a declaration determination.
+  </div>
+
+  <nav class="toc">
+    <a href="#s0">0 · Prerequisites</a>
+    <a href="#s1">1 · Get the code</a>
+    <a href="#s2">2 · SharePoint export</a>
+    <a href="#s3">3 · The folders</a>
+    <a href="#s4">4 · Chart A / Table A</a>
+    <a href="#s5">5 · Manifest</a>
+    <a href="#s5b">5b · Wizard</a>
+    <a href="#s6">6 · Build</a>
+    <a href="#s7">7 · Refresh</a>
+    <a href="#files">Files per function</a>
+  </nav>
+
+  <section id="s0">
+    <h2><span class="snum">0</span> Prerequisites</h2>
+    <div class="sgoal">Get Python and the one library the parser needs.</div>
+    <ul>
+      <li><b>Python 3.9+</b> — check with <code>python --version</code> (on Windows, <code>py --version</code> also works).</li>
+      <li><b>openpyxl</b> — the only hard dependency (reads the <code>.xlsx</code> workbooks). Install:
+        <pre>pip install openpyxl</pre></li>
+      <li>Optional, only if you ever rebuild county geometry with <code>build_dim_county.py</code>: a US counties GeoJSON saved as <code>counties_us.json</code> (Census 20m). The board ships with the six Region 5 states' dims already built, so you normally don't need this.</li>
+    </ul>
+    <p class="note">No internet is required to <i>run</i> the board — it's fully offline. Network is only used by <code>build_history.py</code> (refreshing the prior-FEMA-history snapshot from OpenFEMA).</p>
+  </section>
+
+  <section id="s1">
+    <h2><span class="snum">1</span> Get the code onto the work computer</h2>
+    <div class="sgoal">Clone the repo, then work inside the <code>pdaboard/</code> folder.</div>
+    <pre><span class="cm"># clone (or: download the repo ZIP from GitHub and unzip)</span>
+git clone https://github.com/calebpaulsmith/DisasterParameters.git
+cd DisasterParameters/pdaboard</pre>
+    <div class="fmt"><b>What's in the repo vs what isn't.</b> The public repo carries only the
+      <span class="tag in">code</span> — parsers, pipeline, the board template, county reference
+      data, this page. It does <b>not</b> carry any <span class="tag out">PDA data</span>
+      (<code>PDAExamples/</code>, <code>out/</code>, tests, the Excel builder workbook). You supply
+      the PDA inputs locally, per the steps below.</p></div>
+  </section>
+
+  <section id="s2">
+    <h2><span class="snum">2</span> Pull the SharePoint file tree (the "tree export")</h2>
+    <div class="sgoal">Snapshot the PDA library so the board knows each Chart A's validation stage and its live SharePoint link.</div>
+    <p>The board figures out how far each county's Chart A has progressed <b>from where the file
+      sits in SharePoint</b>. To read that, it needs a snapshot of the library's file tree:</p>
+    <ol>
+      <li>Open the PDA's SharePoint document library in the browser.</li>
+      <li>Switch to a <b>flat / "All items" view</b> (so every file in every subfolder is listed, not just the top level).</li>
+      <li><b>Export to Excel</b> (the ribbon button). SharePoint hands you a <code>query.iqy</code> web-query that opens in Excel and fills a table of every file with its folder path, modified date, author, and URL.</li>
+      <li>In Excel, <b>Save As → <code>query.xlsx</code></b> and drop it into your PDA folder (next to the Chart A's).</li>
+      <li><b>Keep the <code>query.iqy</code> too</b> and drop it in the same folder. One
+        <b>library-wide</b> export/<code>.iqy</code> (rooted at <code>Ongoing PDA's</code>) works for
+        every PDA — the build narrows it to this one by name, or you name it with
+        <code>sp_folder</code> in the manifest / the board's <b>PDA folder</b> picker. The export's path
+        column is server-relative — the <code>.iqy</code> is the only file that carries the SharePoint
+        <b>host</b> and this PDA's <b>root folder</b>, which is what turns every file row and county
+        row into a working link.</li>
+    </ol>
+    <div class="fmt"><b>Format:</b> <code>query.iqy</code> — a few lines of text carrying the site URL and
+      <code>RootFolder=</code>. <b>Parsed by:</b> <code>sp_filetree.parse_iqy()</code> at build time
+      (any <code>*.iqy</code> in the drop, or <code>--iqy &lt;file&gt;</code>) <i>and</i> by the board itself:
+      <b>Admin → SharePoint links → Load query.iqy…</b> re-points every link in an already-built board
+      (on a finished board the Admin surface is the small gear in the header). Without it the board
+      still builds — links are simply inert, flagged <code>NO_SHAREPOINT_LINKS</code> in Data health.</div>
+    <div class="fmt"><b>Format:</b> <code>query.xlsx</code> — one row per file, columns for name, folder
+      path, modified, modified-by, and item URL (whatever your SharePoint export produces;
+      <code>sp_filetree.py</code> matches on the path + filename). <b>Parsed by:</b>
+      <code>sp_filetree.py</code>. <b>Optional for a live PDA</b> — a "complete" PDA can be built
+      from just the Table A + Chart A's with no <code>query.xlsx</code> at all (stage falls back to
+      the folders on disk).</div>
+    <p class="note">The export is a point-in-time snapshot — re-export whenever you want the board's
+      stage badges and file links to reflect the latest SharePoint state (see step 7).</p>
+  </section>
+
+  <section id="s3">
+    <h2><span class="snum">3</span> Identify the right folders (the stage model)</h2>
+    <div class="sgoal">A Chart A's stage is <i>which folder it lives in</i>. Drop files keeping their folder structure.</div>
+    <p>The validation workflow is encoded by folder. When you copy files into the local drop folder,
+      preserve these subfolders so the board reads the right stage:</p>
+    <table>
+      <thead><tr><th>Stage</th><th>Shown as</th><th>SharePoint / drop folder</th></tr></thead>
+      <tbody>
+        <tr><td>1 · Working</td><td>Not yet submitted</td><td><code>Damage Data/Counties/&lt;County&gt;/</code> (field copies)</td></tr>
+        <tr><td>2 · For PDA Lead Review</td><td>For PDA Lead Review</td><td><code>Chart A's/1. For PDA Lead Review/</code> (+ loose Chart A's at the root)</td></tr>
+        <tr><td>3 · Ready for Table A</td><td>Ready for Table A</td><td><code>Chart A's/2. Ready for Table A/</code> (a local <code>Validated/</code> ranks the same)</td></tr>
+        <tr><td>4 · Entered in Table A</td><td>Entered in Table A</td><td><code>.../2. Ready for Table A/Entered in Table A/</code></td></tr>
+      </tbody>
+    </table>
+    <p>Stage <b>0</b> = a county in scope with no Chart A anywhere. <b>Only counties through Lead
+      Review (stage ≥ 3) count toward the rollups and threshold math</b>; earlier stages show as
+      pending (visible via the header's "Pending $" admin toggle).</p>
+    <div class="fmt"><b>What the board needs:</b> the Chart A's copied in with their pipeline
+      subfolders intact, plus (optionally) the county working folders. <b>Underscore folders are
+      ignored</b> — anything in a <code>_</code>-prefixed folder (e.g. <code>_17-19 import</code>,
+      <code>_ref</code>, <code>_code</code>) is never parsed as part of the PDA.</div>
+  </section>
+
+  <section id="s4">
+    <h2><span class="snum">4</span> Chart A &amp; Table A workbooks</h2>
+    <div class="sgoal">Table A carries the dollars and indicators; Chart A's add comments, applicant types, and inspectors.</div>
+    <h3>Table A (the master — required)</h3>
+    <p>The statewide/county per-capita indicators, state population, and every county's validated
+      Cat A–G dollars come from the <b>Table A</b> workbook. One Table A per PDA. Two template
+      generations are both read automatically (by cell <i>label</i>, never fixed positions):</p>
+    <ul>
+      <li><b>v2 (RVAR-era):</b> has an <code>RVAR</code> sheet; per-county table on <code>Summary</code>.</li>
+      <li><b>legacy (SummaryPage-era):</b> no RVAR sheet; per-county table on <code>SummaryPage</code>, indicators on <code>PCI Indicator</code>.</li>
+    </ul>
+    <h3>Chart A's (per county — optional enrichment)</h3>
+    <p>Each county's <b>Chart A</b> adds what a Table A can't: validation comments (rich text
+      preserved), applicant type, and the FEMA inspector. Dollars are always taken from the Table A,
+      so a Chart A is never required for a county to appear — it just enriches the drill-down.</p>
+    <div class="fmt"><b>Format:</b> <code>.xlsx</code> FEMA Chart A / Table A templates (either
+      generation). <b>Trust rule:</b> county identity comes from the workbook cell, not the filename
+      (filenames lie — a "Blank Chart A" file can hold real data); every total is recomputed from
+      Cat A–G and reconciled against the workbook's own cells, mismatches flagged. <b>Parsed by:</b>
+      <code>chart_a_parser.py</code>.</div>
+  </section>
+
+  <section id="s5">
+    <h2><span class="snum">5</span> Write the PDA manifest</h2>
+    <div class="sgoal">A tiny per-PDA config: identity, the events, and your SharePoint root (for deep links).</div>
+    <p>Each PDA has a <code>manifest.json</code>. <b>Indicators are never put here</b> — they're read
+      from the Table A. The manifest is just identity + the SharePoint base URL that turns file rows
+      into working deep links. Fill this in and copy the result into <code>manifest.json</code>
+      (nothing you type is saved or sent — it's generated in your browser):</p>
+    <div class="grid2">
+      <div><label>PDA id (no spaces)</label><input id="m_id" value="IN_PDA_July_2026"></div>
+      <div><label>Title</label><input id="m_title" value="IN PA PDA - July 2026"></div>
+      <div><label>State (2-letter)</label><input id="m_state" value="IN" maxlength="2"></div>
+      <div><label>Stale after (hours)</label><input id="m_stale" value="48"></div>
+      <div style="grid-column:1/-1"><label>SharePoint base URL — <b>normally leave blank</b>: drop the PDA's <code>query.iqy</code> in the folder and the build derives it. Fill it only to override (tenant root, e.g. https://&lt;tenant&gt;.sharepoint.com)</label><input id="m_sp" value="" placeholder="https://<tenant>.sharepoint.com/sites/<site>/"></div>
+      <div><label>Mode</label>
+        <select id="m_complete"><option value="false">Live (in-progress)</option><option value="true">Complete (final figures)</option></select></div>
+      <div><label>Events (live only; one per line as label)</label><input id="m_events" value="June 6 - 11, 2026"></div>
+    </div>
+    <button class="btn" onclick="genManifest()">Generate manifest.json</button>
+    <button class="btn sec" onclick="copyManifest()">Copy</button>
+    <div class="out-json" id="m_out">{ }</div>
+    <p class="note">For a <b>complete</b> PDA you can also set <code>master_folder</code> (the SharePoint
+      <code>…/Damage Data/Counties</code> URL) so each county row links to its folder in the emailed board —
+      though dropping <code>query.iqy</code> in the PDA folder derives it for you, and the board's Admin gear
+      can swap it later without a rebuild.</p>
+  </section>
+
+  <section id="s5b">
+    <h2><span class="snum">5b</span> Or skip steps 3–5: the build wizard (point it at your folder)</h2>
+    <div class="sgoal">Download the PDA's folder from SharePoint — the whole thing (or "Final Products"), or just a folder you piled the Chart A's into — and point the wizard at it. No hand-arranged folders, no hand-written manifest.</div>
+    <pre><span class="cm"># from inside pdaboard/ — one folder in, one board out</span>
+python wizard.py</pre>
+    <p>Press Enter at the folder question and a <b>Windows folder-picker opens</b> — browse to the
+      downloaded folder (pasting a path, or passing it on the command line, still works). The wizard
+      also offers an optional <b>prior-FEMA-history refresh</b> (default No; needs internet — any
+      failure is skipped, the existing snapshot stays).</p>
+    <p>The wizard reads the folder <b>where it is</b> — nothing is moved, staged, or copied — and
+      classifies what it finds by name (content-sniffing any workbook whose name says neither):</p>
+    <ul>
+      <li><b>"…Table A…" .xlsx</b> — the Table A master. The wizard also reads the <b>state and incident month out of it</b>, so the identity prompts are just Enter-Enter. If the folder carries <b>several Table A's</b> (e.g. a full one and a "Counties That Met Threshold Only" cut), the wizard lists them and asks which one is the master — the choice is pinned in the manifest.</li>
+      <li><b>"…Chart A…" .xlsx</b> — Chart A's. Each one's <b>stage is the folder it sits in</b> ("Entered in Table A", "2. Ready for Table A", "1. For PDA Lead Review" — anywhere in the path), so a downloaded folder keeps its stages. Loose charts on a <i>complete</i> build are final anyway; on a live build the wizard asks one stage for all of them.</li>
+      <li><b><code>query.xlsx</code></b> and <b><code>query*.iqy</code></b> — the SharePoint export + its web query (step 2), picked up wherever they sit.</li>
+    </ul>
+    <p>It prints what it found, asks the identity questions (defaults pre-filled from the Table A),
+      writes one small <code>_manifest.json</code> beside your files (underscore-prefixed = never
+      parsed as PDA data), runs the pipeline, and prints the path to the finished
+      <code>out_*/board.html</code>. Dropped more files into the folder later? Re-run the same
+      command — or the printed <code>pipeline.py</code> line — and the board rebuilds.</p>
+    <div class="fmt"><b>When to use which:</b> the wizard is the fast path for any folder you can
+      download or assemble; steps 3–5 (hand-arranged drop + manifest) remain the way to control
+      every detail by hand — the wizard is doing exactly that for you under the hood.</div>
+  </section>
+
+  <section id="s6">
+    <h2><span class="snum">6</span> Build the board</h2>
+    <div class="sgoal">One command joins everything and writes a single self-contained HTML file.</div>
+    <pre><span class="cm"># from inside pdaboard/, pointing at your drop folder</span>
+python pipeline.py                          <span class="cm"># uses ./manifest.json + ./PDAExamples (default drop)</span>
+<span class="cm"># or an explicit drop + manifest + output dir:</span>
+python pipeline.py --drop "C:\path\to\PDA drop" --manifest manifest.json --out out
+
+<span class="cm"># then open it (fully offline — file:// works, or serve it):</span>
+python -m http.server 8137 --directory out  <span class="cm"># http://localhost:8137/board.html</span></pre>
+    <p>The result is <code>out/board.html</code> — one file, no network calls, ~400&nbsp;KB. It's
+      emailable and opens on any machine. After a <b>template-only</b> edit, re-render instantly
+      without re-parsing: <code>python rehtml.py</code>.</p>
+    <div class="fmt"><b>Prior-history card</b> (bottom of each county drill-down) reads
+      <code>data/history_&lt;state&gt;.json</code>, a static OpenFEMA snapshot shipped in the repo.
+      To refresh it to today's date: <code>python build_history.py</code> (needs network), then
+      rebuild.</div>
+  </section>
+
+  <section id="s7">
+    <h2><span class="snum">7</span> Refresh during a live PDA</h2>
+    <div class="sgoal">Repeat as the assessment progresses — each run is a snapshot; changes show as "Movers."</div>
+    <ol>
+      <li>SharePoint library → flat view → <b>Export to Excel</b> → save over <code>query.xlsx</code> (step 2).</li>
+      <li>Copy the current Chart A's (+ the Table A) into the drop folder (step 3–4).</li>
+      <li><code>python pipeline.py</code> → refresh the browser. Each run appends a snapshot (skipped if nothing changed); movement since the last run appears under "Movers."</li>
+    </ol>
+  </section>
+
+  <section id="files">
+    <h2>Files needed to perform each function</h2>
+    <div class="sgoal"><span class="tag in">in repo</span> ships in the public repo · <span class="tag out">local only</span> you supply it on the work machine (git-ignored, never committed).</div>
+    <table>
+      <thead><tr><th>Function</th><th>Files it needs</th></tr></thead>
+      <tbody>
+        <tr><td><b>Parse Chart A / Table A workbooks</b></td>
+          <td><code>chart_a_parser.py</code> <span class="tag in">in repo</span> · your <code>.xlsx</code> workbooks <span class="tag out">local only</span></td></tr>
+        <tr><td><b>Read the SharePoint tree &amp; stage each file</b></td>
+          <td><code>sp_filetree.py</code> <span class="tag in">in repo</span> · <code>query.xlsx</code> <span class="tag out">local only</span></td></tr>
+        <tr><td><b>Guided build (wizard)</b></td>
+          <td><code>wizard.py</code> <span class="tag in">in repo</span> · your downloaded PDA folder (any mix of Table A / Chart A's / query.xlsx / query.iqy inside) <span class="tag out">local only</span></td></tr>
+        <tr><td><b>Build &amp; render the board</b></td>
+          <td><code>pipeline.py</code>, <code>templates/board.html</code>, <code>data/dim_county_&lt;st&gt;.csv</code>, <code>data/&lt;st&gt;_counties_geo.json</code>, <code>data/history_&lt;st&gt;.json</code> <span class="tag in">in repo</span> · <code>manifest.json</code> (you write it, step 5) · the workbooks <span class="tag out">local only</span></td></tr>
+        <tr><td><b>Re-render after a template edit</b></td>
+          <td><code>rehtml.py</code>, <code>templates/board.html</code> <span class="tag in">in repo</span> · <code>out/board_data.json</code> (from the last build) <span class="tag out">local only</span></td></tr>
+        <tr><td><b>Refresh prior-FEMA-history snapshot</b></td>
+          <td><code>build_history.py</code> <span class="tag in">in repo</span> → writes <code>data/history_&lt;st&gt;.json</code> (needs network)</td></tr>
+        <tr><td><b>Rebuild county dims + geometry</b></td>
+          <td><code>build_dim_county.py</code> <span class="tag in">in repo</span> · a US counties GeoJSON (<code>counties_us.json</code>) + any Chart A / Table A of that state <span class="tag out">local only</span></td></tr>
+        <tr><td><b>Build the pa_pdas_charta table (Power BI)</b></td>
+          <td><code>pa_pdas_charta.py</code> <span class="tag in">in repo</span> · your Table A (+ optional <code>pa_pdas.csv</code>) <span class="tag out">local only</span></td></tr>
+        <tr><td><b>Excel-only charta build (no Databricks)</b></td>
+          <td><code>excel/modChartA.bas</code> (VBA source) <span class="tag in">in repo</span> — import it into a macro-enabled workbook; the built <code>.xlsm</code> stays local <span class="tag out">local only</span></td></tr>
+        <tr><td><b>Databricks port</b></td>
+          <td><code>databricks/01_parse_chart_a.py</code>, <code>02_openfema_history.py</code>, <code>03_render_board.py</code> <span class="tag in">in repo</span> (upload the parsers + <code>templates/</code> + <code>data/</code> beside them)</td></tr>
+        <tr><td><b>Golden tests</b></td>
+          <td><code>tests/</code> + <code>PDAExamples/</code> fixtures <span class="tag out">local only</span> — kept off the public repo (they pin real figures/names)</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<footer>
+  PA PDA Operations Dashboard — local setup guide. Unofficial working tool, not a declaration
+  determination. PDA inputs and built boards stay on the work machine; only tool code is public.
+</footer>
+
+<script>
+function esc(s){return String(s).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));}
+function genManifest(){
+  const complete = document.getElementById('m_complete').value === 'true';
+  const evLines = document.getElementById('m_events').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const m = {
+    pda_id: document.getElementById('m_id').value.trim() || 'PDA',
+    title: document.getElementById('m_title').value.trim(),
+    state: document.getElementById('m_state').value.trim().toUpperCase(),
+    sharepoint_base: document.getElementById('m_sp').value.trim(),
+    stale_hours: Number(document.getElementById('m_stale').value) || 48
+  };
+  if(complete){ m.complete = true; m.met_only = true; m.master_folder = ''; m.events = []; }
+  else { m.events = evLines.map((label,i)=>({event_id:'E'+(i+1), label})); }
+  document.getElementById('m_out').textContent = JSON.stringify(m, null, 2);
+}
+function copyManifest(){
+  const t = document.getElementById('m_out').textContent;
+  navigator.clipboard && navigator.clipboard.writeText(t);
+}
+genManifest();
+</script>
+</body>
+</html>
