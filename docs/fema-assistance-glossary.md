@@ -90,7 +90,7 @@ The OpenFEMA dictionary states verbatim, on **both** flag fields:
 
 So: **IA-authorized = `ihProgramDeclared` OR `iaProgramDeclared`.**
 
-#### What that means for this project's Region 5 dataset (FY2007–2026, 80 disasters)
+#### What that means for this project's Region 5 dataset (FY2007–2026, 83 disasters)
 - `ihProgramDeclared` (IHP) = **34** — the modern, consistently-populated flag; **reconciles
   exactly** with `costs.ihpTotal > 0` (both 34).
 - `iaProgramDeclared` (IA) = **8** — all FY2008–09 "Severe Storm" declarations; a **legacy**

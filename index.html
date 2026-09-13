@@ -2203,7 +2203,7 @@ function countyDetailHTML(o,fips){
   const F=geoYrFiltering();
   if(geoMetric==="mitObligated")return geoNonDisDetailHTML("mitObligated",`${o.name} County, ${o.state}`,F?yrSum(o.mitByYear,geoYearLo,geoYearHi):o.mitObligated,F?null:o.mitByProgram,o.nMitApplicants,"grantees")+geoYrCap(false);
   if(geoMetric==="hmgpObligated")return geoNonDisDetailHTML("hmgpObligated",`${o.name} County, ${o.state}`,F?yrSum(o.hmgpByYear,geoYearLo,geoYearHi):o.hmgpObligated,null,o.nHmgpApplicants,"subrecipients")+geoYrCap(false);
-  const dis=(o.disasters||[]).filter(inYr);
+  const dis=(o.disasters||[]).filter(inYr).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
   const pa=F?yrSum(o.paByYear,geoYearLo,geoYearHi):(o.paObligated||0), ih=F?yrSum(o.ihpByYear,geoYearLo,geoYearHi):(o.ihpApproved||0), hm=F?yrSum(o.hmgpByYear,geoYearLo,geoYearHi):(o.hmgpObligated||0);
   const list=dis.map(d=>`<div class="declrow clickable" data-dn="${d.dn}"><span class="dk"><b style="color:var(--navy)">DR-${d.dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">${fmtMoney(d.pa)} <span class="thr-sub">DR&nbsp;total</span> ↗</span></div>`).join("");
   const span=F?` <span class="thr-sub">(${geoYearLo}–${geoYearHi})</span>`:` <span class="thr-sub">(all-time)</span>`;
@@ -2240,7 +2240,7 @@ function showApplicant(fips,idx){
   const o=(DECL.counties||{})[fips]; if(!o||!o.applicants)return;
   const a=o.applicants[idx]; if(!a)return;
   const meta={}; (o.disasters||[]).forEach(d=>meta[d.dn]=d);
-  const chips=(a.dns||[]).map(dn=>{const d=meta[dn]||{};return `<div class="declrow clickable" data-dn="${dn}"><span class="dk"><b style="color:var(--navy)">DR-${dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">↗</span></div>`;}).join("");
+  const chips=(a.dns||[]).slice().sort((x,y)=>String((meta[y]||{}).date||"").localeCompare(String((meta[x]||{}).date||""))).map(dn=>{const d=meta[dn]||{};return `<div class="declrow clickable" data-dn="${dn}"><span class="dk"><b style="color:var(--navy)">DR-${dn}</b> · ${fmtDate(d.date)} · ${d.it||""}</span><span class="dv">↗</span></div>`;}).join("");
   const box=el("geoPick"); if(!box)return;
   box.innerHTML=`<div class="declhd"><b>${a.name}</b><br><span class="thr-sub">${o.name} County, ${o.state}</span><br>PA obligated <b>${fmtMoney(a.pa)}</b> · <b>${fmtNum(a.projects)}</b> projects · <b>${a.nDisasters}</b> disaster${a.nDisasters>1?"s":""}</div>${chips}`;
 }
@@ -2778,7 +2778,9 @@ function gmRenderState(box){
         <div class="gm-rmain"><b>${r.v.name}</b><span class="gm-rsub">${r.v.count} disasters · ${fmtMoney(r.v.paObligated)} PA · ${fmtNum(r.v.nApplicants||0)} applicants</span>${gmBar(gmVal(fmtk,"county",r._o),mx,col)}</div>
         <div class="gm-rval">${gmFmt(gmSort,"county",r._o)}<span class="gm-go">›</span></div></div>`).join("")}</div>`;
   } else {
-    const rows=DISASTERS.filter(d=>d.state===s&&inYr(d)).map(d=>({_n:"DR-"+d.disasterNumber,_o:d,d}));
+    const rows=DISASTERS.filter(d=>d.state===s&&inYr(d))
+      .sort((a,b)=>String(b.begin||"").localeCompare(String(a.begin||"")))   // newest→oldest; stable gmSortRows keeps this order on ties
+      .map(d=>({_n:"DR-"+d.disasterNumber,_o:d,d}));
     const sorted=gmSortRows(rows,"disaster"); const mx=Math.max(...sorted.map(r=>gmVal(fmtk,"disaster",r._o)),1);
     body=`<div class="gm-sech">Lens · sort ${sorted.length} disasters${geoYrFiltering()?` in ${geoYearLo}–${geoYearHi}`:""}</div>${gmLensControl()}
       <div class="gm-list">${sorted.map(r=>{const d=r.d;return `<div class="gm-row" data-gmdisaster="${d.disasterNumber}">
@@ -2860,7 +2862,7 @@ function gmRenderCounty(box){
       <div class="gm-title">${o.name} County, ${o.state}</div>
       <div class="gm-stat">${geoSoleProgram()?geoFocusSpans(k=>geoCountyVal(o,k),geoCountyVal(o,"count"))+(geoSoleProgram()==="ihp"&&o.iaRegistrations?`<span>${fmtNum(o.iaRegistrations)} regs</span>`:""):`<span>${geoCountyVal(o,"count")} disasters</span><span>${fmtMoney(geoCountyVal(o,"paObligated"))} PA</span><span>${fmtMoney(geoCountyVal(o,"ihpApproved"))} IHP</span><span>${fmtMoney(geoCountyVal(o,"hmgpObligated"))} HMGP</span>`}<span>${fmtMoney(geoCountyVal(o,"mitObligated"))} mitigation</span><span class="thr-sub">${geoYrFiltering()?geoYearLo+"–"+geoYearHi:"all-time"}</span></div></div>`;
   const bb=geoCountyBBox(f); const mapHtml=bb?gmMiniMap(new Set([f]),bb,false):"";
-  const dis=(o.disasters||[]).slice().filter(inYr).sort((a,b)=>(b.pa||0)-(a.pa||0));
+  const dis=(o.disasters||[]).slice().filter(inYr).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
   const dHtml=`<div class="gm-sech">${dis.length} disasters here${geoYrFiltering()?` in ${geoYearLo}–${geoYearHi}`:""} <span class="thr-sub">· $ = whole-DR total, not this county's share</span></div><div class="gm-list">${dis.map(d=>`<div class="gm-row" data-gmdisaster="${d.dn}"><div class="gm-rmain"><b>DR-${d.dn} · ${d.it||""}</b><span class="gm-rsub">${(d.date||"").slice(0,7)} · ${fmtMoney(d.pa||0)} PA · ${fmtMoney(d.ihp||0)} IHP <span class="thr-sub">DR-wide</span></span></div><div class="gm-rval"><span class="gm-go">›</span></div></div>`).join("")}</div>`;
   const apps=o.applicants||[], shown=gmExpanded?apps:apps.slice(0,20);
   const aHtml=apps.length?`<div class="gm-sech">${fmtNum(o.nApplicants||apps.length)} applicants (all-time PA)</div>
